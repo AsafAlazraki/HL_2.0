@@ -992,6 +992,8 @@ export interface Opens {
 
 export interface WholeRow {
   key: string
+  /** the thing itself, on its own list — what a put-on or take-off press changes */
+  place: Place
   name: string
   /** its own deciding facts: "175 hp · 220 kg · 25″ shaft", a trailer's series */
   facts: string
@@ -1050,6 +1052,7 @@ const offeredCounts = (made: readonly Made[]): { made: number; refused: number }
 
 const madeRow = (m: Made, extra: Partial<WholeRow> = {}): WholeRow => ({
   key: m.key,
+  place: m.place,
   name: m.name,
   facts: m.facts,
   price: m.price,
@@ -1072,8 +1075,15 @@ function madeGroups(rows: WholeRow[], note = ''): WholeGroup[] {
   return groups
 }
 
-const struckRow = (key: string, name: string, facts: string, opens: Opens | null): WholeRow => ({
+const struckRow = (
+  key: string,
+  place: Place,
+  name: string,
+  facts: string,
+  opens: Opens | null,
+): WholeRow => ({
   key,
+  place,
   name,
   facts,
   price: null,
@@ -1099,7 +1109,10 @@ function wholeMotor(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
   const rows = new Map((ctx.rowsByEntity[motor.tableId] ?? []).map((r) => [r.id, r]))
   const dotRow = (d: MotorDot, opens: Opens | null): WholeRow => {
     const r = rows.get(d.place.rowId)
-    return { ...struckRow(d.key, d.name, r ? goodsFacts(table, r) : '', opens), rule: d.rule }
+    return {
+      ...struckRow(d.key, d.place, d.name, r ? goodsFacts(table, r) : '', opens),
+      rule: d.rule,
+    }
   }
   const of = (standing: DotStanding): MotorDot[] =>
     motor.dots.filter((d) => d.standing === standing)
@@ -1115,7 +1128,13 @@ function wholeMotor(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
   const live = [...rows.values()].filter((r) => !isDiscontinued(r))
   const ofRows = (list: RowData[]): WholeRow[] =>
     list.map((r) =>
-      struckRow(r.id, lineSaid(rowLabel(table, r), table.name), goodsFacts(table, r), pairingList),
+      struckRow(
+        r.id,
+        { tableId: table.id, rowId: r.id },
+        lineSaid(rowLabel(table, r), table.name),
+        goodsFacts(table, r),
+        pairingList,
+      ),
     )
   push(
     'under',
@@ -1163,7 +1182,7 @@ function wholeTrailer(fit: BoatFit): WholeList | null {
     trailer.oneTrailer,
   )
   const memberRow = (m: TrailerMember): WholeRow =>
-    struckRow(m.key, m.name, m.series, { tableId: m.place.tableId, at: m.place.rowId })
+    struckRow(m.key, m.place, m.name, m.series, { tableId: m.place.tableId, at: m.place.rowId })
   for (const g of trailer.groups) {
     if (g.id !== 'another') {
       groups.push({ id: g.id, head: g.head, note: '', rows: g.members.map(memberRow) })
@@ -1200,7 +1219,13 @@ function wholeList(ctx: CatalogueCtx, fit: BoatFit, slot: string): WholeList | n
         .map((r) => {
           const label = rowLabel(table, r)
           return {
-            ...struckRow(r.id, lineSaid(label, table.name), '', { tableId: table.id, at: r.id }),
+            ...struckRow(
+              r.id,
+              { tableId: table.id, rowId: r.id },
+              lineSaid(label, table.name),
+              '',
+              { tableId: table.id, at: r.id },
+            ),
             hay: hayOf(lineSaid(label, table.name), label),
           }
         })

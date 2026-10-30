@@ -636,11 +636,10 @@ test.describe('the shell', () => {
     await expect(page).toHaveURL(/\/quotes$/)
     await expect(page.getByTestId('quotes')).toBeVisible()
 
-    /* THE REGISTER COUNTS IN ITS BANDS (2026-10-21). Its head no longer says "N quotes are filed
-       in this browser", which said the pill's count a second time (docs/WORDS.md, one fact
-       once); each band's head counts its own quotes, and together they are the register. */
-    await expect(page.getByTestId('quotes').locator('.qr-bandhead__count').first()).toBeVisible()
-    const counts = await page.getByTestId('quotes').locator('.qr-bandhead__count').allInnerTexts()
+    /* THE DESK COUNTS IN ITS GROUPS (the flow round, 2026-10-30): each group's head counts its
+       own deals, a group with none is not drawn, and together they are the desk. */
+    await expect(page.getByTestId('quotes').locator('.qd-group__n').first()).toBeVisible()
+    const counts = await page.getByTestId('quotes').locator('.qd-group__n').allInnerTexts()
     const said = counts.join(' + ')
     const onTheRegister = counts
       .map((c) => Number(/[\d,]+$/.exec(c.trim())?.[0]?.replace(/,/g, '') ?? 0))

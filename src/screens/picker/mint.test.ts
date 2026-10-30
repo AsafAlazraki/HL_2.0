@@ -72,10 +72,12 @@ describe('starting a quote from one row', () => {
       pack.byKey('boat_stacer').priceLevels?.find((l) => l.key === 'cash')?.label,
     )
 
-    /* the boat brings what the file says goes with it, so a quote for a
-       hull is never just the hull */
-    expect(outcome.quote.lines.length).toBeGreaterThan(1)
+    /* THE BOAT ALONE (the owner, 2026-10-30): nothing goes on that nobody chose, so the total
+       the build opens on is the boat's price — and every chapter the boat has is still there,
+       waiting, with how many it offers */
+    expect(outcome.quote.lines).toHaveLength(1)
     expect(outcome.quote.sections.length).toBeGreaterThan(1)
+    expect(outcome.quote.sections.slice(1).some((s) => (s.pickedCount ?? 0) > 0)).toBe(true)
   })
 
   it('stamps the reference from the instant it was handed, and counts the day', () => {

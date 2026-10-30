@@ -34,6 +34,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { pictureBook, type PictureEntry, type PicturesFile } from '@/domain/model/pictures'
+import { fitItemsOf } from '@/domain/catalogue/fitItems'
 import { fleetOf } from '@/screens/picker/fleet'
 import { loadPack } from '@/test/fixtures/pack'
 
@@ -134,6 +135,13 @@ const fileModels = new Map<string, string[]>()
         )
       }
     }
+  }
+  /* a part, a package, a rigging kit or a consumable is its own name in its register */
+  for (const m of fitItemsOf(tables, pack.rowsByEntity)) {
+    fileModels.set(
+      `${m.tableId}::${m.name}`,
+      m.variants.map((v) => v.rowId),
+    )
   }
 }
 

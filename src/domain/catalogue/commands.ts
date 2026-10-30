@@ -159,6 +159,9 @@ export type CatalogueEventKind =
   | 'settings-changed'
   /* a place's own line, mark, picture or ground, set on /places (src/domain/catalogue/placeCommands.ts) */
   | 'place-dressed'
+  /* a picture Northside added to one option, or took off, or chose over the maker's
+     (src/domain/catalogue/pictureCommands.ts) */
+  | 'picture-set'
   | 'batch'
   | 'undone'
   | 'redone'
@@ -320,6 +323,7 @@ const OPS: Record<LabelledKind, Op> = {
   'prices-changed': { one: 'Prices changed' },
   'settings-changed': { one: 'Settings changed' },
   'place-dressed': { one: 'Place changed' },
+  'picture-set': { one: 'Picture changed', many: (n) => `${n} pictures changed` },
 }
 
 /** "Cell edit · Boats" */

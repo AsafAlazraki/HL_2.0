@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choosing A · The boat as the map</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css: the day roles of the kit "Signal" ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-done: var(--color-viridian-600);
+  --color-ask: var(--color-ochre-600);
+  --color-rule: var(--color-neutral-100);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(51.2% 0.1554 255.7 / 10%);
+  --color-drop-wash: oklch(51.2% 0.1554 255.7 / 14%);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-black: oklch(17% 0 0);
+  --swatch-grey: oklch(63% 0.004 250);
+  --swatch-dark-grey: oklch(41% 0.005 250);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-dark-blue: oklch(33% 0.1 262);
+  --swatch-military-black: oklch(25% 0.014 128);
+  --swatch-carbon: oklch(29% 0.004 260);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem; --text-4xl: 1.875rem;
+  --tracking-caps: 0.14em;
+  --radius-pill: 999px; --radius-plate: 16px; --radius-field: 12px; --radius-tile: 14px; --radius-glyph: 8px; --radius-key: 5px;
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 22px 40px -12px oklch(18.9% 0.0309 231.6 / 45%), 0 4px 10px oklch(18.9% 0.0309 231.6 / 18%);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); font-size: var(--text-base); line-height: 1.4; -webkit-font-smoothing: antialiased; position: relative; }
+img { display: block; }
+.g { flex: none; display: inline-block; vertical-align: middle; }
+.eyebrow { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 600; color: var(--color-ink-on-tint); }
+.fig { font-variant-numeric: tabular-nums; }
+.plate { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); }
+kbd { font-family: var(--font-mono); font-size: var(--text-2xs); padding: 2px 6px; border-radius: var(--radius-key); background: var(--color-plate); border: 1px solid var(--color-control-edge); box-shadow: 0 1px 0 var(--color-control-edge); color: var(--color-ink); white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; border: 1px solid var(--color-control-edge); background: var(--color-plate); color: var(--color-ink); white-space: nowrap; }
+.btn--act { background: var(--color-act); color: var(--color-ink-on-act); border-color: transparent; }
+.btn--accent { background: var(--color-accent); color: var(--color-ink-on-accent); border-color: transparent; }
+.btn--quiet { border-color: transparent; background: var(--color-plate-tint); color: var(--color-ink-on-tint); }
+.btn--on { background: var(--color-chosen-wash); color: var(--color-ink-on-tint); border-color: var(--color-accent); }
+.count { font-weight: 400; color: var(--color-ink-3); font-variant-numeric: tabular-nums; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--color-rule); }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-pill); background: var(--color-plate); border: 1px solid var(--color-control-edge); }
+.seg span { padding: 4px 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); white-space: nowrap; }
+.seg span.on { background: var(--color-accent); color: var(--color-ink-on-accent); }
+.seg span span { padding: 0; background: none; color: inherit; font-weight: 400; }
+.sws { display: inline-flex; gap: 3px; }
+.sw { display: inline-flex; width: 14px; height: 14px; border-radius: 50%; overflow: hidden; outline: 1px solid var(--swatch-edge); outline-offset: -1px; }
+.sw i { flex: 1; }
+/* the one picture box: one ground, one padding, contained, never cropped */
+.pic { background: var(--color-white); display: grid; place-items: center; overflow: hidden; border-radius: 10px; }
+.pic img { max-width: 86%; max-height: 82%; object-fit: contain; }
+.pic--none { background: var(--color-plate-tint); color: var(--color-ink-on-tint); flex-direction: column; gap: 4px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: var(--text-2xs); }
+.pic--none .g { opacity: .75; }
+/* the shell's pill, as built */
+.shell { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: var(--radius-pill); background: oklch(100% 0 0 / 88%); box-shadow: var(--shadow-plate); font-size: var(--text-sm); z-index: 5; }
+.shell b { width: 32px; height: 32px; border-radius: 50%; background: var(--color-blue-700); display: grid; place-items: center; color: var(--color-white); }
+.shell span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-pill); color: var(--color-ink-2); font-weight: 500; }
+.shell span.on { background: var(--color-blue-700); color: var(--color-white); }
+.live { font-size: var(--text-xs); color: var(--color-ink-2); }
+.was { font-size: var(--text-2xs); color: var(--color-ink-3); }
+.was s { color: var(--color-ink-3); }
+
+.head { position: absolute; left: 40px; right: 40px; top: 66px; height: 72px; display: flex; align-items: flex-end; gap: 24px; }
+.head h1 { font-size: var(--text-4xl); font-weight: 300; letter-spacing: -0.016em; line-height: 1.1; }
+.head .sub { font-size: var(--text-sm); color: var(--color-ink-2); }
+.head .grow { flex: 1; }
+.total { text-align: right; }
+.total b { display: block; font-size: var(--text-3xl); font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.fits { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: var(--radius-pill); background: var(--color-plate); border: 1px solid var(--color-accent); color: var(--color-ink-on-tint); font-weight: 600; font-size: var(--text-sm); }
+.fits small { font-weight: 400; color: var(--color-ink-2); font-size: var(--text-xs); }
+.steps { position: absolute; left: 40px; right: 40px; top: 148px; height: 36px; display: flex; gap: 8px; }
+.step { display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: var(--radius-pill); background: var(--color-plate); font-size: var(--text-sm); color: var(--color-ink-2); }
+.step i { font-style: normal; font-weight: 700; font-size: var(--text-xs); color: var(--color-ink-3); font-variant-numeric: tabular-nums; }
+.step .g { color: var(--color-done); }
+.step.on { background: var(--color-accent); color: var(--color-ink-on-accent); font-weight: 600; }
+.step.on i { color: var(--color-ink-on-accent); }
+.map { position: absolute; left: 40px; top: 196px; width: 800px; height: 590px; padding: 18px 20px; }
+.map__top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.map__top h2 { font-size: var(--text-xl); font-weight: 600; }
+.map__top p { font-size: var(--text-xs); color: var(--color-ink-3); }
+.map__svg { margin-top: 6px; position: relative; }
+.onzone { position: absolute; display: flex; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 3px; border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-plate); font-size: var(--text-xs); font-weight: 600; white-space: nowrap; }
+.chip .pic { width: 28px; height: 28px; border-radius: 50%; }
+.chip .pic--none { width: 28px; height: 28px; border-radius: 50%; }
+.zones { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+.zone { border: 1px solid var(--color-rule); border-radius: 12px; padding: 8px 10px; font-size: var(--text-xs); color: var(--color-ink-2); }
+.zone b { display: block; font-size: var(--text-sm); color: var(--color-ink); }
+.zone.on { border-color: var(--color-accent); background: var(--color-chosen-wash); }
+.keys { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 14px; border-radius: 12px; background: var(--color-plate-tint); }
+.keys h3 { font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-on-tint); margin-bottom: 6px; }
+.keys p { font-size: var(--text-xs); color: var(--color-ink-2); line-height: 1.9; }
+.keys .say { margin-top: 4px; padding: 6px 10px; border-left: 3px solid var(--color-accent); background: var(--color-plate); border-radius: 0 8px 8px 0; font-size: var(--text-xs); color: var(--color-ink); line-height: 1.45; }
+.panel { position: absolute; left: 856px; top: 196px; width: 544px; height: 590px; padding: 18px 20px; }
+.panel h2 { font-size: var(--text-xl); font-weight: 600; display: flex; align-items: baseline; gap: 10px; }
+.panel h2 small { font-size: var(--text-xs); font-weight: 400; color: var(--color-ink-3); }
+.aisletabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.aisletabs .btn { height: 30px; font-size: var(--text-xs); }
+.note { margin-top: 10px; font-size: var(--text-xs); color: var(--color-ink-2); }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.tile { position: relative; border: 1px solid var(--color-rule); border-radius: var(--radius-tile); padding: 8px; background: var(--color-plate); }
+.tile .pic { height: 84px; border: 1px solid var(--color-rule); }
+.tile__name { margin-top: 6px; font-size: var(--text-xs); font-weight: 600; line-height: 1.3; height: 32px; overflow: hidden; }
+.tile__foot { margin-top: 4px; display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm); font-weight: 600; }
+.tile__add { height: 26px; font-size: var(--text-xs); }
+.tile__grip { position: absolute; top: 12px; right: 12px; color: var(--color-ink-3); background: oklch(100% 0 0 / 85%); border-radius: 6px; padding: 2px; }
+.tile.ghost { border: 2px dashed var(--color-control-edge); background: var(--color-plate-tint); }
+.tile.ghost > * { opacity: .25; }
+.tile.on { border-color: var(--color-done); }
+.lifted { position: absolute; left: 424px; top: 326px; width: 150px; transform: rotate(-2.5deg); box-shadow: var(--shadow-lift); border-color: var(--color-accent); z-index: 4; }
+.cursor { position: absolute; left: 540px; top: 380px; z-index: 6; }
+.droplabel { position: absolute; left: 404px; top: 288px; z-index: 5; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--color-accent); color: var(--color-white); font-size: var(--text-xs); font-weight: 600; }
+.cond { margin-top: 10px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--color-rule); font-size: var(--text-xs); color: var(--color-ink-2); display: flex; gap: 10px; align-items: center; }
+.cond b { color: var(--color-ink); }
+.cond a { color: var(--color-ink-on-tint); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.tray { position: absolute; left: 40px; right: 40px; top: 800px; height: 86px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.tray .lab { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 600; color: var(--color-ink-on-tint); width: 62px; line-height: 1.3; }
+.ti { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border-radius: 12px; background: var(--color-plate-tint); font-size: var(--text-xs); max-width: 190px; }
+.ti .pic { width: 46px; height: 40px; flex: none; border-radius: 8px; }
+.ti .pic img { max-width: 92%; max-height: 90%; }
+.ti b { display: block; font-variant-numeric: tabular-nums; }
+.ti span { line-height: 1.25; }
+.tray .sum { margin-left: auto; text-align: right; display: flex; align-items: center; gap: 14px; }
+.tray .sum b { font-size: var(--text-2xl); font-variant-numeric: tabular-nums; }
+.wasnow { font-size: var(--text-2xs); color: var(--color-ink-3); max-width: 300px; text-align: right; line-height: 1.35; }
+
+</style>
+</head>
+<body>
+<nav class="shell" aria-label="Northside Marine"><b><svg class="g " width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M8 11h8M4 14c0 4 4 7 8 7s8-3 8-7"/></svg></b><span class=""><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v9h-5v-5H9v5H4z"/></svg>Home</span><span class="on"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>Quotes</span><span class=""><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="16" cy="10" r="2.5"/><path d="M3.5 19c.5-3 3-5 5.5-5s5 2 5.5 5M14 15c2.5-.5 5.5 1 6 4"/></svg>Customers</span><span class=""><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>Data</span><span class=""><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2M3.5 9.5"/></svg>History</span><span class=""><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Find</span></nav><header class="head">
+  <div><p class="eyebrow">Quote 20261030-01 · Draft</p><h1>Stacer 529 Assault Pro</h1><p class="sub">Tournament · nobody named yet</p></div>
+  <div class="grow"></div>
+  <span class="fits"><svg class="g " width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/><path d="M15 16l2 2 4-4"/></svg>What fits this boat <small>6 motors · 1 trailer · 4 parts · 3 rigging kits</small><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  <div><p class="eyebrow" style="margin-bottom:4px">Priced at</p><span class="seg"><span class="on">Cash</span><span>Trade</span></span></div>
+  <div class="total"><p class="eyebrow">Total</p><b>$54,881</b></div>
+</header>
+<nav class="steps" aria-label="The build">
+  <span class="step"><i>01</i><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>The boat</span>
+  <span class="step"><i>02</i><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Motor · F115LB</span>
+  <span class="step"><i>03</i><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Trailer</span>
+  <span class="step on"><i>04</i>Parts &amp; fit-out · 3 on</span>
+  <span class="step"><i>05</i>Who it is for</span>
+  <span class="step"><i>06</i>Give it</span>
+</nav>
+<section class="map plate" aria-label="Where it goes">
+  <div class="map__top"><h2>Where it goes</h2><p class="wasnow">Was: “Show all 2,238 in Parts &amp; Accessories”, the first 40 as text. Now: five places on the boat, each counted.</p></div>
+  <div class="map__svg"><svg viewBox="0 0 760 300" width="760" height="300" role="img" aria-label="A diagram of a boat in five places: bow, helm, deck, transom and trailer. It is not drawn from any model.">
+    <g>
+      <rect x="20" y="30" width="150" height="205" rx="12" fill="transparent" stroke="var(--color-neutral-300)" stroke-width="1" stroke-dasharray="5 5"/>
+      <text x="32" y="50" font-size="12" font-weight="600" letter-spacing="1.5" fill="var(--color-neutral-600)">TRANSOM</text>
+      <g><circle cx="152" cy="46" r="11" fill="var(--color-accent)"/><text x="152" y="50.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">1</text></g>
+    </g><g>
+      <rect x="170" y="30" width="170" height="205" rx="12" fill="transparent" stroke="var(--color-neutral-300)" stroke-width="1" stroke-dasharray="5 5"/>
+      <text x="182" y="50" font-size="12" font-weight="600" letter-spacing="1.5" fill="var(--color-neutral-600)">DECK</text>
+      <g><circle cx="322" cy="46" r="11" fill="var(--color-accent)"/><text x="322" y="50.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">1</text></g>
+    </g><g>
+      <rect x="340" y="30" width="140" height="205" rx="12" fill="var(--color-drop-wash)" stroke="var(--color-accent)" stroke-width="2" stroke-dasharray="0"/>
+      <text x="352" y="50" font-size="12" font-weight="600" letter-spacing="1.5" fill="var(--color-blue-700)">HELM</text>
+      <g><circle cx="462" cy="46" r="11" fill="var(--color-accent)"/><text x="462" y="50.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">1</text></g>
+    </g><g>
+      <rect x="480" y="30" width="260" height="205" rx="12" fill="transparent" stroke="var(--color-neutral-300)" stroke-width="1" stroke-dasharray="5 5"/>
+      <text x="492" y="50" font-size="12" font-weight="600" letter-spacing="1.5" fill="var(--color-neutral-600)">BOW</text>
+      
+    </g><g>
+      <rect x="20" y="240" width="720" height="56" rx="12" fill="transparent" stroke="var(--color-neutral-300)" stroke-width="1" stroke-dasharray="5 5"/>
+      <text x="32" y="260" font-size="12" font-weight="600" letter-spacing="1.5" fill="var(--color-neutral-600)">TRAILER</text>
+      
+    </g>
+    <g fill="none" stroke="var(--color-neutral-600)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M60 128 L700 102 Q690 150 640 200 L120 206 Q78 200 66 182 Z" fill="var(--color-white)"/>
+      <path d="M66 150 L655 140" stroke-dasharray="2 6"/>
+      <path d="M392 128 L392 84 L438 84 L452 118" />
+      <path d="M396 84 L410 66 L440 66" />
+      <rect x="26" y="96" width="30" height="34" rx="6" fill="var(--color-white)"/>
+      <path d="M41 130 L41 196 M34 196 L48 196"/>
+      <path d="M210 126 l0 -16 l26 0 l0 14 M260 125 l0 -14 l24 0 l0 13"/>
+      <path d="M600 108 l40 -2"/>
+      <path d="M90 262 L700 262 L730 250 M150 262 l0 -18 M520 262 l0 -18"/>
+      <circle cx="300" cy="276" r="13" fill="var(--color-white)"/><circle cx="346" cy="276" r="13" fill="var(--color-white)"/>
+    </g>
+  </svg>
+    <div class="onzone" style="left:352px;top:182px"><span class="chip"><span class="pic"><img src="/seed-images/cf-xl-90ce3ac6-856f-4520-b1a7-82f534b23668-7f2a2c8e.webp" alt=""></span>Striker Vivid 7cv</span></div>
+    <div class="onzone" style="left:180px;top:182px"><span class="chip"><span class="pic pic--none"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M6 6l3.5 3.5M18 6l-3.5 3.5M6 18l3.5-3.5M18 18l-3.5-3.5"/></svg></span>Safety Gear</span></div>
+    <div class="onzone" style="left:30px;top:150px"><span class="chip"><span class="pic pic--none"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M7 7V5h3v2M14 7V5h3v2M7 13h3M15.5 11.5v3M14 13h3"/></svg></span>Battery MFM50</span></div>
+  </div>
+  <p style="font-size:var(--text-2xs);color:var(--color-ink-3);margin-top:-2px">A diagram of a boat, not the 529 Assault Pro. Which place an aisle belongs to is Northside’s own setting, set once per aisle.</p>
+  <div class="zones">
+    <div class="zone"><b>Bow</b>2 aisles · nothing on</div>
+    <div class="zone on"><b>Helm</b>4 aisles · 1 on</div>
+    <div class="zone"><b>Deck</b>4 aisles · 1 on</div>
+    <div class="zone"><b>Transom</b>4 aisles · 1 on</div>
+    <div class="zone"><b>Trailer</b>1 aisle · nothing on</div>
+  </div>
+  <div class="keys">
+    <div><h3>By keyboard</h3><p><kbd>Space</kbd> picks up the GX700W &nbsp;·&nbsp; <kbd>←</kbd> <kbd>→</kbd> steps place to place<br><kbd>Space</kbd> puts it on &nbsp;·&nbsp; <kbd>Esc</kbd> puts it back where it was</p></div>
+    <div><h3>Said aloud as it moves</h3><p class="say">“Picked up GX700W VHF radio, white, $249. Over the helm. Space puts it on the quote.”</p></div>
+  </div>
+</section>
+<section class="panel plate" aria-label="The helm">
+  <h2>The helm <small>4 aisles Northside placed here · 560 parts</small></h2>
+  <div class="aisletabs">
+    <span class="btn">Sounders &amp; chartplotters<span class="count">246</span></span>
+    <span class="btn btn--on">Radios &amp; beacons<span class="count">47</span></span>
+    <span class="btn">Stereo &amp; TV<span class="count">41</span></span>
+    <span class="btn">Steering, controls &amp; rigging<span class="count">226</span></span>
+  </div>
+  <p class="note">The price list names 4 parts for this boat, all at the transom and bow. None is a radio, so these are from Northside’s whole list: GME 42 · Garmin 5.</p>
+  <div class="grid">
+    <div class="tile ghost">
+  <div class="pic"><img src="/seed-images/gx700w-front-1920x770-990c6c44.webp" alt="GX700W VHF fixed-mount radio · White"></div>
+  <div class="tile__name">GX700W VHF fixed-mount radio · White</div>
+  <div class="tile__foot"><span class="fig">$249</span><span class="btn btn--quiet tile__add"><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</span></div>
+  <span class="tile__grip" title="Drag, or press for its menu"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg></span>
+</div>
+    <div class="tile ">
+  <div class="pic"><img src="/seed-images/gx700b-groupshot-1823x1440-98bb22a0.webp" alt="GX700B VHF fixed-mount radio · Black"></div>
+  <div class="tile__name">GX700B VHF fixed-mount radio · Black</div>
+  <div class="tile__foot"><span class="fig">$249</span><span class="btn btn--quiet tile__add"><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</span></div>
+  <span class="tile__grip" title="Drag, or press for its menu"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg></span>
+</div>
+    <div class="tile ">
+  <div class="pic"><img src="/seed-images/cf-lg-22ac0eda-0054-4f84-b18b-ac0ba3da43fc-5042115f.webp" alt="Garmin VHF115i fixed-mount radio"></div>
+  <div class="tile__name">Garmin VHF115i fixed-mount radio</div>
+  <div class="tile__foot"><span class="fig">$428</span><span class="btn btn--quiet tile__add"><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</span></div>
+  <span class="tile__grip" title="Drag, or press for its menu"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg></span>
+</div>
+    <div class="tile ">
+  <div class="pic"><img src="/seed-images/cf-lg-691df03b-2990-42fd-9d88-388c9c8525ff-a5d981d8.webp" alt="Garmin AIS800 black-box transceiver"></div>
+  <div class="tile__name">Garmin AIS800 black-box transceiver</div>
+  <div class="tile__foot"><span class="fig">$1,739</span><span class="btn btn--quiet tile__add"><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</span></div>
+  <span class="tile__grip" title="Drag, or press for its menu"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg></span>
+</div>
+    <div class="tile ">
+  <div class="pic"><img src="/seed-images/spk09-front34-new2022-1305x1440-20affffe.webp" alt="SPK09 extension speaker with lead"></div>
+  <div class="tile__name">SPK09 extension speaker with lead</div>
+  <div class="tile__foot"><span class="fig">$55</span><span class="btn btn--quiet tile__add"><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</span></div>
+  <span class="tile__grip" title="Drag, or press for its menu"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg></span>
+</div>
+    <div class="tile ">
+  <div class="pic"><img src="/seed-images/abl015-front-1513x1440-9e2294f9.webp" alt="ABL015 round aerial base with lead"></div>
+  <div class="tile__name">ABL015 round aerial base with lead</div>
+  <div class="tile__foot"><span class="fig">$65</span><span class="btn btn--quiet tile__add"><svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</span></div>
+  <span class="tile__grip" title="Drag, or press for its menu"><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg></span>
+</div>
+  </div>
+  <div class="cond"><svg class="g " width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M12 10V5M12 14v5M10 12H5M14 12h5"/></svg><span><b>Rigging kit for the F115LB</b> is in Steering, controls &amp; rigging, made for this quote’s motor. Its price is not chosen yet.</span><a>Choose on Prices <svg class="g " width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+</section>
+<div class="tile lifted" aria-hidden="true"><div class="pic" style="height:64px;border:1px solid var(--color-rule)"><img src="/seed-images/gx700w-front-1920x770-990c6c44.webp" alt=""></div><div class="tile__name">GX700W VHF fixed-mount radio · White</div><div class="tile__foot"><span class="fig">$249</span><svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg></div></div>
+<span class="droplabel">Drop on the helm</span>
+<svg class="cursor" width="22" height="26" viewBox="0 0 22 26"><path d="M2 2 L2 21 L7 16 L11 24 L14 22.5 L10 15 L17 15 Z" fill="#111" stroke="#fff" stroke-width="1.5"/></svg>
+<footer class="tray plate" aria-label="On this quote">
+  <span class="lab">On this quote</span>
+  <span class="ti"><span class="pic"><img src="/seed-images/529-assault-lifestyle-tiffs-7-1024x676-fbf66995.webp" alt="" style="max-width:100%;max-height:100%"></span><span>The boat<b>$28,530</b></span></span>
+  <span class="ti"><span class="pic"><img src="/seed-images/f115-grey-white-800-x-600-15788967.webp" alt=""></span><span>F115LB<b>$16,667</b></span></span>
+  <span class="ti"><span class="pic"><img src="/seed-images/ta1400s13sb-package-04af7da0.webp" alt=""></span><span>Trailer<b>$8,703</b></span></span>
+  <span class="ti"><span class="pic pic--none"><svg class="g " width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M7 7V5h3v2M14 7V5h3v2M7 13h3M15.5 11.5v3M14 13h3"/></svg></span><span>Battery MFM50<b>$199</b></span></span>
+  <span class="ti"><span class="pic"><img src="/seed-images/cf-xl-90ce3ac6-856f-4520-b1a7-82f534b23668-7f2a2c8e.webp" alt=""></span><span>Striker Vivid 7cv<b>$699</b></span></span>
+  <span class="ti"><span class="pic pic--none"><svg class="g " width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M6 6l3.5 3.5M18 6l-3.5 3.5M6 18l3.5-3.5M18 18l-3.5-3.5"/></svg></span><span>Safety Gear · Smooth Waters<b>$83</b></span></span>
+  <div class="sum"><span style="font-size:var(--text-xs);color:var(--color-ink-3)">6 lines · the total stays in the head</span><span class="btn btn--act" style="height:40px;padding:0 18px">Who it is for <svg class="g " width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+</footer>
+</body></html>

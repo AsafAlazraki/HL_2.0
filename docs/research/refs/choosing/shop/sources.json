@@ -1,0 +1,106 @@
+[
+  {
+    "id": "apple-ipad-pro-buy",
+    "url": "https://www.apple.com/au/shop/buy-ipad/ipad-pro",
+    "fullPage": true,
+    "wait": 3000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.apple.com/au/shop/buy-ipad/ipad-pro",
+    "title": "Buy iPad Pro - Apple (AU)",
+    "file": "apple-ipad-pro-buy.png"
+  },
+  {
+    "id": "ikea-kitchen-planner",
+    "url": "https://www.ikea.com/au/en/planners/kitchen-planner/",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.ikea.com/au/en/planners/kitchen-planner/",
+    "title": "Kitchen Planner - IKEA",
+    "file": "ikea-kitchen-planner.png"
+  },
+  {
+    "id": "ikea-pax-tool",
+    "url": "https://www.ikea.com/addon-app/storageone/pax/web/latest/au/en/",
+    "wait": 6000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.ikea.com/addon-app/storageone/pax/web/latest/au/en/",
+    "title": "PAX",
+    "file": "ikea-pax-tool.png"
+  },
+  {
+    "id": "ikea-kreativ",
+    "url": "https://www.ikea.com/au/en/home-design/",
+    "wait": 4000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.ikea.com/au/en/home-design/",
+    "title": "Bring your dream space to life with IKEA Kreativ",
+    "file": "ikea-kreativ.png"
+  },
+  {
+    "id": "lego-pick-a-brick",
+    "url": "https://www.lego.com/en-au/pick-and-build/pick-a-brick",
+    "wait": 4000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.lego.com/en-au/pick-and-build/pick-a-brick?age-gate=grown_up",
+    "title": "LEGO® Pick a Brick | Official LEGO® Shop AU",
+    "file": "lego-pick-a-brick.png"
+  },
+  {
+    "id": "lego-pick-and-build",
+    "url": "https://www.lego.com/en-au/pick-and-build",
+    "wait": 3000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.lego.com/en-au/pick-and-build?age-gate=grown_up",
+    "title": "LEGO® Bricks, Pieces and Minifigures | Official LEGO® Shop AU",
+    "file": "lego-pick-and-build.png"
+  },
+  {
+    "id": "nike-by-you-dunk",
+    "url": "https://www.nike.com/au/u/custom-nike-dunk-low-by-you-10001535",
+    "wait": 5000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.nike.com/au/u/custom-nike-dunk-low-by-you-10001535",
+    "title": "Nike Store. Shoes, Clothing & Gear.",
+    "file": "nike-by-you-dunk.png"
+  },
+  {
+    "id": "shopify-bundles-app",
+    "url": "https://apps.shopify.com/shopify-bundles",
+    "fullPage": true,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://apps.shopify.com/shopify-bundles",
+    "title": "Shopify Bundles - Offer fixed bundles and multipacks to drive more sales | Shopify App Store",
+    "file": "shopify-bundles-app.png"
+  },
+  {
+    "id": "shopify-bundles-help",
+    "url": "https://help.shopify.com/en/manual/products/bundles",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://help.shopify.com/en/manual/products/bundles",
+    "title": "Shopify Help Center | Product bundles",
+    "file": "shopify-bundles-help.png"
+  },
+  {
+    "id": "lego-pick-a-brick-in",
+    "url": "https://www.lego.com/en-au/pick-and-build/pick-a-brick",
+    "wait": 5000,
+    "steps": [
+      {
+        "text": "Continue"
+      },
+      {
+        "wait": 3000
+      },
+      {
+        "scroll": 350
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.lego.com/en-au/pick-and-build/pick-a-brick",
+    "title": "",
+    "file": "lego-pick-a-brick-in.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  }
+]

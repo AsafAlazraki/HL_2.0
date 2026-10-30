@@ -20,6 +20,11 @@ import { sheetHref } from '@/screens/fitment/sheet'
    no copy of the price list arrives on a screen that says so and offers
    the way to load it.
 
+   BEFORE A BOAT, `maker` and `model` are the chooser's own position: the
+   maker whose models are open, and the model whose versions are, so a
+   Back or a reload keeps them (walk.md, 2026-10-30). A boat chosen
+   leaves them behind: `openBoat` pushes `?boat=` alone.
+
    THE FIVE SEARCH PARAMS ARE THE POSITION. `boat` is the boat, by its
    line on the price list; `line` the plate's pressed line (`motor`,
    `trailer` or `also`); `all` the place whose whole list is open —
@@ -37,6 +42,8 @@ import { sheetHref } from '@/screens/fitment/sheet'
    ============================================================ */
 
 export interface FitmentSearch {
+  maker?: string
+  model?: string
   boat?: string
   line?: string
   all?: string
@@ -53,11 +60,15 @@ const word = (value: unknown, max = 200): string | undefined => {
 export const Route = createFileRoute('/fitment')({
   validateSearch: (search: Record<string, unknown>): FitmentSearch => {
     const boat = word(search.boat)
+    const maker = word(search.maker, 120)
+    const model = word(search.model, 200)
     const line = word(search.line, 40)
     const all = word(search.all)
     const only = word(search.only, 120)
     const find = word(search.find, 120)
     return {
+      ...(maker ? { maker } : {}),
+      ...(model ? { model } : {}),
       ...(boat ? { boat } : {}),
       ...(line ? { line } : {}),
       ...(all ? { all } : {}),
@@ -90,6 +101,8 @@ function FitmentRoute() {
         search: (was: FitmentSearch) => {
           const merged = { ...was, ...next }
           const out: FitmentSearch = {}
+          if (merged.maker) out.maker = merged.maker
+          if (merged.model) out.model = merged.model
           if (merged.boat) out.boat = merged.boat
           if (merged.line) out.line = merged.line
           if (merged.all) out.all = merged.all
@@ -107,6 +120,8 @@ function FitmentRoute() {
   return (
     <Fitment
       boat={search.boat ?? ''}
+      maker={search.maker ?? ''}
+      model={search.model ?? ''}
       line={search.line ?? ''}
       all={search.all ?? ''}
       only={search.only ?? ''}

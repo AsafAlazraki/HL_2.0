@@ -151,6 +151,35 @@ export interface ToastOptions {
 const raisedAt = new Map<string | number, { where: string; saying: number }>()
 let sayings = 0
 
+/* A PLACE'S ID IS NEVER HANDED BACK TO SONNER WHILE ITS LAST CARD IS LEAVING (the flow round's
+   verify, 2026-10-30). Sonner keeps a taken-away card in its list, marked to be deleted, until
+   its exit has run; a card raised under the same id inside that beat is merged into the leaving
+   one, inherits its mark and is deleted with it. Measured at 1440 and 1920: the motor put on,
+   Who it is for opened (which takes the motor's step away) and the name saved under 0.4 s later
+   said nothing and offered no Undo, 6 runs in 6. So a place's id (`options.id`) names the card
+   it last raised, and a card raised after that one was taken away gets an id of its own.
+
+   A card raised again IN THE SAME FRAME as it was taken away keeps its id: Sonner holds a
+   dismissal for one frame and a raise inside it cancels the dismissal and changes the card where
+   it stands, which is how an Undo's answer replaces the card whose Undo was pressed. So a taken
+   card is let go of a frame later, as Sonner marks it, unless it was raised again first. */
+const cardOf = new Map<string, string>()
+const leaving = new Set<string | number>()
+let cards = 0
+const letGo = (card: string | number): void => {
+  leaving.delete(card)
+  for (const [place, now] of cardOf) if (now === card) cardOf.delete(place)
+}
+const takeAway = (card: string | number): void => {
+  raisedAt.delete(card)
+  leaving.add(card)
+  toast.dismiss(card)
+  const later = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : setTimeout
+  later(() => {
+    if (leaving.has(card)) letGo(card)
+  })
+}
+
 /* the router's address, which leaves out the deployment's base (`/HL_2.0` on GitHub Pages) */
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 const hereNow = (): string => {
@@ -163,24 +192,36 @@ const hereNow = (): string => {
 export function unsayElsewhere(at: string): void {
   for (const [id, { where }] of raisedAt) {
     if (where === at) continue
-    raisedAt.delete(id)
-    toast.dismiss(id)
+    takeAway(id)
   }
 }
 
 function show(said: Said, duration: number, options?: ToastOptions): string | number {
   sayings += 1
   const saying = sayings
-  const forget = (t: { id: string | number }): void => void raisedAt.delete(t.id)
+  const forget = (t: { id: string | number }): void => {
+    raisedAt.delete(t.id)
+    letGo(t.id)
+  }
+  let ownId: string | undefined
+  if (options?.id !== undefined) {
+    ownId = cardOf.get(options.id)
+    if (ownId !== undefined) leaving.delete(ownId)
+    else {
+      cards += 1
+      ownId = `${options.id}~${cards}`
+      cardOf.set(options.id, ownId)
+    }
+  }
   /* pressed: closed unless the press itself said something new in this place */
   const done = (card: string | number): void => {
-    if ((raisedAt.get(card)?.saying ?? saying) === saying) toast.dismiss(card)
+    if ((raisedAt.get(card)?.saying ?? saying) === saying) takeAway(card)
   }
   const id = toast.custom((card) => <Toast {...said} onDismiss={() => done(card)} />, {
     duration,
     onDismiss: forget,
     onAutoClose: forget,
-    ...(options?.id === undefined ? {} : { id: options.id }),
+    ...(ownId === undefined ? {} : { id: ownId }),
     ...(options?.testId === undefined ? {} : { testId: options.testId }),
   })
   raisedAt.set(id, { where: hereNow(), saying })
@@ -212,6 +253,5 @@ export function undo(
 
 /** Take a toast away before its clock does: a place that no longer holds what it said. */
 export function unsay(id: string): void {
-  raisedAt.delete(id)
-  toast.dismiss(id)
+  takeAway(cardOf.get(id) ?? id)
 }

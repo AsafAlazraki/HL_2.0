@@ -24,13 +24,14 @@
    sections say the same word the column heads say.
    ============================================================ */
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { ArrowLeftIcon, PlusIcon, TrashIcon, XIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, PlusIcon, TrashIcon, XIcon } from '@phosphor-icons/react'
 import { Button, Input, Kbd, Refusal } from '@/ui'
 import { isImageValue, primaryImage, type EntityDef, type FieldDef } from '@/domain/model'
 import type { ViewRow } from '@/domain/catalogue/table/core'
 import { deleteRowRadius } from '@/domain/catalogue/commands'
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 import type { Held } from './pictures'
+import { LinePicture, type LineOption } from './LinePicture'
 import {
   COST_WORD,
   HELD_AS_A_LINK,
@@ -61,6 +62,11 @@ export interface RecordProps {
   /** a new row filed under this row's model — "Add a variant to Roll Up 230 KAM" —
    *  where every level of its path has a value; undefined where one does not */
   onAdd?: { label: string; press: () => void }
+  /** A BOAT'S WAY TO WHAT GOES ON IT: "What goes on this boat", opening Fitment already on this
+   *  line (exposure.md: the details showed Min HP and Max HP and led nowhere). Boats only. */
+  fits?: { href: string; go: () => void }
+  /** the option a dealer may add their own picture to; it stands where the picture is drawn */
+  option?: LineOption
   onClose: () => void
   /** a hand: the record is the screen, so it says so and offers the way back first */
   hand: boolean
@@ -85,6 +91,8 @@ export function Record({
   data,
   onDelete,
   onAdd,
+  fits,
+  option,
   onClose,
   hand,
 }: RecordProps) {
@@ -141,7 +149,9 @@ export function Record({
       </div>
 
       <div className="sh-record__body">
-        {image ? (
+        {option ? (
+          <LinePicture option={option} />
+        ) : image ? (
           held ? (
             <figure className="sh-record__figure">
               <img
@@ -254,6 +264,17 @@ export function Record({
             </section>
           ) : (
             <>
+              {fits ? (
+                <Button
+                  intent="primary"
+                  size="sm"
+                  icon={ArrowRightIcon}
+                  href={fits.href}
+                  onClick={fits.go}
+                >
+                  What goes on this boat
+                </Button>
+              ) : null}
               {/* ADDING A ROW IS THE RECORD'S ACT (2026-09-25): on the spine it was
                   painted over the model's facts on a tablet and out of the
                   keyboard's reach (built-critique-m2-close-2.md major 8) */}

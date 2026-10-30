@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -57,6 +58,33 @@ const draw = (over: Partial<Parameters<typeof Fitment>[0]> = {}) =>
       {...over}
     />,
   )
+
+/** THE CHOOSER'S POSITION KEPT THE WAY THE ROUTE KEEPS IT (`?maker=&model=`), so a press on a
+ *  maker or a model is read back as the address would hand it in (walk.md, 2026-10-30) */
+function Addressed() {
+  const [at, setAt] = useState<{ maker: string; model: string }>({ maker: '', model: '' })
+  return (
+    <Fitment
+      boat=""
+      maker={at.maker}
+      model={at.model}
+      line=""
+      all=""
+      only=""
+      find=""
+      onPosition={(p) => {
+        positions.push(p)
+        if (p.maker !== undefined || p.model !== undefined)
+          setAt({ maker: p.maker ?? '', model: p.model ?? '' })
+      }}
+      openBoat={(id) => boats.push(id)}
+      sheetHref={sheetHref}
+      openSheet={(o) => opened.push(sheetHref(o))}
+      openRules={() => opened.push('/rules')}
+      openTheFile={() => {}}
+    />
+  )
+}
 
 describe('one boat, at rest', () => {
   it('names the boat on its plate, and its three lines are the boat’s own facts', () => {
@@ -236,7 +264,7 @@ describe('no boat chosen', () => {
   /* NOT ONE FIELD ON AN EMPTY PAGE (built-critique-m3.md): before a word is typed, every maker
      on the price list, counted, and a maker opens its models and a model its versions */
   it('offers every maker before a word is typed, and walks maker, model, version to the boat', async () => {
-    draw({ boat: '' })
+    render(<Addressed />)
     /* one unit on one line (built-critique-m3.md, major 7): "289 models", never "289 boats"
        beside "67 models" */
     expect(screen.getByText('Or by maker · 289 models')).toBeInTheDocument()
@@ -250,6 +278,8 @@ describe('no boat chosen', () => {
     expect(screen.queryByText(/versions/)).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: /^Highfield 67 models$/ }))
     expect(screen.getByText('Highfield · 67 models')).toBeInTheDocument()
+    /* the maker is in the address, so a reload keeps it (walk.md, 2026-10-30) */
+    expect(positions.at(-1)).toEqual({ maker: 'Highfield', model: '' })
     expect(screen.getByRole('button', { name: /^Highfield 67 models$/ })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -376,5 +406,40 @@ describe('a motor the dealer’s rule refuses', () => {
     draw({ boat: cl340.id, all: 'motor' })
     expect(screen.getByText('2 of 209 offered on this boat')).toBeInTheDocument()
     expect(screen.getByText(RULE_REFUSES)).toBeInTheDocument()
+  })
+})
+
+/* THE PLATE CHANGES WHAT GOES ON THE BOAT (the flow round, 2026-10-30; exposure.md, blocker):
+   a motor made for it is taken off from its own tile, and one not made for it is put on from
+   Show all, each one catalogue step with its Undo */
+describe('changing what goes on the boat', () => {
+  it('takes a motor off from its tile, and puts one on from the whole list', async () => {
+    const { unmount } = draw()
+    const made = within(screen.getByRole('list', { name: 'Made for it' }))
+    const before = made.getAllByRole('listitem').length
+    const off = made.getAllByRole('button', {
+      name: /^Take the .* off what goes on the Highfield Sport 660$/,
+    })
+    await userEvent.click(off[0]!)
+    expect(
+      within(screen.getByRole('list', { name: 'Made for it' })).getAllByRole('listitem'),
+    ).toHaveLength(before - 1)
+    unmount()
+
+    draw({ all: 'motor', only: 'inside' })
+    const on = screen.getAllByRole('button', { name: /^Put the .* on the Highfield Sport 660$/ })
+    expect(on.length).toBeGreaterThan(0)
+    await userEvent.click(on[0]!)
+    /* the line leaves this reason's group: it is offered on the boat now */
+    expect(
+      screen.queryAllByRole('button', { name: /^Put the .* on the Highfield Sport 660$/ }),
+    ).toHaveLength(on.length - 1)
+  })
+
+  it('says why a motor over the horsepower is not put on, on that line', async () => {
+    draw({ all: 'motor', only: 'over' })
+    const on = screen.getAllByRole('button', { name: /^Put the .* on the Highfield Sport 660$/ })
+    await userEvent.click(on[0]!)
+    expect(screen.getByRole('alert')).toHaveTextContent(/is over the .* so it is not put on/)
   })
 })

@@ -49,6 +49,10 @@ import { Configurator } from '@/screens/configurator/Configurator'
 export interface ConfiguratorSearch {
   /** the chapter the rail is open on */
   at?: string
+  /** the chandlery's open aisle, in the fit chapter */
+  aisle?: string
+  /** the maker that aisle is narrowed to */
+  maker?: string
 }
 
 const word = (value: unknown): string | undefined => {
@@ -62,7 +66,9 @@ const word = (value: unknown): string | undefined => {
 export const Route = createFileRoute('/quote/$id')({
   validateSearch: (search: Record<string, unknown>): ConfiguratorSearch => {
     const at = word(search.at)
-    return at ? { at } : {}
+    const aisle = word(search.aisle)
+    const maker = word(search.maker)
+    return { ...(at ? { at } : {}), ...(aisle ? { aisle } : {}), ...(maker ? { maker } : {}) }
   },
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
@@ -73,7 +79,7 @@ export const Route = createFileRoute('/quote/$id')({
 function ConfiguratorRoute() {
   const navigate = useNavigate()
   const { id } = Route.useParams()
-  const { at } = Route.useSearch()
+  const { at, aisle, maker } = Route.useSearch()
   const business = useCatalogue((s) => s.business)
 
   useEffect(() => {
@@ -95,7 +101,29 @@ function ConfiguratorRoute() {
 
   const goTo = useCallback(
     (chapterId: string) => {
-      void navigate({ to: '/quote/$id', params: { id }, search: { at: chapterId }, replace: true })
+      /* the chandlery's aisle stays where it was: it belongs to the fit chapter, and a dealer who
+         looks at the motor and comes back finds the aisle still open */
+      void navigate({
+        to: '/quote/$id',
+        params: { id },
+        search: (was) => ({ ...was, at: chapterId }),
+        replace: true,
+      })
+    },
+    [id, navigate],
+  )
+  const goAisle = useCallback(
+    (nextAisle: string, nextMaker: string) => {
+      void navigate({
+        to: '/quote/$id',
+        params: { id },
+        search: (was) => ({
+          ...(was.at ? { at: was.at } : {}),
+          ...(nextAisle ? { aisle: nextAisle } : {}),
+          ...(nextMaker ? { maker: nextMaker } : {}),
+        }),
+        replace: true,
+      })
     },
     [id, navigate],
   )
@@ -105,6 +133,9 @@ function ConfiguratorRoute() {
       quoteId={id}
       at={at ?? ''}
       goTo={goTo}
+      aisle={aisle ?? ''}
+      maker={maker ?? ''}
+      goAisle={goAisle}
       business={business}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
       /* A NEW VERSION IS A NEW DOCUMENT AT A NEW ADDRESS, and this

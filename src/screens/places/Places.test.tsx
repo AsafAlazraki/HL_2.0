@@ -173,3 +173,31 @@ describe('its settings', () => {
     ).toBeTruthy()
   })
 })
+
+/* SOLD ON ITS OWN (the flow round, 2026-10-30): the owner, "quotes are not just boats", and
+   Parts & Accessories "never had Quote switched on" — switched on here as Northside's own
+   setting, one step with its Undo, never by editing the price list */
+describe('how a place is sold', () => {
+  it('lets Parts & Accessories be quoted on its own, as one step', async () => {
+    drawPlace('parts', 'settings')
+    const sold = screen.getByRole('group', { name: /Can a quote start from/ })
+    expect(within(sold).getByRole('radio', { name: 'Only with a boat' })).toBeChecked()
+    await userEvent.click(within(sold).getByRole('radio', { name: 'On its own too' }))
+    const parts = Object.values(catalogue.getState().modules).find(
+      (m) => m.name === 'Parts & Accessories',
+    )!
+    expect(parts.capabilities).toContain('quote')
+    expect(screen.getByText(/can start from .* with no boat on it/)).toBeTruthy()
+  })
+
+  it('does not offer the choice on a boat maker, whose boats are always quoted', () => {
+    drawPlace('boat_stacer', 'settings')
+    expect(screen.queryByRole('group', { name: /Can a quote start from/ })).toBeNull()
+  })
+
+  it('opens what goes on a maker’s boats from its range', async () => {
+    const { go } = drawPlace('boat_stacer')
+    await userEvent.click(screen.getByRole('link', { name: 'What goes on its boats' }))
+    expect(go).toHaveBeenCalledWith('/fitment?maker=Stacer')
+  })
+})

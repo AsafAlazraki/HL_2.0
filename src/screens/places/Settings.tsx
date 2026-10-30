@@ -20,6 +20,7 @@ import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { readMark, readPhotograph, type FileRead } from './files'
 import type { PlaceCard } from './read'
+import { Selling } from './Selling'
 
 /* ============================================================
    A PLACE'S SETTINGS — the four things Northside gives it, each
@@ -174,6 +175,7 @@ export function Settings({ card }: { card: PlaceCard }) {
 
   return (
     <div className="pl-pane pl-settings">
+      <Selling card={card} />
       {/* ---- its line ---- */}
       <Plate as="section" pad="md" label={`${name}’s line`}>
         <h3 className="pl-set__head">Its line</h3>

@@ -49,11 +49,13 @@ import {
   Button,
   Chip,
   Dashes,
+  ExpandPicture,
   Field,
   Icon,
   Input,
   Kbd,
   KindMark,
+  Lightbox,
   OptionTile,
   Picture,
   PriceFigure,
@@ -69,8 +71,10 @@ import {
   undo,
   unsay,
   useStill,
+  kindInk,
   type DashesProps,
   type Glyph,
+  type LightboxPicture,
 } from '@/ui'
 import { useChapterProgress, useSmoothScroll } from '@/ui/scroll'
 import type { TableKind } from '@/domain/model'
@@ -81,9 +85,11 @@ import { NO_WAYS, type Way } from '@/app/ways'
 import { useSetScope } from '@/screens/shell/scope'
 import { quotes as quotesStore } from '@/state/quotes'
 import { catalogue as catalogueStore, ctxFrom } from '@/state/catalogue'
-import { issueStampNow } from '@/app/northside'
+import { issueStampNow, preparerNow } from '@/app/northside'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { makeCtx, type CatalogueCtx, type QuoteDef } from '@/domain/model'
+import { makeCtx, type CatalogueCtx, type FrozenPreparer, type QuoteDef } from '@/domain/model'
+import { daySaid } from '@/domain/model/ownPictures'
+import { openSay, tallyOf } from '@/domain/quote/tally'
 import { money } from '@/domain/money'
 import {
   ISSUED_REFUSAL,
@@ -115,6 +121,10 @@ import { swapLines } from '@/domain/quote/swap'
    this quote" in four places on one screen. */
 import { NOTHING_ON_IT } from '@/domain/quote/register'
 import {
+  KITS_WAIT,
+  RIG_KITS,
+  kitsForMotors,
+  kitsNone,
   matchesFinish,
   offeredHere,
   readRail,
@@ -126,8 +136,8 @@ import {
   type Rail,
 } from './chapters'
 import type { Finish, Finishes } from './finishes'
-import { hostOf, hullHero, stageArt, type StageArt } from './stage'
-import { itemOfQuote } from '@/data/pictures'
+import { hullHero, stageArt, type Held, type StageArt } from './stage'
+import { creditOf, itemOfQuote, markOnPaper, srcSetOf } from '@/data/pictures'
 import { kindOfAct, kindOfBoat, wayBack, type Step } from './step'
 import { GivenSeal, readyTheStamp } from './GivenSeal'
 import {
@@ -155,6 +165,12 @@ import {
    be able to spell the same `fix` two ways, and a constant in one
    place is the only thing that makes that true. */
 import { finishFix, levelFix } from '@/screens/cascade/proposal'
+/* THE CHANDLERY IS ONE COMPONENT IN TWO PLACES (direction B): the fit chapter's parts, and
+   /catalogue. It is the catalogue's own screen, reached from here as a component, never copied. */
+import { Chandlery } from '@/screens/catalogue/Chandlery'
+import { PartDrag, useQuoteDrop } from '@/screens/catalogue/drag'
+import { PARTS_TABLE } from '@/screens/catalogue/shelf'
+import { fitmentOf } from '@/app/ways'
 import { boatTravel, levelGlyph, specGlyphs } from './glyphs'
 import './configurator.css'
 
@@ -304,7 +320,11 @@ function fitTheBoat(node: HTMLElement): () => void {
     const stage = node.querySelector<HTMLElement>('.cfg-stage')
     const shot = node.querySelector<HTMLElement>('.cfg-shot')
     const chapters = [...node.querySelectorAll<HTMLElement>('.cfg-chapter')]
-    const foot = Number.parseFloat(getComputedStyle(node).paddingBlockEnd) || 0
+    /* the tab bar's room, and the tally's where it stands over the foot of the window */
+    const tally = node.querySelector<HTMLElement>('.cfg-tally')
+    const over =
+      tally && getComputedStyle(tally).position === 'sticky' ? tally.offsetHeight + ROOM_AIR : 0
+    const foot = (Number.parseFloat(getComputedStyle(node).paddingBlockEnd) || 0) + over
     let best: number | null = null
     if (stage && shot && chapters.length > 0 && foot > 0 && pageTop(shot) < pageTop(chapters[0]!)) {
       const fold = window.innerHeight - foot - ROOM_AIR
@@ -367,6 +387,12 @@ export interface ConfiguratorProps {
   /** where a press writes the new position. A test hands in a spy,
    *  which is why this screen never reaches for the router. */
   goTo?: (chapterId: string) => void
+  /** THE CHANDLERY'S OPEN AISLE AND ITS MAKER, positions in the fit chapter and so search params
+   *  (`aisle`, `maker`); '' for none */
+  aisle?: string
+  maker?: string
+  /** where a press in the chandlery writes them */
+  goAisle?: (aisle: string, maker: string) => void
   /** whose file this is, read off the store by the route */
   business?: string | null
   /** the way back to the door, for a desk with no price file in it */
@@ -418,7 +444,9 @@ function Build({
   quoteId,
   at = '',
   goTo,
-  business = null,
+  aisle = '',
+  maker = '',
+  goAisle,
   openTheFile,
   openQuote,
   openDocument,
@@ -441,50 +469,25 @@ function Build({
   const standsStill = useStandsStill(`${step?.eventId ?? ''} ${refused ?? ''}`)
   const { hold } = standsStill
 
-  /* THE MASTHEAD'S OWN HEIGHT, MEASURED, so the two things that stick
-     under it stick UNDER it.
+  /* THE MASTHEAD NO LONGER STICKS (the owner, 2026-10-30: the total "should move from top right
+     to bottom left"). It was sticky because the running total stood in it, and it was measured
+     so the search field and the stage could stick under it. The total is the tally's now, at the
+     bottom left (`Tally`), so the head is the quote's identity at the top of the page and
+     scrolls away with it; what sticks at a desk sticks under the shell's pill
+     (`--shell-inset`, configurator.css). */
 
-     The search field and the stage were pinned at a typed 112px. The
-     masthead is as tall as its content and as the pill's clearance
-     (`--shell-inset`, a floor under its head) — and when the shell
-     arrived it grew to 144.69px at 1280, 1440 and 1920, so the field
-     ran 32.69px up behind it and the stage's photograph lost its top
-     third of an inch the moment the page moved
-     (built-critique-m2.md #8). A number typed into a stylesheet cannot
-     follow a head that also grows a line when a quote is issued and
-     wraps a long business name, so the head is measured where it is
-     drawn and the measure is handed to the stylesheet as
-     `--cfg-mast`. Without a ResizeObserver (a test's DOM) the
-     stylesheet's own floor stands. */
-  /* AND, IN A HAND, THE PART OF IT THAT LIFTS AWAY (2026-09-29, the components critique's major 8:
-     "a third of the build is chrome"). At 390 the head was 193px of sticky over an 844px
-     window. There the eyebrow scrolls off with the page and only the name and the total stay:
-     the head sticks at minus this — the eyebrow's row and the room above it, less the head's
-     own foot padding, so the row that stays keeps the same air over it as under it. It is
-     measured, because the eyebrow wraps where a long business name does. */
-  /* WHAT LIFTS IS THE EYEBROW AND WHAT STANDS WITH IT, measured from the eyebrow's top to the
-     row's: on a phone held either way the head sticks at minus that, so the row that stays lands
-     where the eyebrow stood (configurator.css, "a short window's head"). It was the row's top less
-     the head's foot padding, which is the same figure where the two paddings are equal (a hand's)
-     and lifted the row under the pill where they are not (a phone turned over, under the pill). */
-  const [mastHeight, setMastHeight] = useState<number | null>(null)
-  const [mastLift, setMastLift] = useState(0)
-  const measureMast = useCallback((node: HTMLElement | null) => {
-    if (!node || typeof ResizeObserver === 'undefined') return
-    const measure = (): void => {
-      const height = Math.ceil(node.getBoundingClientRect().height)
-      if (height > 0) setMastHeight(height)
-      const row = node.querySelector<HTMLElement>('.cfg-mast__row')
-      const brow = node.querySelector<HTMLElement>('.cfg-mast__eyebrow')
-      if (row && brow) setMastLift(Math.max(0, Math.floor(row.offsetTop - brow.offsetTop)))
-    }
-    measure()
-    const watch = new ResizeObserver(measure)
-    watch.observe(node)
-    return () => {
-      watch.disconnect()
-    }
-  }, [])
+  /* THE PICTURE DRAWN LARGE, and the set it is one of: a chapter's pictures, or the boat's
+     (`Lightbox`). Nothing about it is a position worth an address, so it is state. */
+  const [large, setLarge] = useState<{
+    set: readonly LightboxPicture[]
+    at: number
+    title: string
+  } | null>(null)
+  const showLarge = useCallback(
+    (set: readonly LightboxPicture[], index: number, title: string) =>
+      setLarge({ set, at: index, title }),
+    [],
+  )
 
   /* TWO FACTS ABOUT WHERE THE PAGE IS, written on the screen as attributes and never through a
      render, read once a frame while it moves:
@@ -500,6 +503,23 @@ function Build({
          every word under it where it was. */
   const watchFloor = useCallback((node: HTMLElement | null) => {
     if (!node) return
+    /* WHERE THE BOAT'S COLUMN RESTS, so at a desk it is as tall as the window has room for under
+       it and the tally at its foot is in sight from the first frame (configurator.css, "the
+       side"). Read from the layout's offsets, never the painted box, when the page is drawn and
+       whenever the head above it changes height — never while the page scrolls. */
+    let sideAt = ''
+    const placeSide = (): void => {
+      const side = node.querySelector<HTMLElement>('.cfg-side')
+      if (!side) return
+      const rests = `${Math.ceil(pageTop(side))}px`
+      if (rests === sideAt) return
+      sideAt = rests
+      node.style.setProperty('--cfg-side-top', rests)
+    }
+    placeSide()
+    const head = node.querySelector('.cfg-mast')
+    const headWatch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(placeSide)
+    if (head) headWatch?.observe(head)
     let frame = 0
     const look = (): void => {
       frame = 0
@@ -507,13 +527,6 @@ function Build({
       if (stuck !== 'stuck' in node.dataset) {
         if (stuck) node.dataset.stuck = ''
         else delete node.dataset.stuck
-      }
-      const shot = node.querySelector('.cfg-shot')?.getBoundingClientRect()
-      const mast = node.querySelector('.cfg-mast')?.getBoundingClientRect()
-      const away = shot !== undefined && mast !== undefined && shot.bottom < mast.bottom
-      if (away !== 'boatAway' in node.dataset) {
-        if (away) node.dataset.boatAway = ''
-        else delete node.dataset.boatAway
       }
     }
     const soon = (): void => {
@@ -524,6 +537,7 @@ function Build({
     window.addEventListener('resize', soon)
     const unfit = fitTheBoat(node)
     return () => {
+      headWatch?.disconnect()
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', soon)
       window.removeEventListener('resize', soon)
@@ -886,146 +900,159 @@ function Build({
       data-given-now={justGiven ? '' : undefined}
       /* GIVEN: the boat's photograph wears the given leaf as its frame (configurator.css) */
       data-given={issued ? '' : undefined}
-      style={
-        mastHeight === null
-          ? undefined
-          : ({
-              '--cfg-mast': `${mastHeight}px`,
-              '--cfg-mast-lift': `${mastLift}px`,
-            } as CSSProperties)
-      }
     >
       <Mast
-        head={measureMast}
-        art={art}
         quote={quote}
-        business={business}
-        total={rail?.total ?? null}
-        open={open}
-        said={said}
-        note={finaleOpen ? '' : note}
-        elsewhere={finaleOpen}
+        register={ctx.entities[quote.rootTableId]?.name ?? ''}
+        preparer={quote.preparer ?? preparerNow(sheet, quote.preparedBy ?? who)}
+        kept={kept}
+        onWho={() => {
+          endStep()
+          goTo?.('handover')
+        }}
       />
 
-      <div className="cfg-floor">
-        <Stage
-          quote={quote}
-          ctx={ctx}
-          art={art!}
-          open={open}
-          kept={kept}
-          who={who}
-          rail={rail}
-          raise={raise}
-          refusal={refusal}
-        />
+      {/* A PART CARRIED FROM THE CHANDLERY TO THE TOTAL travels inside this (`PartDrag`) */}
+      <PartDrag>
+        <div className="cfg-floor">
+          {/* THE BOAT AND WHAT IT COMES TO, ONE COLUMN AT A DESK: the photograph inside the page's
+            measure, and the tally at the column's foot (configurator.css, "the side") */}
+          <div className="cfg-side">
+            <div className="cfg-side__in">
+              <Stage quote={quote} ctx={ctx} art={art!} rail={rail} onLarge={showLarge} />
+              <Tally
+                quote={quote}
+                rail={rail}
+                open={open}
+                art={art}
+                note={finaleOpen ? '' : note}
+                said={said}
+                elsewhere={finaleOpen}
+                raise={raise}
+                refusal={refusal}
+                onLarge={showLarge}
+              />
+            </div>
+          </div>
 
-        <section
-          className="cfg-rail"
-          aria-label="What goes on this quote"
-          onClickCapture={standsStill.note}
-        >
-          <div className="cfg-find">
-            {/* THE KEY IS A CAP BESIDE THE LABEL, NOT A WORD IN THE FIELD.
+          <section
+            className="cfg-rail"
+            aria-label="What goes on this quote"
+            onClickCapture={standsStill.note}
+          >
+            <div className="cfg-find">
+              {/* THE KEY IS A CAP BESIDE THE LABEL, NOT A WORD IN THE FIELD.
                 The placeholder read "/ — a name, a code, a rigging kit",
                 which names a key on a phone that has none (rule b,
                 built-critique-m2.md #18) and cannot be taken away by a
                 stylesheet. `Kbd` is withdrawn under `pointer: coarse` by
                 its own primitive; the field keeps only what it is for. */}
-            <div className="cfg-find__top">
-              <label className="cfg-find__label" htmlFor="cfg-find">
-                Search every option on this quote
-              </label>
-              {open ? <Kbd tone="quiet">/</Kbd> : null}
-            </div>
-            {/* THE FIELD AND, WHERE THE BAR STICKS, WHERE THE READER IS: the kit's dashes
+              <div className="cfg-find__top">
+                <label className="cfg-find__label" htmlFor="cfg-find">
+                  Search every option on this quote
+                </label>
+                {open ? <Kbd tone="quiet">/</Kbd> : null}
+              </div>
+              {/* THE FIELD AND, WHERE THE BAR STICKS, WHERE THE READER IS: the kit's dashes
                 beside it (`Reading`), which fill on the chapter the window is in. */}
-            <div className="cfg-find__row">
-              <Input
-                id="cfg-find"
-                ref={field}
-                type="search"
-                icon={MagnifyingGlassIcon}
-                value={query}
-                onValueChange={setQuery}
-                aria-describedby="cfg-find-said"
-                placeholder={open ? 'A name, a code, a rigging kit' : 'Nothing to search'}
-              />
-              <Reading
-                chapters={chapterRefs}
-                open={rail?.searching === true ? -1 : chapters.findIndex((c) => c.id === here)}
-                names={chapters.map((c) =>
-                  c.num === '' ? { name: c.name } : { name: c.name, number: c.num },
-                )}
-              />
-            </div>
-            {/* ONE LINE, KEPT WHETHER OR NOT IT SAYS ANYTHING, so the band that sticks is the same
+              <div className="cfg-find__row">
+                <Input
+                  id="cfg-find"
+                  ref={field}
+                  type="search"
+                  icon={MagnifyingGlassIcon}
+                  value={query}
+                  onValueChange={setQuery}
+                  aria-describedby="cfg-find-said"
+                  placeholder={open ? 'A name, a code, a rigging kit' : 'Nothing to search'}
+                />
+                <Reading
+                  chapters={chapterRefs}
+                  open={rail?.searching === true ? -1 : chapters.findIndex((c) => c.id === here)}
+                  names={chapters.map((c) =>
+                    c.num === '' ? { name: c.name } : { name: c.name, number: c.num },
+                  )}
+                />
+              </div>
+              {/* ONE LINE, KEPT WHETHER OR NOT IT SAYS ANYTHING, so the band that sticks is the same
                 height at rest and while it answers. A refused press is said in the head beside
                 the total, never here: parked in this band it grew the bar 40px and stood over the
                 hull's title for half a minute (build-close-critique-2.md minor 7). */}
-            <p className="cfg-find__said" id="cfg-find-said">
-              {searchSay(rail, open)}
-            </p>
-          </div>
+              <p className="cfg-find__said" id="cfg-find-said">
+                {searchSay(rail, open)}
+              </p>
+            </div>
 
-          {/* THE CHAPTERS RISE INTO PLACE ON A DRAFT'S FIRST PAINT, a few frames
+            {/* THE CHAPTERS RISE INTO PLACE ON A DRAFT'S FIRST PAINT, a few frames
               apart (configurator.css); an issued document is still from its first
               frame, because every figure on it is final. */}
-          <div
-            className="cfg-chapters"
-            ref={chaptersRef}
-            data-rise={quote.state === 'draft' ? '' : undefined}
-          >
-            {chapters.map((chapter, i) => (
-              <ChapterCard
-                key={chapter.id}
-                at={chapterRefs[i]}
-                index={i}
-                chapter={chapter}
-                quote={quote}
-                rail={rail!}
-                open={chapter.id === here}
-                here={here}
-                searching={rail?.searching === true}
-                query={query}
-                level={level}
-                onOpen={() => {
-                  endStep()
-                  goTo?.(chapter.id)
-                }}
-                onFinale={() => {
-                  endStep()
-                  goTo?.('finale')
-                }}
-                onWho={() => {
-                  endStep()
-                  goTo?.('handover')
-                }}
-                onPress={press}
-                go={go}
-                onRaise={raise}
-                onShowAll={(id) =>
-                  setShowAll((was) => {
-                    const next = new Set(was)
-                    if (next.has(id)) next.delete(id)
-                    else next.add(id)
-                    return next
-                  })
-                }
-                refusal={refusal}
-                quoteId={quoteId}
-                art={art}
-                openQuote={openQuote}
-                openDocument={openDocument}
-                now={now}
-                justGiven={justGiven}
-                setStep={setStep}
-                setRefused={setRefused}
-              />
-            ))}
-          </div>
-        </section>
-      </div>
+            <div
+              className="cfg-chapters"
+              ref={chaptersRef}
+              data-rise={quote.state === 'draft' ? '' : undefined}
+            >
+              {chapters.map((chapter, i) => (
+                <ChapterCard
+                  key={chapter.id}
+                  at={chapterRefs[i]}
+                  index={i}
+                  chapter={chapter}
+                  quote={quote}
+                  rail={rail!}
+                  open={chapter.id === here}
+                  here={here}
+                  searching={rail?.searching === true}
+                  query={query}
+                  level={level}
+                  onOpen={() => {
+                    endStep()
+                    goTo?.(chapter.id)
+                  }}
+                  onFinale={() => {
+                    endStep()
+                    goTo?.('finale')
+                  }}
+                  onWho={() => {
+                    endStep()
+                    goTo?.('handover')
+                  }}
+                  onPress={press}
+                  onLarge={showLarge}
+                  ctx={ctx}
+                  aisle={aisle}
+                  maker={maker}
+                  goAisle={goAisle}
+                  go={go}
+                  onRaise={raise}
+                  onShowAll={(id) =>
+                    setShowAll((was) => {
+                      const next = new Set(was)
+                      if (next.has(id)) next.delete(id)
+                      else next.add(id)
+                      return next
+                    })
+                  }
+                  refusal={refusal}
+                  quoteId={quoteId}
+                  art={art}
+                  openQuote={openQuote}
+                  openDocument={openDocument}
+                  now={now}
+                  justGiven={justGiven}
+                  setStep={setStep}
+                  setRefused={setRefused}
+                />
+              ))}
+            </div>
+          </section>
+        </div>
+      </PartDrag>
+      <Lightbox
+        pictures={large?.set ?? []}
+        at={large?.at ?? null}
+        title={large?.title ?? ''}
+        onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
+      />
     </main>
   )
 }
@@ -1514,221 +1541,359 @@ function Missing({
 }
 
 /* ---------------------------------------------------------- */
-/* The masthead: what it is, and what it comes to               */
+/* The masthead: what is sold, for whom, its number and state   */
 /* ---------------------------------------------------------- */
 
 /**
- * THE RUNNING PRICE IS ALWAYS VISIBLE AND IT NEVER COUNTS UP.
+ * THE QUOTE'S IDENTITY, COMPOSED (the owner, 2026-10-30: "the header section should be way nicer
+ * for the quote page way way nicer"). It was a line of small caps over a name, with the total
+ * at its right. Now it is two tiers, the way the best build-and-price summaries and order pages
+ * set a document's head (docs/research/refs/choosing/notes.md): what is sold, large — the maker's
+ * own mark over the boat's name as a person says it, its finish under it in colour — and under
+ * that the quote's facts as one strip of labelled cells on the kit's white plate: its number,
+ * where it stands, the day it was started, whom it is for, and who prepared it.
  *
- * It is here and in no second place, which is a decision rather than
- * an omission. Four surfaces within a screen's width each owe ONE
- * fact (`bands.ts` counts the same defect and removes it): the
- * masthead owes the total, a chapter head owes its own subtotal, a
- * row owes what the press would move the total BY, and the finale
- * owes the arithmetic. Printing the total twice would make two of
- * those the same sentence.
+ * THE TOTAL IS NOT HERE ANY MORE. It is the tally's, at the bottom left (`Tally`), and so this
+ * head no longer sticks: it is the top of the document, and scrolls away with it.
  *
- * It is `PriceFigure` and never `Figure`: NumberFlow moves a figure
- * digit by digit when it changes, and a price that animates reads as
- * a price still being decided, with a customer watching.
- *
- * AND IT IS AT THE TOP RATHER THAN THE FOOT. Axopar puts its
- * configuration price in a pill beside the pager at the foot of the
- * window; the owner has called a floating bottom bar disgusting, and
- * he is right that a bar hanging over the work is not where a person
- * looks. A masthead that stays put is the same promise with none of
- * that: it is the head of the document, and the document is what the
- * figure belongs to.
+ * WHO IT IS FOR IS ANSWERED, NOT ONLY SAID: with nobody named yet the cell is the press that goes
+ * to the name ("Name the customer"), where the finale's card offers the same.
  */
 function Mast({
-  head,
-  art,
   quote,
-  total,
-  open,
-  said,
-  note,
-  elsewhere,
+  register,
+  preparer,
+  kept,
+  onWho,
 }: {
-  /** where the screen measures this head, so what sticks under it
-   *  sticks under it */
-  head?: (node: HTMLElement | null) => void
-  /** the boat's picture, which the head carries on a tablet once the stage's has scrolled away */
-  art: StageArt | null
   quote: QuoteDef
-  business: string | null
-  total: number | null
-  open: boolean
-  /** the last step and its way back, or the refusal of the last press, below 1440 */
-  said: ReactNode
-  /** what is not in the total, said once, under it (`totalNoteSay`); '' for nothing */
-  note: string
-  /** the finale is open and its card says the total and who it is for, so this head says
-   *  neither */
-  elsewhere: boolean
+  /** the maker's register, by the dealer's name for it ("Stacer"), for its mark */
+  register: string
+  /** who prepared it, with the title and number the paper prints (carried finding 2) */
+  preparer: FrozenPreparer | undefined
+  /** whether the last write was kept (`savedSay`) */
+  kept: string | null
+  /** opens Who it is for */
+  onWho: () => void
 }) {
   const boat = boatOfQuote(quote)
-  const photo = art?.kind === 'photograph' ? art.held : null
+  const mark = markOnPaper(register)
+  const named = quote.customer.name.trim() !== ''
+  const given = quote.state !== 'draft'
+  const by = preparer
+    ? [preparer.name, preparer.title ?? '', preparer.phone ?? '']
+        .filter((part) => part !== '')
+        .join(' · ')
+    : ''
   return (
-    <header className="cfg-mast" ref={head}>
-      {/* THE BOAT STAYS IN VIEW ON A TABLET (build-close-critique.md, 2026-10-19, major 3: at
-          834 × 1112, "after a press on Motor … the only boat on screen is a 40 px motor
-          thumbnail, until the finale"). The head is the one bar that sticks below a desk, so on
-          a tall tablet it carries the boat's own photograph beside its name and the total — but
-          only once the stage's photograph, the width of the screen on arrival, has scrolled up
-          under it (`data-boat-away`; build-close-critique-2.md major 4: "the boat is a 250 × 140
-          thumbnail for the whole build"). Everywhere else it is not drawn: at a desk the stage's
-          photograph stands beside the rail the whole sale, and in a hand the head is one row. */}
-      {photo ? (
-        <span
-          className="cfg-mast__pic"
-          data-verdict={photo.verdict}
-          style={
-            { '--cfg-travel': boatTravel(quote.rootTableId, quote.rootRowId) } as CSSProperties
-          }
-        >
-          {/* the stage's photograph again, so it is named once, there: the caption under the
-              band says it in words wherever this one stands in for it */}
-          <img
-            className="cfg-mast__img"
-            src={photo.src}
-            alt=""
-            width={photo.width}
-            height={photo.height}
-            loading="lazy"
-            decoding="async"
-            {...(photo.widths.length > 1
-              ? {
-                  srcSet: photo.widths.map((w) => `${w.src} ${w.width}w`).join(', '),
-                  sizes: '(min-width: 1200px) 1px, (max-width: 639px) 1px, 384px',
-                }
-              : {})}
-          />
-        </span>
-      ) : null}
-      {/* THE EYEBROW IS ITS OWN ROW, the one a hand's head lifts away as the page moves; the
-          business's name in it is the first thing a hand gives up (configurator.css) */}
-      <p className="cfg-eyebrow cfg-mast__eyebrow">
-        {/* no business here (2026-10-21): the crest is Northside's own mark (docs/WORDS.md) */}
-        Quote <span className="cfg-mono">{quote.reference}</span> ·{' '}
-        {/* WHERE THE QUOTE STANDS, as a dot in its own ink beside its word —
-              draft rose, given leaf (tokens.css, THE KIT). Keyed by the state, so
-              the moment a quote is given its dot lands anew on the settle
-              spring: the one change on this screen nothing can take back.
-              THE KIT'S WORD FOR THE STATE, "given", and not the sentence: in a
-              hand "given to the customer" took the eyebrow to a second line at
-              the press (measured at 390 × 844: the head 176.7px as a draft, 191.5
-              given), and the finale's head and its seal already say who to. */}
-        <span className="cfg-state" data-state={quote.state === 'draft' ? 'draft' : 'given'}>
-          <span className="cfg-state__dot" key={quote.state} aria-hidden="true" />
-          {quote.state === 'draft' ? 'draft' : 'given'}
-        </span>
-        {/* WHO IT IS FOR, once it is for somebody (build-close-critique.md, 2026-10-19, minor 4:
-            "the masthead never names the customer") — and not while the finale is open, where the
-            card under it names them large ("For Jordan Avery", "Given to Jordan Avery"): the name
-            was in the eyebrow, Who it is for's head and the card in one window (the refine round,
-            2026-10-21) */}
-        {elsewhere || quote.customer.name.trim() === '' ? null : (
-          <span className="cfg-mast__for"> · for {quote.customer.name.trim()}</span>
-        )}
-      </p>
-      {/* THE FIGURE AND WHAT IS SAID ABOUT IT, AS ONE THING A TEST AND A READER FIND: the row and
-          the line under it, with no box of their own (configurator.css), so each still takes its
-          own place in the head at every width */}
-      <div className="cfg-mast__body" data-testid="running-total">
-        <div className="cfg-mast__row">
-          <div className="cfg-mast__who">
-            {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the
-              one thing to change first): its name as the headline, and its
-              material and colour under it, drawn as colour where the decode
-              names it. The price file's own string is the dealer's, on the
-              sheet and beside the paper, and not a headline. */}
-            <h1 className="cfg-mast__name">{boat.name}</h1>
-            {boat.detail === '' ? null : (
-              <p className="cfg-mast__detail">
-                <Swatches colour={boat.colour} />
-                {boat.detail}
-              </p>
-            )}
-            {/* THE HEAD IS THE SAME HEIGHT GIVEN AS DRAFT (the component critique,
-              2026-09-28, major 8). It carried a second "Open the document" on its
-              own row once a quote was given, so the press grew the head 28px at a
-              desk and 43px in a hand, under the pointer, and a hand's sticky head
-              stayed 219px of an 844px window for the rest of the quote's life. The
-              way to the paper is the finale's act, where the press was; the head
-              says the state, and only the state changes in it. */}
-          </div>
-
-          {/* THE STEP, WHERE THE TOAST WOULD HAVE COVERED THE RAIL (`StepLine`): between the boat
-            and the figure it changed, in the head that sticks at every width below a desk's */}
-          {said ? <div className="cfg-mast__step">{said}</div> : null}
-
-          {/* THE FIGURE, AND NOT A SECOND TIME: while the finale is open its card states the total
-            the quote is given at, large, and this head keeps the figure's place and says none
-            (hidden, never removed, so the row keeps its height) */}
-          <div
-            className="cfg-money"
-            data-elsewhere={elsewhere ? '' : undefined}
-            aria-hidden={elsewhere ? true : undefined}
-          >
-            <p className="cfg-money__lab">Total</p>
-            {total === null || !open ? (
-              <p className="cfg-money__none">—</p>
-            ) : (
-              <p className="cfg-money__fig">
-                <PriceFigure amount={total} />
-              </p>
-            )}
-          </div>
-        </div>
-        {/* WHAT IS NOT IN THE TOTAL, ONCE, UNDER IT (docs/WORDS.md): the rigging kit the price list
-          gives no price, in the words a dealer says it to the customer beside him — before the
-          quote is given rather than on the paper after (build-close-critique-2.md major 5).
-          Nothing about how the figure was added up: that stood here as "4 lines, each at the price
-          it was picked at" and was the engine beside the figure (2026-09-29). */}
-        {note === '' ? null : (
-          <p className="cfg-mast__note" data-testid="total-note">
-            {note}
+    <header className="cfg-mast">
+      <div className="cfg-mast__what">
+        {/* THE MAKER'S OWN MARK, in the dark ink paper takes, where the ledger holds one; its
+            name in type where it does not (Mercury and Stabicraft publish white ink only) */}
+        <p className="cfg-mast__maker">
+          {mark.drawn ? (
+            <img
+              className="cfg-mast__mark"
+              src={mark.mark.src}
+              alt={mark.mark.brand}
+              width={mark.mark.width}
+              height={mark.mark.height}
+            />
+          ) : (
+            <span className="cfg-mast__word">{register}</span>
+          )}
+        </p>
+        <h1 className="cfg-mast__name">{boat.name}</h1>
+        {boat.detail === '' ? null : (
+          <p className="cfg-mast__detail">
+            <Swatches colour={boat.colour} />
+            {boat.detail}
           </p>
         )}
       </div>
+
+      <dl className="cfg-mast__facts">
+        <div className="cfg-mast__fact">
+          <dt className="cfg-mast__lab">Quote</dt>
+          <dd className="cfg-mast__val cfg-mono">{quote.reference}</dd>
+        </div>
+        <div className="cfg-mast__fact">
+          <dt className="cfg-mast__lab">Stands</dt>
+          <dd className="cfg-mast__val">
+            {/* WHERE THE QUOTE STANDS, as a dot in its own ink beside its word — draft rose,
+                given leaf (tokens.css, THE KIT). Keyed by the state, so the moment a quote is
+                given its dot lands anew on the settle spring. */}
+            <span className="cfg-state" data-state={given ? 'given' : 'draft'}>
+              <span className="cfg-state__dot" key={quote.state} aria-hidden="true" />
+              {given ? 'Given' : 'Draft'}
+            </span>
+          </dd>
+        </div>
+        <div className="cfg-mast__fact">
+          <dt className="cfg-mast__lab">{given ? 'Given' : 'Started'}</dt>
+          <dd className="cfg-mast__val">
+            {daySaid(given && quote.issuedAt ? quote.issuedAt : quote.createdAt)}
+          </dd>
+        </div>
+        <div className="cfg-mast__fact cfg-mast__fact--who">
+          <dt className="cfg-mast__lab">For</dt>
+          <dd className="cfg-mast__val">
+            {named ? (
+              <span className="cfg-mast__who">{quote.customer.name.trim()}</span>
+            ) : given ? (
+              '—'
+            ) : (
+              <Button intent="quiet" size="sm" icon={UserCheckIcon} onClick={onWho}>
+                Name the customer
+              </Button>
+            )}
+          </dd>
+        </div>
+        <div className="cfg-mast__fact cfg-mast__fact--by">
+          <dt className="cfg-mast__lab">Prepared by</dt>
+          <dd className="cfg-mast__val">
+            <span>{by === '' ? '—' : by}</span>
+            <span className="cfg-mast__kept">{savedSay(kept, given)}</span>
+          </dd>
+        </div>
+      </dl>
     </header>
   )
+}
+
+/* ---------------------------------------------------------- */
+/* The tally: what the quote comes to, at the bottom left       */
+/* ---------------------------------------------------------- */
+
+/**
+ * THE TOTAL, AT THE BOTTOM LEFT, AND WHAT IT IS MADE OF (the owner, 2026-10-30: "Total should
+ * move from top right to bottom left area and be way nicer and more visual").
+ *
+ * The figure large, the price it is at beside it (and the way to see another, which moves
+ * nothing until it is accepted on the cascade — walk item 7 and the chandlery's must-change 4:
+ * the level stood at the very foot of the boat's column), and under it a bar, one length per
+ * part of the build that carries a price, in the part's own ink, with a key naming each part and
+ * its figure (`tallyOf`, src/domain/quote/tally.ts). What nothing is on yet is said once, as not
+ * chosen, and never drawn as a length.
+ *
+ * ALWAYS IN SIGHT WHILE BUILDING, NEVER OVER THE WORK: at a desk it stands at the foot of the
+ * boat's own column, beside the chapters and over none of them; below a desk it is a card at the
+ * bottom left of the window, over the shell's tab bar and never on it. It carries the step and
+ * its way back where the toast is not drawn (below 1440), so the step is said beside the total
+ * it changed. IT NEVER COUNTS: `PriceFigure` sets a figure and stays.
+ *
+ * WHILE THE FINALE IS OPEN ITS CARD SAYS THE TOTAL, at the level it is given at, and the tally
+ * steps aside (docs/WORDS.md, one fact once).
+ */
+function Tally({
+  quote,
+  rail,
+  open,
+  art,
+  note,
+  said,
+  elsewhere,
+  raise,
+  refusal,
+  onLarge,
+}: {
+  quote: QuoteDef
+  rail: Rail | null
+  open: boolean
+  art: StageArt | null
+  /** what is not in the total, once (`totalNoteSay`); '' for nothing */
+  note: string
+  /** the last step and its way back, or the refusal of the last press, below 1440 */
+  said: ReactNode
+  /** the finale is open and its card says the total */
+  elsewhere: boolean
+  raise: (fix: string) => void
+  refusal: string | undefined
+  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+}) {
+  const made = tallyOf(
+    (rail?.chapters ?? [])
+      .filter((chapter) => chapter.kind === 'band')
+      .map((chapter) => ({
+        id: chapter.id,
+        name: chapter.name,
+        kind: chapterKindOf(chapter) ?? 'custom',
+        amount: chapter.amount,
+        lines: chapter.lines,
+      })),
+  )
+  const notYet = openSay(made.open)
+  const photo = art?.kind === 'photograph' ? art.held : null
+  const boat = boatOfQuote(quote)
+  const heard = made.shares.map((s) => `${s.name} ${money(s.amount)}`).join(', ')
+  /* THE TOTAL IS WHERE A PART IS DROPPED (the chandlery's tray, made the total itself): while a
+     part is carried it says so at its head, and it lights while the part is over it */
+  const { place, carrying, over } = useQuoteDrop()
+  return (
+    <aside
+      ref={place}
+      data-carrying={carrying ? '' : undefined}
+      data-over={over ? '' : undefined}
+      className="cfg-tally"
+      aria-label="What the quote comes to"
+      data-testid="running-total"
+      data-elsewhere={elsewhere ? '' : undefined}
+    >
+      {carrying ? (
+        <output className="cfg-tally__drop">Drop it here to put it on the quote</output>
+      ) : null}
+      {/* WHILE THE FINALE IS OPEN ONLY THE STEP STAYS HERE, where there is one: the finale's card
+          says the total, at the level it is given at, and what it is made of is on the paper */}
+      {elsewhere ? null : (
+        <>
+          {/* THE BOAT, BESIDE ITS PRICE, WHERE THE STAGE HAS SCROLLED AWAY (below a desk): its own
+          photograph, small, and a press that opens it large */}
+          {photo ? (
+            <button
+              type="button"
+              className="cfg-tally__boat"
+              aria-label="The boat, larger"
+              onClick={() => onLarge([largeOf(photo, boat.name, boat.say)], 0, 'The boat')}
+            >
+              <img
+                className="cfg-tally__img"
+                src={photo.src}
+                alt=""
+                width={photo.width}
+                height={photo.height}
+                loading="lazy"
+                decoding="async"
+                {...(photo.widths.length > 1 ? { srcSet: srcSetOf(photo), sizes: '96px' } : {})}
+              />
+            </button>
+          ) : null}
+
+          <div className="cfg-tally__sum">
+            <p className="cfg-tally__lab">Total</p>
+            {rail === null || !open ? (
+              <p className="cfg-tally__fig cfg-tally__fig--none">—</p>
+            ) : (
+              <p className="cfg-tally__fig">
+                <PriceFigure amount={rail.total} size="display" />
+              </p>
+            )}
+          </div>
+
+          {open ? (
+            <div className="cfg-tally__level">
+              <Rungs quote={quote} rail={rail} raise={raise} refusal={refusal} />
+            </div>
+          ) : null}
+
+          {made.shares.length > 0 ? (
+            <div className="cfg-tally__made">
+              {/* the bar is a picture of the key under it, which says each part and its figure */}
+              <span className="cfg-tally__heard">{`Made of: ${heard}`}</span>
+              <p className="cfg-tally__bar" aria-hidden="true">
+                {made.shares.map((share) => (
+                  <span
+                    key={share.id}
+                    className="cfg-tally__len"
+                    data-ink={kindInk(share.kind)}
+                    style={{ '--share': share.share } as CSSProperties}
+                  />
+                ))}
+              </p>
+              <ul className="cfg-tally__key">
+                {made.shares.map((share) => (
+                  <li key={share.id} className="cfg-tally__part" data-ink={kindInk(share.kind)}>
+                    <span className="cfg-tally__dot" aria-hidden="true" />
+                    <span className="cfg-tally__name">{share.name}</span>
+                    <span className="cfg-tally__amt">{money(share.amount)}</span>
+                  </li>
+                ))}
+                {made.unpriced.map((name) => (
+                  <li key={name} className="cfg-tally__part" data-unpriced="">
+                    <span className="cfg-tally__dot" aria-hidden="true" />
+                    <span className="cfg-tally__name">{name}</span>
+                    <span className="cfg-tally__amt">no price yet</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {notYet === '' && note === '' ? null : (
+            <p className="cfg-tally__note">
+              {notYet === '' ? null : <span className="cfg-tally__open">{`${notYet}.`}</span>}
+              {notYet !== '' && note !== '' ? ' ' : null}
+              {note === '' ? null : <span data-testid="total-note">{note}</span>}
+            </p>
+          )}
+        </>
+      )}
+
+      {said ? <div className="cfg-tally__step">{said}</div> : null}
+    </aside>
+  )
+}
+
+/** One held picture, as the lightbox draws it large. */
+function largeOf(held: Held, caption: string, alt: string): LightboxPicture {
+  const srcSet = srcSetOf(held)
+  return {
+    src: held.src,
+    width: held.width,
+    height: held.height,
+    ...(srcSet ? { srcSet } : {}),
+    alt: held.subject === '' ? alt : held.subject,
+    caption,
+    credit: creditOf(held),
+  }
+}
+
+/** One option's picture, as the lightbox draws it large. */
+function largeOfRow(picture: NonNullable<OptionRow['picture']>, caption: string): LightboxPicture {
+  return {
+    src: picture.src,
+    width: picture.width,
+    height: picture.height,
+    ...(picture.srcSet ? { srcSet: picture.srcSet } : {}),
+    alt: caption,
+    caption,
+    credit: picture.credit,
+  }
+}
+
+/** What a chapter is a chapter of, for its ink and its glyph: the hull is the boat. */
+function chapterKindOf(chapter: Chapter): TableKind | null {
+  if (chapter.kind !== 'band') return null
+  return chapter.id === 'hull' ? 'boat' : (chapter.tables[0]?.kind ?? null)
 }
 
 /* ---------------------------------------------------------- */
 /* The stage: the hull, and only the hull                       */
 /* ---------------------------------------------------------- */
 
+/**
+ * THE BOAT, INSIDE THE PAGE'S MEASURE (the owner, 2026-10-30: "i don't like how the image goes
+ * all the way to left on big screen"). The plate the photograph is cut from bled off the start
+ * edge of the window at every desk width; it now keeps the page's gutter like everything else on
+ * the page and lines up with the masthead over it, round on every corner. It takes the height
+ * the boat's column has left once its facts and the tally are counted, and never more than its
+ * own pixels. A press on its corner opens it large.
+ */
 function Stage({
   quote,
   ctx,
   art,
-  open,
-  kept,
-  who,
   rail,
-  raise,
-  refusal,
+  onLarge,
 }: {
   quote: QuoteDef
   ctx: CatalogueCtx
+  rail: Rail | null
   /** the boat's picture, read by the build (`stage.ts`) */
   art: StageArt
-  open: boolean
-  kept: string | null
-  who: string | null
-  rail: Rail | null
-  raise: (fix: string) => void
-  refusal: string | undefined
+  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
 }) {
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
-  /* THE HULL'S OWN PHOTOGRAPH ON THE WATER WHERE THE LEDGER HOLDS
-     ONE, and the catalogue copy where it does not (`art`, read by the
-     build). `stage.ts` argues the rung at length; what it buys this
-     screen is a stage worth the name — 2560px of scene instead of
-     1100px of studio render, so the boat can be drawn at the size the
-     direction promised without ever passing the pixels the ledger holds. */
+  const boat = boatOfQuote(quote)
   /* WHAT THE PICTURE SHOWS AND WHAT THIS QUOTE CARRIES, because the
      customer at the desk reads the picture (#24). `say.ts` argues it. */
   const said = pictureSays(art, quote, rail, ctx)
@@ -1736,13 +1901,9 @@ function Stage({
   const photo = useRef<HTMLImageElement>(null)
   const held = art.kind === 'photograph' ? art.held : null
 
-  /* THE PAINTED SIZE, NOT THE BOX — the same arithmetic entry and
-     home run on theirs. `object-fit: cover` scales the whole picture
-     until it covers the box and the box crops the rest, so the scale
-     is the larger of the two ratios and the size reported is the
-     whole picture at that scale. It rides on the provenance line as
-     `data-drawn`, beside `data-held`, so "never enlarged" stays
-     checkable at every width — by a test, not by a customer. */
+  /* THE PAINTED SIZE, NOT THE BOX: `object-fit: cover` scales the whole picture until it covers
+     the box, so the scale is the larger of the two ratios. It rides on the provenance line as
+     `data-drawn`, beside `data-held`, so "never enlarged" stays checkable at every width. */
   useEffect(() => {
     const img = photo.current
     if (!held || !img || typeof ResizeObserver === 'undefined') return
@@ -1760,51 +1921,17 @@ function Stage({
     }
   }, [held])
 
-  /* EVERYTHING ON THE STAGE BUT THE PHOTOGRAPH, MEASURED, so at a desk the photograph takes the
-     room the window has left and the stage ends above the floor's foot, where nothing can push
-     it under the head (configurator.css, "the stage fits the window"). Written on the stage as a
-     custom property, never through a render; the photograph's own height is taken away, so the
-     measure does not move when the photograph does. */
-  const stage = useRef<HTMLElement>(null)
-  useEffect(() => {
-    const node = stage.current
-    const shot = node?.querySelector<HTMLElement>('.cfg-shot')
-    if (!node || !shot || typeof ResizeObserver === 'undefined') return
-    const measure = (): void => {
-      const rest = node.getBoundingClientRect().height - shot.getBoundingClientRect().height
-      node.style.setProperty('--cfg-stage-rest', `${Math.max(0, Math.ceil(rest))}px`)
-    }
-    measure()
-    const watch = new ResizeObserver(measure)
-    watch.observe(node)
-    return () => {
-      watch.disconnect()
-    }
-  }, [])
-
   return (
-    <section className="cfg-stage" ref={stage} aria-label="The boat this quote is about">
-      {/* THE PICTURE AND ITS CAPTION, AS ONE PIECE, because in a hand they
-          stand above the rail and the rest of the stage below it
-          (configurator.css), and a caption that says whose rig is in the
-          picture belongs under the picture wherever it stands. */}
+    <section className="cfg-stage" aria-label="The boat this quote is about">
+      {/* THE PICTURE AND ITS CAPTION, AS ONE PIECE, because in a hand they stand above the rail
+          and the rest of the stage below it (configurator.css) */}
       <div className="cfg-stage__pic">
-        {/* WHAT THE PACKER MEASURED THE PICTURE TO BE rides on the box,
-          because a render and a scene are not drawn the same way and
-          the difference is data rather than taste. See the
-          stylesheet. */}
         <figure
           className="cfg-shot"
           data-art={art.kind}
           data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
-          /* NEVER ENLARGED, STRUCTURALLY. `object-fit: cover` scales a
-           picture until it covers its box, so a box wider than the
-           bytes is an enlargement — the cascade screen measured
-           exactly that and it is recorded in docs/DECISIONS.md. The
-           ledger's own pixels are the ceiling on the BOX, which makes
-           the promise a bound rather than a caption: at or under the
-           held size, `cover` can only scale down. Home caps its two
-           plates the same way. */
+          /* NEVER ENLARGED, STRUCTURALLY: the ledger's own pixels are the ceiling on the box, so
+             `cover` can only scale down */
           style={
             art.kind === 'photograph'
               ? { maxInlineSize: art.held.width, maxBlockSize: art.held.height }
@@ -1816,33 +1943,20 @@ function Stage({
               className="cfg-shot__img"
               ref={photo}
               src={art.held.src}
-              /* THE LEDGER'S OWN WORDS FOR WHAT IT SHOWS, where a ledger
-               has them — the hero rows carry a `subject` line and the
-               catalogue rows do not, so the fallback is the boat this
-               document is about. */
-              alt={art.held.subject === '' ? boatOfQuote(quote).say : art.held.subject}
+              alt={art.held.subject === '' ? boat.say : art.held.subject}
               width={art.held.width}
               height={art.held.height}
-              /* THE NARROWER COPIES THE LEDGER ALREADY HOLDS. A 2560px
-               hero fetched to be drawn 913px wide is 400 kB of stall
-               on the fold of the screen a sale happens on — the
-               critique measured that on home and it is the same
-               picture set. `sizes` is the stage's own share of the
-               window at each step of this screen's ladder. */
               {...(art.held.widths.length > 1
                 ? {
-                    srcSet: art.held.widths.map((w) => `${w.src} ${w.width}w`).join(', '),
+                    srcSet: srcSetOf(art.held),
                     sizes:
                       '(max-width: 1199px) and (max-height: 700px) 288px, (max-width: 1199px) 100vw, (max-width: 1439px) 44vw, 48vw',
                   }
                 : {})}
               decoding="async"
               fetchPriority="high"
-              /* THE PHOTOGRAPH THE PICKER'S ACT CARRIED HERE (the component kit,
-               2026-09-28): the plate's picture of this row travels under the
-               same name, so the route's View Transition lands it on this stage
-               (src/screens/picker/travel.ts). Only the picture is named — the
-               running price never travels. */
+              /* THE PHOTOGRAPH THE PICKER'S ACT CARRIED HERE: the plate's picture of this row
+                 travels under the same name (src/screens/picker/travel.ts) */
               style={
                 { '--cfg-travel': boatTravel(quote.rootTableId, quote.rootRowId) } as CSSProperties
               }
@@ -1858,12 +1972,15 @@ function Stage({
           ) : (
             <span className="cfg-shot__word">{register}</span>
           )}
+          {art.kind === 'photograph' ? (
+            <span className="cfg-shot__expand">
+              <ExpandPicture
+                label="See the boat larger"
+                onExpand={() => onLarge([largeOf(art.held, boat.name, boat.say)], 0, 'The boat')}
+              />
+            </span>
+          ) : null}
         </figure>
-        {/* THE CAPTION STANDS DIRECTLY UNDER THE PHOTOGRAPH IT IS ABOUT.
-          On the Sport 560 the maker's photograph has a Mercury on the
-          transom and the quote may carry a Yamaha; the picture is the
-          model's own and is neither swapped nor cropped, and this says
-          in two lines whose rig it is and what is on this quote. */}
         {said ? (
           <p className="cfg-caption" data-testid="stage-caption">
             <span className="cfg-caption__shows">{said.shows}</span>
@@ -1872,65 +1989,20 @@ function Stage({
         ) : null}
       </div>
 
-      {/* EVERYTHING THAT IS NOT THE PICTURE, IN ONE BLOCK, because at
-          every width under 1200 the stage is a band and the picture
-          stands beside the rest of it. Without the wrapper the band is
-          a grid of eight loose children and the picture spans a fixed
-          number of rows — which is a count that goes wrong the day a
-          line is added. Measured at 834x1112: the last two sentences
-          wrapped under the photograph instead of beside it. */}
+      {/* THE BOAT'S OWN FACTS, under its picture */}
       <div className="cfg-stage__say">
-        <p className="cfg-stage__over">{register}</p>
-        <h2 className="cfg-stage__name">{boatOfQuote(quote).name}</h2>
-        {boatOfQuote(quote).detail === '' ? null : (
-          <p className="cfg-stage__detail">
-            <Swatches colour={boatOfQuote(quote).colour} size="sm" />
-            {boatOfQuote(quote).detail}
-          </p>
-        )}
-
+        <h2 className="cfg-stage__name">{boat.name}</h2>
         {quote.subjectSpecs.length > 0 ? (
           <Specs quote={quote} />
         ) : (
           <p className="cfg-note">The price list gives no specifications for this boat.</p>
         )}
-
-        {/* WHERE THE PICTURE CAME FROM, IN ONE SHORT LINE. It read "Stage
-            copy 2,560 × 1,708, drawn here at 624 × 416, never enlarged ·
-            from media.highfieldboats.com" — the image ledger's arithmetic,
-            printed to a customer at the desk (M2-close critique #4 and
-            #21). The provenance is the ledger's and stays there; "never
-            enlarged" is a bound the box already enforces (its max size is
-            the held pixels) and is not a sentence anybody reads. The held
-            and drawn sizes ride on the line as data, so a test can still
-            check the bound at every width. */}
         <p
           className="cfg-prov"
           data-held={art.kind === 'photograph' ? `${art.held.width}x${art.held.height}` : undefined}
           data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
         >
-          {art.kind === 'photograph'
-            ? `${art.held.tier === 'hero' ? 'Photograph' : 'Picture'} from ${hostOf(art.held.address)}`
-            : art.because}
-        </p>
-
-        <div className="cfg-hair" />
-
-        {open ? (
-          <Rungs quote={quote} rail={rail} raise={raise} refusal={refusal} />
-        ) : (
-          <p className="cfg-note">
-            The price list is not loaded on this computer, so nothing can be added. Every price
-            already on this quote stays as it is.
-          </p>
-        )}
-        <p className="cfg-note">
-          {[
-            who ? `Prepared by ${quote.preparedBy ?? who}.` : '',
-            savedSay(kept, quote.state !== 'draft'),
-          ]
-            .filter((part) => part !== '')
-            .join(' ')}
+          {art.kind === 'photograph' ? creditOf(art.held) : art.because}
         </p>
       </div>
     </section>
@@ -1995,6 +2067,10 @@ function Rungs({
   raise: (fix: string) => void
   refusal: string | undefined
 }) {
+  /* IN THE TALLY, BESIDE THE TOTAL (walk item 7): the price the quote is at, and the press that
+     shows another. "Nothing on this quote changes until you choose" is the cascade's own head,
+     where the other price is shown line by line; beside the total it was a third line of small
+     type under two buttons. */
   const rungs = rail?.rungs ?? []
   if (rungs.length === 0) {
     return <p className="cfg-note">{NO_LEVEL_SAY}</p>
@@ -2064,7 +2140,6 @@ function Rungs({
           </li>
         ))}
       </ul>
-      <p className="cfg-note">{CASCADE_SAY}</p>
     </div>
   )
 }
@@ -2124,6 +2199,11 @@ function ChapterCard({
   onFinale,
   onWho,
   onPress,
+  onLarge,
+  ctx,
+  aisle,
+  maker,
+  goAisle,
   onRaise,
   onShowAll,
   refusal,
@@ -2137,6 +2217,14 @@ function ChapterCard({
   setRefused,
   go,
 }: {
+  /** opens a picture large, among its chapter's (`Lightbox`) */
+  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+  /** the sheet, for the chandlery */
+  ctx: CatalogueCtx
+  /** the chandlery's open aisle and maker, and where a press writes them */
+  aisle: string
+  maker: string
+  goAisle?: ((aisle: string, maker: string) => void) | undefined
   /** follow an address without a page load — a rule's sentence to the rule on /rules */
   go?: (href: string) => void
   /** where the reading light finds this chapter */
@@ -2274,6 +2362,7 @@ function ChapterCard({
         <FinishBlock
           finishes={chapter.finishes}
           query={searching ? query : ''}
+          onLarge={onLarge}
           onPress={onPress}
           onRaise={onRaise}
           refusedBy={refusedBy}
@@ -2282,23 +2371,74 @@ function ChapterCard({
 
       {shopped ? <ShopSwitch open={shop} onToggle={() => setShop((was) => !was)} /> : null}
 
-      {chapter.tables.map((table) => (
-        <TableBlock
-          key={table.id}
-          table={table}
-          orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
-          told={rail.unpricedLists}
-          quoteId={quoteId}
-          named={chapter.tables.length > 1}
-          query={searching ? query : ''}
-          level={level}
-          onPress={onPress}
-          onShowAll={onShowAll}
-          refusedBy={refusedBy}
-          shop={shop}
-          go={go}
-        />
-      ))}
+      {chapter.tables.map((table) =>
+        /* THE CHANDLERY, WHERE THIS CHAPTER OFFERS THE PRICE LIST'S PARTS (direction B, picked
+           2026-10-30): the same catalogue as /catalogue, fitting this boat. While the build's own
+           search runs, the list answers it as every other list does. */
+        table.tableId === PARTS_TABLE && !searching ? (
+          <Chandlery
+            key={table.id}
+            ctx={ctx}
+            levelKey={quote.levelKey}
+            aisle={aisle}
+            maker={maker}
+            onAisle={(a, m) => goAisle?.(a, m)}
+            onLarge={onLarge}
+            go={go}
+            fitting={{
+              boat: boatOfQuote(quote).name,
+              fitsHref: fitmentOf(quote.rootRowId),
+              /* by the part's own row, which a pairing's key is not */
+              madeFor: table.rows
+                .filter((row) => !row.outside)
+                .flatMap((row) => {
+                  const act = row.act
+                  const id =
+                    act.do === 'add'
+                      ? act.line.rowId
+                      : act.do === 'remove'
+                        ? quote.lines.find((line) => line.id === act.lineId)?.rowId
+                        : undefined
+                  return id ? [id] : []
+                }),
+              on: new Map(
+                quote.lines
+                  .filter((line) => line.entityId === table.tableId)
+                  .map((line) => [line.rowId, line.id]),
+              ),
+              put: (line) => onPress({ do: 'add', blockId: table.id, line }),
+              takeOff: (lineId) =>
+                onPress({
+                  do: 'remove',
+                  lineId,
+                  label: quote.lines.find((line) => line.id === lineId)?.label ?? '',
+                }),
+              refusedBy,
+            }}
+          />
+        ) : (
+          <TableBlock
+            key={table.id}
+            table={table}
+            orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
+            told={rail.unpricedLists}
+            quoteId={quoteId}
+            named={chapter.tables.length > 1}
+            query={searching ? query : ''}
+            level={level}
+            onPress={onPress}
+            onLarge={(set, picture) => onLarge(set, picture, chapter.name)}
+            onShowAll={onShowAll}
+            motors={quote.lines
+              .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
+              .map((line) => line.code ?? '')
+              .filter((code) => code !== '')}
+            refusedBy={refusedBy}
+            shop={shop}
+            go={go}
+          />
+        ),
+      )}
 
       {chapter.kind === 'handover' ? (
         <Handover
@@ -2660,12 +2800,15 @@ function HullPriceField({
 function FinishBlock({
   finishes,
   query,
+  onLarge,
   onPress,
   onRaise,
   refusedBy,
 }: {
   finishes: Finishes
   query: string
+  /** opens a finish's picture large, among the others */
+  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
   onPress: (act: Act) => void
   onRaise: (fix: string) => void
   /** the element holding the one reason every row here is refused
@@ -2675,6 +2818,11 @@ function FinishBlock({
 }) {
   const rows =
     query === '' ? finishes.rows : finishes.rows.filter((f) => matchesFinish(f.label, query))
+
+  const pictured = rows.filter((f) => f.picture !== null)
+  const large = pictured.map((f) =>
+    largeOfRow(f.picture!, `${f.colour.say}${f.materialSaid === '' ? '' : ` · ${f.materialSaid}`}`),
+  )
 
   if (finishes.rows.length === 0) {
     return (
@@ -2705,14 +2853,99 @@ function FinishBlock({
           Another finish changes the boat only. Everything else on this quote stays.
         </p>
       </div>
-      <ul className="cfg-rows">
-        {rows.map((finish) => (
-          <li key={finish.rowId}>
-            <FinishCard finish={finish} onPress={onPress} onRaise={onRaise} refusedBy={refusedBy} />
-          </li>
-        ))}
-      </ul>
+      {/* COLOURS SHOWN AS COLOURS AND AS PICTURES (the original's users' first floor; the
+          chandlery's graft from C2): where the ledger holds a finish's own render, each finish
+          is a card with that render and its swatches, and the render opens large. Where none
+          does, each is a line led by its swatches. */}
+      {pictured.length > 0 ? (
+        <ul className="cfg-tiles">
+          {rows.map((finish) => (
+            <li key={finish.rowId}>
+              <FinishTile
+                finish={finish}
+                onPress={onPress}
+                onRaise={onRaise}
+                refusedBy={refusedBy}
+                expand={
+                  finish.picture
+                    ? {
+                        label: 'See this finish larger',
+                        onExpand: () =>
+                          onLarge(large, pictured.indexOf(finish), `${finishes.model} finishes`),
+                      }
+                    : undefined
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="cfg-rows">
+          {rows.map((finish) => (
+            <li key={finish.rowId}>
+              <FinishCard
+                finish={finish}
+                onPress={onPress}
+                onRaise={onRaise}
+                refusedBy={refusedBy}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
+  )
+}
+
+/** A finish as a picture card: its own render, its colours, and what it does to the total. */
+function FinishTile({
+  finish,
+  onPress,
+  onRaise,
+  refusedBy,
+  expand,
+}: {
+  finish: Finish
+  onPress: (act: Act) => void
+  onRaise: (fix: string) => void
+  refusedBy: string | undefined
+  expand: { label: string; onExpand: () => void } | undefined
+}) {
+  return (
+    <OptionTile
+      name={
+        finish.colour.read ? (
+          finish.colour.say
+        ) : (
+          <span className="cfg-mono">{finish.colour.code}</span>
+        )
+      }
+      facts={finish.materialSaid === '' ? undefined : finish.materialSaid}
+      detail={<Swatches colour={finish.colour} size="sm" />}
+      picture={finish.picture}
+      kind="boat"
+      figure={
+        finish.current ? (
+          finish.amount === null ? undefined : (
+            <PriceFigure amount={finish.amount} />
+          )
+        ) : finish.delta === 0 ? (
+          'no change'
+        ) : (
+          <PriceFigure amount={finish.delta} signed />
+        )
+      }
+      figureSay={finish.current ? 'on the quote' : undefined}
+      selected={finish.current}
+      onSelect={() =>
+        finish.delta === 0
+          ? onPress({ do: 'refinish', rowId: finish.rowId, label: finish.label })
+          : onRaise(finishFix(finish.rowId))
+      }
+      refusedBy={refusedBy}
+      label={`${finish.colour.say}${finish.materialSaid === '' ? '' : `, ${finish.materialSaid}`}, ${finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)}`}
+      {...(expand ? { expand } : {})}
+    />
   )
 }
 
@@ -2826,12 +3059,18 @@ function TableBlock({
   query,
   level,
   onPress,
+  onLarge,
   onShowAll,
   refusedBy,
   shop,
   go,
   quoteId,
+  motors,
 }: {
+  /** the codes of the motors on this quote, which a rigging kit is offered for */
+  motors: readonly string[]
+  /** opens one of this list's pictures large, among the others it draws */
+  onLarge: (set: readonly LightboxPicture[], at: number) => void
   /** follow an address without a page load — a rule's sentence to the rule on /rules */
   go?: (href: string) => void
   /** the quote, so the door to Prices can lead back to it */
@@ -2881,14 +3120,30 @@ function TableBlock({
     return [...held].toSorted(([a], [b]) => Number(a) - Number(b) || a.localeCompare(b))
   }, [table, query])
   const narrowed = powers.length > 1 && powers.some(([p]) => p === power) ? power : null
-  const rows =
-    narrowed === null ? table.rows : table.rows.filter((r) => r.fitted || r.power === narrowed)
+  /* A RIGGING KIT IS OFFERED ONLY FOR A MOTOR ON THIS QUOTE (`kitsForMotors`), while no search
+     is reaching past the list */
+  const kits = table.tableId === RIG_KITS && query === ''
+  const shelved = kits ? kitsForMotors(table.rows, motors) : table.rows
+  const kitsSay =
+    !kits || shelved.length > 0 ? '' : motors.length === 0 ? KITS_WAIT : kitsNone(motors)
+  const rows = narrowed === null ? shelved : shelved.filter((r) => r.fitted || r.power === narrowed)
   /* WHAT EVERY PRESS HERE DOES, ONCE (`insteadSay`): where two or more lines off the quote would
      each take the same motor off, the list says it over itself and each figure stands alone */
   const swaps = table.rows.filter((r) => !r.fitted && r.instead !== '')
   const instead =
     swaps.length > 1 && swaps.every((r) => r.instead === swaps[0]!.instead) ? swaps[0]!.instead : ''
   const replaces = insteadSay(instead)
+  /* THE PICTURES THIS LIST DRAWS, in its order, so one opened large steps to the next */
+  const pictured = [...rows, ...table.also].filter((row) => row.picture !== null)
+  const large = pictured.map((row) =>
+    largeOfRow(row.picture!, row.listed === '' ? row.tail : row.listed),
+  )
+  const expandOf = (row: OptionRow): { label: string; onExpand: () => void } | undefined => {
+    const at = pictured.indexOf(row)
+    return at < 0
+      ? undefined
+      : { label: 'See its picture larger', onExpand: () => onLarge(large, at) }
+  }
 
   /* NOTHING IS COUNTED OVER A LIST AT REST (build-close-critique-2.md major 2: Dealer fit "is
      still a settings list"). "5 OF 2,238 PAIRED WITH THIS HULL" stood over every list in the
@@ -3002,6 +3257,7 @@ function TableBlock({
                 <OptionCard
                   row={row}
                   kind={table.kind}
+                  expand={expandOf(row)}
                   query={query}
                   level={level}
                   onPress={onPress}
@@ -3029,6 +3285,7 @@ function TableBlock({
                 <OptionCard
                   row={row}
                   kind={table.kind}
+                  expand={expandOf(row)}
                   query=""
                   level={level}
                   onPress={onPress}
@@ -3051,7 +3308,13 @@ function TableBlock({
           told by their own system that it does not exist. Its own words
           are the count; what the whole list leaves out is said once it
           is open (`allSay`). */}
-      {counts.catalogue > counts.narrowed ? (
+      {kitsSay === '' ? null : (
+        <Said className="cfg-why" glyph={InfoIcon}>
+          {kitsSay}
+        </Said>
+      )}
+
+      {counts.catalogue > counts.narrowed && !kits ? (
         <div className="cfg-all">
           <Button
             intent="veiled"
@@ -3101,7 +3364,10 @@ function OptionCard({
   tile,
   shop: shopOpen,
   insteadSaid,
+  expand,
 }: {
+  /** the press that opens its picture large, where it has one */
+  expand?: { label: string; onExpand: () => void } | undefined
   row: OptionRow
   /** what the list holds, for the glyph a tile without a picture is led by */
   kind: TableKind
@@ -3242,6 +3508,8 @@ function OptionCard({
         onSelect={() => onPress(row.act)}
         refusedBy={refusedBy}
         label={label}
+        recommended={row.starred && !row.fitted}
+        {...(expand ? { expand } : {})}
       />
       {row.why === '' ? null : <p className="cfg-opt__why">{row.why}</p>}
       {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}

@@ -1,0 +1,159 @@
+{
+  "group": "parts-gme",
+  "judgedAt": "2026-10-30",
+  "by": "Claude (parts imagery round), by eye",
+  "verification": "verified by eye, contact sheet, 2026-10-30",
+  "looked": [
+    "parts-gme.png (contact sheet)",
+    "pixel comparison at 256 px of every pair of pictures whose 16×16 difference hash was within 4 bits, across different part numbers"
+  ],
+  "accepted": 9,
+  "rejected": 2,
+  "findings": [
+    "A maker that publishes one picture for several part numbers (cable lengths, screen sizes, tilt angles) has shown none of them exactly: each such picture is held for none of them.",
+    "A display sold with and without a transducer is the same display; its picture is held for both, and the one with a transducer says the transducer is not shown where it is not."
+  ],
+  "verdicts": [
+    {
+      "n": 1,
+      "tile": "ABL012 - Double Swivel rectangular antenna base with lead for AW36XX range of whips",
+      "table": "parts",
+      "model": "ABL012 - Double Swivel rectangular antenna base with lead for AW36XX range of whips",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/ABL012-Front-1217x1440.png",
+      "decision": "accept",
+      "depicts": "GME ABL012 - GME (part number ABL012), row parts:812",
+      "differs": [],
+      "reason": "The maker’s own picture for part number ABL012 (“ABL012 - GME”), on the page that sells that part number; it shows the item the file names as “ABL012 - Double Swivel rectangular antenna base with lead for AW36XX range of whips”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 2,
+      "tile": "ABL013B - Single Swivel rectangular antenna base with lead for AW36XX range of whips - Black",
+      "table": "parts",
+      "model": "ABL013B - Single Swivel rectangular antenna base with lead for AW36XX range of whips - Black",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/ABL013B-Front-1485x1440.png",
+      "decision": "accept",
+      "depicts": "GME ABL013B - GME (part number ABL013B), row parts:815",
+      "differs": [],
+      "reason": "The maker’s own picture for part number ABL013B (“ABL013B - GME”), on the page that sells that part number; it shows the item the file names as “ABL013B - Single Swivel rectangular antenna base with lead for AW36XX range of whips - Black”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 3,
+      "tile": "ABL015 - Single Swivel round antenna base with lead for AW36XX range of whips",
+      "table": "parts",
+      "model": "ABL015 - Single Swivel round antenna base with lead for AW36XX range of whips",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/ABL015-Front-1513x1440.png",
+      "decision": "accept",
+      "depicts": "GME ABL015 - GME (part number ABL015), row parts:818",
+      "differs": [],
+      "reason": "The maker’s own picture for part number ABL015 (“ABL015 - GME”), on the page that sells that part number; it shows the item the file names as “ABL015 - Single Swivel round antenna base with lead for AW36XX range of whips”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 4,
+      "tile": "AW366VB - VHF detachable antenna whip 1800 mm - Black",
+      "table": "parts",
+      "model": "AW366VB - VHF detachable antenna whip 1800 mm - Black",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/AW366VB-1-30x1440.png",
+      "decision": "reject",
+      "rule": "too small once drawn: GME’s only picture of the whip is 30 pixels wide, a line at any size a card draws",
+      "reason": "too small once drawn: GME’s only picture of the whip is 30 pixels wide, a line at any size a card draws",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 5,
+      "tile": "GX700B - VHF Fixed Mount Marine Radio - Black",
+      "table": "parts",
+      "model": "GX700B - VHF Fixed Mount Marine Radio - Black",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/GX700B-Groupshot-1823x1440.png",
+      "decision": "accept",
+      "depicts": "GME GX700B - VHF Marine Radio - Black (part number GX700B), row parts:788",
+      "differs": [],
+      "reason": "The maker’s own picture for part number GX700B (“GX700B - VHF Marine Radio - Black”), on the page that sells that part number; it shows the item the file names as “GX700B - VHF Fixed Mount Marine Radio - Black”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 6,
+      "tile": "GX700W - VHF Fixed Mount Marine Radio - White",
+      "table": "parts",
+      "model": "GX700W - VHF Fixed Mount Marine Radio - White",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/GX700W-Front-1920x770.png",
+      "decision": "accept",
+      "depicts": "GME GX700W - VHF Marine Radio - White (part number GX700W), row parts:787",
+      "differs": [],
+      "reason": "The maker’s own picture for part number GX700W (“GX700W - VHF Marine Radio - White”), on the page that sells that part number; it shows the item the file names as “GX700W - VHF Fixed Mount Marine Radio - White”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 7,
+      "tile": "LE028 - DC Power Lead For GX300",
+      "table": "parts",
+      "model": "LE028 - DC Power Lead For GX300",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/LE028-Connection-387x1080.png",
+      "decision": "accept",
+      "depicts": "GME LE028 - GME (part number LE028), row parts:830",
+      "differs": ["GME’s picture shows the lead’s plug and wires, not the whole lead."],
+      "reason": "The maker’s own picture for part number LE028 (“LE028 - GME”), on the page that sells that part number; it shows the item the file names as “LE028 - DC Power Lead For GX300”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 8,
+      "tile": "Premium Case t/s GME Personal EPIRB",
+      "table": "parts",
+      "model": "Premium Case t/s GME Personal EPIRB",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/CC610-Back-2023-150x115.png",
+      "decision": "reject",
+      "rule": "too small: GME’s only picture of the CC610 case is 150 × 115 pixels",
+      "reason": "too small: GME’s only picture of the CC610 case is 150 × 115 pixels",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 9,
+      "tile": "SPK09 - 4 Ohm extension speaker with lead & plug black",
+      "table": "parts",
+      "model": "SPK09 - 4 Ohm extension speaker with lead & plug black",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/SPK09-Front34-NEW2022-1305x1440.png",
+      "decision": "accept",
+      "depicts": "GME SPK09 - 7 Watt Extension Speaker - Black (part number SPK09), row parts:799",
+      "differs": [],
+      "reason": "The maker’s own picture for part number SPK09 (“SPK09 - 7 Watt Extension Speaker - Black”), on the page that sells that part number; it shows the item the file names as “SPK09 - 4 Ohm extension speaker with lead & plug black”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 10,
+      "tile": "VHF Handheld Marine Radio - 2.5 Watt",
+      "table": "parts",
+      "model": "VHF Handheld Marine Radio - 2.5 Watt",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/GX610-Front-1-508x1440.png",
+      "decision": "accept",
+      "depicts": "GME GX610 - GME (part number GX610), row parts:791",
+      "differs": [],
+      "reason": "The maker’s own picture for part number GX610 (“GX610 - GME”), on the page that sells that part number; it shows the item the file names as “VHF Handheld Marine Radio - 2.5 Watt”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    },
+    {
+      "n": 11,
+      "tile": "VHF Handheld Marine Radio - Wash",
+      "table": "parts",
+      "model": "VHF Handheld Marine Radio - Wash",
+      "kind": "catalogue",
+      "url": "https://www.gme.net.au/app/uploads/GX625W-Front-354x1440.png",
+      "decision": "accept",
+      "depicts": "GME GX625W - 5/1 Watt Handheld VHF Marine Radio (part number GX625W), row parts:793",
+      "differs": [],
+      "reason": "The maker’s own picture for part number GX625W (“GX625W - 5/1 Watt Handheld VHF Marine Radio”), on the page that sells that part number; it shows the item the file names as “VHF Handheld Marine Radio - Wash”.",
+      "verification": "verified by eye, contact sheet, 2026-10-30"
+    }
+  ]
+}

@@ -945,7 +945,8 @@ async function holdAccepted(): Promise<number> {
       continue
     }
     const models = j.models.map((m) => modelNamed(index, j.table, m))
-    const id = `${slug(saidOf(j.table, j.models[0]!))}-catalogue`
+    /* a part's name can recur in another fit register, so its id says its register */
+    const id = `${index.fit.has(j.table) ? `${slug(j.table)}-` : ''}${slug(saidOf(j.table, j.models[0]!))}-catalogue`
     const dest = path.join(OUT_DIR, `${stemFor(j.url)}.webp`)
     const had = byId.get(id)
     const rowAddress = j.scope === 'row-address'

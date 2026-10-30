@@ -82,6 +82,17 @@ export function askedForFits(query: string): FitsQuestion | null {
   return { kind, word, boat }
 }
 
+/** WHAT GOES ON A BOAT, ASKED IN WORDS: "what fits ADV9", "fits the SP560", "what goes on the
+ *  519". The boat as typed, or null where the line is not that question. A kind named ("motors
+ *  for ADV9") is `askedForFits`'s question, not this one. */
+export function askedWhatFits(query: string): string | null {
+  const line = query.trim().replace(/\s+/g, ' ')
+  const hit =
+    /^(?:what\s+(?:fits?|goes\s+on)|fits?|fitment(?:\s+for)?)\s+(?:the\s+|an?\s+)?(.+)$/i.exec(line)
+  const boat = hit ? hit[1]!.trim() : ''
+  return boat.length >= 2 ? boat : null
+}
+
 /* ------------------------------------------------------------ */
 /* The answer                                                    */
 /* ------------------------------------------------------------ */

@@ -188,6 +188,7 @@ describe('the finder', () => {
     expect(DOORS.find((d) => d.href === '/data')?.rooms?.map((r) => r.href)).toEqual([
       '/rules',
       '/fitment',
+      '/catalogue',
       '/review',
       '/levels',
       '/shelf',

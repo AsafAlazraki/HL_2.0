@@ -53,6 +53,15 @@ export interface ChooserProps {
   onChoose: (rowId: string) => void
   /** boats already on quotes here, most recent first — offered before anything is typed */
   recent: BoatFound[]
+  /** THE MAKER AND MODEL OPEN, as the address holds them (`?maker=&model=`), so a Back or a
+   *  reload keeps the place (walk.md, major). Absent: the finder keeps its own, for a popover. */
+  at?: ChooserAt
+  onAt?: (next: ChooserAt) => void
+}
+
+export interface ChooserAt {
+  maker: string
+  model: string
 }
 
 const hrefOf = (b: BoatFound): string => `/fitment?boat=${encodeURIComponent(b.place.rowId)}`
@@ -89,12 +98,23 @@ interface Finder {
 }
 
 function useFinder(
-  { world, onChoose, recent }: ChooserProps,
+  { world, onChoose, recent, at, onAt }: ChooserProps,
   { big, marks }: { big: boolean; marks: boolean },
 ): Finder {
   const [words, setWords] = useState('')
-  const [makerName, setMaker] = useState('')
-  const [modelKey, setModel] = useState('')
+  const [ownMaker, setOwnMaker] = useState('')
+  const [ownModel, setOwnModel] = useState('')
+  const makerName = at && onAt ? at.maker : ownMaker
+  const modelKey = at && onAt ? at.model : ownModel
+  const setMaker = (next: string | ((was: string) => string)): void => {
+    const value = typeof next === 'function' ? next(makerName) : next
+    if (at && onAt) onAt({ maker: value, model: '' })
+    else setOwnMaker(value)
+  }
+  const setModel = (value: string): void => {
+    if (at && onAt) onAt({ maker: makerName, model: value })
+    else setOwnModel(value)
+  }
   const answer = useMemo(() => findBoats(world, words), [world, words])
   const makers = useMemo(() => boatMakers(world), [world])
   const typed = words.trim() !== ''
@@ -110,7 +130,7 @@ function useFinder(
   }
   const list = big ? 'plate' : undefined
   const pick = (name: string): void => {
-    setModel('')
+    if (!(at && onAt)) setOwnModel('')
     setMaker((was) => (was === name ? '' : name))
   }
 

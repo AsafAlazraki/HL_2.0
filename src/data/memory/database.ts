@@ -12,6 +12,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { OwnPicture } from '@/domain/model/ownPictures'
 import type { CatalogueMeta } from '../repository'
 
 /* ============================================================
@@ -47,6 +48,8 @@ export interface MemoryDatabase {
   quotes: Map<string, QuoteDef>
   /** Northside's own details, people and look, at `id = orgId` */
   org: Map<string, { id: string; orgId: string; profile: OrgProfile }>
+  /** the pictures Northside added to one option each */
+  ownPictures: Map<string, OwnPicture>
 }
 
 export function createMemoryDatabase(): MemoryDatabase {
@@ -64,5 +67,6 @@ export function createMemoryDatabase(): MemoryDatabase {
     priceLevels: new Map(),
     quotes: new Map(),
     org: new Map(),
+    ownPictures: new Map(),
   }
 }

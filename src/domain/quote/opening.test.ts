@@ -38,37 +38,40 @@ const everyBandAnswered = (): ChapterPlace[] =>
 const draft: OpeningFacts = { at: '', issued: false, hullUnpriced: false, named: false }
 
 describe('the chapter a build opens on with no position in the address', () => {
-  it('opens the first band with nothing on it that has something to offer', () => {
-    expect(chapterToOpen(fromThePicker(), draft)).toBe('motor')
-  })
-
-  it('moves on to Who it is for once every band is answered, and never back to the hull', () => {
-    /* m2-last-critique.md major 3: this read 'hull' — the motor list
-       folded and the hull's seven finishes opened under the hand */
-    expect(chapterToOpen(everyBandAnswered(), draft)).toBe('handover')
-    expect(chapterToOpen(everyBandAnswered(), draft)).not.toBe('hull')
-  })
-
-  it('moves on to the finale once the quote is addressed to somebody', () => {
-    expect(chapterToOpen(everyBandAnswered(), { ...draft, named: true })).toBe('finale')
-  })
-
-  it('still opens an empty band before the name, whether or not the quote is named', () => {
-    expect(chapterToOpen(fromThePicker(), { ...draft, named: true })).toBe('motor')
-  })
-
-  it('passes over a band that has nothing to offer', () => {
-    const chapters = fromThePicker().map((c) => (c.id === 'motor' ? { ...c, offered: 0 } : c))
-    expect(chapterToOpen(chapters, draft)).toBe('handover')
-  })
-
-  it('opens the hull on a boat the file holds no price for, before any band', () => {
+  it('opens the hull on every draft that has one, whatever else is empty (the owner, 2026-10-30)', () => {
+    expect(chapterToOpen(fromThePicker(), draft)).toBe('hull')
+    expect(chapterToOpen(everyBandAnswered(), draft)).toBe('hull')
+    expect(chapterToOpen(everyBandAnswered(), { ...draft, named: true })).toBe('hull')
     expect(chapterToOpen(fromThePicker(), { ...draft, hullUnpriced: true })).toBe('hull')
   })
 
   it('opens the finale on a quote already given, whatever else is empty on it', () => {
     const facts = { ...draft, issued: true, hullUnpriced: true }
     expect(chapterToOpen(fromThePicker(), facts)).toBe('finale')
+  })
+})
+
+/** A motor sold on its own (a repower): no hull chapter at all. */
+const noHull = (): ChapterPlace[] => fromThePicker().filter((c) => c.id !== 'hull')
+const noHullAnswered = (): ChapterPlace[] => everyBandAnswered().filter((c) => c.id !== 'hull')
+
+describe('a build with no hull', () => {
+  it('opens the first band with nothing on it that has something to offer', () => {
+    expect(chapterToOpen(noHull(), draft)).toBe('motor')
+    expect(chapterToOpen(noHull(), { ...draft, named: true })).toBe('motor')
+  })
+
+  it('moves on to Who it is for once every band is answered', () => {
+    expect(chapterToOpen(noHullAnswered(), draft)).toBe('handover')
+  })
+
+  it('moves on to the finale once the quote is addressed to somebody', () => {
+    expect(chapterToOpen(noHullAnswered(), { ...draft, named: true })).toBe('finale')
+  })
+
+  it('passes over a band that has nothing to offer', () => {
+    const chapters = noHull().map((c) => (c.id === 'motor' ? { ...c, offered: 0 } : c))
+    expect(chapterToOpen(chapters, draft)).toBe('handover')
   })
 })
 
@@ -81,8 +84,8 @@ describe('a position the address names', () => {
   })
 
   it('that matches nothing on this build is read as no position at all', () => {
-    expect(chapterToOpen(fromThePicker(), { ...draft, at: 'nothing-like-this' })).toBe('motor')
-    expect(chapterToOpen(everyBandAnswered(), { ...draft, at: 'admin' })).toBe('handover')
+    expect(chapterToOpen(fromThePicker(), { ...draft, at: 'nothing-like-this' })).toBe('hull')
+    expect(chapterToOpen(noHullAnswered(), { ...draft, at: 'admin' })).toBe('handover')
   })
 })
 

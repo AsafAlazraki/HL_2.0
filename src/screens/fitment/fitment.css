@@ -845,7 +845,7 @@
    major 6) */
 .ft-line {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 6.5rem 10rem;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 6.5rem 8.5rem 10rem;
   align-items: center;
   gap: 0 --spacing(4);
   min-block-size: var(--ft-line);
@@ -1217,5 +1217,76 @@
   .ft-group__more,
   .ft-group__empty {
     padding-inline-start: 0;
+  }
+}
+
+/* ============================================================
+   WHAT GOES ON THE BOAT, CHANGED HERE (the flow round, 2026-10-30)
+
+   "Take it off" sits at the foot of each tile, trailer and item on the
+   plate; "Put it on" and "Take it off" in their own fixed column of the
+   whole list, so the price and the door stand at one x on every line.
+   A refused press says why, under the thing it was refused for, in the
+   reason ink. Under 834 a line of the whole list is two rows: its name
+   and price, then its facts and its press, the door under them.
+   ============================================================ */
+.ft-off {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(2);
+}
+.ft-item .ft-off {
+  flex-basis: 100%;
+}
+.ft-off__why,
+.ft-line__refused {
+  flex-basis: 100%;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-reason);
+}
+.ft-line__fit {
+  justify-self: end;
+}
+.ft-whole__keys {
+  margin: 0 0 --spacing(2);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+@media (pointer: coarse) {
+  .ft-whole__keys {
+    display: none;
+  }
+}
+@media (max-width: 833px) {
+  .ft-line {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name price'
+      'facts fit'
+      'open open';
+    padding-block: --spacing(1);
+    padding-inline-start: --spacing(1);
+  }
+  .ft-line__name {
+    grid-area: name;
+  }
+  .ft-line__facts {
+    grid-area: facts;
+  }
+  .ft-line__price {
+    grid-area: price;
+  }
+  .ft-line__fit {
+    grid-area: fit;
+  }
+  .ft-line__open {
+    grid-area: open;
+    justify-self: start;
+  }
+  .ft-line__open:empty {
+    display: none;
   }
 }

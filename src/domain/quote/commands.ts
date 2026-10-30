@@ -247,6 +247,8 @@ export interface MintArgs {
   reference: string
   levelKey?: string
   preparedBy?: string
+  /** start with the boat alone (`MintQuoteArgs.hullAlone`) */
+  hullAlone?: boolean
 }
 
 /**

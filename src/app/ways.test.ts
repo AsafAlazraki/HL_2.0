@@ -136,10 +136,11 @@ describe('the price list’s four rooms, behind the one Data door', () => {
 
   /* no Places room: Data is the one register of the lists, and a maker's own page opens from
      its spread (2026-10-30, built-critique-m4.md major 1) */
-  it('lists Rules, Fitment, Review, Prices and Shelf once, in the order Milestone 3 meets them', () => {
+  it('lists Rules, Fitment, Catalogue, Review, Prices and Shelf once, in the order a dealer meets them', () => {
     expect(PRICE_LIST_ROOMS.map((r) => [r.word, r.href])).toEqual([
       ['Rules', '/rules'],
       ['Fitment', '/fitment'],
+      ['Catalogue', '/catalogue'],
       ['Review', '/review'],
       ['Prices', '/levels'],
       ['Shelf', '/shelf'],

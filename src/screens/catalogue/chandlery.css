@@ -1,0 +1,419 @@
+@reference '../../styles/app.css';
+
+/* ============================================================
+   THE CHANDLERY (Chandlery.tsx) — direction B of
+   docs/directions/choosing.md. This screen's rules alone; nothing here
+   is shared with the build's rail or with /catalogue's own head, which
+   each set the room the chandlery stands in. Every colour, space,
+   radius and duration is a token.
+
+   WHAT THE COMPOSITION IS. A head (the boat it is fitting, the find
+   field, the way to Fitment), what is on the quote, what is made for
+   this boat, then the aisles as a counted grid of drawn tiles and the
+   open aisle's parts as cards of one size — the picture frame 4 : 3
+   on every card, the maker's render fitted inside it and never
+   cropped, or the dealer's own picture door in its place.
+
+   ------------------------------------------------------------------
+   THE REFLOW, at the six widths the rulers run.
+     390 × 844   one column: the head stacks (chip, field, Fitment); the
+                 aisles are two counted columns (must-change 5: never a
+                 row cut at three); two part cards a row.
+     844 × 390   the tablet's shapes in a short window: three aisles and
+                 three cards a row; nothing sticks.
+     834 × 1112  the rail is the window's width less its gutters: three
+                 aisles a row, three cards a row.
+     1280 × 800  inside the build's 40rem rail: three aisles and three
+                 cards a row; on /catalogue, four of each.
+     1440 × 900  inside the 44rem rail: the same; /catalogue four, every
+                 one of the nineteen aisles in sight, no "more" tile.
+     1920 × 1080 the rail does not grow; /catalogue six aisles and five
+                 cards a row.
+   The grids are `auto-fill` on a minimum, so the count a row holds is
+   the room's, never a typed number.
+
+   MOTION. A card lifts on the kit's lift while it is carried (its ghost
+   follows the pointer, beside it); under reduced motion the ghost lands
+   without gliding and the card only dims. Nothing else here moves.
+   ============================================================ */
+
+.cat {
+  display: grid;
+  gap: --spacing(6);
+  min-inline-size: 0;
+}
+.cat-none,
+.cat-said {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+/* ---- the head ---------------------------------------------------------------- */
+.cat-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: --spacing(3);
+}
+/* THE BOAT IT IS FITTING: the file's deep blue, white on it, the chandlery's one dark chip */
+.cat-fitting {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  flex: 1 1 100%;
+  margin: 0;
+  padding: --spacing(2) --spacing(4) --spacing(2) --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-blue-900);
+  color: var(--color-white);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+}
+.cat-fitting[data-none] {
+  background: var(--color-plate-tint);
+  color: var(--color-ink-on-tint);
+}
+.cat-fitting__glyph {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(7);
+  block-size: --spacing(7);
+  border-radius: var(--radius-pill);
+  background: --alpha(var(--color-white) / 16%);
+}
+.cat-fitting[data-none] .cat-fitting__glyph {
+  background: var(--color-plate);
+}
+.cat-fitting__count {
+  font-weight: 500;
+}
+.cat-find {
+  flex: 1 1 --spacing(60);
+  min-inline-size: 0;
+  display: grid;
+  gap: --spacing(1.5);
+}
+.cat-find__label {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+
+/* ---- a run's heading, and its count set apart --------------------------------- */
+.cat-sub {
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(2);
+  margin: 0 0 --spacing(3);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cat-count {
+  padding-inline-start: --spacing(2);
+  border-inline-start: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the basket: what is on the quote, once ------------------------------------ */
+.cat-basket__list {
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cat-basket__item {
+  display: grid;
+  grid-template-columns: --spacing(14) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(3);
+  padding: --spacing(2);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate-tint);
+}
+.cat-basket__pic {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  color: var(--accent-viridian);
+}
+.cat-basket__name {
+  min-inline-size: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+}
+
+/* ---- the aisles ---------------------------------------------------------------- */
+.cat-aisles__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(--spacing(40), 1fr));
+  gap: --spacing(2.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cat-aisle {
+  display: grid;
+  grid-template-rows: --spacing(9) auto 1fr;
+  align-content: start;
+  gap: --spacing(1.5);
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: --spacing(3);
+  border: 0;
+  border-radius: var(--radius-tile);
+  text-align: start;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  cursor: pointer;
+  transition:
+    box-shadow var(--duration-settle) var(--ease-spring),
+    background-color var(--duration-hover) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cat-aisle:not([aria-pressed='true']):hover {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+  }
+}
+.cat-aisle[aria-pressed='true'] {
+  background: var(--color-plate-tint);
+  box-shadow: var(--ring-chosen);
+}
+.cat-aisle:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.cat-aisle__drawn {
+  display: block;
+  inline-size: --spacing(9);
+  block-size: --spacing(9);
+  color: var(--color-ink-file);
+}
+.cat-aisle__name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  text-wrap: balance;
+}
+.cat-aisle__counts {
+  align-self: end;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.cat-aisle__pictured {
+  font-weight: 400;
+}
+
+/* ---- the open aisle ------------------------------------------------------------ */
+.cat-open {
+  display: grid;
+  gap: --spacing(3);
+}
+.cat-open > .cat-sub {
+  margin: 0;
+}
+.cat-makers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* ---- the cards ----------------------------------------------------------------- */
+.cat-parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(--spacing(44), 1fr));
+  gap: --spacing(3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* ONE SIZE, PICTURE OR NOT: the frame is 4 : 3 on every card (the dealer's door is too), the
+   name under it, the price, and the acts at the foot */
+.cat-part {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: --spacing(1.5);
+  padding: --spacing(2.5);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  touch-action: manipulation;
+  transition:
+    box-shadow var(--duration-settle) var(--ease-spring),
+    opacity var(--duration-hover) var(--ease-out);
+}
+.cat-part[data-on] {
+  box-shadow: var(--ring-chosen);
+}
+/* the card a ghost has been lifted from waits, dimmed, where it was */
+.cat-part[data-lifted] {
+  opacity: 0.45;
+}
+.cat-part__pic {
+  position: relative;
+  min-inline-size: 0;
+}
+.cat-part__frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  padding: --spacing(2);
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+.cat-part__expand {
+  position: absolute;
+  inset-block-start: --spacing(2);
+  inset-inline-end: --spacing(2);
+}
+.cat-part__name {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.cat-part__fig {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cat-part__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(2);
+}
+.cat-part__on {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  color: var(--color-ink-file);
+}
+/* THE GRIP: the keyboard's way to lift the card, and a pointer's handle too */
+.cat-part__grip {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(9);
+  block-size: --spacing(9);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-2);
+  background: transparent;
+  cursor: grab;
+}
+.cat-part__grip:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cat-part__grip:hover {
+    background: var(--color-wash);
+    color: var(--color-ink);
+  }
+}
+.cat-more {
+  margin-block-start: --spacing(3);
+}
+.cat-how {
+  margin: 0;
+  padding: --spacing(3);
+  border-radius: var(--radius-field);
+  background: var(--color-plate-tint);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* THE GHOST: a small card carried beside the pointer, the part's name and price on the kit's lift */
+.cat-ghost {
+  display: grid;
+  gap: --spacing(0.5);
+  inline-size: --spacing(52);
+  padding: --spacing(3);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-accent),
+    var(--shadow-lift);
+  pointer-events: none;
+}
+.cat-ghost__name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+}
+.cat-ghost__fig {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  color: var(--color-ink-file);
+}
+
+/* WHAT A DRAG BY KEYBOARD SAYS ALOUD, for a reader and never drawn */
+.cat-aloud {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 639.98px) {
+  .cat-aisles__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cat-parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: --spacing(2);
+  }
+  .cat-find {
+    flex-basis: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cat-part,
+  .cat-aisle {
+    transition: none;
+  }
+}

@@ -219,19 +219,37 @@ describe('the whole register', () => {
     const first = quote({ state: 'issued', reference: 'OLDEST' })
     const middle = quote({ reference: 'MIDDLE' })
     const newest = quote({ reference: 'NEWEST', state: 'issued', supersedesId: 'nothing-here' })
-    const replaced = quote({ reference: 'REPLACES-OLDEST', supersedesId: first.id })
+    /* given, so OLDEST is really replaced (`givenReplacements`) */
+    const replaced = quote({
+      reference: 'REPLACES-OLDEST',
+      state: 'issued',
+      supersedesId: first.id,
+    })
     const register = readRegister(newestFirst([first, middle, newest, replaced]))
 
     expect(register.shown.map((r) => r.reference)).toEqual([
-      /* Draft, newest first */
-      'REPLACES-OLDEST',
+      /* Draft */
       'MIDDLE',
-      /* then Issued */
+      /* then Issued, newest first */
+      'REPLACES-OLDEST',
       'NEWEST',
       /* then Superseded */
       'OLDEST',
     ])
     expect(register.shown).toEqual(register.bands.flatMap((b) => b.rows))
+  })
+
+  it('keeps a given quote Given while its new version is a draft, and Replaced once that is given', () => {
+    const given = quote({ state: 'issued', reference: 'GIVEN' })
+    const draft = quote({ reference: 'NEXT', supersedesId: given.id })
+    const writing = readRegister(newestFirst([given, draft]))
+    expect(writing.bands[1]!.rows.map((r) => r.reference)).toEqual(['GIVEN'])
+    expect(writing.bands[2]!.rows).toEqual([])
+    /* the link is still read both ways: the draft says what it replaces, the given what is coming */
+    expect(writing.shown.find((r) => r.reference === 'GIVEN')!.supersededBy).toBe('NEXT')
+
+    const handed = readRegister(newestFirst([given, { ...draft, state: 'issued' }]))
+    expect(handed.bands[2]!.rows.map((r) => r.reference)).toEqual(['GIVEN'])
   })
 
   it('sums only the rows that carry a figure, and counts how many those were', () => {

@@ -1,0 +1,105 @@
+[
+  {
+    "id": "dndkit-home",
+    "url": "https://dndkit.com/",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://dndkit.com/",
+    "title": "dnd kit – The modern toolkit for building drag and drop interfaces",
+    "file": "dndkit-home.png"
+  },
+  {
+    "id": "dndkit-a11y-docs",
+    "url": "https://docs.dndkit.com/guides/accessibility",
+    "fullPage": true,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://dndkit.com/legacy/guides/accessibility/",
+    "title": "Accessibility - Legacy | dnd kit",
+    "file": "dndkit-a11y-docs.png"
+  },
+  {
+    "id": "dndkit-multi-containers",
+    "url": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=presets-sortable-multiple-containers--basic-setup&viewMode=story",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=presets-sortable-multiple-containers--basic-setup&viewMode=story",
+    "title": "presets-sortable-multiple-containers--basic-setup",
+    "file": "dndkit-multi-containers.png"
+  },
+  {
+    "id": "dndkit-multi-keyboard-lifted",
+    "url": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=presets-sortable-multiple-containers--basic-setup&viewMode=story",
+    "steps": [
+      {
+        "key": "Tab"
+      },
+      {
+        "key": "Space"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "key": "ArrowRight"
+      },
+      {
+        "wait": 400
+      }
+    ],
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=presets-sortable-multiple-containers--basic-setup&viewMode=story",
+    "title": "presets-sortable-multiple-containers--basic-setup",
+    "file": "dndkit-multi-keyboard-lifted.png"
+  },
+  {
+    "id": "dndkit-trashable",
+    "url": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=presets-sortable-multiple-containers--trashable-items&viewMode=story",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=presets-sortable-multiple-containers--trashable-items&viewMode=story",
+    "title": "presets-sortable-multiple-containers--trashable-items",
+    "file": "dndkit-trashable.png"
+  },
+  {
+    "id": "dndkit-multiple-droppables",
+    "url": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=core-droppable-usedroppable--multiple-droppables&viewMode=story",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=core-droppable-usedroppable--multiple-droppables&viewMode=story",
+    "title": "core-droppable-usedroppable--multiple-droppables",
+    "file": "dndkit-multiple-droppables.png"
+  },
+  {
+    "id": "dndkit-droppable-keyboard",
+    "url": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=core-droppable-usedroppable--multiple-droppables&viewMode=story",
+    "steps": [
+      {
+        "key": "Tab"
+      },
+      {
+        "key": "Space"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "key": "ArrowRight"
+      },
+      {
+        "key": "ArrowRight"
+      },
+      {
+        "wait": 400
+      }
+    ],
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/iframe.html?id=core-droppable-usedroppable--multiple-droppables&viewMode=story",
+    "title": "core-droppable-usedroppable--multiple-droppables",
+    "file": "dndkit-droppable-keyboard.png"
+  },
+  {
+    "id": "atlassian-pdnd-guidelines",
+    "url": "https://atlassian.design/components/pragmatic-drag-and-drop/design-guidelines",
+    "fullPage": true,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://atlassian.design/components/pragmatic-drag-and-drop/design-guidelines",
+    "title": "Design guidelines - index - Components - Atlassian Design",
+    "file": "atlassian-pdnd-guidelines.png"
+  }
+]

@@ -104,6 +104,10 @@ function ManageRoute() {
     <Manage
       place={{ ...(line ? { line } : {}), ...(person ? { person } : {}) }}
       onPlace={onPlace}
+      onChangeDesk={() => {
+        session.getState().signOut()
+        void navigate({ to: '/sign-in' })
+      }}
     />
   )
 }

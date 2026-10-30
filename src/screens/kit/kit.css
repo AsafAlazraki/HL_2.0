@@ -462,3 +462,20 @@
     padding: --spacing(5);
   }
 }
+
+/* A PICTURE NORTHSIDE ADDS (KitPicture.tsx): two options side by side on a desk, one under the
+   other in a hand; each names its option over its frame. */
+.kit-pictures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(56), 1fr));
+  gap: --spacing(5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kit-picture {
+  display: grid;
+  align-content: start;
+  gap: --spacing(2);
+  min-width: 0;
+}

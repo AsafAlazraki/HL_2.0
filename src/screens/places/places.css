@@ -817,3 +817,17 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* how it is sold: the two answers, then the sentence that says what the chosen one means */
+.pl-set__sold {
+  display: grid;
+  gap: --spacing(1);
+  justify-items: start;
+  max-inline-size: 100%;
+}
+/* the range's two doors, Fitment and the price list, stand together at the head's end */
+.pl-pane__doors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}

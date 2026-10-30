@@ -65,7 +65,11 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
   await expect(warned).toBeVisible()
   await expect(warned).toHaveAccessibleName(/your rule warns about it/)
   await expect(warned).toContainText('Your rule warns')
+  /* Start puts the boat on alone since 2026-10-30 (DECISIONS, "Start puts the boat on
+     alone"), so the price list's own 8 hp is pressed on, as a salesperson would */
   const fitted = tile('F8LMHB')
+  await expect(fitted).toHaveAccessibleName(/your rule warns about it, not on the quote/)
+  await fitted.click()
   await expect(fitted).toHaveAccessibleName(/your rule warns about it, on the quote/)
   const clear = tile('F20LMHB')
   await expect(clear).not.toHaveAccessibleName(/warns/)

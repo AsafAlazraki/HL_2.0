@@ -12,6 +12,7 @@ import {
 import { motion } from 'motion/react'
 import {
   ArrowClockwiseIcon,
+  ArrowLeftIcon,
   ArrowCounterClockwiseIcon,
   CheckCircleIcon,
   FileTextIcon,
@@ -296,6 +297,11 @@ function Page({
   const lineKey = useQuotes((s) =>
     quote === '' ? '' : lineKeyOf(s.quotes.find((q) => q.id === quote)?.lines ?? [], tableIds),
   )
+  /* THE WAY BACK STANDS, NOT ONLY IN A TOAST (walk.md, Q1 step 22): after a reload the step line
+     was gone and nothing on /levels?quote=… led back to the quote */
+  const reference = useQuotes((s) =>
+    quote === '' ? '' : (s.quotes.find((q) => q.id === quote)?.reference ?? ''),
+  )
   const columns = useMemo(() => {
     if (lineKey === '') return read
     const cut = lineKey.indexOf('|')
@@ -412,6 +418,13 @@ function Page({
     <main className="lv" data-testid="levels" data-read="" ref={main}>
       <header className="lv-head">
         <div className="lv-head__words">
+          {backToQuote && reference !== '' ? (
+            <span className="lv-back">
+              <Button intent="quiet" size="sm" icon={ArrowLeftIcon} onClick={backToQuote}>
+                {`Back to quote ${reference}`}
+              </Button>
+            </span>
+          ) : null}
           <p className="lv-eyebrow">Prices</p>
           <h1 className="lv-title">What only you can decide about price.</h1>
         </div>

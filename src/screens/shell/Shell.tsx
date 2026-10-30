@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { APP_NAME, DOORS, START_A_QUOTE, doorAt, hasShell, surfaceAt, type Door } from '@/app/ways'
+import {
+  APP_NAME,
+  DOORS,
+  START_A_QUOTE,
+  doorAt,
+  fitmentOf,
+  hasShell,
+  surfaceAt,
+  type Door,
+} from '@/app/ways'
 import { useCatalogue, usePrefs, useQuotes } from '@/app/useStores'
 import { prefs } from '@/state/prefs'
 import { catalogue } from '@/state/catalogue'
@@ -11,7 +20,7 @@ import {
   type QuoteFacts,
   type SearchLimits,
 } from '@/domain/catalogue/search'
-import { askedForFits, fitsFor } from '@/domain/shell/fits'
+import { askedForFits, askedWhatFits, fitsFor } from '@/domain/shell/fits'
 import { CUSTOMER_TABLE_ID, customerRegister, matchCustomers } from '@/domain/people/customers'
 import { readEveryone } from '@/domain/people/book'
 import { indexQuotes } from '@/domain/quote/diary/history'
@@ -306,10 +315,15 @@ function Standing({ at, go, org }: ShellProps) {
      half is searched; the kind half is answered by `fitsFor`, which asks
      the quote engine what the build would offer those boats. */
   const question = useMemo(() => (asking ? askedForFits(query) : null), [asking, query])
+  /* "WHAT FITS ADV9" — the boat half is searched and "What fits the …" leads its boats */
+  const whatFits = useMemo(
+    () => (asking && !question ? askedWhatFits(query) : null),
+    [asking, question, query],
+  )
   const result = useMemo(() => {
     if (!index || !asking) return null
-    return search(index, question ? question.boat : query, EVERY_MATCH)
-  }, [index, asking, question, query])
+    return search(index, question ? question.boat : (whatFits ?? query), EVERY_MATCH)
+  }, [index, asking, question, whatFits, query])
 
   const views = useCatalogue((s) => s.views)
   const fits = useMemo(() => {
@@ -407,6 +421,7 @@ function Standing({ at, go, org }: ShellProps) {
         customerTableId: CUSTOMER_TABLE_ID,
         ...(lines ? { lines } : {}),
         fits,
+        whatFits: whatFits !== null,
         scope: scope
           ? {
               word: scope.word,
@@ -416,7 +431,20 @@ function Standing({ at, go, org }: ShellProps) {
             }
           : null,
       }),
-    [query, finderDoors, acts, recent, at, result, matchedPeople, boatTables, scope, lines, fits],
+    [
+      query,
+      finderDoors,
+      acts,
+      recent,
+      at,
+      result,
+      matchedPeople,
+      boatTables,
+      scope,
+      lines,
+      fits,
+      whatFits,
+    ],
   )
 
   const open = useCallback((how: 'key' | 'pointer' = 'key') => {
@@ -641,6 +669,8 @@ export function addressOf(target: FinderTarget): string | null {
          mints (`src/routes/quote.new.tsx`: "a link to one hull opens on
          that hull") */
       return `${START_A_QUOTE.href}?model=${encodeURIComponent(target.model)}`
+    case 'fits':
+      return fitmentOf(target.rowId)
     case 'start':
       /* an act that WRITES, and so not an address: `choose` writes the
          draft and then goes to the build it opened */

@@ -86,7 +86,7 @@ function expectReason(readings: Reading[], opens: string): void {
   }
 }
 
-test('the sale’s refusals — the finale addressed to nobody, and a given quote’s peek', async ({
+test('the sale’s refusals — the finale addressed to nobody, and a given quote on the desk', async ({
   page,
 }) => {
   /* the mint, the finale, the sale and a reload: four screens long, and the
@@ -110,19 +110,19 @@ test('the sale’s refusals — the finale addressed to nobody, and a given quot
   expectReason(finale, 'No customer’s name is on')
   expectClean(finale)
 
-  /* A GIVEN QUOTE'S PEEK ON THE REGISTER — the critic's second. The row is
-     pressed, which is how a dealer peeks; the write-behind is waited out
-     before the reload, the way `e2e/mint.ts` says to. */
+  /* A GIVEN QUOTE ON THE DESK — the critic's second. Since the flow round (2026-10-30) a given
+     quote's card offers no discard at all, refused or otherwise: its acts are its paper and a
+     new version, so the desk is read clean in both themes with nothing refused on it. The
+     write-behind is waited out before the reload, the way `e2e/mint.ts` says to. */
   await issueIt(page)
   await written(page)
   await page.goto('/quotes')
   await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
-  await page.locator('.qr-row').first().click()
-  const discard = page.getByRole('button', { name: 'Discard this quote' })
-  await expect(discard).toHaveAttribute('aria-disabled', 'true')
-  const peek = await inBothThemes(page, 'the given peek')
-  expectReason(peek, 'This quote has been given to the customer, so it stays.')
-  expectClean(peek)
+  const given = page.getByRole('region', { name: /^With the customer/ })
+  await expect(given.getByRole('button', { name: 'Open the printed quote' })).toBeVisible()
+  await expect(given.getByRole('button', { name: /Discard/ })).toHaveCount(0)
+  const desk = await inBothThemes(page, 'the given quote on the desk')
+  expectClean(desk)
 })
 
 /* NOT A REFUSAL ANY MORE (2026-09-28, the components critique, major 11). The door read as

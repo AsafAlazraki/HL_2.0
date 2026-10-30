@@ -461,6 +461,10 @@ export interface MintQuoteArgs {
   reference: string
   levelKey?: string
   preparedBy?: string
+  /** THE HULL ALONE (the owner, 2026-10-30): nothing comes across with the boat, so the total
+   *  the build opens on is the price the picker showed. Every section is still made, with how
+   *  many were waiting, and the price list's star stays on the tile it is about. */
+  hullAlone?: boolean
 }
 
 /** The subject's own section. It is not a view block — the subject
@@ -603,7 +607,7 @@ export function mintQuoteFromView(ctx: CatalogueCtx, args: MintQuoteArgs): Quote
        how many were waiting, so the section can SAY it rather than
        show an empty shelf. Silence was the defect, not the arithmetic.
        (`whatComesAcross` holds this rule now, beside the trailers'.) */
-    const chosen = (across.get(block.id) ?? []).flatMap((i) => {
+    const chosen = (args.hullAlone ? [] : (across.get(block.id) ?? [])).flatMap((i) => {
       const r = onOffer[i]
       return r ? [r] : []
     })

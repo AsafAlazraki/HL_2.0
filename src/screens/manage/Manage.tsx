@@ -5,6 +5,7 @@ import {
   PlusIcon,
   UploadSimpleIcon,
   UserIcon,
+  UserSwitchIcon,
 } from '@phosphor-icons/react'
 import { Button, Field, Input, Plate, Refusal, Toggle, say, undo } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
@@ -75,6 +76,9 @@ export interface ManageProps {
   place?: ManagePlace
   /** move to another place on this screen (the route writes it with `replace`) */
   onPlace?: (next: ManagePlace) => void
+  /** SOMEONE ELSE AT THE DESK: the name given at the door is let go and the door asks again
+   *  (exposure.md: `signOut` had no caller, so a shared computer kept one name on every quote) */
+  onChangeDesk?: () => void
 }
 
 /** Said where no price list is open: there is no business to keep details for. */
@@ -100,7 +104,7 @@ function keep(command: CatalogueCommand): string | null {
 
 const NOWHERE: ManagePlace = {}
 
-export function Manage({ place = NOWHERE, onPlace }: ManageProps) {
+export function Manage({ place = NOWHERE, onPlace, onChangeDesk }: ManageProps) {
   const status = useCatalogue((s) => s.status)
   const org = useCatalogue((s) => s.org)
   const business = useCatalogue((s) => s.business)
@@ -156,6 +160,7 @@ export function Manage({ place = NOWHERE, onPlace }: ManageProps) {
               given={given}
               place={place}
               move={move}
+              {...(onChangeDesk ? { changeDesk: onChangeDesk } : {})}
             />
           ) : (
             <PaperClosed status={status} />
@@ -232,6 +237,7 @@ function Paper({
   given,
   place,
   move,
+  changeDesk,
 }: {
   org: OrgProfile | undefined
   business: string | null
@@ -240,6 +246,7 @@ function Paper({
   given: number
   place: ManagePlace
   move: (next: ManagePlace) => void
+  changeDesk?: () => void
 }) {
   const today = useMemo(() => letterheadNow({ org, business }), [org, business])
   const held = useMemo(() => heldPaperMark(business), [business])
@@ -362,7 +369,13 @@ function Paper({
         </ul>
       </section>
 
-      <People org={org} who={who} place={place} move={move} />
+      <People
+        org={org}
+        who={who}
+        place={place}
+        move={move}
+        {...(changeDesk ? { changeDesk } : {})}
+      />
     </>
   )
 }
@@ -698,7 +711,9 @@ function People({
   who,
   place,
   move,
+  changeDesk,
 }: {
+  changeDesk?: () => void
   org: OrgProfile | undefined
   who: string | null
   place: ManagePlace
@@ -720,6 +735,16 @@ function People({
             : `${people.length} ${people.length === 1 ? 'person' : 'people'} · each prints as Prepared by`}
         </p>
       </div>
+      {who && changeDesk ? (
+        <p className="mg-desk">
+          <span>
+            At this desk: <b>{who}</b>. Every quote started here is prepared by {who}.
+          </span>
+          <Button intent="quiet" size="sm" icon={UserSwitchIcon} onClick={changeDesk}>
+            {`Not ${who}? Change who is at the desk`}
+          </Button>
+        </p>
+      ) : null}
       {refused ? (
         <p className="mg-editor__refused" role="alert">
           <Refusal>{refused}</Refusal>

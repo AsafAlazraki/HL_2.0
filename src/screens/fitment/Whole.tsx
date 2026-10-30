@@ -22,6 +22,12 @@
    `src/screens/history/History.tsx`): the grid owns the keyboard, the
    arrows walk its lines and Enter opens the line's place on the price
    list. The pointer presses the line's own link.
+
+   WHAT GOES ON THE BOAT IS CHANGED HERE (the flow round, 2026-10-30):
+   every line not made for the boat carries "Put it on", every line
+   made for it "Take it off", one catalogue step each with its Undo
+   (`src/domain/fitment/change.ts`). The keyboard's way to the same
+   press is Space on the grid's own line, said under the bar.
    ============================================================ */
 /* eslint-disable jsx-a11y/prefer-tag-over-role, jsx-a11y/click-events-have-key-events */
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
@@ -31,10 +37,14 @@ import {
   ArrowUpRightIcon,
   ListBulletsIcon,
   MagnifyingGlassIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
   StarIcon,
 } from '@phosphor-icons/react'
-import { Button, Icon, Input, PriceFigure, move } from '@/ui'
-import type { Opens, WholeList, WholeRow } from '@/domain/fitment/boat'
+import { Button, Icon, Input, Kbd, PriceFigure, move } from '@/ui'
+import type { Opens, Place, WholeList, WholeRow } from '@/domain/fitment/boat'
+import type { FitWay } from '@/domain/fitment/change'
+import type { FitRefusal } from './useFitChange'
 import { findInWhole } from '@/domain/fitment/whole'
 
 /** Lines drawn in one group before it says how many more it is holding and asks for a word. */
@@ -52,6 +62,9 @@ export interface WholeProps {
   onClose: () => void
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
+  boatName: string
+  onChange: (target: Place, way: FitWay) => void
+  refusal: FitRefusal | null
 }
 
 const AU = new Intl.NumberFormat('en-AU')
@@ -65,6 +78,9 @@ export function Whole({
   onClose,
   sheetHref,
   openSheet,
+  boatName,
+  onChange,
+  refusal,
 }: WholeProps) {
   const id = useId()
   const [words, setWords] = useState(find)
@@ -98,6 +114,9 @@ export function Whole({
     } else if (event.key === 'Enter' && active?.opens) {
       event.preventDefault()
       openSheet(active.opens)
+    } else if (event.key === ' ' && active) {
+      event.preventDefault()
+      onChange(active.place, active.made ? 'off' : 'on')
     }
   }
 
@@ -140,6 +159,11 @@ export function Whole({
         </span>
       </div>
 
+      <p className="ft-whole__keys">
+        <Kbd>↑</Kbd> <Kbd>↓</Kbd> move through the list · <Kbd>Space</Kbd> puts it on the {boatName}{' '}
+        or takes it off · <Kbd>Enter</Kbd> opens it in the price list
+      </p>
+
       {needles.length > 0 ? (
         <p className="ft-whole__found" role="status">
           {matched === 0
@@ -156,6 +180,7 @@ export function Whole({
         tabIndex={0}
         aria-label={`${list.title}, every one, grouped by why`}
         aria-activedescendant={active ? lineId(active.key) : undefined}
+        aria-keyshortcuts="Space Enter"
         onKeyDown={onKey}
       >
         {groups.map((g) => (
@@ -187,6 +212,12 @@ export function Whole({
                 current={active?.key === row.key}
                 onPoint={() => setCursor(lines.indexOf(row))}
                 href={row.opens ? sheetHref(row.opens) : null}
+                boatName={boatName}
+                refused={refusal?.rowId === row.place.rowId ? refusal.why : ''}
+                onChange={(way) => {
+                  setCursor(lines.indexOf(row))
+                  onChange(row.place, way)
+                }}
                 onOpen={() => {
                   setCursor(lines.indexOf(row))
                   if (row.opens) openSheet(row.opens)
@@ -215,7 +246,14 @@ function Line({
   href,
   onOpen,
   onPoint,
+  onChange,
+  boatName,
+  refused,
 }: {
+  onChange: (way: FitWay) => void
+  boatName: string
+  /** the sentence a press on this line was refused with, or '' */
+  refused: string
   id: string
   row: WholeRow
   current: boolean
@@ -244,12 +282,36 @@ function Line({
         {row.rule && row.rule.because !== '' ? (
           <span className="ft-line__rule">{row.rule.because}</span>
         ) : null}
+        {refused === '' ? null : (
+          <span className="ft-line__refused" role="alert">
+            {refused}
+          </span>
+        )}
       </span>
       <span role="gridcell" className="ft-line__facts">
         {row.facts}
       </span>
       <span role="gridcell" className="ft-line__price">
         {row.price === null ? null : <PriceFigure amount={row.price} />}
+      </span>
+      <span role="gridcell" className="ft-line__fit">
+        <Button
+          intent="quiet"
+          size="sm"
+          tabIndex={-1}
+          icon={row.made ? MinusCircleIcon : PlusCircleIcon}
+          aria-label={
+            row.made
+              ? `Take the ${row.name} off what goes on the ${boatName}`
+              : `Put the ${row.name} on the ${boatName}`
+          }
+          onClick={(event) => {
+            event.stopPropagation()
+            onChange(row.made ? 'off' : 'on')
+          }}
+        >
+          {row.made ? 'Take it off' : 'Put it on'}
+        </Button>
       </span>
       <span role="gridcell" className="ft-line__open">
         {href && current ? (

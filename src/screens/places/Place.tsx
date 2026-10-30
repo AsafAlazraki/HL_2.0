@@ -5,10 +5,12 @@ import {
   DatabaseIcon,
   FilePlusIcon,
   TagIcon,
+  WrenchIcon,
 } from '@phosphor-icons/react'
 import { Button, Icon, KIND_GLYPH, Picture, Plate, Segmented, Tile } from '@/ui'
 import { pictures, srcSetOf } from '@/data/pictures'
 import { localDay } from '@/domain/quote/day'
+import { makerOfTable } from '@/domain/catalogue/makers'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { Hero, Mark, markIsArt } from './Livery'
 import { kindWord, readPlace, readPlaces, type PlacePage } from './read'
@@ -282,6 +284,9 @@ function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
   const maker = `${page.quoteWord} `
   const captionOf = (subject: string): string =>
     subject.startsWith(maker) ? subject.slice(maker.length) : subject
+  /* WHAT GOES ON ITS BOATS, from the maker's own page: Fitment open on this maker's models, so
+     a model with one version is two presses from here (exposure.md, the flow round) */
+  const fits = boat ? `/fitment?maker=${encodeURIComponent(makerOfTable(table))}` : null
   const head = (
     <div className="pl-pane__head">
       <p className="pl-pane__say">
@@ -289,15 +294,28 @@ function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
           ? `In the price list’s own order.`
           : `${n(page.lines.length)} ${page.noun} still sold, in the price list’s own order.`}
       </p>
-      <Button
-        intent="quiet"
-        size="sm"
-        icon={DatabaseIcon}
-        href={sheet}
-        onClick={go ? () => go(sheet) : undefined}
-      >
-        Open in the price list
-      </Button>
+      <span className="pl-pane__doors">
+        {fits ? (
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={WrenchIcon}
+            href={fits}
+            onClick={go ? () => go(fits) : undefined}
+          >
+            What goes on its boats
+          </Button>
+        ) : null}
+        <Button
+          intent="quiet"
+          size="sm"
+          icon={DatabaseIcon}
+          href={sheet}
+          onClick={go ? () => go(sheet) : undefined}
+        >
+          Open in the price list
+        </Button>
+      </span>
     </div>
   )
   if (page.range.length === 0) {

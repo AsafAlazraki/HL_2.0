@@ -866,13 +866,16 @@ describe('the finale is the handover', () => {
     /* open, the card and its act say where the give stands; the head is its name */
     expect(head()).toHaveTextContent(/^The finale$/)
     expect(document.querySelector('.cfg-hand')).toHaveTextContent('For R. Kelleher')
-    expect(document.querySelector('.cfg-mast')).not.toHaveTextContent('R. Kelleher')
+    /* THE MASTHEAD IS THE QUOTE'S IDENTITY AND ALWAYS SAYS WHOM IT IS FOR (the owner, 2026-10-30:
+       "the header section should be way nicer"; it is what is sold, for whom, its number and
+       state), the finale's card saying it again where the quote is given */
+    expect(document.querySelector('.cfg-mast')).toHaveTextContent('R. Kelleher')
     open.unmount()
 
-    /* and the masthead names them again the moment the card is not on screen, where the shut
-       finale's head says it is ready, never with a count or "draft" */
+    /* and with the card not on screen the shut finale's head says it is ready, never with a
+       count or "draft" */
     render(<Configurator quoteId={quote.id} at="motor" />)
-    expect(document.querySelector('.cfg-mast')).toHaveTextContent('for R. Kelleher')
+    expect(document.querySelector('.cfg-mast')).toHaveTextContent('R. Kelleher')
     expect(head()).toHaveTextContent(/ready to give$/)
     expect(head()).not.toHaveTextContent(/items?\b|draft|not ready/)
   })
@@ -902,7 +905,8 @@ describe('the finale is the handover', () => {
     expect(screen.getAllByText(giveWaitsLead(rail.waits.length))).toHaveLength(1)
     for (const said of rail.waits) expect(screen.getAllByText(said)).toHaveLength(1)
     expect(screen.getAllByText(/cannot be given/)).toHaveLength(1)
-    expect(document.querySelector('.cfg-money')).toHaveAttribute('aria-hidden', 'true')
+    /* the tally says no figure while the finale's card says the total */
+    expect(screen.getByTestId('running-total')).not.toHaveTextContent(/Total|\$\d/)
     expect(document.querySelector('.cfg-hand__notes')).not.toHaveTextContent(/not priced|paper/)
     expect(screen.getByTestId('configurator')).not.toHaveTextContent(/not priced on this quote/i)
     unmount()
@@ -1098,7 +1102,9 @@ describe('a given quote says what is not priced once', () => {
           totalNoteSay(rail.unpricedNames, false, rail.unpricedLists, rail.unpricedWhy),
         ),
       ).toHaveLength(1)
-      expect(screen.getByText('Priced at')).toBeInTheDocument()
+      /* the price it is at stands beside the total in the tally; with the finale open its card
+         says it ("Total at Cash") */
+      if (at === 'motor') expect(screen.getByText('Priced at')).toBeInTheDocument()
       expect(screen.getByTestId('configurator')).not.toHaveTextContent(/items? priced/)
     }
   })
@@ -1664,33 +1670,28 @@ describe('past the motor, the thing a person recognises leads', () => {
   /* A PART IS LED BY ITS KIND AND SAYS ITS NAME; ITS CODE IS THE WORKSHOP'S (build-close-
      critique-2.md major 2: "radio circles, each with a part code under it, '+$18 at Cash' five
      times … no glyph"). The code the order goes out under is still one press away, whole. */
-  it('draws a part led by its kind, with its name, one figure, and its code for the workshop', async () => {
+  /* THE PARTS ARE THE CHANDLERY'S (direction B, picked 2026-10-30): each part the price list makes
+     for this boat a card with its name and one figure, its code never on the card, and Add */
+  it('draws the parts made for this boat as the chandlery’s cards, named, priced and never coded', () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
     render(<Configurator quoteId={quote.id} at="fit" />)
     const parts = chapterOf(quote, 'fit').tables.find((t) => t.title === 'Parts & Accessories')!
-    const coded = parts.rows.filter((r) => r.code !== '')
-    expect(coded.length).toBeGreaterThan(0)
-    for (const row of parts.rows) {
-      const line = screen.getByRole('button', { name: new RegExp(`^${escape(row.tail)},`) })
-      expect(line.querySelector('.cfg-row__mark .ui-kind')).not.toBeNull()
-      expect(line.querySelector('.cfg-tick')).toBeNull()
-      const name = line.querySelector('.cfg-row__name')!
-      expect(name).toHaveTextContent(row.tail)
-      /* on a Cash quote a Cash figure says nothing more about its price */
-      expect(line).not.toHaveTextContent(/at Cash/)
-      if (row.code === '') continue
-      expect(line).not.toHaveTextContent(row.code)
+    const made = parts.rows.filter((r) => !r.outside)
+    expect(made.length).toBeGreaterThan(0)
+    const shelf = within(screen.getByTestId('chandlery')).getByRole('region', {
+      name: /^Made for the /,
+    })
+    for (const row of made) {
+      const card = within(shelf)
+        .getAllByRole('listitem')
+        .find((li) => li.textContent?.includes(row.tail))
+      expect(card, row.tail).toBeDefined()
+      if (row.code !== '') expect(card).not.toHaveTextContent(row.code)
+      expect(card).not.toHaveTextContent(/at Cash/)
     }
-    /* the chapter's one "For the workshop" puts every part's code under it */
-    const shops = screen.getAllByRole('button', { name: 'For the workshop' })
-    expect(shops).toHaveLength(1)
-    await userEvent.click(shops[0]!)
-    for (const row of coded) {
-      const option = screen
-        .getByRole('button', { name: new RegExp(`^${escape(row.tail)},`) })
-        .closest('.cfg-opt') as HTMLElement
-      expect(option).toHaveTextContent(row.code)
-    }
+    expect(within(shelf).getAllByRole('button', { name: /^Add the .* to the quote$/ }).length).toBe(
+      made.filter((r) => !r.fitted).length,
+    )
   })
 
   it('opens the workshop’s words while a search runs, with what matched in bold', async () => {

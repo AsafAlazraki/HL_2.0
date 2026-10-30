@@ -7,6 +7,7 @@ import { loadEntities, loadImages, loadManifest, loadTable } from '@/data/pack/l
 import { catalogue } from '@/state/catalogue'
 import { specimenOf, type KitSpecimen } from '@/domain/kit/specimen'
 import { Kit } from '@/screens/kit/Kit'
+import { emptySheet, indexRows, type CatalogueData } from '@/domain/catalogue/sheet'
 
 /* ============================================================
    THE KIT'S SPECIMEN, AT /kit — every primitive in src/ui, in every
@@ -55,6 +56,7 @@ export const Route = createFileRoute('/kit')({
 function KitRoute() {
   const [read, setRead] = useState<KitSpecimen | { refused: string } | null>(null)
   const [mark, setMark] = useState<string | null>(null)
+  const [sheet, setSheet] = useState<CatalogueData | null>(null)
   useEffect(() => {
     /* the pill's read, never the kit's: the kit draws from the server's file below */
     if (catalogue.getState().status === 'empty') {
@@ -78,6 +80,15 @@ function KitRoute() {
         if (live) {
           setMark(crestMarkOf(manifest.name))
           setRead(specimenOf({ business: manifest.name, entities, rows, images }))
+          /* the same five lists as the catalogue's commands read them, for the picture a dealer
+             adds on the kit: the page's own copy, written nowhere */
+          setSheet({
+            ...emptySheet(),
+            orgId: PACK_ORG_ID,
+            tables: Object.fromEntries(entities.filter((e) => e.id in rows).map((e) => [e.id, e])),
+            rows,
+            index: indexRows(rows),
+          })
         }
       } catch (error) {
         if (live)
@@ -90,5 +101,5 @@ function KitRoute() {
       live = false
     }
   }, [])
-  return <Kit read={read} mark={mark} />
+  return <Kit read={read} mark={mark} sheet={sheet} />
 }

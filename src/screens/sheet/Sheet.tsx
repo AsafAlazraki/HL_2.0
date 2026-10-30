@@ -98,7 +98,14 @@ import {
   sharedName,
   type Glyph,
 } from '@/ui'
-import { displayFieldOf, rowLabel, type EntityDef, type FieldDef } from '@/domain/model'
+import {
+  displayFieldOf,
+  isImageValue,
+  primaryImage,
+  rowLabel,
+  type EntityDef,
+  type FieldDef,
+} from '@/domain/model'
 import { newId } from '@/domain/id'
 import { addRow, deleteRow, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { dataOf, catalogue } from '@/state/catalogue'
@@ -171,9 +178,13 @@ import {
   recommendedOf,
   setAllWrite,
   fillDownWrite,
+  codeOfRow,
+  recordSaid,
   type Card,
   type Write,
 } from './read'
+import { fitmentOf } from '@/app/ways'
+import type { LineOption } from './LinePicture'
 import './sheet.css'
 
 export type Door = 'price' | 'pictures' | 'every'
@@ -203,7 +214,19 @@ export interface SheetProps extends SheetPosition {
   business?: string | null
   onPosition?: (position: SheetPosition) => void
   openTheFile?: () => void
+  /** another screen, by its address: a boat's "What goes on this boat" */
+  goTo?: (href: string) => void
 }
+
+/** THE LISTS WHOSE LINES A DEALER PICTURES: the things sold (a colourway is a boat's line). */
+const PICTURED_KINDS: ReadonlySet<string> = new Set([
+  'boat',
+  'motor',
+  'trailer',
+  'accessory',
+  'package',
+])
+const PICTURED_SHELVES: ReadonlySet<string> = new Set(['oils_lubes'])
 
 interface Step {
   said: string
@@ -502,6 +525,7 @@ export function Sheet({
   fold: foldIn = '',
   onPosition,
   openTheFile,
+  goTo,
 }: SheetProps) {
   /* WHAT THE SCREEN LAST ASKED FOR STANDS UNTIL THE ADDRESS ANSWERS. A
      press that changes the door or the chapter hands the router a new
@@ -1373,6 +1397,29 @@ export function Sheet({
     return { label: `Add a ${noun.one} to ${model}`, press: () => onAddRow(path) }
   }
 
+  /* WHAT GOES ON A BOAT, ONE PRESS FROM ITS LINE (exposure.md: 3 presses and typing before) */
+  const fitsOf = (row: ViewRow): { href: string; go: () => void } | undefined => {
+    if (!table || table.kind !== 'boat') return undefined
+    const href = fitmentOf(row.rowId)
+    return { href, go: () => goTo?.(href) }
+  }
+  /* A LINE A DEALER MAY PICTURE: a colourway, a motor, a trailer, a part, a package, a shelf */
+  const optionOf = (row: ViewRow): LineOption | undefined => {
+    if (!table) return undefined
+    if (!PICTURED_KINDS.has(table.kind ?? '') && !PICTURED_SHELVES.has(table.id)) return undefined
+    const imageField = table.fields.find((f) => f.type === 'image')
+    const v = imageField ? row.values[imageField.id] : undefined
+    const address =
+      v !== undefined && v !== null && isImageValue(v) ? primaryImage(v)?.src : undefined
+    return {
+      table: table.id,
+      row: row.rowId,
+      ...(address ? { address } : {}),
+      name: recordSaid(table, pinId ? (row.text[pinId] ?? '') : '', codeOfRow(table, row.text)),
+      ...(table.kind ? { kind: table.kind } : {}),
+    }
+  }
+
   /* ---- shutting and opening -------------------------------------- */
 
   /* A PRESS DOES WHAT ITS NAME SAYS, from what is DRAWN. The flip set
@@ -1525,6 +1572,8 @@ export function Sheet({
       data={dataOf(catalogue.getState())}
       onDelete={onDelete}
       onAdd={addUnder(levels.map((id) => row.text[id] ?? ''))}
+      fits={fitsOf(row)}
+      option={optionOf(row)}
       onClose={() => {
         setPeeking(false)
         body.current?.querySelector<HTMLElement>('.sh-outline')?.focus()
@@ -1918,6 +1967,8 @@ export function Sheet({
             data={dataOf(catalogue.getState())}
             onDelete={onDelete}
             onAdd={addUnder(levels.map((id) => cursorRow.text[id] ?? ''))}
+            fits={fitsOf(cursorRow)}
+            option={optionOf(cursorRow)}
             onClose={() => setPeeking(false)}
             hand
           />

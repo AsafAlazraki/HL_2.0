@@ -71,7 +71,7 @@
 import { money } from '@/domain/money'
 import type { AccentKey } from '@/domain/model'
 import { markBest, spaced, type RowHit, type SearchResult } from '@/domain/catalogue/search'
-import { codeBeside, factoryPackage, lineSaid } from '@/domain/quote/spoken'
+import { codeBeside, factoryPackage, lineSaid, spokenBoat } from '@/domain/quote/spoken'
 import type { FitsAnswer, FitsQuestion } from './fits'
 
 /* ------------------------------------------------------------ */
@@ -100,6 +100,8 @@ export type FinderTarget =
   | { at: 'start'; tableId: string; rowId: string }
   /** the picker, open on one model — its key is the picker's own */
   | { at: 'model'; model: string }
+  /** WHAT GOES ON THIS BOAT: Fitment, already on this exact line (the flow round, 2026-10-30) */
+  | { at: 'fits'; rowId: string }
   /** a row the SCREEN underneath owns — the scope chip's group. The
    *  screen handed it in and the screen acts on it; the finder only
    *  puts it first. */
@@ -272,6 +274,9 @@ export interface FinderInput {
   /** "trailer for sp560", read and answered — `fits.ts` — when the
    *  line was that question and a boat matched it */
   fits?: { question: FitsQuestion; answer: FitsAnswer } | null
+  /** "what fits ADV9", "fits the ADV9": the line asked what goes on a boat, so the boats are
+   *  searched for what followed and "What fits the …" leads them (`askedWhatFits`) */
+  whatFits?: boolean
 }
 
 export interface FinderReading {
@@ -532,7 +537,7 @@ export function readFinder(input: FinderInput): FinderReading {
   }
 
   /* -- boats: something to sell ---------------------------------- */
-  if (boats.length > 0) groups.push(boatGroup(boats, input.query, lines))
+  if (boats.length > 0) groups.push(boatGroup(boats, input.query, lines, input.whatFits === true))
 
   /* -- the lists themselves --------------------------------------
      ONLY A LIST WHOSE OWN NAME WAS TYPED (built-m3.md, the shell's minor). A list reached through
@@ -634,6 +639,7 @@ function boatGroup(
   groups: SearchResult['groups'],
   query: string,
   lines: FinderLines | undefined,
+  whatFits = false,
 ): FinderGroup {
   interface Seen {
     tableId: string
@@ -703,6 +709,26 @@ function boatGroup(
   }
 
   const shown = all.slice(0, SHOWN)
+  /* WHAT FITS THE BOAT FOUND FIRST, one press away (exposure.md: a boat's name sent you to the
+     picker, and "fits ADV9" found nothing). The first boat the finder answers carries a second
+     line that opens Fitment already on it; asked what fits, that line leads. */
+  const top = [...seen.values()].find((s) => s.boat !== null)
+  if (top?.boat) {
+    const said = top.boat.modelName.toLowerCase().startsWith(top.boat.maker.toLowerCase())
+      ? top.boat.modelName
+      : `${spokenBoat(top.tableId, '').maker || top.boat.maker} ${top.boat.modelName}`
+    const row: FinderRow = {
+      id: `fits:${top.hits[0]!.rowId}`,
+      name: `What fits the ${said}`,
+      fact: 'Motors, trailers and parts made for it',
+      verb: 'Open Fitment',
+      target: { at: 'fits', rowId: top.hits[0]!.rowId },
+      at: -1,
+      length: 0,
+    }
+    if (whatFits) shown.unshift(row)
+    else shown.splice(1, 0, row)
+  }
   /* ITS LINE IN THE PRICE LIST, where the answer is one line of one list: the price list one
      press away, under the sale. It printed the line as the file spells it — "Signature Fisher -
      525F  Fisher 525F  as Haines Signature lists it" — the boat above it said a second time in the

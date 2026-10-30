@@ -4,7 +4,7 @@
    THIS IS THE ONE PLACE THE PICKER WRITES ANYTHING, and it writes
    through the engine rather than beside it. `mintQuote` is the quote
    feature's own door: it freezes every rung the row carries, brings
-   the starred motor across, and hands back the document AND the event
+   the boat alone onto it, and hands back the document AND the event
    that made it, so nothing here decides what a quote is.
 
    WHY A VIEW IS MADE FIRST. A quote's sections are its view's blocks —
@@ -126,6 +126,11 @@ export function startQuote(
     rowId,
     reference: referenceForNow(filed, at),
     ...(args.preparedBy ? { preparedBy: args.preparedBy } : {}),
+    /* THE BOAT ALONE (the owner, 2026-10-30, and the flow walk's first blocker: the GRT 455 went
+       from $35,080 on the picker to $44,112 on Start, with a motor and a tow catch nobody chose).
+       The build offers the price list's recommended motor and trailer on their tiles, one press
+       each. */
+    hullAlone: true,
   })
 
   if (!minted) {

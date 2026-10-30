@@ -475,6 +475,8 @@ test('in a hand, the shelf ends on a seam between two plates with nothing scroll
 const LANDS: Record<string, string> = {
   '/rules': '[data-testid="rules"][data-read]',
   '/fitment': '[data-testid="fitment"][data-read]',
+  /* the chandlery (the flow round, 2026-10-30) draws no data-read: its main is its landing */
+  '/catalogue': '[data-testid="catalogue"]',
   '/review': '[data-testid="review"][data-read]',
   '/levels': '[data-testid="levels"][data-read]',
   '/shelf': '[data-testid="shelf"][data-read]',

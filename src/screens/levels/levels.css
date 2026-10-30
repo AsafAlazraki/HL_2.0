@@ -973,3 +973,10 @@
   justify-items: start;
   min-inline-size: 0;
 }
+
+/* THE STANDING WAY BACK TO THE QUOTE THAT SENT THE DEALER HERE, over the eyebrow (the flow
+   round, 2026-10-30): it survives a reload, where the step line's toast does not */
+.lv-back {
+  display: flex;
+  margin-block-end: --spacing(2);
+}

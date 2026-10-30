@@ -1,4 +1,5 @@
 import type { ModuleDef, RoleDef } from './modules'
+import type { OwnPicture } from './ownPictures'
 import type { QuoteDef } from './quote'
 import type { RowData } from './rows'
 import type { ConstraintDef, RuleDef } from './rules'
@@ -249,4 +250,11 @@ export interface ProjectExport {
    *  the rest of v2: a file written before quotes travelled reads as
    *  a project with no quotes. */
   quotes?: QuoteDef[]
+
+  /** THE PICTURES NORTHSIDE ADDED TO ITS OPTIONS, each with its bytes and its provenance
+   *  (2026-10-30). In a full copy only, like the quotes: a picture belongs to a line of the
+   *  price list, and a structure-only copy carries no lines. PRESENT AND EMPTY is a copy that
+   *  held none, and bringing it back leaves none; ABSENT is a copy saved before pictures were
+   *  kept, and bringing it back leaves the pictures here as they are. */
+  ownPictures?: OwnPicture[]
 }

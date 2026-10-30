@@ -15,9 +15,9 @@
    the reading fell back to chapter one: the motor list folded and
    "ADV7 — 7 finishes" opened under the hand, at 1440, 834 and 390. It
    showed the dealer the decision he made on the picker, and not the one
-   in front of him. The hull is never "still to do" once a hull is on
-   the quote; what is left after the last band is the customer's name,
-   and after the name, giving it to them.
+   in front of him. That fault came from the reading moving by itself;
+   since 2026-10-30 a draft with a hull opens on the hull and stays
+   there until the dealer presses another chapter (rule 3).
 
    SO THE ORDER IS THE SALE'S OWN, and every step of it is a fact read
    off the document:
@@ -25,9 +25,16 @@
      1. the chapter the address names, when it names one this build has
      2. a quote already given: the finale, the one chapter on it that
         still does anything (every other chapter is read-only)
-     3. a boat the price file holds no price for: 01 The hull, where
-        the dealer puts the price on it (`nought.ts`)
-     4. the first band with nothing on it and something to offer
+     3. A DRAFT WITH A HULL OPENS ON 01 THE HULL, ALWAYS (the owner,
+        2026-10-30: "always hull expanded first"). The boat is what is
+        sold and what the customer looks at first. The dealer moves on
+        by pressing the next chapter's head, which writes `?at=`, and
+        nothing moves on by itself (the flow walk: "never auto-advance").
+        A boat the file holds no price for opens here too, where the
+        dealer puts the price on it (`nought.ts`).
+     4. on a build with no hull (a motor, a trailer or parts sold on
+        their own): the first band with nothing on it and something to
+        offer
      5. nobody named yet: Who it is for
      6. the finale, where the quote is given
      7. chapter one, only for a build that has neither closing chapter
@@ -71,7 +78,7 @@ export function chapterToOpen(chapters: readonly ChapterPlace[], facts: OpeningF
   return (
     (facts.at === '' ? undefined : first((c) => c.id === facts.at)) ??
     (facts.issued ? first((c) => c.kind === 'finale') : undefined) ??
-    (!facts.issued && facts.hullUnpriced ? first((c) => c.id === 'hull') : undefined) ??
+    (facts.issued ? undefined : first((c) => c.id === 'hull')) ??
     first((c) => c.kind === 'band' && c.lines === 0 && c.offered > 0) ??
     (facts.named ? undefined : first((c) => c.kind === 'handover')) ??
     first((c) => c.kind === 'finale') ??

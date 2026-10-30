@@ -7,6 +7,7 @@ import {
   HouseIcon,
   SlidersHorizontalIcon,
   UsersIcon,
+  PackageIcon,
   ScalesIcon,
   SealCheckIcon,
   TagIcon,
@@ -50,6 +51,8 @@ export const WAY_GLYPH: Readonly<Record<string, Glyph>> = {
   '/rules': ScalesIcon,
   /* what goes on a boat: the trailer under it, the thing a dealer fits most often (Milestone 3) */
   '/fitment': TruckTrailerIcon,
+  /* every part and accessory, by what it is for: the parcel a part arrives in (the flow round) */
+  '/catalogue': PackageIcon,
   /* what is wrong in the price list, checked: the seal with its tick (Milestone 3, board A) */
   '/review': SealCheckIcon,
   /* which price each customer pays: the price tag, the glyph Data's spread already gives a

@@ -30,6 +30,12 @@
    nobody could see. Entry hands the same domain reader the copies it
    fetched (`src/screens/entry/facts.ts`).
 
+   AND NORTHSIDE'S OWN PICTURES (2026-10-30). A picture the dealer adds
+   to one option is laid over the book here (`withOwnPictures`), from the
+   pictures the catalogue store last handed over (`./ownPictures.ts`), so
+   the build, the catalogue and the paper draw it by asking exactly what
+   they asked before. The book is rebuilt only when those move.
+
    AN ITEM IS A ROW: its register, its id, and the address the price file
    gave it. A quote freezes all three (`rootTableId`, `rootRowId`,
    `subjectImage`), so the paper asks exactly what the build asked even
@@ -47,11 +53,13 @@ import {
   type PictureBook,
 } from '@/domain/model/pictures'
 import type { QuoteDef } from '@/domain/model'
+import { addedLine, withOwnPictures, type OwnPicture } from '@/domain/model/ownPictures'
+import { heldOwnPictures, ownPicturesVersion } from './ownPictures'
 import imagesRaw from '../../data/northside/images.json?raw'
 import marksRaw from '../../data/northside/marks-ledger.json?raw'
 import picturesRaw from '../../data/northside/pictures.json?raw'
 
-export type { Found, HeldMark, Ink, Item, MarkChoice, Picture }
+export type { Found, HeldMark, Ink, Item, MarkChoice, OwnPicture, Picture }
 
 /** A picture this repository ships, at the size it ships it — the domain's answer. */
 export type HeldPicture = Picture
@@ -66,13 +74,20 @@ function parsed(raw: string): unknown {
 }
 
 let book: PictureBook | undefined
+let dressed: { version: number; book: PictureBook } | undefined
 
-/** The one reader, built once from the ledgers in the bundle. */
-export const pictures = (): PictureBook =>
-  (book ??= pictureBook(
+/** The one reader: the ledgers in the bundle, built once, with Northside's own pictures over them. */
+export function pictures(): PictureBook {
+  book ??= pictureBook(
     { images: parsed(imagesRaw), pictures: parsed(picturesRaw), marks: parsed(marksRaw) },
     import.meta.env.BASE_URL,
-  ))
+  )
+  const version = ownPicturesVersion()
+  if (dressed?.version !== version) {
+    dressed = { version, book: withOwnPictures(book, heldOwnPictures()) }
+  }
+  return dressed.book
+}
 
 /** One row, as the reader is asked about it. */
 export const itemOf = (table: string, row: string, address?: string): Item => ({
@@ -92,6 +107,12 @@ export const heroOf = (item: Item): HeldPicture | null => pictures().hero(item)
  *  exactly this row (model and finish) — never another colourway. */
 export function copyOf(item: Item): HeldPicture | null {
   const book = pictures()
+  /* Northside's own picture of this option is exact by the dealer's word: where it is the one
+     drawn, it is the copy */
+  if (book.own(item)) {
+    const drawn = book.catalogue(item)
+    if (drawn?.added) return drawn
+  }
   const own = book.rowCopy(item)
   if (own) return own
   const model = book.modelPicture(item, 'catalogue')
@@ -101,6 +122,13 @@ export function copyOf(item: Item): HeldPicture | null {
 /** The catalogue picture a screen may draw for the MODEL: the row's own, then its model's,
  *  which may be another colourway (`exact: false` says so). */
 export const catalogueOf = (item: Item): HeldPicture | null => pictures().catalogue(item)
+
+/** THE PICTURE NORTHSIDE ADDED TO THIS ONE OPTION, where one stands — for its provenance line
+ *  and for Remove. Whether it is the one DRAWN is the ladder's question (`pictureOf`). */
+export const ownOf = (item: Item): OwnPicture | null => pictures().own(item)
+
+/** The held picture of this exact item, which wins over Northside's own unless it chose its own. */
+export const exactHeldOf = (item: Item): HeldPicture | null => pictures().exactHeld(item)
 
 /** A screen's ladder: the model on the water, then the catalogue picture. */
 export const pictureOf = (item: Item): HeldPicture | null => pictures().picture(item)
@@ -158,4 +186,11 @@ export function hostOf(address: string): string {
   } catch {
     return 'an address this file carries'
   }
+}
+
+/** WHERE A PICTURE CAME FROM, in one line a person reads under it large (the build's lightbox):
+ *  "Added by Asaf, 30 October 2026" for Northside's own, else the maker's host it was read off. */
+export function creditOf(held: Pick<HeldPicture, 'added' | 'address' | 'tier'>): string {
+  if (held.added) return addedLine({ addedBy: held.added.by, addedAt: held.added.at })
+  return `${held.tier === 'hero' ? 'Photograph' : 'Picture'} from ${hostOf(held.address)}`
 }

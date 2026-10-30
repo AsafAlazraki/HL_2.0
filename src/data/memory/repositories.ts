@@ -7,6 +7,7 @@ import {
   type CatalogueRepository,
   type Filed,
   type OrgRepository,
+  type OwnPictureRepository,
   type QuoteRepository,
   type RecordStore,
   type RowStore,
@@ -242,4 +243,9 @@ export function memoryOrg(orgId: string, options: MemoryOptions = {}): OrgReposi
       return Promise.resolve()
     },
   }
+}
+
+/** The pictures Northside added to its options, cloned in and out as IndexedDB would. */
+export function memoryOwnPictures(orgId: string, options: MemoryOptions = {}): OwnPictureRepository {
+  return new MemoryStore((options.db ?? createMemoryDatabase()).ownPictures, orgId, 'picture')
 }

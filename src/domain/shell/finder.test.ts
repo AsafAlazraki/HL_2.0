@@ -331,9 +331,10 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
     price: () => null,
     ink: () => 'blue' as const,
   }
-  const answer = (hits: ReturnType<typeof hit>[], query = 'q100') =>
+  const answer = (hits: ReturnType<typeof hit>[], query = 'q100', whatFits = false) =>
     readFinder({
       query,
+      whatFits,
       doors: [],
       acts: [],
       recent: [],
@@ -355,7 +356,13 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
 
   it('collapses the versions of one model into one line, onto the picker', () => {
     const boats = answer([hit('r1', 'Maker - Q100 (A)'), hit('r2', 'Maker - Q100 (B)')]).groups[0]!
-    expect(boats.rows).toHaveLength(1)
+    /* the model, then what fits it (the flow round, 2026-10-30) */
+    expect(boats.rows).toHaveLength(2)
+    expect(boats.rows[1]).toMatchObject({
+      verb: 'Open Fitment',
+      target: { at: 'fits', rowId: 'r1' },
+    })
+    expect(boats.rows[1]!.name).toMatch(/^What fits the .*Q100$/)
     expect(boats.rows[0]).toMatchObject({
       name: 'Q100',
       fact: 'Maker Boats · 2 versions',
@@ -370,6 +377,8 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
     const boats = answer([hit('r1', 'Maker - Q100 (A)', 'MB1')], 'mb1').groups[0]!
     expect(boats.rows.map((r) => [r.verb, r.target.at])).toEqual([
       ['Start a quote', 'start'],
+      /* WHAT FITS IT, one press from its name (the flow round, 2026-10-30) */
+      ['Open Fitment', 'fits'],
       ['Open it', 'row'],
     ])
     expect(boats.rows[0]).toMatchObject({
@@ -379,8 +388,8 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
       code: { text: 'MB1', at: 0, length: 3 },
     })
     /* its line in the price list, not the boat again in the file's words (2026-10-21) */
-    expect(boats.rows[1]!.name).toBe('Its line in the price list')
-    expect(boats.rows[1]!.code).toBeUndefined()
+    expect(boats.rows[2]!.name).toBe('Its line in the price list')
+    expect(boats.rows[2]!.code).toBeUndefined()
   })
 
   /* the refine round, 2026-10-21: every line printed its code in a box, typed or not */
@@ -390,6 +399,11 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
     const boats = answer([named], 'q100').groups[0]!
     expect(boats.rows[0]!.verb).toBe('Start a quote')
     expect(boats.rows[0]!.code).toBeUndefined()
+  })
+
+  it('puts "What fits the …" first when that is what was asked', () => {
+    const boats = answer([hit('r1', 'Maker - Q100 (A)', 'MB1')], 'mb1', true).groups[0]!
+    expect(boats.rows[0]!.target).toEqual({ at: 'fits', rowId: 'r1' })
   })
 
   it('says a line the picker does not offer is no longer sold, and sends it to the sheet', () => {

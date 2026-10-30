@@ -191,6 +191,17 @@ export function supersededBy(quotes: readonly QuoteDef[]): Map<string, QuoteDef>
   return by
 }
 
+/**
+ * WHAT HAS REALLY BEEN REPLACED: an issued quote counts as replaced only once a newer version
+ * of it has been GIVEN too (the flow round, 2026-10-30). "Make a new version" moved the given
+ * quote under Replaced at once, while its replacement was still a draft, so "Given 0" stood on
+ * the screen though the customer held a given quote (walk.md). The draft still names what it
+ * replaces (`supersededBy`, the row's link); the band waits for the give.
+ */
+export function givenReplacements(quotes: readonly QuoteDef[]): Map<string, QuoteDef> {
+  return supersededBy(quotes.filter((q) => q.state !== 'draft'))
+}
+
 /** One document, read as a row. Nothing here reads the catalogue:
  *  every value is one the document froze. */
 export function registerRow(
@@ -284,7 +295,7 @@ export interface Register {
  */
 export function readRegister(quotes: readonly QuoteDef[], query = ''): Register {
   const replacedBy = supersededBy(quotes)
-  const superseded = new Set(replacedBy.keys())
+  const superseded = new Set(givenReplacements(quotes).keys())
   const byId = new Map(quotes.map((q) => [q.id, q]))
   const asked = query.trim()
 

@@ -21,6 +21,7 @@ import {
 } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { TableKind } from '@/domain/model'
+import type { CatalogueData } from '@/domain/catalogue/sheet'
 import { ACCENT_PREVIEWS, accentRefusal, cssOf } from '@/domain/appearance/accent'
 import {
   boatFacts,
@@ -70,6 +71,7 @@ import {
   type Glyph,
 } from '@/ui'
 import { useChapterProgress, useSmoothScroll } from '@/ui/scroll'
+import { KitPictures, type KitOption } from './KitPicture'
 import './kit.css'
 
 /* ============================================================
@@ -102,9 +104,12 @@ export interface KitProps {
   /** Northside's own mark in white ink, where the marks ledger holds one — the pill's crest
    *  and Home's showpiece are the same file — or null, and the band sets the name in type */
   mark?: string | null
+  /** THE LISTS THIS PAGE READ, as the catalogue's commands read them, for the picture a dealer
+   *  adds (`KitPictures`): the page's own copy, kept by nothing */
+  sheet?: CatalogueData | null
 }
 
-export function Kit({ read, mark = null }: KitProps) {
+export function Kit({ read, mark = null, sheet = null }: KitProps) {
   if (read === null)
     return (
       <main className="kit" data-testid="kit">
@@ -117,7 +122,7 @@ export function Kit({ read, mark = null }: KitProps) {
         <p className="kit-reading">{read.refused}</p>
       </main>
     )
-  return <Specimen kit={read} mark={mark} />
+  return <Specimen kit={read} mark={mark} sheet={sheet} />
 }
 
 const SEED = `${import.meta.env.BASE_URL}seed-images/`
@@ -136,7 +141,15 @@ const FACT_GLYPHS: readonly Glyph[] = [
   EngineIcon,
 ]
 
-function Specimen({ kit, mark }: { kit: KitSpecimen; mark: string | null }) {
+function Specimen({
+  kit,
+  mark,
+  sheet,
+}: {
+  kit: KitSpecimen
+  mark: string | null
+  sheet: CatalogueData | null
+}) {
   useSmoothScroll()
   /* THE TAB SAYS WHOSE KIT IT IS while the kit is open, and gives the title back when it is
      left — the paper's own rule (Document.tsx). Before 2026-10-21 the tab here read the
@@ -171,6 +184,41 @@ function Specimen({ kit, mark }: { kit: KitSpecimen; mark: string | null }) {
   const priceAt = (levels: { key: string; amount: number }[]): number | null =>
     levels.find((l) => l.key === level)?.amount ?? levels[0]?.amount ?? null
   const chosenMotor = motors.find((m) => m.rowId === chosen) ?? null
+
+  /* THE TWO OPTIONS A PICTURE IS ADDED TO: the trailer the price list names for this hull, of
+     which no picture exists (none in either image list, 2026-10-30), and the motor chosen above
+     with the maker's picture the page already draws */
+  const trailer = stage.trailers[0] ?? null
+  const pictured: KitOption[] = [
+    ...(trailer && kit.registers.trailer
+      ? [
+          {
+            table: kit.registers.trailer.id,
+            row: trailer.rowId,
+            said: trailer.said,
+            kind: 'trailer' as const,
+            held: null,
+          },
+        ]
+      : []),
+    ...(chosenMotor && kit.registers.motor
+      ? [
+          {
+            table: kit.registers.motor.id,
+            row: chosenMotor.rowId,
+            said: chosenMotor.said,
+            kind: 'motor' as const,
+            held: chosenMotor.picture
+              ? {
+                  src: `${SEED}${chosenMotor.picture.file}`,
+                  width: chosenMotor.picture.width,
+                  height: chosenMotor.picture.height,
+                }
+              : null,
+          },
+        ]
+      : []),
+  ]
 
   /* THE ACCENT A PERSON TRIES is set on the root for as long as the page stands and taken off
      when it goes: a preview, never a setting. The accent the app has removes the override. */
@@ -731,6 +779,17 @@ function Specimen({ kit, mark }: { kit: KitSpecimen; mark: string | null }) {
               </div>
             </Plate>
           </Group>
+
+          {sheet && pictured.length > 0 ? (
+            <Group
+              title="A picture Northside adds"
+              note="Drop a picture on an option, paste one, or press it to choose one. Each is the real step with its Undo, and the kit keeps none: it leaves with the page."
+            >
+              <Plate pad="md">
+                <KitPictures sheet={sheet} options={pictured} />
+              </Plate>
+            </Group>
+          ) : null}
 
           <Group
             title="Over the screen"

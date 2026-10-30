@@ -1,321 +1,126 @@
 /* ============================================================
-   TWO LINT RULES TURNED OFF FOR THIS FILE, EACH WITH ITS REASON —
-   never as a convenience, and never anywhere else in the repository.
+   QUOTES — A SALESPERSON'S DESK OF DEALS (the flow round, 2026-10-30).
 
-   `jsx-a11y/prefer-tag-over-role` asks for `<table>`, `<tr>` and
-   `<td>` instead of `role="grid"`, `role="row"` and
-   `role="gridcell"`. Two things make that the wrong trade HERE, and
-   both were measured rather than assumed:
+   The owner, 2026-10-30: "i dont like the quotes home page either".
+   What he saw on the live site with one draft: three status bands
+   (DRAFT 1, GIVEN 0, REPLACED 0) whose empty bands still took a row
+   each, a full-width New quote bar inside the list, then a form-like
+   detail card ("Started", "On the price list", "Items", "Priced at")
+   with no picture of what is sold, the total in a grey box and small
+   ghost buttons. It read as an admin record, not a desk of deals.
 
-     1. The density ruler reads `document.querySelectorAll(
-        '[role="row"]')` (`e2e/rulers/measure/density.ts`). A CSS
-        attribute selector matches WRITTEN attributes and not implicit
-        roles, so a register built out of `<tr>` elements reports zero
-        readable rows — the exact "0 below threshold means the parser
-        broke" failure the rulers were rebuilt to stop.
-     2. A row here is a CSS grid at a desk and a two-line block in a
-        hand (`quotes.css`). Changing `display` on a table element
-        drops its implicit table semantics in browsers, so a `<table>`
-        laid out this way announces LESS than these divs do, not more.
-        And writing the roles back onto the table tags is refused by
-        `no-redundant-roles` and `no-interactive-element-to-
-        noninteractive-role`, which is how the two rules meet.
+   WHAT THIS IS INSTEAD. One card per deal, led by the PICTURE of what
+   is sold, the CUSTOMER and the TOTAL, with the one NEXT ACT for that
+   deal on the card itself:
 
-   `jsx-a11y/click-events-have-key-events` asks each clickable row for
-   its own key handler. This grid uses the APG's `aria-activedescendant`
-   pattern: ONE tab stop on the grid, which owns the whole keyboard
-   vocabulary, and rows that are pointed at rather than focused. A key
-   handler per row is the roving-tabindex pattern, which this
-   deliberately is not — and eighteen tab stops in a register is
-   exactly the shape a person presses Tab through and gives up on.
+     · being written  → Carry on building      (and Discard, asked twice)
+     · with the customer → Open the printed quote (and Make a new version,
+                           or Open the new version where one is written)
+     · replaced       → Open the printed quote, quietly
+
+   The deals are grouped by where they stand, and a group with nothing
+   in it is not drawn: an empty "Given 0" was a row saying nothing. No
+   group sums its totals: two customers' totals added together are a
+   figure nobody quotes (walk.md, $84,721). A given quote stays with
+   the customer until its new version is GIVEN (`givenReplacements`,
+   src/domain/quote/register.ts): the draft that will replace it is
+   named on its card, and it moves to Replaced only when that is given.
+
+   NOTHING HERE IS INVENTED. Every figure is one the document froze
+   (`readRegister`), every picture is the one reader's of that quote's
+   own row (`coverOf`), and a deal whose boat has no picture held
+   shows the kind's glyph and no photograph. An empty desk says so in
+   one quiet sentence beside the act that starts the first quote.
+
+   SIMPLE WINS. No grid with a cursor and a reading pane: each card is
+   its own words and its own buttons, reached by Tab like any page.
+   The find field appears only when there are enough deals to need it
+   (`FIND_FIELD_AT`). The two positions are still search params: what
+   was typed (`find`), and the deal the address arrived at (`at`),
+   which is drawn lit and brought into view.
    ============================================================ */
-/* eslint-disable jsx-a11y/prefer-tag-over-role, jsx-a11y/click-events-have-key-events */
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { motion } from 'motion/react'
 import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
-} from 'react'
-import { AnimatePresence, motion, useIsPresent } from 'motion/react'
-import { DatabaseIcon, FilePlusIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
-import {
-  Button,
-  Icon,
-  Input,
-  Picture,
-  PriceFigure,
-  STATE_GLYPH,
-  Tile,
-  caretInField,
-  closesStage,
-  isField,
-  move,
-  reducedMotion,
-  stageKeyOf,
-  type QuoteState,
-} from '@/ui'
-import type { EntityDef, QuoteDef } from '@/domain/model'
+  ArrowRightIcon,
+  ArrowsClockwiseIcon,
+  ArrowUUpLeftIcon,
+  DatabaseIcon,
+  FilePlusIcon,
+  FileTextIcon,
+  MagnifyingGlassIcon,
+  SailboatIcon,
+  TrashIcon,
+} from '@phosphor-icons/react'
+import { Button, Icon, Input, Picture, PriceFigure, STATE_GLYPH, move, type QuoteState } from '@/ui'
+import type { QuoteDef } from '@/domain/model'
 import { FIND_FIELD_AT, NOTHING_FOUND } from '@/domain/quote/find'
-import { boatOfQuote } from '@/domain/quote/spoken'
-import { jointsOf } from '@/domain/quote/wrap'
 import { newVersionOf } from '@/domain/quote/commands'
 import { referenceForNow } from '@/domain/quote/freeze'
 import {
   ageSay,
   readRegister,
-  type RegisterBand,
   type RegisterRow,
   type RegisterStateId,
 } from '@/domain/quote/register'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
-import { markFor } from '@/screens/home/ledgers'
-import { heroOfQuote, type HeldPicture } from '@/data/pictures'
+import { heroOfQuote, srcSetOf, type HeldPicture } from '@/data/pictures'
 import { boatTravel } from '@/screens/picker/travel'
 import { coverOf, heldCopyOf, type Cover } from './cover'
-import { Panel } from './Panel'
 import './quotes.css'
 
-/* ============================================================
-   THE QUOTES REGISTER — direction A, "The ledger", from
-   docs/research/refs/quotes/notes.md §6. Provisional until the owner
-   looks (docs/SCREENS.md).
-
-   WHY A, CHOSEN RATHER THAN PICKED. The owner handed the picks over,
-   and this is the only one of the four whose STRUCTURE is the state:
-   three bands — Draft · Issued · Superseded — each a header of glyph,
-   word and count, so no row spends width on a coloured word and on
-   day one the screen prints three honest zeros instead of an apology.
-   It is also the only one that fits the requirement this screen was
-   given: eighteen readable rows on a dealer's laptop, which a
-   photograph-led grid (C) and a centred day book (B) both spend on
-   air, and which D's one-field screen does not show until somebody
-   types.
-
-   ── WHAT THE SWEEP DECIDED, AND WHERE ─────────────────────────
-
-   THE ROW'S WEIGHT: `ref/tables/github-issues.png` and
-   `live/github-pulls-vscode.png`. A leading glyph, the title at full
-   weight, everything else in one quiet line. For a quote the title
-   slot is the BOAT and the CUSTOMER; the reference and the age are
-   the quiet line; and the total is the one thing GitHub has no
-   equivalent for, so it takes a column of its own — right-aligned and
-   tabular, the way `live4/mercury-banking.png` sets a balance on a
-   dark register, whose "+ Create Account" is also why the act on this
-   screen is the LAST ROW rather than a bar over the rows.
-
-   THE BAND IS THE STATE: `live/linear-filters.png` — no state column
-   exists; rows sit under group headers that are the state, each
-   carrying an `n / m` fraction. `live4/linear-issue-status.png` adds
-   the rest: the glyph's SHAPE carries the stage and hue is a tint of
-   the shape, never the message. Superseded is a band and not a third
-   peer state because `live4/shopify-order-statuses-scrolled.png` says
-   so in as many words — an additional status, explained in a
-   sentence, which this screen prints on that band's header.
-
-   FIND BY ANYTHING, NOT A FILTER BAR: `live/stripe-search.png`
-   publishes the grammar ("No additional context is necessary for most
-   searches") and `live4/bringatrailer-results.png` writes it as a
-   placeholder. One field, no facets, no chips nobody presses. The
-   matcher is `domain/quote/find`'s own, which exists precisely so two
-   surfaces cannot disagree about whether a query hits.
-
-   WHAT THE SWEEP SAID TO AVOID, and what this screen does instead.
-   `marine/boattrader-au.png` puts seven checkboxes, two dropdowns, a
-   pager and two ad units above the rows and shows THREE at 1440×900;
-   everything above the first row here is ONE line — the business, the
-   title, the find field, the two stamp lines and the way back all sit
-   on it. `marine/whitworths-search-empty.png` answers
-   a search that matched nothing with 550px of white; this quotes the
-   query back. `live3/github-issues-zero.png` dims `New issue` with
-   nothing saying why; every refusal here is a sentence under the
-   control that refused.
-
-   ── WHAT IS TRUE ON THIS BUILD AND WOULD NOT BE ON A BOARD ────
-
-     · EVERY ROW OPENS, AND THE SEAM WAS CUT ON 2026-09-18. This
-       register shipped with three of the peek's six controls refused
-       and two of those refusals false: "the quote document has no
-       screen yet" and "the picker is not built yet", printed on a
-       tree where both screens were live. `QuotesProps` declared no
-       way out at all, so the sentences were not stale strings — the
-       join had never been made, and the version this screen had just
-       minted could not be opened by the screen that minted it. Both
-       are gone, deleted rather than reworded, and what is left is the
-       one honest case: a render handed no way anywhere, which is a
-       component test and never a browser.
-     · A DRAFT AND AN ISSUED QUOTE OPEN IN DIFFERENT PLACES, and the
-       act says which. A draft opens where it is written — the
-       configurator, which can still change it — and an issued one
-       opens as the paper the customer was given. Home decided this on
-       2026-09-18 and this screen does not disagree with it: the state
-       travels with the id and the ROUTE owns both addresses, so the
-       register knows what it is opening and not where that is.
-     · MAKE A NEW VERSION REALLY WORKS. It is the one act on this
-       screen that changes a document, and it goes through
-       `newVersionOf` — the supersedes link the contract already
-       carries — and `quotes.file`, so the new draft is filed, the
-       issued one is untouched, and the band it moves to is derived
-       from the link rather than written anywhere. Having somewhere to
-       open it is what finishes that act: it now says the reference it
-       made and the panel moves onto it, live.
-     · A PHOTOGRAPH STANDS HERE ONLY FOR A QUOTE THAT EXISTS. A picture
-       belongs to the row it depicts; a boat photograph over an empty
-       register would be a stand-in for a quote that does not exist,
-       and the empty state says so out loud. From 2026-09-29 the room
-       the rows leave shows the boat of THE QUOTE IN HAND — the row the
-       cursor is on, which is the one the panel reads when it is open —
-       and never another: until then it showed the newest quote whose
-       model the heroes ledger held, so with -01 pressed and read in
-       the panel the photograph under the list still named -03 and its
-       total (the second components critique, finding 10).
-
-   ── IN THE KIT'S LANGUAGE, 2026-09-28 ─────────────────────────
-   The owner: "components are so bland and boring". The same ledger,
-   the same three bands, the same panel and the same room — drawn in
-   the kit's materials, glyphs and motion (src/ui, tokens.css THE KIT):
-     · THE LEDGER AND THE PANEL ARE PLATES: white, 16px round, lifted
-       off the day's blue on the plate's own shadow. A row is a rounded
-       wash inside the plate rather than a strip between two hairlines.
-     · THE BAND'S STATE IS THE KIT'S GLYPH IN THE KIT'S INK — a circle
-       still being drawn in rose for a draft, a tick in leaf for an issued
-       quote, the arrows turning over in graphite for a superseded one —
-       always beside its word, and the same glyph leads every row of it.
-     · EVERY ACT CARRIES ITS GLYPH: a new paper on New quote (the finder's
-       own glyph for starting one), an arrow or the paper on the act that
-       opens, and the peek's quieter acts in the plate's blue well.
-     · ROWS TRAVEL. A new version files a draft and moves the issued one
-       into Superseded; every row between them slides to its new place on
-       the kit's travel spring instead of jumping (`motion`'s layout
-       animation, measured only when the register's shape changes). While
-       a caret is in the find field nothing travels (src/ui/MotionRoot).
-     · THE PANEL ARRIVES: the peek rises into its plate on the kit's
-       `enter`, once when it opens; arrowing from row to row changes what
-       it says and moves nothing, because a key pressed tens of times a
-       day is never animated.
-     · THE SHOWPIECE IS THE BOAT IN THE ROOM. Its photograph carries the
-       name the picker, the build's stage and the paper's cover give that
-       hull (src/screens/picker/travel.ts), so opening that quote carries
-       the photograph from the register onto the build or the paper — the
-       View Transitions API, the browser's own, on the route change. Only
-       the picture travels: the words and the price do not.
-   ============================================================ */
-
-/* ============================================================
-   THE TWO REFUSALS LEFT ON THIS SCREEN, and neither is about an
-   unbuilt screen. Both describe the ONE state in which this register
-   genuinely has nowhere to send anybody: a render that was handed no
-   way there. The screen never reaches for the router (so it can be
-   drawn and pressed in a component test), which means "no way there"
-   is a real state it has to have words for — and a control that keeps
-   its name, its focus and a sentence is the house rule for it
-   (`src/ui/Button.tsx`: there is no `disabled` prop).
-   ============================================================ */
-
-/** Said where the press happened, when nothing handed this screen a
- *  way to a document. Said in what would have happened, never in a
- *  router's address pattern (rule (c), critique #14, 2026-09-23). */
+/** Said where the press happened, when nothing handed this screen a way to a document. */
 export const NO_WAY_TO_OPEN = 'This screen was given no way to open a quote, so nothing was opened.'
-/** Said at the act, when nothing handed this screen a way to the picker. */
+/** Said at the act, when nothing handed this screen a way to start one. */
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was given no way to the boats, so nothing was started. A quote starts by choosing a boat.'
-/** Said only if a new version is asked of a draft, which the peek no longer offers: a draft is
- *  changed where it is written (the refine round, 2026-10-21: the refused control stood on every
- *  draft's peek explaining the app, and pushed the panel's last act under its foot). */
+  'This screen was given no way to start a quote, so nothing was started.'
+/** Said if a new version is asked of a draft: a draft is changed where it is written. */
 export const ONLY_ISSUED_IS_VERSIONED =
   'A draft is changed where it is written. A new version is only for a quote already given.'
-/** Said under a given quote's discard. It no longer adds "Make a new version if the deal has
- *  changed": that act stands one line above it, by that name (the refine round, 2026-10-21). */
-export const ISSUED_IS_NOT_DISCARDED = 'This quote has been given to the customer, so it stays.'
+/** What an empty desk says, beside the act that starts the first quote. */
+export const NOTHING_QUOTED_YET = 'Nothing has been quoted on this computer yet.'
 
-/* HOW MANY QUOTES BEFORE THERE IS A FIND FIELD AT ALL, and why the
-   domain's own constant is the right one rather than a new number.
-
-   `domain/quote/find` carries `FIND_FIELD_AT = 8` with its
-   measurement: 90px rows in a 761px port, so 7.46 fit and the eighth
-   is where the list starts hiding things — "a list that fits needs no
-   tool for finding things in it", and a filter bar over a five-item
-   menu is the clutter that rule exists to remove.
-
-   This register's rows are 28px and it owes eighteen at 1280×800, so
-   at a desk it hides nothing until the nineteenth. But the threshold
-   belongs to the viewport that shows LEAST, not most: 844×390 is a
-   phone on its side and shows about eight rows, and 390×844 draws
-   two-line rows and shows fewer. Eight is therefore still the number,
-   and it is the one the domain already states rather than a second
-   one written here to disagree with it. */
+/** WHERE A DEAL STANDS, in the salesperson's words, and the order the groups are read in. */
+const GROUPS: ReadonlyArray<{ id: RegisterStateId; word: string; glyph: QuoteState }> = [
+  { id: 'draft', word: 'Being written', glyph: 'draft' },
+  { id: 'issued', word: 'With the customer', glyph: 'given' },
+  { id: 'superseded', word: 'Replaced by a newer version', glyph: 'superseded' },
+]
 
 export interface QuotesProps {
-  /** whose register it is, read off what was opened; null is honest */
+  /** accepted from the route, and not drawn: the pill carries the business's own mark */
   business?: string | null
-  /** THE WAY HOME, WHICH THIS SCREEN NO LONGER DRAWS. The pill carries
-   *  Home on every screen, and the register's own Home was "the one
-   *  duplication this shell leaves standing" (docs/DECISIONS.md) until
-   *  rule (a) of 2026-09-23 ended it. The route still hands it; it is
-   *  accepted and not drawn. */
+  /** accepted from the route, and not drawn: the pill carries Home */
   goHome?: () => void
   /** the door to the Master Price File, for a browser with no sheet */
   openTheFile?: () => void
-  /* ── THE TWO SEAMS, CUT 2026-09-18 ──────────────────────────
-     Each is handed in rather than reached for, exactly as `goHome`
-     and `openTheFile` are, so this screen can be rendered and pressed
-     without a router — and so the ADDRESSES stay in `src/routes`,
-     which is the only place in this app that knows what a URL is. */
-  /** the picker, at `/quote/new`, where a quote is started */
+  /** New quote, where a quote is started */
   newQuote?: () => void
-  /** THE PICKER OPEN ON ONE MAKER, from an empty register's room (2026-09-24):
-   *  the id of the boat table the dealer pressed. The address is the route's. */
+  /** accepted from the route: New quote begun on one maker */
   newQuoteOf?: (tableId: string) => void
-  /** ONE FILED DOCUMENT, OPENED WHERE IT BELONGS. The state travels
-   *  with the id because the two states open in two different places
-   *  — a draft where it is written, an issued quote as the paper the
-   *  customer was given — and which address that is belongs to the
-   *  route, not to a register. */
+  /** ONE FILED DOCUMENT, OPENED WHERE IT BELONGS: a draft where it is written, a given or
+   *  replaced quote as the paper the customer was given. The address is the route's. */
   openQuote?: (id: string, state: RegisterStateId) => void
   /** the clock, injected: a test says which instant it is asking about */
   now?: () => Date
-  /** the query the address arrived with */
+  /** the find the address arrived with */
   query?: string
-  /** the row the address arrived at, by reference */
+  /** the deal the address arrived at, by reference */
   at?: string
-  /** how the address is kept in step — see THE ADDRESS, below */
+  /** how the address is kept in step */
   onPosition?: (position: { find?: string; at?: string }) => void
 }
 
-/* ============================================================
-   THE ADDRESS. A position inside a screen is a URL search param
-   (CLAUDE.md), and this screen has two: what was typed into the find
-   field, and which row is open in the panel. Both are read ONCE, from
-   the props the route hands in, and written back up as they change.
-
-   THE ADDRESS FOLLOWS THE SCREEN AND THE SCREEN DOES NOT FOLLOW THE
-   ADDRESS AFTER THE FIRST READ, deliberately. A register where every
-   arrow key is a history entry has a Back button that walks a person
-   through eighteen rows one at a time instead of taking them back to
-   where they came from; and a field whose value is round-tripped
-   through the router on every keystroke is a field that lags behind
-   the typing. So the route writes with `replace`, the address is
-   always shareable and reloadable, and the keyboard stays immediate.
-   ============================================================ */
-
-/** The clock, as a stable reference: a default written inline is a
- *  new function every render, and the callbacks that depend on it
- *  would be rebuilt on every keystroke. */
 const THE_CLOCK = (): Date => new Date()
 
 export function Quotes({
   openTheFile,
   newQuote,
-  newQuoteOf,
   openQuote,
   now = THE_CLOCK,
   query: askedFor = '',
-  at: arrivedAt = '',
+  at = '',
   onPosition,
 }: QuotesProps) {
   const filed = useQuotes((s) => s.quotes)
@@ -326,958 +131,372 @@ export function Quotes({
   const sheetTables = useCatalogue((s) => s.tables)
 
   const [query, setQuery] = useState(askedFor)
+  const [lit, setLit] = useState(at)
+  const [said, setSaid] = useState<{ at: string; words: string } | null>(null)
   const register = useMemo(() => readRegister(filed, query), [filed, query])
-
-  /* THE CURSOR IS A REFERENCE, NOT AN INDEX. A row's place in the list
-     moves the moment a query narrows it or a version is made; a
-     remembered index would then point at somebody else's quote. */
-  const [wanted, setCursor] = useState<string>(arrivedAt)
-  const [asked, setPeeking] = useState<boolean>(arrivedAt !== '')
-  const [said, setSaid] = useState<string | null>(null)
-
-  const list = useRef<HTMLDivElement>(null)
-  const field = useRef<HTMLElement>(null)
-  const rowsRef = useRef(new Map<string, HTMLDivElement>())
-
-  const shown = register.shown
-
-  /* THE CURSOR NEVER POINTS AT NOTHING WHILE THERE IS SOMETHING TO
-     POINT AT, and it is DERIVED rather than repaired. A query that
-     narrows the list out from under it, or a draft discarded while it
-     was open, simply resolves to the first row that is still here —
-     and the panel is shut, because the document it was showing is not
-     on screen any more. Working this out during the render rather than
-     in an effect is the difference between one paint and three, and
-     between a rule a reader can follow and a sequence they have to
-     replay in their head. */
-  const known = shown.some((r) => r.reference === wanted)
-  const cursor = known ? wanted : (shown[0]?.reference ?? '')
-  /* THE PANEL READS THE QUOTE UNDER THE CURSOR, AT REST TOO (2026-10-29,
-     built-critique-m3-2.md major 7). It read nothing until a row was
-     pressed, and at a desk with one quote given the right half of the
-     screen was a plate saying "Press a quote to see it" beside a list
-     whose one row was already under the cursor — Mail's empty reading
-     pane, on a list of one. So the panel reads the cursor's quote the
-     moment there is one, the way Mail opens on its first message, and
-     only a find that matches nothing or a register with nothing in it
-     leaves it with nothing to read.
-
-     WHAT A PRESS STILL CHANGES is which act is the screen's amber.
-     `peeking` is the quote taken in hand — a row pressed, Space, or an
-     address that named one — and while it is, the panel's "Open …" is
-     the amber and New quote steps back; at rest New quote keeps it. */
-  const peeking = asked && cursor !== ''
-  const here = shown.findIndex((r) => r.reference === cursor)
-  const atRow: RegisterRow | undefined = here >= 0 ? shown[here] : undefined
-  const chosen: QuoteDef | undefined = atRow ? filed.find((q) => q.id === atRow.id) : undefined
+  const byId = useMemo(() => new Map(filed.map((q) => [q.id, q])), [filed])
 
   useEffect(() => {
-    onPosition?.({ find: query === '' ? undefined : query, at: peeking ? cursor : undefined })
-  }, [onPosition, query, cursor, peeking])
+    onPosition?.({ find: query === '' ? undefined : query, at: lit === '' ? undefined : lit })
+  }, [onPosition, query, lit])
 
-  const goTo = useCallback((reference: string) => {
-    setCursor(reference)
-  }, [])
-
-  const step = useCallback(
-    (by: number) => {
-      if (shown.length === 0) return
-      const from = here < 0 ? 0 : here
-      const next = Math.min(shown.length - 1, Math.max(0, from + by))
-      setCursor(shown[next]!.reference)
-    },
-    [here, shown],
-  )
-
-  /* the cursor row is kept on screen, without smoothing: the sweep
-     found one motion in 169 frames and it was a crossfade caught
-     printing two boats over each other */
-  /* A ROW ALREADY ON SCREEN IS NOT SCROLLED TO. `block: 'nearest'`
-     reads as though it would leave a visible row alone and does not:
-     measured at 1280×800 on a register of 23, the cursor landing on
-     the first row at paint scrolled its own band header off the top,
-     so the register opened with no word above its first rows. The
-     port is asked first, and nothing moves unless the row is really
-     outside it. */
+  /* THE DEAL THE ADDRESS NAMED IS BROUGHT INTO VIEW, once, when it is first drawn */
+  const cards = useRef(new Map<string, HTMLElement>())
+  const shownLit = register.shown.some((r) => r.reference === lit)
   useEffect(() => {
-    if (cursor === '') return
-    const row = rowsRef.current.get(cursor)
-    const port = list.current
-    if (!row || !port) return
-    const box = row.getBoundingClientRect()
-    const inside = port.getBoundingClientRect()
-    if (box.top >= inside.top && box.bottom <= inside.bottom) return
-    row.scrollIntoView({ block: 'nearest' })
-  }, [cursor])
+    if (!shownLit) return
+    cards.current.get(lit)?.scrollIntoView({ block: 'nearest' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownLit])
 
-  /* ============================================================
-     OPENING ONE, WHICH IS WHAT A REGISTER IS FOR.
-
-     The peek is the second level of disclosure and there is no third
-     (`Panel.tsx`), so the way OUT of it is a navigation and not a
-     bigger panel. One function serves the button, the Enter key and a
-     double press on the row, so the three cannot drift: whichever way
-     a person asks, the same document opens in the same place and the
-     same sentence is said where nothing could.
-     ============================================================ */
-  const openIt = useCallback(
-    (row: RegisterRow) => {
-      if (!openQuote) {
-        setSaid(NO_WAY_TO_OPEN)
-        return
-      }
-      openQuote(row.id, row.state)
-    },
-    [openQuote],
-  )
-
-  /** THE ACT AT THE FOOT OF THE REGISTER, pressed or typed. */
-  const startOne = useCallback(() => {
-    if (!newQuote) {
-      setSaid(NO_WAY_TO_THE_PICKER)
-      return
-    }
-    newQuote()
-  }, [newQuote])
-
-  /** THE SAME ACT, BEGUN ON ONE MAKER — the doors in an empty register's room. */
-  const startWith = useCallback(
-    (tableId: string) => {
-      if (newQuoteOf) newQuoteOf(tableId)
-      else startOne()
-    },
-    [newQuoteOf, startOne],
-  )
-
-  /** THE ONE ACT ON THIS SCREEN THAT CHANGES A DOCUMENT. */
-  const makeVersion = useCallback(
-    (from: QuoteDef) => {
-      if (from.state !== 'issued') {
-        setSaid(ONLY_ISSUED_IS_VERSIONED)
-        return
-      }
-      const at = now()
-      const made = newVersionOf(from, referenceForNow(filed, at), at.toISOString())
-      quotesStore.getState().file(made.quote, made.event)
-      setCursor(made.quote.reference)
-      setPeeking(true)
-      setSaid(
-        `${made.quote.reference} is a new version of ${from.reference}, as a draft. ${from.reference} is unchanged, and now under Replaced.`,
-      )
-    },
-    [filed, now],
-  )
-
-  /* THROWING A DRAFT AWAY. `discard` answers `{ refused: '' }` when it
-     DID discard — an empty sentence is the store's way of saying there
-     was nothing to refuse — so the test is the sentence's emptiness
-     and not the shape of the outcome. A caller that read "refused" off
-     the key alone would print nothing at all on the one act with no
-     way back. */
-  const discard = useCallback((quote: QuoteDef) => {
-    const outcome = quotesStore.getState().discard(quote.id)
-    const refusal = 'refused' in outcome && outcome.refused.trim() !== '' ? outcome.refused : null
-    setSaid(refusal ?? `${quote.reference} was discarded.`)
-  }, [])
-
-  /* ============================================================
-     THE KEYBOARD, BOUND TO THE LIST AND NOT TO THE WINDOW — AND NO
-     KEY HERE IS A CHARACTER (m2-last-critique.md major 7, the
-     specification's major 11, 2026-09-25).
-
-     This list used to answer J and K, `/`, N and V, and print them in
-     a legend under itself, beside the acts and in two paragraphs of
-     the panel: nineteen keycaps at a desk, on a screen the owner wants
-     "easy to use", and five single characters WCAG 2.2 SC 2.1.4 asks
-     to be switchable or remappable. What is left is the keys every
-     list already has and no criterion asks about: the arrows, Home
-     and End, Space to read the quote here (held, to glance), Enter to
-     open it, Escape to close. Every act they reach is a control on the
-     screen, and the `?` sheet names them for anyone who wants them.
-     ============================================================ */
-  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
-    if (isField(event.target)) return
-    const key = event.key
-    const plain = !event.metaKey && !event.ctrlKey && !event.altKey
-
-    if (!plain) return
-
-    if (key === 'ArrowDown') {
-      event.preventDefault()
-      step(1)
-      return
-    }
-    if (key === 'ArrowUp') {
-      event.preventDefault()
-      step(-1)
-      return
-    }
-    if (key === 'Home') {
-      event.preventDefault()
-      if (shown[0]) setCursor(shown[0].reference)
-      return
-    }
-    if (key === 'End') {
-      event.preventDefault()
-      const last = shown[shown.length - 1]
-      if (last) setCursor(last.reference)
-      return
-    }
-    /* SPACE TAKES THE QUOTE UNDER THE CURSOR IN HAND: the panel already reads it (2026-10-29),
-       so what Space changes is which act is the screen's amber — the panel's "Open …" rather
-       than New quote. Holding it to glance went with the panel's empty state: there is no
-       empty panel to glance from. */
-    if (key === ' ' || key === 'Spacebar') {
-      event.preventDefault()
-      setPeeking(true)
-      return
-    }
-    if (key === 'Enter') {
-      /* ENTER IS "OPEN IT", AND NOW IT OPENS IT. It used to open the
-         PANEL, because opening was refused and the refusal was drawn
-         under the control it belonged to; with somewhere to go, Enter
-         is the key printed on that control and does what the control
-         does. */
-      event.preventDefault()
-      if (atRow) openIt(atRow)
-      return
-    }
-    if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
-      if (!peeking && query === '') return
-      event.preventDefault()
-      setPeeking(false)
-      setQuery('')
-      return
-    }
-  }
-
-  const onFieldKey = (event: ReactKeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === 'Escape') {
-      /* rung 2: a field owns its own Escape, so clearing the query
-         here takes nothing from anything above (src/ui/keys.ts) */
-      event.preventDefault()
-      setQuery('')
-      return
-    }
-    if (event.key === 'ArrowDown' || event.key === 'Enter') {
-      event.preventDefault()
-      list.current?.focus()
-      if (shown[0] && here < 0) setCursor(shown[0].reference)
-    }
-  }
-
+  const nowMs = now().getTime()
   const sheetOpen = sheetStatus === 'ready' && Object.keys(sheetTables).length > 0
-  /* STILL LOOKING, WHICH IS NOT THE SAME AS NOT FOUND (critique #15).
-     This register had `sheetOpen` and nothing else, so for the whole of
-     the read — about eighteen seconds on a loaded machine — it said "No
-     price file is open in this browser" about a file it was about to
-     find. Home, Data,
-     the sheet and Customers say they are looking; so does this. */
   const sheetLooking =
     (sheetStatus === 'empty' || sheetStatus === 'loading') && sheetProblem === null
   const findable = register.held >= FIND_FIELD_AT
   const narrowed = query.trim() !== ''
-  /* THE REGISTER'S SHAPE, AS ONE STRING: which rows stand in which band, and whether a band
-     is saying it is empty. It is what every row's layout animation depends on, so a row is
-     measured when the register changes shape — a version made, a draft discarded, a find
-     narrowing — and never on an arrow key, which only moves the cursor. */
-  const shape = register.bands
-    .map((b) => `${b.spec.id}:${b.rows.length === 0 ? '-' : b.rows.map((r) => r.id).join(',')}`)
-    .join('|')
-  /* THE BOAT OF THE QUOTE IN HAND, AND OF NO OTHER (the second components
-     critique, finding 10). The room under the rows shows the quote the cursor
-     is on — the row washed as the one you are on, and the quote the panel
-     reads while it is open — so a picture on this screen always stands beside
-     the quote it is of. It showed the NEWEST quote whose model was photographed
-     until 2026-09-29, which put -03's hull and -03's total under the list while
-     -01 was read in the panel: two quotes and two totals on one screen.
 
-     It is the best rung `./cover.ts` finds for that quote: the photograph on the
-     water when the heroes ledger holds that exact model, or the row's own
-     catalogue copy. Where neither is held there is no picture to draw, and the
-     room offers where the next quote starts instead (`Makers`): the maker's
-     mark over "No photograph of this boat yet." stood here until 2026-10-29,
-     and the critic read it as a placeholder (built-critique-m3-2.md major 7). Moving the cursor
-     changes the picture in one frame: an arrow key is pressed tens of times a
-     day and is never animated. A query that leaves nothing leaves no cursor,
-     and so no picture. */
-  const covered = useMemo((): Covered | null => {
-    if (!atRow || !chosen) return null
-    const cover = coverOf<HeldPicture>(chosen, {
-      photo: (q) => heroOfQuote(q) ?? undefined,
-      copy: heldCopyOf,
+  const startOne = (): void => {
+    if (!newQuote) {
+      setSaid({ at: 'new', words: NO_WAY_TO_THE_PICKER })
+      return
+    }
+    newQuote()
+  }
+  const openIt = (row: RegisterRow): void => {
+    if (!openQuote) {
+      setSaid({ at: row.reference, words: NO_WAY_TO_OPEN })
+      return
+    }
+    openQuote(row.id, row.state)
+  }
+  const makeVersion = (from: QuoteDef): void => {
+    if (from.state !== 'issued') {
+      setSaid({ at: from.reference, words: ONLY_ISSUED_IS_VERSIONED })
+      return
+    }
+    const when = now()
+    const made = newVersionOf(from, referenceForNow(filed, when), when.toISOString())
+    quotesStore.getState().file(made.quote, made.event)
+    setLit(made.quote.reference)
+    setSaid({
+      at: made.quote.reference,
+      words: `${made.quote.reference} is a new version of ${from.reference}, as a draft. ${from.reference} stays with the customer until this one is given.`,
     })
-    return cover ? { row: atRow, quote: chosen, cover } : null
-  }, [atRow, chosen])
-
-  /* THE MAKERS ON THE PRICE FILE, in the file's own order: an empty register's
-     room offers each as a door into the picker (see `Makers`, below). */
-  const makers = useMemo(
-    () => (Object.values(sheetTables) as EntityDef[]).filter((t) => t.kind === 'boat'),
-    [sheetTables],
-  )
+  }
+  const discard = (quote: QuoteDef): void => {
+    const outcome = quotesStore.getState().discard(quote.id)
+    const refusal = 'refused' in outcome && outcome.refused.trim() !== '' ? outcome.refused : null
+    setSaid({
+      at: refusal ? quote.reference : 'desk',
+      words: refusal ?? `${quote.reference} was discarded.`,
+    })
+  }
 
   return (
-    <main className="qr" data-testid="quotes" data-read={read ? '' : undefined}>
-      <header className="qr-head">
-        <div className="qr-head__who">
-          {/* NO BUSINESS EYEBROW (2026-10-21): the pill's crest is Northside's own mark now,
-              and docs/WORDS.md gives the business's name to the crest alone, as Data and
-              Customers already do. The `business` prop is still accepted, and not drawn. */}
-          <h1 className="qr-title">Quotes</h1>
+    <main className="qd" data-testid="quotes" data-read={read ? '' : undefined}>
+      <header className="qd-head">
+        <div className="qd-head__words">
+          <h1 className="qd-title">Quotes</h1>
         </div>
-
-        {/* THE FIND FIELD IS IN THE HEAD, ON THE HEAD'S OWN LINE, and
-            that is a density decision as much as a composition one: a
-            find row of its own costs this register forty-four pixels,
-            which is a row and a half of the eighteen it owes at
-            1280×800. The head is already two lines tall on both sides,
-            so a 36px field sits inside the height it has.
-
-            IT IS LABELLED BUT NOT CAPTIONED. The accessible name is on
-            the control; the placeholder carries Stripe's own grammar
-            ("No additional context is necessary for most searches"),
-            written the way `live4/bringatrailer-results.png` writes
-            it. A visible label beside it would spend 90px of the head
-            saying what the placeholder already says. */}
         {findable ? (
-          <div className="qr-find">
-            <span className="qr-find__field">
-              <Input
-                id="qr-find-field"
-                ref={field}
-                type="search"
-                icon={MagnifyingGlassIcon}
-                aria-label="Find a quote"
-                value={query}
-                onValueChange={setQuery}
-                onKeyDown={onFieldKey}
-                aria-describedby={narrowed ? 'qr-find-said' : undefined}
-                placeholder="Quote number, customer, boat, or who prepared it"
-              />
-            </span>
-          </div>
+          <span className="qd-find">
+            <Input
+              type="search"
+              icon={MagnifyingGlassIcon}
+              aria-label="Find a quote"
+              value={query}
+              onValueChange={setQuery}
+              placeholder="Customer, boat or quote number"
+            />
+          </span>
         ) : null}
-
-        {/* THE HEAD SAYS ONLY WHAT IS WRONG OR MISSING (the refine round, 2026-10-21). It
-            counted the quotes ("1 QUOTE IS FILED IN THIS BROWSER, AND IT IS ON THIS SCREEN")
-            beside the pill's "Quotes 1" and the band's "1", and sized the price list ("53
-            lists · 15,691 lines"), which a sale screen never says (docs/WORDS.md, one fact,
-            one place). What stays is the one thing a dealer needs here and nowhere else says:
-            that the price list is missing, or still being found. While nothing is filed the
-            panel says that instead, so it is said once. Reading the quotes is said in the panel. */}
-        <div className="qr-head__stamp">
-          {problem !== null ? (
-            <p className="qr-stamp-line" role="alert">
-              {problem}
-            </p>
-          ) : null}
-          {register.bare || sheetOpen ? null : (
-            <p className="qr-stamp-line qr-stamp-file">
-              {/* THE FILE'S OWN GLYPH, the drum the Data door carries (src/screens/shell/glyphs.ts) */}
-              <span className="qr-stamp-glyph" aria-hidden="true">
-                <Icon glyph={DatabaseIcon} />
-              </span>
-              {sheetLooking
-                ? 'Looking for the price list…'
-                : 'No price list is loaded. A quote already written still opens, as it was written.'}
-            </p>
-          )}
-        </div>
-        {/* NO WAY HOME IN THE HEAD: the pill carries it (rule (a)). */}
+        {register.bare ? null : (
+          <span className="qd-new">
+            <Button intent="act" icon={FilePlusIcon} onClick={startOne}>
+              New quote
+            </Button>
+          </span>
+        )}
       </header>
 
-      {/* WHAT A NARROWING DID, SAID WHERE THE ROWS ARE — never under
-          the field, where it would cost the register a line on every
-          screen including the ones nobody is searching.
-          `marine/marinemax-empty.png` quotes the term back in the
-          results area and keeps the frame; this does the same, and the
-          band headers carry the `n / m` fraction beside it. */}
-      {narrowed ? (
-        <p className="qr-narrowed" id="qr-find-said" role="status">
-          {shown.length === 0
-            ? NOTHING_FOUND(query)
-            : `${shown.length.toLocaleString('en-AU')} of ${register.held.toLocaleString('en-AU')} match “${query.trim()}”.`}
+      {problem !== null ? (
+        <p className="qd-note" role="alert">
+          {problem}
         </p>
       ) : null}
+      {register.bare || sheetOpen ? null : (
+        <p className="qd-note">
+          <Icon glyph={DatabaseIcon} size="sm" />
+          <span>
+            {sheetLooking
+              ? 'Looking for the price list…'
+              : 'No price list is loaded. A quote already written still opens, as it was written.'}
+          </span>
+          {sheetLooking || !openTheFile ? null : (
+            <Button intent="quiet" size="sm" onClick={openTheFile}>
+              Load the Master Price File
+            </Button>
+          )}
+        </p>
+      )}
+      {said && (said.at === 'new' || said.at === 'desk') ? (
+        <output className="qd-said">{said.words}</output>
+      ) : null}
+      {narrowed ? (
+        <output className="qd-said">
+          {register.shown.length === 0
+            ? NOTHING_FOUND(query)
+            : `${register.shown.length.toLocaleString('en-AU')} of ${register.held.toLocaleString('en-AU')} match “${query.trim()}”.`}
+        </output>
+      ) : null}
 
-      <div className="qr-body" data-bare={register.bare ? '' : undefined}>
-        <div className="qr-ledger" data-bare={register.bare ? '' : undefined}>
-          <div
-            className="qr-list"
-            ref={list}
-            role="grid"
-            tabIndex={0}
-            aria-label="Quotes"
-            aria-rowcount={shown.length}
-            aria-activedescendant={atRow ? rowId(atRow.reference) : undefined}
-            onKeyDown={onKeyDown}
-          >
-            {register.bands.map((band) => (
-              <Band
-                key={band.spec.id}
-                band={band}
-                narrowed={narrowed}
-                cursor={cursor}
-                peeking={peeking}
-                shape={shape}
-                now={now}
-                onPoint={(reference) => {
-                  goTo(reference)
-                  setPeeking(true)
-                  list.current?.focus()
-                }}
-                onOpen={openIt}
-                hold={(reference, element) => {
-                  if (element) rowsRef.current.set(reference, element)
-                  else rowsRef.current.delete(reference)
-                }}
-              />
-            ))}
-          </div>
-
-          {/* THE ACT IS THE LAST ROW OF THE REGISTER, not a bar over it
-              and never a floating one: `live4/mercury-banking.png`
-              puts "+ Create Account" exactly here, in the flow, where a
-              person who has read to the bottom of the list is already
-              looking. The list's bottom rule is this row's, so the two
-              read as one frame.
-
-              NO KEY IS PRINTED ON IT. A legend of J K Space Enter Esc
-              stood here, and N on the act, until 2026-09-25: nineteen caps on a
-              screen with one act (m2-last-critique.md major 7). */}
-          <div className="qr-act">
-            <span className="qr-act__who">
-              {/* AMBER WHEN IT CAN ACT, AND NOT BEFORE — and it can
-                  act now. The comment that stood here said this
-                  control "will be amber the day the picker exists";
-                  the picker has existed since 2026-09-17 and this was
-                  still a dark chip under a false sentence. It is the
-                  live `--color-act` while it is the thing to press.
-
-                  AND IT STEPS BACK WHILE A DOCUMENT IS OPEN. One
-                  screen has one act (`src/ui/Button.tsx`), and the
-                  thing a person presses here depends on whether they
-                  have found what they came for: with a document under
-                  the cursor it is "open it", in the panel, and this
-                  becomes the quieter of the two rather than a second
-                  amber arguing with it across the screen. */}
-              {/* THE FINDER'S OWN GLYPH FOR STARTING A QUOTE, a new paper
-                  (src/screens/shell/glyphs.ts): at rest the act ends on it in
-                  the kit's dark disc; stepped back it leads the word. */}
-              <Button
-                intent={peeking ? 'veiled' : 'act'}
-                icon={FilePlusIcon}
-                aria-label="New quote"
-                onClick={startOne}
-                refusedBecause={newQuote ? undefined : NO_WAY_TO_THE_PICKER}
-              >
-                New quote
-              </Button>
-            </span>
-          </div>
-
-          {/* ============================================================
-              THE REST OF THE PAGE, COMPOSED RATHER THAN LEFT OVER (rule (e),
-              critique #17). With one quote filed the register used to end
-              under its act row and leave 530px of the room's dark floor
-              under it at 1440×900 — two thirds of the window, the emptiest
-              screen in the app at a desk. The honest state has one row and
-              nothing may be invented to fill it; so the register is drawn on
-              a page that runs to the foot of the window, and the page's room
-              under the act row shows the one thing on this register worth
-              seeing larger: the boat of the quote in hand, on the water, when
-              the heroes ledger holds that exact model — pressing it reads
-              that quote in the panel, or the row's own catalogue copy
-              (`./cover.ts`). Where no picture of that boat is held, the room
-              offers what an empty register offers: every maker on the price
-              list, each a door to the next quote (2026-10-29; a maker's mark
-              over "No photograph of this boat yet." stood here and read as a
-              placeholder). It takes only the height the rows
-              leave: a full register pushes it to nothing and the act row to
-              the page's foot, so the density ruler reads the same room it
-              always did, and `quotes.css` draws the photograph only where the
-              room is tall enough to hold one.
-              ============================================================ */}
-          <div className="qr-room">
-            {covered ? (
-              <Shown
-                covered={covered}
-                onRead={(reference) => {
-                  goTo(reference)
-                  setPeeking(true)
-                  list.current?.focus()
-                }}
-              />
-            ) : read && sheetOpen && makers.length > 0 ? (
-              <Makers makers={makers} first={register.bare} onStart={startWith} />
-            ) : null}
-          </div>
-        </div>
-
-        <Panel
-          bare={register.bare}
-          read={read}
-          quote={chosen}
-          row={atRow}
-          chosen={peeking}
-          all={filed}
-          now={now}
-          said={said}
-          sheetOpen={sheetOpen}
-          sheetLooking={sheetLooking}
-          openTheFile={openTheFile}
-          onGoTo={(reference) => {
-            goTo(reference)
-            setPeeking(true)
-            list.current?.focus()
-          }}
-          onNewVersion={makeVersion}
-          onDiscard={discard}
-          onOpen={openIt}
-          canOpen={Boolean(openQuote)}
-        />
-      </div>
+      {register.bare ? (
+        <section className="qd-empty" aria-label="No quotes yet">
+          <span className="qd-empty__glyph" aria-hidden="true">
+            <Icon glyph={FileTextIcon} size="lg" />
+          </span>
+          <p className="qd-empty__say">
+            {read ? NOTHING_QUOTED_YET : 'Reading the quotes kept here…'}
+          </p>
+          {read ? (
+            <Button intent="act" icon={FilePlusIcon} onClick={startOne}>
+              New quote
+            </Button>
+          ) : null}
+        </section>
+      ) : (
+        GROUPS.map((g) => {
+          const band = register.bands.find((b) => b.spec.id === g.id)
+          if (!band || band.rows.length === 0) return null
+          const headId = `qd-${g.id}`
+          return (
+            <section key={g.id} className="qd-group" data-state={g.id} aria-labelledby={headId}>
+              <h2 className="qd-group__head" id={headId}>
+                <span className="qd-group__glyph" aria-hidden="true">
+                  <Icon glyph={STATE_GLYPH[g.glyph]} weight="bold" size="sm" />
+                </span>
+                {g.word}
+                <span className="qd-group__n">{band.rows.length}</span>
+              </h2>
+              <ul className="qd-deals" data-state={g.id}>
+                {band.rows.map((row) => {
+                  const quote = byId.get(row.id)
+                  if (!quote) return null
+                  return (
+                    <Deal
+                      key={row.id}
+                      row={row}
+                      quote={quote}
+                      nowMs={nowMs}
+                      lit={row.reference === lit}
+                      said={said?.at === row.reference ? said.words : null}
+                      keep={(el) => {
+                        if (el) cards.current.set(row.reference, el)
+                        else cards.current.delete(row.reference)
+                      }}
+                      onOpen={() => openIt(row)}
+                      onOpenOther={(reference) => {
+                        const other = register.shown.find((r) => r.reference === reference)
+                        if (other) openIt(other)
+                      }}
+                      onVersion={() => makeVersion(quote)}
+                      onDiscard={() => discard(quote)}
+                    />
+                  )
+                })}
+              </ul>
+            </section>
+          )
+        })
+      )}
     </main>
   )
 }
 
-/** One id per row, so `aria-activedescendant` names the row a reader
- *  is on. The reference is unique per document and is what a person
- *  says out loud, which makes it a better key than a generated id. */
-export const rowId = (reference: string): string => `qr-row-${reference}`
-
 /* ---------------------------------------------------------- */
-/* One band                                                    */
+/* One deal                                                    */
 /* ---------------------------------------------------------- */
 
-/** The kit's word for where a quote stands, from the register's: an issued quote is one
- *  given to its customer. The glyph and the ink are the kit's (src/ui/glyphs.ts). */
-const kitState = (state: RegisterStateId): QuoteState =>
-  state === 'issued' ? 'given' : state === 'superseded' ? 'superseded' : 'draft'
-
-/** A state's glyph in its ink, hidden from a reader: the band's word or the row's cell
- *  label says it. */
-function StateGlyph({ state }: { state: RegisterStateId }) {
-  return (
-    <span className="qr-glyph" data-state={state} aria-hidden="true">
-      <Icon glyph={STATE_GLYPH[kitState(state)]} />
-    </span>
-  )
-}
-
-/** THE THREE BANDS IN THE DEALER'S WORDS (docs/WORDS.md, 2026-10-21): a quote is a draft, given,
- *  or replaced. The register's own spec says "Issued" and "Superseded", which are the engine's;
- *  this screen is the one that says them to a dealer, so it says them here, once, for the band
- *  heads, the rows, the peek and the version rail alike. */
-export const BAND_WORD: Record<RegisterStateId, string> = {
-  draft: 'Draft',
-  issued: 'Given',
-  superseded: 'Replaced',
-}
-
-/** HOW A ROW OR A HEAD MOVES WHEN THE REGISTER CHANGES SHAPE: from where it stood to where it
- *  stands, on the kit's travel spring, and only its position — never its size. */
-const TRAVELS = { layout: 'position', transition: move.travel } as const
-
-function Band({
-  band,
-  narrowed,
-  cursor,
-  peeking,
-  shape,
-  now,
-  onPoint,
-  onOpen,
-  hold,
-}: {
-  band: RegisterBand
-  narrowed: boolean
-  cursor: string
-  peeking: boolean
-  /** the register's shape, which every row's travel depends on */
-  shape: string
-  now: () => Date
-  onPoint: (reference: string) => void
-  onOpen: (row: RegisterRow) => void
-  hold: (reference: string, element: HTMLDivElement | null) => void
-}) {
-  const { spec } = band
-  return (
-    /* THE GROUP IS NAMED, so a reader entering it is told which band
-       these rows are in — which is the whole point of a register whose
-       state is its structure rather than a column. */
-    <div className="qr-band" role="rowgroup" aria-label={BAND_WORD[spec.id]} data-state={spec.id}>
-      <motion.div className="qr-bandhead" role="row" {...TRAVELS} layoutDependency={shape}>
-        <div className="qr-bandhead__cell" role="gridcell" aria-colspan={5}>
-          <StateGlyph state={spec.id} />
-          <span className="qr-bandhead__word">{BAND_WORD[spec.id]}</span>
-          <span className="qr-bandhead__count">
-            {/* THE COUNT LIVES WITH THE THING IT COUNTS, and while a
-                query is narrowing it is a fraction — Linear's own
-                `2 / 11`, which says both what is here and what is
-                filed. On day one it is a single honest zero. */}
-            {narrowed
-              ? `${band.rows.length.toLocaleString('en-AU')} / ${band.held.toLocaleString('en-AU')}`
-              : band.held.toLocaleString('en-AU')}
-          </span>
-          {/* A SUM ONLY WHERE IT ADDS (the second components critique, finding 10). A band
-              with one priced row summed that one figure and printed it on the head, a line
-              above the row that already says it; so a head sums two figures or more, and a
-              band of one leaves its figure to its row. */}
-          {band.summed > 1 ? (
-            <span className="qr-bandhead__sum">
-              <PriceFigure amount={band.sum} />
-              {band.summed < band.rows.length ? (
-                <span className="qr-bandhead__of">
-                  {' '}
-                  · {band.summed} of {band.rows.length} priced
-                </span>
-              ) : null}
-            </span>
-          ) : null}
-        </div>
-      </motion.div>
-
-      {/* AN EMPTY BAND IS ITS HEAD ALONE (the refine round's second pass, 2026-10-21): it drew a
-          dash on a row's height under a head that already said 0 — "DRAFT 0" over "—", the one
-          fact twice. The count says it; the next band's head follows on. */}
-      {band.rows.length === 0 ? null : (
-        /* A ROW THAT ARRIVES AFTER THE FIRST PAINT FADES IN, and one that leaves fades out
-           faster than it came (the kit's `enter` and `exit`); the rows the register opened on
-           are simply there, because the route's own crossfade has already brought them. */
-        <AnimatePresence initial={false}>
-          {band.rows.map((row) => (
-            <Row
-              key={row.id}
-              row={row}
-              on={row.reference === cursor}
-              peeking={peeking && row.reference === cursor}
-              shape={shape}
-              now={now}
-              onPoint={onPoint}
-              onOpen={onOpen}
-              hold={hold}
-            />
-          ))}
-        </AnimatePresence>
-      )}
-    </div>
-  )
-}
-
-/* ---------------------------------------------------------- */
-/* One row                                                     */
-/* ---------------------------------------------------------- */
-
-function Row({
+function Deal({
   row,
-  on,
-  peeking,
-  shape,
-  now,
-  onPoint,
+  quote,
+  nowMs,
+  lit,
+  said,
+  keep,
   onOpen,
-  hold,
+  onOpenOther,
+  onVersion,
+  onDiscard,
 }: {
   row: RegisterRow
-  on: boolean
-  peeking: boolean
-  shape: string
-  now: () => Date
-  onPoint: (reference: string) => void
-  onOpen: (row: RegisterRow) => void
-  hold: (reference: string, element: HTMLDivElement | null) => void
+  quote: QuoteDef
+  nowMs: number
+  lit: boolean
+  said: string | null
+  keep: (el: HTMLElement | null) => void
+  onOpen: () => void
+  onOpenOther: (reference: string) => void
+  onVersion: () => void
+  onDiscard: () => void
 }) {
-  /* WHICH INSTANT THIS ROW IS AGED FROM. An issued quote is dated by
-     the act that froze it; a draft by the last time somebody touched
-     it. `live/github-releases-vscode.png` ages by the act, not by the
-     record. */
-  const at = row.issuedAt ?? row.updatedAt
-  /* A ROW ON ITS WAY OUT IS NO LONGER A ROW. For the kit's `exit` it stays drawn while it fades,
-     and for that moment it is taken out of the grid a reader walks and out of a pointer's way,
-     so nothing can point at a quote that has already gone. */
-  const present = useIsPresent()
+  const [asking, setAsking] = useState(false)
+  const cover = useMemo(
+    () =>
+      coverOf<HeldPicture>(quote, {
+        photo: (q) => heroOfQuote(q) ?? undefined,
+        copy: heldCopyOf,
+      }),
+    [quote],
+  )
+  const titleId = `qd-deal-${row.id}`
+  const when =
+    row.state === 'draft'
+      ? `started ${ageSay(row.createdAt, nowMs)}`
+      : `given ${ageSay(row.issuedAt ?? row.updatedAt, nowMs)}`
+  /* WHAT THIS DEAL IS TO ANOTHER, said once on its own card */
+  const link =
+    row.state === 'draft' && row.supersedes
+      ? `A new version of ${row.supersedes}.`
+      : row.state === 'issued' && row.supersededBy
+        ? `A new version, ${row.supersededBy}, is being written.`
+        : row.state === 'superseded' && row.supersededBy
+          ? `Replaced by ${row.supersededBy}.`
+          : ''
 
   return (
-    <motion.div
-      className="qr-row"
-      role={present ? 'row' : 'none'}
-      aria-hidden={present ? undefined : true}
-      inert={!present}
-      id={present ? rowId(row.reference) : undefined}
-      ref={(element: HTMLDivElement | null) => {
-        hold(row.reference, element)
-      }}
-      {...TRAVELS}
-      layoutDependency={shape}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: move.enter }}
-      exit={{ opacity: 0, transition: move.exit }}
+    <motion.li
+      layout="position"
+      transition={move.travel}
+      className="qd-deal"
       data-state={row.state}
-      data-on={on ? '' : undefined}
-      data-peeking={peeking ? '' : undefined}
-      aria-selected={on}
-      onClick={() => onPoint(row.reference)}
-      /* ONE PRESS PEEKS, TWO OPEN — the register vocabulary every desk
-         already knows, and the pointer's half of `Space` and `Enter`.
-         The double press fires two single ones first, which is exactly
-         right here: the row is pointed at, the panel opens on it, and
-         then the document opens. Nothing is undone and nothing is
-         written. */
-      onDoubleClick={() => onOpen(row)}
+      data-lit={lit ? '' : undefined}
+      ref={keep}
+      aria-labelledby={titleId}
     >
-      <span className="qr-cell qr-cell--glyph" role="gridcell" aria-label={stateWord(row.state)}>
-        <StateGlyph state={row.state} />
-      </span>
-
-      <span className="qr-cell qr-cell--who" role="gridcell">
-        {/* EACH PART OF THE NAME IS ONE BOX ON A PHONE, where the name wraps: at 390 the row
-            read "…White / White / Wood" over "Dark" (2026-10-29). The peek breaks the same
-            way (`jointsOf`); at a desk the name is one line and the parts are plain text. */}
-        <span className="qr-boat">
-          {jointsOf(row.boat).map((part, i) => (
-            /* a part's identity IS its place in the name, and it never reorders */
-            // eslint-disable-next-line react/no-array-index-key
-            <Fragment key={i}>
-              {i === 0 ? null : ' '}
-              <span className="qr-boat__joint">{part}</span>
-            </Fragment>
-          ))}
-        </span>
-        {/* A ROW NOBODY IS NAMED ON SAYS ONLY THE BOAT (the refine round, 2026-10-21): with the
-            peek open, "No name yet" stood on the row, again on the peek's own line and a third
-            time in the peek's refusal. The refusal is where the missing name is said, once; the
-            boat takes the row's room, so there is no blank where a name goes. */}
-        {row.customer ? <span className="qr-customer">{row.customer}</span> : null}
-        {row.supersedes ? (
-          <span className="qr-chain">replaces {row.supersedes}</span>
-        ) : row.supersededBy ? (
-          <span className="qr-chain">replaced by {row.supersededBy}</span>
-        ) : null}
-      </span>
-
-      <span className="qr-cell qr-cell--total" role="gridcell">
-        {row.total === null ? (
-          /* MarineMax puts "Request Pricing" exactly where the price
-             stands. This says which of the two reasons it is. */
-          <span className="qr-nofigure">{row.insteadOfTotal}</span>
+      <span className="qd-deal__shot" data-rung={cover?.rung ?? 'none'}>
+        {cover ? (
+          <DealPicture cover={cover} quote={quote} alt={row.boat} />
         ) : (
-          <PriceFigure amount={row.total} />
+          <span className="qd-deal__none" aria-hidden="true">
+            <Icon glyph={SailboatIcon} size="lg" />
+          </span>
         )}
       </span>
 
-      <span className="qr-cell qr-cell--ref" role="gridcell">
-        {row.reference}
-      </span>
-
-      <span className="qr-cell qr-cell--age" role="gridcell">
-        {ageSay(at, now().getTime())}
-      </span>
-    </motion.div>
-  )
-}
-
-/* ---------------------------------------------------------- */
-/* The boat of the quote in hand                              */
-/* ---------------------------------------------------------- */
-
-/** The quote in hand the room shows, and how its boat is shown. */
-interface Covered {
-  row: RegisterRow
-  quote: QuoteDef
-  cover: Cover<HeldPicture>
-}
-
-/** The maker's mark in the ink a white page needs, or nothing: Home's own
- *  reader of the marks ledger, asked for paper. A maker held in white ink
- *  only (or not at all) answers nothing, and its door sets the name in type. */
-function paperMarkOf(
-  register: string | undefined,
-): { src: string; width: number; height: number } | undefined {
-  if (register === undefined || register.trim() === '') return undefined
-  const choice = markFor(register, 'paper')
-  if (!choice.drawn) return undefined
-  const { src, width, height } = choice.mark
-  return { src, width, height }
-}
-
-/** THE MAKERS, AS DOORS, in the room under the rows (2026-09-24): an empty
- *  register's, and since 2026-10-29 also one whose quote in hand has no
- *  picture of its boat. With nothing
- *  filed the room under the three bands was the page's own paper — 415px of it at
- *  1440×900, the frame rule (e) forbids. What an empty register can honestly
- *  offer is where a quote starts: every boat maker on the price file, by its own
- *  mark in the ink paper needs (or its name, where none is held), each opening
- *  the picker on that maker. Nothing here is a quote and nothing is counted. */
-function Makers({
-  makers,
-  first,
-  onStart,
-}: {
-  makers: readonly EntityDef[]
-  /** nothing is filed yet, so the quote these start is the first */
-  first: boolean
-  onStart: (tableId: string) => void
-}) {
-  return (
-    <section className="qr-makers" aria-labelledby="qr-makers-say">
-      <h2 className="qr-makers__say" id="qr-makers-say">
-        {first ? 'Start the first quote with a maker' : 'Start the next quote with a maker'}
-      </h2>
-      <ul className="qr-makers__list">
-        {makers.map((maker) => {
-          const mark = paperMarkOf(maker.name)
-          return (
-            <li className="qr-makers__one" key={maker.id}>
-              <Tile
-                tone="paper"
-                shape="card"
-                label={`Start a quote on a ${maker.name} boat`}
-                onSelect={() => onStart(maker.id)}
-              >
-                <span className="qr-maker">
-                  {mark ? (
-                    <>
-                      <img
-                        className="qr-maker__mark"
-                        src={mark.src}
-                        alt=""
-                        width={mark.width}
-                        height={mark.height}
-                        decoding="async"
-                      />
-                      <span className="qr-maker__name">{maker.name}</span>
-                    </>
-                  ) : (
-                    <span className="qr-maker__type">{maker.name}</span>
-                  )}
-                </span>
-              </Tile>
-            </li>
-          )
-        })}
-      </ul>
-    </section>
-  )
-}
-
-/** The held copy and its narrower resamples, widest last, as a srcset. */
-const srcSetOf = (picture: HeldPicture): string =>
-  picture.widths.map((w) => `${w.src} ${w.width}w`).join(', ')
-
-/**
- * THE SPOTLIGHT, the first of the plan's named effects on this screen (the second components
- * critique, major 6, still open at build-close: "no marquee, spotlight, shiny or border-beam
- * effect is in src"). A pointer resting on the room's photograph lights the water under it, as
- * a hand over a brochure's photograph catches the light: the frame is told where the pointer is
- * and `quotes.css` draws a pool of light there, which comes up on hover and goes on leaving.
- *
- * IT FOLLOWS A HAND AND NOTHING ELSE. Nothing moves by itself and nothing is drawn at rest. It
- * does not follow while a caret is in a field (a query moves the cursor and so the photograph
- * under a still pointer) nor under reduced motion, where the light stays where it first came up.
- * It is a light on a picture of the boat and touches no word and no figure.
- */
-function spotlight(frame: HTMLSpanElement | null, event: ReactPointerEvent): void {
-  if (!frame || event.pointerType !== 'mouse' || caretInField() || reducedMotion()) return
-  const box = frame.getBoundingClientRect()
-  if (box.width === 0 || box.height === 0) return
-  frame.style.setProperty('--qr-spot-x', `${((event.clientX - box.left) / box.width) * 100}%`)
-  frame.style.setProperty('--qr-spot-y', `${((event.clientY - box.top) / box.height) * 100}%`)
-}
-
-/** THE QUOTE IN HAND, in the room the rows leave. A button, because it is
- *  that quote: pressing it reads the quote in the panel, the same as
- *  pressing its row. Above, the better of the two pictures `./cover.ts` reads.
- *  Under it, on the file's blue, what the picture is of and whose quote it
- *  is: the hull's name and the reference, and nothing the row it belongs to
- *  already says — no state and no total (the second components critique,
- *  finding 10: the figure was on the row, on the band's head, on the panel's
- *  tile and here, four times on one screen). */
-function Shown({
-  covered: { row, quote, cover },
-  onRead,
-}: {
-  covered: Covered
-  onRead: (reference: string) => void
-}) {
-  const boat = boatOfQuote(quote).say
-  const named = cover.rung === 'photo' ? cover.picture.subject : boat
-  /* THE NAME THIS HULL'S PICTURE TRAVELS UNDER — the picker's card, the build's stage and the
-     paper's cover give it the same one — so opening this quote carries the picture from the
-     room onto the screen that opens (src/screens/picker/travel.ts). Only a picture of the
-     boat is named: a maker's mark is not the boat, and the words and the price never travel. */
-  const travel = boatTravel(quote.rootTableId, quote.rootRowId)
-  const frame = useRef<HTMLSpanElement>(null)
-  /* WHOSE QUOTE THE PICTURE IS OF, in the order a dealer says it: the person, then the number.
-     A quote nobody is named on is captioned by its number alone: the peek's refusal says the
-     missing name, and this caption beside it said it again (the refine round, 2026-10-21). */
-  const whose = row.customer ? `${row.customer} · ${row.reference}` : row.reference
-  return (
-    <button
-      type="button"
-      className="qr-shown"
-      data-rung={cover.rung}
-      aria-label={`${named}: ${whose}`}
-      onClick={() => onRead(row.reference)}
-      onPointerMove={(event) => spotlight(frame.current, event)}
-    >
-      {cover.rung === 'photo' ? (
-        /* THE KIT'S PICTURE (src/ui/Picture.tsx): it fills the frame it is placed in, fades in
-           once its bytes land, and carries the hull's travel name. It is not remounted when the
-           cursor moves, so the next quote's photograph replaces this one where it stands. */
-        <span className="qr-shown__frame" ref={frame}>
-          {/* THE SPOTLIGHT (quotes.css): light on the water where the pointer is */}
-          <span className="qr-shown__light" aria-hidden="true" />
-          <span className="qr-shown__shot">
-            <Picture
-              src={cover.picture.src}
-              srcSet={srcSetOf(cover.picture)}
-              sizes="(min-width: 1441px) 60vw, 66vw"
-              alt=""
-              width={cover.picture.width}
-              height={cover.picture.height}
-              shared={travel}
-            />
-          </span>
+      <span className="qd-deal__words">
+        <h3 className="qd-deal__who" id={titleId}>
+          {row.customer ?? <span className="qd-deal__nobody">No customer named yet</span>}
+        </h3>
+        <span className="qd-deal__what">{row.boat}</span>
+        <span className="qd-deal__ref">
+          {row.reference} · {when}
+          {row.preparedBy ? ` · ${row.preparedBy}` : ''}
         </span>
-      ) : (
-        <span className="qr-shown__plate">
-          {/* THE ROW'S OWN COPY, cut out on white, on white, and never drawn past its own
-              pixels: `quotes.css` caps it at the width it ships. */}
-          <img
-            className="qr-shown__copy"
-            src={cover.copy.src}
-            alt=""
-            width={cover.copy.width}
-            height={cover.copy.height}
-            decoding="async"
-            style={{ '--qr-travel': travel } as CSSProperties}
+        {link === '' ? null : <span className="qd-deal__link">{link}</span>}
+      </span>
+
+      <span className="qd-deal__total">
+        {row.total !== null ? (
+          <PriceFigure
+            amount={row.total}
+            size="lg"
+            tone={row.state === 'superseded' ? 'muted' : 'ink'}
           />
-        </span>
-      )}
-      {/* THE PHOTOGRAPH'S OWN CAPTION, and only on a photograph: "Highfield Sport 660 on the
-          water" names the maker's picture of the model, and claims nothing of the rig — the
-          motor in it is whatever the maker fitted for the shoot (the critique's #24: a Mercury
-          in the picture, a Yamaha on the quote). The row names the quote's boat.
-          WHOSE QUOTE IT IS IS NOT PRINTED HERE (the refine round's second pass, 2026-10-21):
-          the customer and the number stood on this foot, on the lit row above and on the
-          peek's head — the number three times in one window. The row and the peek keep them;
-          a reader still hears them in this button's name. */}
-      {cover.rung === 'photo' ? (
-        <span className="qr-shown__say">
-          <span className="qr-shown__what">{named}</span>
-        </span>
-      ) : null}
-    </button>
+        ) : (
+          <span className="qd-deal__instead">{row.insteadOfTotal}</span>
+        )}
+      </span>
+
+      <span className="qd-deal__acts">
+        {asking ? (
+          <span className="qd-ask">
+            <span className="qd-ask__say">
+              Discard {row.reference}? A discarded draft cannot be put back.
+            </span>
+            <Button intent="primary" size="sm" icon={TrashIcon} onClick={onDiscard}>
+              Discard it
+            </Button>
+            <Button
+              intent="quiet"
+              size="sm"
+              icon={ArrowUUpLeftIcon}
+              onClick={() => setAsking(false)}
+            >
+              Keep it
+            </Button>
+          </span>
+        ) : row.state === 'draft' ? (
+          <>
+            <Button intent="primary" icon={ArrowRightIcon} onClick={onOpen}>
+              Carry on building
+            </Button>
+            <Button intent="quiet" size="sm" icon={TrashIcon} onClick={() => setAsking(true)}>
+              Discard
+            </Button>
+          </>
+        ) : row.state === 'issued' ? (
+          <>
+            <Button intent="primary" icon={FileTextIcon} onClick={onOpen}>
+              Open the printed quote
+            </Button>
+            {row.supersededBy ? (
+              <Button
+                intent="quiet"
+                size="sm"
+                icon={ArrowRightIcon}
+                onClick={() => onOpenOther(row.supersededBy!)}
+              >
+                {`Open ${row.supersededBy}`}
+              </Button>
+            ) : (
+              <Button intent="quiet" size="sm" icon={ArrowsClockwiseIcon} onClick={onVersion}>
+                Make a new version
+              </Button>
+            )}
+          </>
+        ) : (
+          <Button intent="quiet" size="sm" icon={FileTextIcon} onClick={onOpen}>
+            Open the printed quote
+          </Button>
+        )}
+      </span>
+      {said ? <output className="qd-deal__said">{said}</output> : null}
+    </motion.li>
   )
 }
 
-/** The word a reader hears where a sighted person sees the glyph: the band's own word. */
-export function stateWord(state: RegisterRow['state']): string {
-  return BAND_WORD[state]
+/** The picture of what is sold: the photograph on the water, or the exact studio copy. */
+function DealPicture({
+  cover,
+  quote,
+  alt,
+}: {
+  cover: Cover<HeldPicture>
+  quote: QuoteDef
+  alt: string
+}) {
+  if (cover.rung === 'photo') {
+    return (
+      <Picture
+        src={cover.picture.src}
+        srcSet={srcSetOf(cover.picture)}
+        sizes="(max-width: 639px) 100vw, 220px"
+        alt={alt}
+        width={cover.picture.width}
+        height={cover.picture.height}
+        shared={boatTravel(quote.rootTableId, quote.rootRowId)}
+      />
+    )
+  }
+  return (
+    <Picture
+      src={cover.copy.src}
+      alt={alt}
+      width={cover.copy.width}
+      height={cover.copy.height}
+      fit="contain"
+    />
+  )
 }
-
-/** A quote nobody's name is on, where no refusal already says so (docs/WORDS.md: "addressed"
- *  is the engine's word; the dealer puts a name on it). A draft's refusal says it instead. */
-export const NO_NAME = 'No name yet'

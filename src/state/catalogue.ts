@@ -28,7 +28,10 @@ import {
   type CatalogueData,
   type CatalogueIndex,
 } from '@/domain/catalogue/sheet'
-import type { CatalogueRepository, OrgRepository } from '@/data/repository'
+import type { CatalogueRepository, OrgRepository, OwnPictureRepository } from '@/data/repository'
+import { holdOwnPictures } from '@/data/ownPictures'
+import { standingOwnPictures } from '@/domain/catalogue/pictureCommands'
+import type { OwnPicture } from '@/domain/model/ownPictures'
 import { repositories } from '@/data'
 import { wayBackSaid } from '@/domain/catalogue/wayBack'
 import { changeRefusal } from '@/domain/northside/people'
@@ -367,6 +370,7 @@ export const dataOf = (s: CatalogueData): CatalogueData => ({
   discoveredRules: s.discoveredRules,
   priceLevels: s.priceLevels,
   ...(s.org ? { org: s.org } : {}),
+  ...(s.ownPictures ? { ownPictures: s.ownPictures } : {}),
 })
 
 /* ---------------------------------------------------------- */
@@ -480,6 +484,19 @@ async function keptOrg(repo: OrgRepository): Promise<OrgProfile | undefined> {
   }
 }
 
+/** The pictures Northside added, as this computer keeps them; none on a failed read, which
+ *  draws the held pictures rather than failing the sheet. */
+async function keptPictures(
+  repo: OwnPictureRepository,
+): Promise<Record<string, OwnPicture> | undefined> {
+  try {
+    const all = await repo.all()
+    return all.length === 0 ? undefined : byIdMap(all)
+  } catch {
+    return undefined
+  }
+}
+
 /** A step that touches the customers and nothing else — what a person set apart may still do. */
 function onlyCustomers(e: CatalogueEvent): boolean {
   if (e.kind === 'batch') return (e.events ?? []).every(onlyCustomers)
@@ -503,6 +520,13 @@ export interface CatalogueStoreOptions {
   /** WHO IS ASKING, for the one switch on /manage (`changeRefusal`): the name at the door when
    *  absent. Never stamped on a step — `by` does that. */
   asking?: () => string | null
+  /** WHERE THE PICTURES NORTHSIDE ADDED ARE KEPT for an organisation; the app's own repository
+   *  through `src/data` when absent */
+  picturesFor?: (orgId: string) => OwnPictureRepository
+  /** TOLD THE PICTURES THAT STAND each time they or the price list move — the app's own store
+   *  hands them to the one reader (`src/data/ownPictures.ts`); a store made in a test tells
+   *  nobody unless it asks */
+  onOwnPictures?: (standing: readonly OwnPicture[]) => void
 }
 
 export function createCatalogueStore(options: CatalogueStoreOptions = {}): CatalogueStore {
@@ -512,6 +536,8 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
   const orgFor = options.orgFor ?? ((orgId: string) => repositories(orgId).org)
   const asking = options.asking ?? (() => session.getState().name)
   let orgRepo: OrgRepository | null = null
+  const picturesFor = options.picturesFor ?? ((orgId: string) => repositories(orgId).pictures)
+  let picturesRepo: OwnPictureRepository | null = null
 
   let repository: CatalogueRepository | null = null
   const listeners = new Set<AppliedListener>()
@@ -545,6 +571,10 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
         if (prev.org !== next.org && orgRepo) {
           if (next.org) await orgRepo.put(next.org)
           else await orgRepo.clear()
+        }
+        /* THE PICTURES NORTHSIDE ADDED: the store writes the difference, by the object */
+        if (prev.ownPictures !== next.ownPictures && picturesRepo) {
+          await picturesRepo.saveAll(Object.values(next.ownPictures ?? {}))
         }
         if (prev.tables !== next.tables) await repo.tables.saveAll(Object.values(next.tables))
         if (prev.rows !== next.rows) await repo.rows.saveAll(Object.values(next.rows).flat())
@@ -690,12 +720,17 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           /* NORTHSIDE'S OWN SETTINGS, read beside the sheet and never out of it */
           orgRepo = data.orgId === null ? null : orgFor(data.orgId)
           const org = orgRepo ? await keptOrg(orgRepo) : undefined
+          /* AND THE PICTURES IT ADDED, beside the sheet and never out of it */
+          picturesRepo = data.orgId === null ? null : picturesFor(data.orgId)
+          const ownPictures = picturesRepo ? await keptPictures(picturesRepo) : undefined
           const loaded: CatalogueData = { ...data }
           if (org) loaded.org = org
           else delete loaded.org
+          if (ownPictures) loaded.ownPictures = ownPictures
+          else delete loaded.ownPictures
           written = loaded
           owed = false
-          set({ ...loaded, org, status: 'ready', problem: null, events: [] })
+          set({ ...loaded, org, ownPictures, status: 'ready', problem: null, events: [] })
         } catch (error) {
           /* a failed load leaves NOTHING behind: showing the previous
              sheet under a failure would be showing it as current */
@@ -705,6 +740,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
             ...emptySheet(),
             /* a sheet that would not open leaves Northside's settings standing */
             org: get().org,
+            ownPictures: undefined,
             status: 'failed',
             problem: error instanceof Error ? error.message : String(error),
             events: [],
@@ -800,12 +836,30 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
 
       readOrg: async (orgId) => {
         const org = await keptOrg(orgFor(orgId))
+        /* AND THE PICTURES NORTHSIDE ADDED, so a paper opened before the sheet already holds
+           them; they stand once the sheet that names their options is open */
+        const ownPictures = await keptPictures(picturesFor(orgId))
         /* the sheet, once open, has read its own: a boot read that lands late never overwrites it */
         if (get().status === 'ready') return
-        set({ org })
+        set({ org, ownPictures })
       },
     }
   })
+
+  /* ============================================================
+     THE PICTURES THAT STAND, HANDED ON EACH TIME THEY OR THE PRICE
+     LIST MOVE. A picture stands while its option is still named as it
+     was (`standingOwnPictures`), so a new price file that moves a row
+     takes the picture off that place without a step of its own.
+     ============================================================ */
+  const tell = options.onOwnPictures
+  if (tell) {
+    store.subscribe((s, prev) => {
+      if (s.ownPictures === prev.ownPictures && s.rows === prev.rows && s.tables === prev.tables)
+        return
+      tell(s.ownPictures ? standingOwnPictures(s) : [])
+    })
+  }
 
   /* ============================================================
      THE TAB GOING AWAY. Guarded, so a node suite runs; hooked once
@@ -825,4 +879,4 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
 }
 
 /** The app's catalogue. */
-export const catalogue: CatalogueStore = createCatalogueStore()
+export const catalogue: CatalogueStore = createCatalogueStore({ onOwnPictures: holdOwnPictures })

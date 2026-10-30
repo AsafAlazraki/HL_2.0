@@ -134,6 +134,7 @@ import {
   type XY,
 } from '@/domain/model'
 import { newId, nowIso } from '@/domain/id'
+import { readOwnPicture, type OwnPicture } from '@/domain/model/ownPictures'
 import { readOrg } from '@/domain/northside/read'
 import { parseHex } from '@/domain/northside/colour'
 import { GROUNDS } from '@/domain/modules/livery'
@@ -1766,6 +1767,11 @@ export function validateEnvelope(raw: unknown, orgId: string): Validated {
     }
   if (raw.quotes !== undefined && !Array.isArray(raw.quotes))
     return { ok: false, error: 'That copy is damaged: the customer quotes block cannot be read.' }
+  if (raw.ownPictures !== undefined && !Array.isArray(raw.ownPictures))
+    return {
+      ok: false,
+      error: 'That copy is damaged: the pictures Northside added to its options cannot be read.',
+    }
 
   const stamp = nowIso()
 
@@ -2116,6 +2122,20 @@ export function validateEnvelope(raw: unknown, orgId: string): Validated {
      could really cost somebody a document. */
   const quotes = normQuotes(raw.quotes, stamp, orgId)
 
+  /* THE PICTURES NORTHSIDE ADDED, each read as untrusted (`readOwnPicture`): our own bytes only —
+     a `data:image/` picture of the four kinds the app writes, never an address on another host,
+     whatever the general allow-list above lets a cell carry — within the bounds, with a person
+     and a day. One that fails is dropped and costs only itself. Their ids key their own store
+     and nothing else, so like the quotes they are their own namespace; a repeat is dropped. */
+  const ownPictures: OwnPicture[] = []
+  const pictureIds = new Set<string>()
+  for (const p of Array.isArray(raw.ownPictures) ? (raw.ownPictures as unknown[]) : []) {
+    const read = readOwnPicture(p, orgId, isSafeId)
+    if (!read || pictureIds.has(read.id)) continue
+    pictureIds.add(read.id)
+    ownPictures.push(read)
+  }
+
   const projectRaw = isRecord(raw.project) ? raw.project : {}
   const data: ProjectFile = {
     kind: EXPORT_KIND,
@@ -2141,6 +2161,9 @@ export function validateEnvelope(raw: unknown, orgId: string): Validated {
     ...(roles.length ? { roles } : {}),
     ...(constraints.length ? { constraints } : {}),
     ...(quotes.length ? { quotes } : {}),
+    /* KEPT EVEN EMPTY when the copy carried the key: an empty list is a copy that held no
+       pictures, which is not the same as a copy from before pictures were kept */
+    ...(Array.isArray(raw.ownPictures) ? { ownPictures } : {}),
   }
   return { ok: true, data }
 }

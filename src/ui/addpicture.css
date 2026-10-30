@@ -1,0 +1,164 @@
+/* ============================================================
+   ADD A PICTURE (AddPicture.tsx) — the option's picture, and the way to
+   change it, in one frame.
+
+   THE FRAME IS A WHITE WELL at 4 : 3 on the plate, the shape every
+   option's picture is drawn in, so a pictured and an unpictured option
+   are one size. Empty, it is the accent's dashed edge on the plate's
+   pale blue, asking in words; holding a picture, it is the plate's
+   white, the picture laid on it by multiply (Picture's `contain`).
+   A file carried over it lights the accent's ring and veils the frame
+   with "Drop it to add it"; reading, the same veil says so.
+
+   NOTHING MOVES. A hover deepens the edge, a press deepens the wash,
+   a drop lights the ring: colour only, so reduced motion has nothing
+   to take away, and the picture's own fade is Picture's, which already
+   stands still under it.
+
+   HOW IT REFLOWS. The control fills the measure it is given and never
+   sets its own width: the screen decides it, as it does for every
+   primitive. The frame keeps 4 : 3 at every width; the words under it
+   wrap; the acts sit on one line and wrap under each other when the
+   measure is narrower than both.
+     390 × 844    in a hand, the full column: a 358px frame, the acts
+                  one under the other
+     844 × 390    sideways, whatever the option's card gives it; the
+                  frame's height follows its width, never the window's
+     834 × 1112   a tablet's card or panel, the acts on one line
+     1280 × 800   on a desk, as a tablet
+     1440 × 900   the same; the picture is never drawn past its pixels
+     1920 × 1080  the same: 1,100 pixels at most is kept, so a wide
+                  frame draws the picture at its own size, centred
+   ============================================================ */
+
+.ui-addpic {
+  display: grid;
+  gap: --spacing(2);
+  min-width: 0;
+  color: var(--color-ink);
+}
+
+.ui-addpic-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  margin: 0;
+  padding: --spacing(3);
+  overflow: hidden;
+  border: 1px dashed var(--color-accent);
+  border-radius: var(--radius-tile);
+  font: inherit;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    border-color var(--duration-hover) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
+}
+/* A PICTURE IN IT: the plate's own white behind a hairline, the picture on it */
+.ui-addpic-frame:not([data-shows='none']) {
+  border: 1px solid var(--color-rule);
+  background: var(--color-plate);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-addpic-frame:hover {
+    border-color: var(--color-ink-on-tint);
+  }
+}
+.ui-addpic-frame:active {
+  background: var(--color-wash);
+}
+.ui-addpic-frame[data-over] {
+  border-color: var(--color-accent);
+  box-shadow: var(--ring-chosen);
+}
+/* THE RING IS LAST, and no state above takes it off */
+.ui-addpic-frame:focus-visible,
+[data-specimen='focus'] .ui-addpic-frame {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.ui-addpic-shot {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  min-height: 0;
+}
+
+.ui-addpic-ask {
+  display: grid;
+  justify-items: center;
+  gap: --spacing(2);
+  max-inline-size: 28ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* A FILE OVER IT, OR BEING READ: the frame veiled in the plate's pale blue, saying so */
+.ui-addpic-veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+}
+
+/* the chooser is pressed through the frame, never drawn */
+.ui-addpic-chooser {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+}
+
+.ui-addpic-hint,
+.ui-addpic-note {
+  display: block;
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+/* ITS PROVENANCE: who added it and when, led by a person's glyph */
+.ui-addpic-line {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(1.5);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+.ui-addpic-line > .ui-icon {
+  flex: none;
+  margin-block-start: 0.1em;
+  color: var(--color-ink-2);
+}
+
+.ui-addpic-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+}

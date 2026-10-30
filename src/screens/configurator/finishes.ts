@@ -38,6 +38,8 @@ import { materialCellWords, spokenModel } from '@/domain/quote/spoken'
 import { refinishSubject } from '@/domain/quote'
 import { lineAmount, quoteTotals } from '@/domain/quote'
 import type { QuoteDef } from '@/domain/model'
+import { copyOf, creditOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
+import type { OptionRow } from './chapters'
 
 /** One row of the root table that is the same boat in another
  *  finish, already priced as the document it would produce. */
@@ -67,6 +69,9 @@ export interface Finish {
   delta: number
   /** the one the quote is rooted on now */
   current: boolean
+  /** THIS FINISH'S OWN PICTURE, where the ledger holds the row's own copy (a colourway's render)
+   *  or one a person marked as exactly it — never another colourway's (`copyOf`) */
+  picture: OptionRow['picture']
 }
 
 export interface Finishes {
@@ -79,6 +84,21 @@ export interface Finishes {
   why: string
   /** how many of the register's rows this model is */
   count: number
+}
+
+/** The exact picture of one finish, as the build draws it: its own copy, its line large, and
+ *  where it came from. */
+function pictureFor(item: Item): OptionRow['picture'] {
+  const held = copyOf(item)
+  if (!held) return null
+  const srcSet = srcSetOf(held)
+  return {
+    src: held.src,
+    width: held.width,
+    height: held.height,
+    ...(srcSet ? { srcSet } : {}),
+    credit: creditOf(held),
+  }
 }
 
 const NONE: Finishes = { rows: [], register: '', model: '', why: '', count: 0 }
@@ -167,6 +187,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
       would,
       delta: would - nowTotal,
       current: row.id === quote.rootRowId,
+      picture: pictureFor(itemOf(root.id, row.id, next.subjectImage?.src)),
     })
   }
 

@@ -11,6 +11,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { OwnPicture } from '@/domain/model/ownPictures'
 
 /* ============================================================
    THE SHEET, AS DATA — the shape the catalogue store holds and the
@@ -88,6 +89,10 @@ export interface CatalogueData {
   /** NORTHSIDE AS IT HAS SET ITSELF ON /manage (Milestone 4): its details, people, look and
    *  Home. Absent until something is set; kept beside the sheet and never wiped with it. */
   org?: OrgProfile
+  /** THE PICTURES NORTHSIDE ADDED TO ONE OPTION EACH, by their own id
+   *  (`@/domain/model/ownPictures`). Absent until one is added; kept beside the sheet and never
+   *  wiped with it, as Northside's settings are. */
+  ownPictures?: Readonly<Record<string, OwnPicture>>
 }
 
 /** A sheet with nothing on it and no provenance. */

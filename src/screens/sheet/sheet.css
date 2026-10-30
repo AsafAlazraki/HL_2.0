@@ -2924,3 +2924,10 @@
     opacity: 1;
   }
 }
+
+/* A LINE'S OWN PICTURE (the flow round, 2026-10-30): the kit's AddPicture stands where the
+   record draws its picture, at the picture's own column width, never wider */
+.sh-record__own {
+  min-inline-size: 0;
+  max-inline-size: 28rem;
+}

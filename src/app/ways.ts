@@ -129,7 +129,7 @@ export const DOORS: readonly Door[] = [
     word: 'Data',
     title: 'The price list',
     say: 'The Master Price File itself: every list it carries, open to read and change.',
-    under: ['/data', '/places', '/rules', '/fitment', '/review', '/levels', '/shelf'],
+    under: ['/data', '/places', '/rules', '/fitment', '/catalogue', '/review', '/levels', '/shelf'],
     /* THE PRICE LIST'S ROOMS. Milestone 3's four, in the order its brief meets them: say what may be
        sold with what, see what fits a boat and why the rest do not, find what is wrong, set what
        things cost. Data draws them at its head; the finder offers them by word.
@@ -159,6 +159,16 @@ export const DOORS: readonly Door[] = [
         word: 'Fitment',
         title: 'What goes on a boat',
         say: 'One boat, every motor, trailer and fit-out that goes on it, and why the rest do not.',
+      },
+      {
+        /* THE FLOW ROUND (2026-10-30, direction B of docs/directions/choosing.md, "the
+           chandlery"): every part and accessory the price list sells, in eighteen aisles named
+           for what each is for — the same catalogue a quote's dealer fit opens. A room of the
+           price list, with Data lit while it is open. */
+        href: '/catalogue',
+        word: 'Catalogue',
+        title: 'Every part and accessory, by what it is for',
+        say: 'The chandlery: every part and accessory on the price list in its aisle, with its picture, its price and a place for Northside’s own picture.',
       },
       {
         /* MILESTONE 3 (2026-10-22): what is wrong in the price list, each with its fix beside it.
@@ -309,6 +319,8 @@ export function surfaceAt(pathname: string): Surface {
   if (path === '/data' || path.startsWith('/data/')) return 'cockpit'
   /* fitment reads the price list on the room's plain ground, not over a photograph */
   if (path === '/fitment') return 'cockpit'
+  /* the chandlery's aisles stand on the room's plain ground */
+  if (path === '/catalogue') return 'cockpit'
   /* the rules are written on a plain ground, not over a photograph: the pill stands opaque */
   if (path === '/rules') return 'cockpit'
   /* the checks stand on a plain ground, not over a photograph */

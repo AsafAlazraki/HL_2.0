@@ -132,6 +132,7 @@ function SheetRoute() {
       fold={search.fold ?? ''}
       onPosition={onPosition}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
+      goTo={(href) => void navigate({ href })}
     />
   )
 }

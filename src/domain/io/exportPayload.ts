@@ -38,6 +38,7 @@
    ============================================================ */
 
 import { EXPORT_KIND, EXPORT_VERSION, type CatalogueCtx } from '@/domain/model'
+import type { OwnPicture } from '@/domain/model/ownPictures'
 import type { ProjectFile } from './envelope'
 
 /* Deterministic serialisation order: store records are keyed objects whose
@@ -129,6 +130,10 @@ export function buildExportPayload(
   ctx: CatalogueCtx,
   project: { name: string; rev: number },
   includeData: boolean,
+  /** THE PICTURES NORTHSIDE ADDED (2026-10-30), handed in by the one caller that holds them —
+   *  the shelf's "Save a copy". Written in a full copy only, and written EVEN EMPTY when handed:
+   *  a copy that held none brings none back (see `ProjectExport.ownPictures`). */
+  ownPictures?: readonly OwnPicture[],
 ): ProjectFile {
   const s = ctx
   const views = Object.values(s.views).sort(byCreatedAt)
@@ -181,5 +186,12 @@ export function buildExportPayload(
     ...(roles.length ? { roles } : {}),
     ...(constraints.length ? { constraints } : {}),
     ...(quotes.length ? { quotes } : {}),
+    ...(includeData && ownPictures
+      ? {
+          ownPictures: [...ownPictures].sort(
+            (a, b) => a.addedAt.localeCompare(b.addedAt) || a.id.localeCompare(b.id),
+          ),
+        }
+      : {}),
   }
 }

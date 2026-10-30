@@ -160,6 +160,9 @@ const sizeOf = (bytes: number): string => `${(bytes / 1024 / 1024).toFixed(2)} M
 const weight = (list: readonly PictureEntry[]): number =>
   list.reduce((k, p) => k + p.bytes + (p.widths ?? []).reduce((m, w) => m + w.bytes, 0), 0)
 
+/** a verdict or a picture from the parts round's sheets (`propose-parts.ts`) */
+const ofParts = (ref: string): boolean => /proposals\/parts-/.test(ref)
+
 /**
  * THE SECOND LEDGER'S SECTION OF IMAGES.md: what a person attached to a model, from where, how
  * it was verified, what the judges refused, and what is still a gap. Counted off
@@ -179,7 +182,7 @@ export function picturesSection(
   lines.push('## The pictures of models — `data/northside/pictures.json`')
   lines.push('')
   lines.push(
-    `The rows' own addresses above stay in \`images.json\` exactly as the price file typed them. A picture a person attached to a MODEL of the file — a hull, a motor, a trailer — is recorded once, in \`pictures.json\`, with its address, the page it was found on, its host, the date fetched, its source and held pixel sizes, sha256, the licence note, the exact item it depicts, what it shows that a quote may not say, and who verified it and how. One reader, \`src/domain/model/pictures.ts\`, answers every screen and the customer's paper from it. **${n(all.length)} pictures: ${n(tierOf('catalogue').length)} catalogue copies (WebP, long edge at most 1100, in \`public/seed-images\`) and ${n(tierOf('hero').length)} heroes on the water (WebP, at most 2560, in \`public/hero-images\`, with ${n(all.reduce((k, p) => k + (p.widths?.length ?? 0), 0))} narrower copies) — ${sizeOf(weight(all))} in all.** Nothing is held larger than its source.`,
+    `The rows' own addresses above stay in \`images.json\` exactly as the price file typed them. A picture a person attached to a MODEL of the file — a hull, a motor, a trailer, a part — is recorded once, in \`pictures.json\`, with its address, the page it was found on, its host, the date fetched, its source and held pixel sizes, sha256, the licence note, the exact item it depicts, what it shows that a quote may not say, and who verified it and how. One reader, \`src/domain/model/pictures.ts\`, answers every screen and the customer's paper from it. **${n(all.length)} pictures: ${n(tierOf('catalogue').length)} catalogue copies (WebP, long edge at most 1100, in \`public/seed-images\`) and ${n(tierOf('hero').length)} heroes on the water (WebP, at most 2560, in \`public/hero-images\`, with ${n(all.reduce((k, p) => k + (p.widths?.length ?? 0), 0))} narrower copies) — ${sizeOf(weight(all))} in all.** Nothing is held larger than its source.`,
   )
   lines.push('')
   lines.push('| register | catalogue | heroes | a person marked | bytes |')
@@ -193,14 +196,28 @@ export function picturesSection(
   lines.push('')
   lines.push('### Added in the 2026-09-23 round, and how it was verified')
   lines.push('')
-  const hosts = [...new Set(judged.map((p) => p.host))].toSorted()
-  const judgedAt = [...new Set(verdicts.map((v) => v.judgedAt).filter((d) => d !== ''))].toSorted()
+  /* THE PARTS ROUND (2026-10-30) found its pictures by part number on the makers' own pages
+     (`propose-parts.ts`), so it is said apart, with its own tool, sheets and verification line */
+  const round = judged.filter((p) => !ofParts(p.verdicts))
+  const parts = judged.filter((p) => ofParts(p.verdicts))
+  const roundVerdicts = verdicts.filter((v) => !ofParts(v.ref))
+  const hosts = [...new Set(round.map((p) => p.host))].toSorted()
+  const judgedAt = [
+    ...new Set(roundVerdicts.map((v) => v.judgedAt).filter((d) => d !== '')),
+  ].toSorted()
   const judges = [
-    ...new Set(verdicts.map((v) => v.judgedBy.replace(/,?\s*by eye.*$/i, ''))),
+    ...new Set(roundVerdicts.map((v) => v.judgedBy.replace(/,?\s*by eye.*$/i, ''))),
   ].toSorted()
   lines.push(
-    `${n(judged.length)} pictures (${n(judged.filter((p) => p.tier === 'catalogue').length)} catalogue, ${n(judged.filter((p) => p.tier === 'hero').length)} heroes) were proposed by \`tools/seed/propose-images.ts\` from the measured candidates in \`docs/research/imagery/candidates.json\`, put on contact sheets under \`docs/research/imagery/proposals/\`, and held only where a verdict accepted them as that exact item. Every one carries the sheets' verification line, "verified by eye, contact sheet, 2026-09-23"; the verdict files record that the judging itself was done on ${judgedAt.join(', ')} (${judges.join('; ')}), and the bytes were fetched then. They came from the makers' own sites: ${hosts.map((h) => `\`${h}\``).join(', ')}. The catalogue copies went through \`tools/seed/fetch-images.ts --accepted\`, the heroes through \`tools/seed/heroes.ts\` and \`tools/seed/hero-widths.ts\`; a second run of each fetches nothing it holds.`,
+    `${n(round.length)} pictures (${n(round.filter((p) => p.tier === 'catalogue').length)} catalogue, ${n(round.filter((p) => p.tier === 'hero').length)} heroes) were proposed by \`tools/seed/propose-images.ts\` from the measured candidates in \`docs/research/imagery/candidates.json\`, put on contact sheets under \`docs/research/imagery/proposals/\`, and held only where a verdict accepted them as that exact item. Every one carries the sheets' verification line, "verified by eye, contact sheet, 2026-09-23"; the verdict files record that the judging itself was done on ${judgedAt.join(', ')} (${judges.join('; ')}), and the bytes were fetched then. They came from the makers' own sites: ${hosts.map((h) => `\`${h}\``).join(', ')}. The catalogue copies went through \`tools/seed/fetch-images.ts --accepted\`, the heroes through \`tools/seed/heroes.ts\` and \`tools/seed/hero-widths.ts\`; a second run of each fetches nothing it holds.`,
   )
+  if (parts.length > 0) {
+    const partHosts = [...new Set(parts.map((p) => p.host))].toSorted()
+    lines.push('')
+    lines.push(
+      `**The parts, 2026-10-30.** ${n(parts.length)} pictures of parts the price file sells were found by PART NUMBER on the maker's own page (\`docs/research/imagery/parts-candidates.json\`), proposed by \`tools/seed/propose-parts.ts\` on the \`parts-*\` contact sheets, judged by eye, and held through the same \`fetch-images.ts --accepted\`. Each carries "verified by eye, contact sheet, 2026-10-30" and belongs to the one name the file gives that part (\`fitItemsOf\`, \`src/domain/catalogue/fitItems.ts\`). From: ${partHosts.map((h) => `\`${h}\``).join(', ')}. What is still without a picture, and why, is in \`docs/directions/flow/pictures.md\`.`,
+    )
+  }
   lines.push('')
   lines.push(
     `${n(machine.length)} heroes were held before the contact sheets existed — chosen by the pixel judge alone and once recorded in \`heroes-ledger.json\`, which was migrated here and retired with \`heroes.json\`, so one place records a hero. They keep their bytes and their provenance and say \`person: false\`: a screen may stand on them, and a line on the quote may not. ${machine.map((p) => `\`${p.id}\``).join(', ')}.`,

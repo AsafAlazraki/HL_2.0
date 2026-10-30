@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choosing B · notes</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css: the day roles of the kit "Signal" ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-done: var(--color-viridian-600);
+  --color-ask: var(--color-ochre-600);
+  --color-rule: var(--color-neutral-100);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(51.2% 0.1554 255.7 / 10%);
+  --color-drop-wash: oklch(51.2% 0.1554 255.7 / 14%);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-black: oklch(17% 0 0);
+  --swatch-grey: oklch(63% 0.004 250);
+  --swatch-dark-grey: oklch(41% 0.005 250);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-dark-blue: oklch(33% 0.1 262);
+  --swatch-military-black: oklch(25% 0.014 128);
+  --swatch-carbon: oklch(29% 0.004 260);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem; --text-4xl: 1.875rem;
+  --tracking-caps: 0.14em;
+  --radius-pill: 999px; --radius-plate: 16px; --radius-field: 12px; --radius-tile: 14px; --radius-glyph: 8px; --radius-key: 5px;
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 22px 40px -12px oklch(18.9% 0.0309 231.6 / 45%), 0 4px 10px oklch(18.9% 0.0309 231.6 / 18%);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); font-size: var(--text-base); line-height: 1.4; -webkit-font-smoothing: antialiased; position: relative; }
+img { display: block; }
+.g { flex: none; display: inline-block; vertical-align: middle; }
+.eyebrow { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 600; color: var(--color-ink-on-tint); }
+.fig { font-variant-numeric: tabular-nums; }
+.plate { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); }
+kbd { font-family: var(--font-mono); font-size: var(--text-2xs); padding: 2px 6px; border-radius: var(--radius-key); background: var(--color-plate); border: 1px solid var(--color-control-edge); box-shadow: 0 1px 0 var(--color-control-edge); color: var(--color-ink); white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; border: 1px solid var(--color-control-edge); background: var(--color-plate); color: var(--color-ink); white-space: nowrap; }
+.btn--act { background: var(--color-act); color: var(--color-ink-on-act); border-color: transparent; }
+.btn--accent { background: var(--color-accent); color: var(--color-ink-on-accent); border-color: transparent; }
+.btn--quiet { border-color: transparent; background: var(--color-plate-tint); color: var(--color-ink-on-tint); }
+.btn--on { background: var(--color-chosen-wash); color: var(--color-ink-on-tint); border-color: var(--color-accent); }
+.count { font-weight: 400; color: var(--color-ink-3); font-variant-numeric: tabular-nums; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--color-rule); }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-pill); background: var(--color-plate); border: 1px solid var(--color-control-edge); }
+.seg span { padding: 4px 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); white-space: nowrap; }
+.seg span.on { background: var(--color-accent); color: var(--color-ink-on-accent); }
+.seg span span { padding: 0; background: none; color: inherit; font-weight: 400; }
+.sws { display: inline-flex; gap: 3px; }
+.sw { display: inline-flex; width: 14px; height: 14px; border-radius: 50%; overflow: hidden; outline: 1px solid var(--swatch-edge); outline-offset: -1px; }
+.sw i { flex: 1; }
+/* the one picture box: one ground, one padding, contained, never cropped */
+.pic { background: var(--color-white); display: grid; place-items: center; overflow: hidden; border-radius: 10px; }
+.pic img { max-width: 86%; max-height: 82%; object-fit: contain; }
+.pic--none { background: var(--color-plate-tint); color: var(--color-ink-on-tint); flex-direction: column; gap: 4px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: var(--text-2xs); }
+.pic--none .g { opacity: .75; }
+/* the shell's pill, as built */
+.shell { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: var(--radius-pill); background: oklch(100% 0 0 / 88%); box-shadow: var(--shadow-plate); font-size: var(--text-sm); z-index: 5; }
+.shell b { width: 32px; height: 32px; border-radius: 50%; background: var(--color-blue-700); display: grid; place-items: center; color: var(--color-white); }
+.shell span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-pill); color: var(--color-ink-2); font-weight: 500; }
+.shell span.on { background: var(--color-blue-700); color: var(--color-white); }
+.live { font-size: var(--text-xs); color: var(--color-ink-2); }
+.was { font-size: var(--text-2xs); color: var(--color-ink-3); }
+.was s { color: var(--color-ink-3); }
+
+body { background: var(--color-paper); }
+.s { position: absolute; inset: 28px 36px; display: grid; grid-template-columns: 1.05fr 1fr 1fr; gap: 28px; }
+h1 { font-size: var(--text-3xl); font-weight: 300; letter-spacing: -0.016em; line-height: 1.1; }
+h1 small { display: block; font-size: var(--text-sm); color: var(--color-ink-2); margin-top: 4px; font-weight: 400; letter-spacing: 0; }
+.rec { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-xs); font-weight: 700; }
+h2 { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-on-tint); font-weight: 650; margin-top: 12px; margin-bottom: 3px; }
+p, li { font-size: 11.5px; line-height: 1.45; color: var(--color-ink-2); }
+p b, li b { color: var(--color-ink); }
+ul { padding-left: 14px; }
+code { font-family: var(--font-mono); font-size: 10.5px; color: var(--color-ink); }
+.spec { border-top: 1px solid var(--color-rule); padding-top: 4px; }
+.spec div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--color-rule); padding: 2px 0; }
+.spec span:last-child { font-size: 10px; color: var(--color-ink-3); font-family: var(--font-mono); white-space: nowrap; }
+
+</style>
+</head>
+<body>
+<div class="s">
+<section>
+  <h1>B · The chandlery<small>Found by what it is for. Axis: aisles, one catalogue in two places.</small></h1>
+  <span class="rec">Recommended</span>
+  <h2>The build’s one job</h2>
+  <p>One chapter per decision with a live price, a search reaching every chapter, every refusal with its reason (docs/SCREENS.md, Configurator). Drawn on chapter 04, Parts &amp; fit-out, with three on and a radio in the hand.</p>
+  <h2>What only this direction does</h2>
+  <p>The parts chapter <b>is</b> the catalogue: the same aisles, tiles and Add inside a quote and at <code>/parts</code> on their own, so a salesperson learns it once. The quote’s boat travels in as a dark chip; clearing it shows everything.</p>
+  <h2>References no earlier board used</h2>
+  <ul><li><code>docs/research/refs/choosing/live/toyota-hilux-accessories-scrolled.png</code>: aisles named by what they are for.</li>
+  <li><code>docs/research/refs/choosing/live/rivian-gearshop.png</code>: “Fit your vehicle” held in the header, answering for one vehicle until cleared.</li>
+  <li>Supporting: <code>live/bcf-boating.png</code> (a one-colour drawing per aisle), <code>live/yamaha-waverunner-shop-accessories.png</code> (one scale, one ground).</li></ul>
+  <h2>Against the original’s three floors</h2>
+  <ul><li><b>Configuring visually.</b> The original’s blank cards and its mixed card heights become one grid of pictures at one scale; the finish is pressed as colour and its own render follows.</li>
+  <li><b>A dealer’s own picture.</b> Every tile, the aisle included, has “Add a picture”, with “added by Asaf, 30 Oct 2026”, for that one row (never the set “inc Fire Ext”), in the backup, with Undo.</li>
+  <li><b>The catalogue.</b> What users liked kept (made-for-this-boat first, the way past the narrowing, everything counted) and three things added: aisles in dealer words, picture tiles, counts set apart.</li></ul>
+  <h2>Why recommended</h2>
+  <p>It is the simplest: one catalogue in two places, no new setting, every aisle measured off the file. Take two small grafts from C: the rigging kit’s condition line, and the empty picture square kept at full height.</p>
+</section>
+<section>
+  <h2>Type, at 1:1</h2>
+  <div class="spec"><div><span style="font-size:30px;font-weight:300;letter-spacing:-0.016em">The chandlery</span><span>30 / 300 · 1.1</span></div><div><span style="font-size:16px;font-weight:600">Radios &amp; beacons</span><span>16 / 600</span></div><div><span style="font-size:14px;font-weight:600">Fitting the 529 Assault Pro</span><span>14 / 600 on blue-900</span></div><div><span style="font-size:12px;font-weight:600">Garmin VHF115i fixed-mount radio</span><span>12 / 600 · 2 lines</span></div><div><span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">$428   47   $54,881</span><span>14 / 600 tabular</span></div></div>
+  <p style="margin-top:4px">A count always stands apart from its name behind a hairline (“GME | 42”), never “GME 42” as one word.</p>
+  <h2>Motion, as choreography</h2>
+  <p>Pressing an aisle: its tile takes the chosen wash at once and the grid below cross-fades in 160ms; the aisle row does not move. Drag: the tile lifts with the lift shadow, the tray’s drop slot fills with the drop wash; on drop the tile flies to the slot in 220ms and becomes a line with its thumbnail, the total ticks. <b>Reduced motion:</b> no flight; the line appears and the slot’s wash fades.</p>
+  <h2>Keyboard</h2>
+  <p>Tab reaches the boat chip, the search, the aisles, then the tiles. Space lifts a tile, → goes to the quote, Space drops, Esc returns. “Add” does the same in one press and turns into “On the quote ✓ · Take off”.</p>
+  <h2>The dropdown the walk named, replaced</h2>
+  <p>“Show all 2,238 in Parts &amp; Accessories” becomes 18 aisle tiles with drawings and counts; brand filters are pressable chips (GME | 42, Garmin | 5); the search takes words, never codes.</p>
+  <h2>What fits this boat, one press away</h2>
+  <p>The chip is the answer, and “What fits” beside it opens <code>/fitment</code> on this boat.</p>
+</section>
+<section>
+  <h2>How it reflows</h2>
+  <p><b>390:</b> the boat chip sticks under the head, three aisle tiles a row, items two a row, the tray a bottom sheet with thumbnails that is also the drop target. <b>834:</b> chapters as a top strip, three item columns, the tray a sheet. <b>1440:</b> as drawn, chapters left, tray right. <b>1920:</b> four item columns, every aisle on one row.</p>
+  <h2>What Northside can replace</h2>
+  <p>A picture on any part or aisle, the aisles’ words (the grouping is a pure function of the file’s headings; renaming is Northside’s), the accent and act colours.</p>
+  <h2>The honest constraints</h2>
+  <ul><li>The four parts made for the 529 Assault Pro (Tournament) have no picture; they draw the aisle’s drawing, labelled, never a stand-in.</li>
+  <li>Counts are measured: 2,238 live parts in 18 aisles plus 28 not sorted (25 with no section, 3 DFO kits); 197 pictured, 161 of them sounders.</li>
+  <li>Dealer-fit packages (1,576) and rigging kits (615) have no maker’s picture and never borrow a part’s.</li>
+  <li>The Sport 560’s PVC and Hypalon rows share one picture; the board says it shows colour, not material. I-B-C prints as its code.</li>
+  <li>Cash level only; cost and margin are on no screen here.</li></ul>
+  <h2>New quote, in this direction</h2>
+  <p>“What is being sold?” as four doors: a boat (largest, with marks), a motor, a trailer, or parts &amp; fit-out. Parts-only opens this chandlery with the chip empty; a motor-only quote opens the motor aisle the same way.</p>
+  <h2>Risk</h2>
+  <p>Aisles are only as good as their words: the 18 names need Northside’s eye before they ship.</p>
+</section>
+</div>
+</body></html>

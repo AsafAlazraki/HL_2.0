@@ -43,6 +43,8 @@
    generated file that changed shape draws the next rung down.
    ============================================================ */
 
+import type { OwnPicture } from './ownPictures'
+
 /* ---------------------------------------------------------- */
 /* The ledger, as `pictures.json` holds it                     */
 /* ---------------------------------------------------------- */
@@ -183,6 +185,9 @@ export interface Picture {
   /** what the asked row says beyond what the picture pins — "Side Console"
    *  under a hull's photograph. '' where the picture is the row's model. */
   beyond: string
+  /** NORTHSIDE'S OWN PICTURE (`./ownPictures.ts`): who added it and when, ISO. Absent on every
+   *  picture the app ships. */
+  added?: { by: string; at: string }
 }
 
 /** What a line or a cover may print, or why nothing. */
@@ -241,6 +246,11 @@ export interface PictureBook {
   organisation(ink: Ink): MarkChoice
   /** makers looked for, makers held, files held — the dealership's own left out */
   markFacts(): { checked: number; held: number; files: number }
+  /** the picture Northside added to this one option, where one stands (`./ownPictures.ts`) */
+  own(item: Item): OwnPicture | null
+  /** the held picture of this EXACT item — the row's own copy, or one a person marked as this
+   *  row, model and finish — which wins over Northside's own unless Northside chose theirs */
+  exactHeld(item: Item): Picture | null
 }
 
 /* ---------------------------------------------------------- */
@@ -663,5 +673,15 @@ export function pictureBook(
     mark,
     organisation,
     markFacts,
+    /* the ledgers this book reads hold no picture a dealer added: `withOwnPictures` lays those over */
+    own: () => null,
+    exactHeld: (item) => {
+      const own = rowCopy(item)
+      if (own) return own
+      const model = modelPicture(item, 'catalogue')
+      if (model?.exact) return model
+      const h = hero(item)
+      return h?.exact ? h : null
+    },
   }
 }

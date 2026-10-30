@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choosing A · notes</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css: the day roles of the kit "Signal" ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-done: var(--color-viridian-600);
+  --color-ask: var(--color-ochre-600);
+  --color-rule: var(--color-neutral-100);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(51.2% 0.1554 255.7 / 10%);
+  --color-drop-wash: oklch(51.2% 0.1554 255.7 / 14%);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-black: oklch(17% 0 0);
+  --swatch-grey: oklch(63% 0.004 250);
+  --swatch-dark-grey: oklch(41% 0.005 250);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-dark-blue: oklch(33% 0.1 262);
+  --swatch-military-black: oklch(25% 0.014 128);
+  --swatch-carbon: oklch(29% 0.004 260);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem; --text-4xl: 1.875rem;
+  --tracking-caps: 0.14em;
+  --radius-pill: 999px; --radius-plate: 16px; --radius-field: 12px; --radius-tile: 14px; --radius-glyph: 8px; --radius-key: 5px;
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 22px 40px -12px oklch(18.9% 0.0309 231.6 / 45%), 0 4px 10px oklch(18.9% 0.0309 231.6 / 18%);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); font-size: var(--text-base); line-height: 1.4; -webkit-font-smoothing: antialiased; position: relative; }
+img { display: block; }
+.g { flex: none; display: inline-block; vertical-align: middle; }
+.eyebrow { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 600; color: var(--color-ink-on-tint); }
+.fig { font-variant-numeric: tabular-nums; }
+.plate { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); }
+kbd { font-family: var(--font-mono); font-size: var(--text-2xs); padding: 2px 6px; border-radius: var(--radius-key); background: var(--color-plate); border: 1px solid var(--color-control-edge); box-shadow: 0 1px 0 var(--color-control-edge); color: var(--color-ink); white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; border: 1px solid var(--color-control-edge); background: var(--color-plate); color: var(--color-ink); white-space: nowrap; }
+.btn--act { background: var(--color-act); color: var(--color-ink-on-act); border-color: transparent; }
+.btn--accent { background: var(--color-accent); color: var(--color-ink-on-accent); border-color: transparent; }
+.btn--quiet { border-color: transparent; background: var(--color-plate-tint); color: var(--color-ink-on-tint); }
+.btn--on { background: var(--color-chosen-wash); color: var(--color-ink-on-tint); border-color: var(--color-accent); }
+.count { font-weight: 400; color: var(--color-ink-3); font-variant-numeric: tabular-nums; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--color-rule); }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-pill); background: var(--color-plate); border: 1px solid var(--color-control-edge); }
+.seg span { padding: 4px 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); white-space: nowrap; }
+.seg span.on { background: var(--color-accent); color: var(--color-ink-on-accent); }
+.seg span span { padding: 0; background: none; color: inherit; font-weight: 400; }
+.sws { display: inline-flex; gap: 3px; }
+.sw { display: inline-flex; width: 14px; height: 14px; border-radius: 50%; overflow: hidden; outline: 1px solid var(--swatch-edge); outline-offset: -1px; }
+.sw i { flex: 1; }
+/* the one picture box: one ground, one padding, contained, never cropped */
+.pic { background: var(--color-white); display: grid; place-items: center; overflow: hidden; border-radius: 10px; }
+.pic img { max-width: 86%; max-height: 82%; object-fit: contain; }
+.pic--none { background: var(--color-plate-tint); color: var(--color-ink-on-tint); flex-direction: column; gap: 4px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: var(--text-2xs); }
+.pic--none .g { opacity: .75; }
+/* the shell's pill, as built */
+.shell { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: var(--radius-pill); background: oklch(100% 0 0 / 88%); box-shadow: var(--shadow-plate); font-size: var(--text-sm); z-index: 5; }
+.shell b { width: 32px; height: 32px; border-radius: 50%; background: var(--color-blue-700); display: grid; place-items: center; color: var(--color-white); }
+.shell span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-pill); color: var(--color-ink-2); font-weight: 500; }
+.shell span.on { background: var(--color-blue-700); color: var(--color-white); }
+.live { font-size: var(--text-xs); color: var(--color-ink-2); }
+.was { font-size: var(--text-2xs); color: var(--color-ink-3); }
+.was s { color: var(--color-ink-3); }
+
+body { background: var(--color-paper); }
+.s { position: absolute; inset: 28px 36px; display: grid; grid-template-columns: 1.05fr 1fr 1fr; gap: 28px; }
+h1 { font-size: var(--text-3xl); font-weight: 300; letter-spacing: -0.016em; line-height: 1.1; }
+h1 small { display: block; font-size: var(--text-sm); color: var(--color-ink-2); margin-top: 4px; font-weight: 400; letter-spacing: 0; }
+.rec { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-xs); font-weight: 700; }
+h2 { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-on-tint); font-weight: 650; margin-top: 12px; margin-bottom: 3px; }
+p, li { font-size: 11.5px; line-height: 1.45; color: var(--color-ink-2); }
+p b, li b { color: var(--color-ink); }
+ul { padding-left: 14px; }
+code { font-family: var(--font-mono); font-size: 10.5px; color: var(--color-ink); }
+.spec { border-top: 1px solid var(--color-rule); padding-top: 4px; }
+.spec div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--color-rule); padding: 2px 0; }
+.spec span:last-child { font-size: 10px; color: var(--color-ink-3); font-family: var(--font-mono); white-space: nowrap; }
+
+</style>
+</head>
+<body>
+<div class="s">
+<section>
+  <h1>A · The boat as the map<small>Found by where it goes. Axis: place on the boat.</small></h1>
+  <h2>The build’s one job</h2>
+  <p>One chapter per decision with a live price, a search reaching every chapter, every refusal with its reason (docs/SCREENS.md, Configurator). This board draws chapter 04, Parts &amp; fit-out, mid-way: three on, a fourth in the hand.</p>
+  <h2>What only this direction does</h2>
+  <p>It answers “what goes at the helm?” by pointing. The parts chapter opens on a side-on diagram of a boat in five places (Bow, Helm, Deck, Transom, Trailer); a place lists the aisles Northside put there, and what is on the quote stacks beside its place.</p>
+  <h2>References no earlier board used</h2>
+  <ul><li><code>docs/research/refs/configurator/premium/ikea-pax-planner.png</code>: the catalogue beside the room, composition only.</li>
+  <li><code>docs/research/refs/choosing/dnd/dndkit-droppable-keyboard.png</code>: a keyboard drag, measured (Space, →, → moved the draggable 45px, lifted shadow on).</li>
+  <li>Supporting: <code>dnd/dndkit-a11y-docs.png</code> (the announcements), <code>live/bcf-boating.png</code> (a drawing names a kind, not a product).</li></ul>
+  <h2>Against the original’s three floors</h2>
+  <ul><li><b>Configuring visually.</b> The original showed the boat in a carousel and parts as blank cards. Here the parts have a place on a boat and their own pictures at one size in one box, and the Highfield’s finish puts the row’s own render on the stage.</li>
+  <li><b>A dealer’s own picture.</b> The original had four admin screens, no record and an instant X. Here “Add a picture” is on the option in the build and the catalogue: drop, choose or take, “added by Asaf, 30 Oct 2026”, one item only, in the backup, undone by a command.</li>
+  <li><b>The catalogue.</b> The original had 93 raw supplier headings and a counted chip. Here the 180 headings fold into 18 aisles, and the aisles into five places; everything not placed is counted, never hidden.</li></ul>
+</section>
+<section>
+  <h2>Type, at 1:1</h2>
+  <div class="spec"><div><span style="font-size:30px;font-weight:300;letter-spacing:-0.016em">Stacer 529 Assault Pro</span><span>30 / 300 · 1.1</span></div><div><span style="font-size:18px;font-weight:600">Where it goes</span><span>18 / 600</span></div><div><span style="font-size:12px;font-weight:600">GX700W VHF fixed-mount radio · White</span><span>12 / 600 · 2 lines max</span></div><div><span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">$249  $1,739  $54,881</span><span>14 / 600 tabular</span></div><div><span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--color-ink-on-tint)">Transom · helm · bow</span><span>11 / 600 caps .14em</span></div></div>
+  <p style="margin-top:4px">Measure: tile names two lines at 150px; notes 60–70 characters. Spaced capitals for places and aisles, never for products.</p>
+  <h2>Motion, as choreography</h2>
+  <p>Pick-up: the tile lifts 4px and takes the lift shadow in 120ms; its slot stays as a dashed ghost. Over a place the place fills with the drop wash in 90ms. On drop the tile shrinks into a chip beside its place over 220ms and the place’s count ticks; the tray grows one item from the right. Nothing else on the page moves. <b>Reduced motion:</b> no travel; the shadow, the wash and the count change in place.</p>
+  <h2>Keyboard</h2>
+  <p>Tab to a tile, Space lifts, ← → step place to place (each announced: “Over the helm”), Space drops, Esc returns it. The tile’s menu offers “Add to the quote, at the helm”, which is the drop as one press. The five places are a row of buttons under the diagram, reachable in order.</p>
+  <h2>The dropdown the walk named, replaced</h2>
+  <p>“Show all 2,238 in Parts &amp; Accessories” (a disclosure showing the first 40 as text) becomes five places, each with its aisles counted. “Show all 622 in Rigging Kits” goes: the kit for this quote’s motor sits in Steering, controls &amp; rigging.</p>
+  <h2>What fits this boat, one press away</h2>
+  <p>A chip in the build’s head: “What fits this boat · 6 motors · 1 trailer · 4 parts · 3 rigging kits”, opening <code>/fitment</code> on this boat.</p>
+</section>
+<section>
+  <h2>How it reflows</h2>
+  <p><b>390:</b> the diagram shrinks to the full width (136px tall), places and aisles become chip rows, tiles one column with the picture left; the press menu comes first, touch drag still works. <b>834:</b> diagram on top, two tile columns, the tray as a bottom bar. <b>1440:</b> as drawn. <b>1920:</b> diagram 40% left, three tile columns, the tray pinned right.</p>
+  <h2>What Northside can replace</h2>
+  <p>Where each aisle goes (its one new setting), its own picture on any part, the accent and act colours. The diagram is the app’s, never a model’s.</p>
+  <h2>The honest constraints</h2>
+  <ul><li>The price list lists 1–10 parts per boat and none pictured: the 529 Assault Pro’s four (Battery MFM50 $199, Battery Box · Small $18, Battery Terminals · 1 pair $18, D Shackle · 10 mm Galv $3) all draw the empty square.</li>
+  <li>197 of 2,238 parts have the maker’s own picture; the radios shown are among them. Prices are the Cash level (<code>parts.l</code>); no cost anywhere.</li>
+  <li>The diagram claims no model, and is never tinted a colourway.</li>
+  <li>The places are drawn as if set. On day one every aisle is “not placed yet”: the cost of this direction.</li>
+  <li>The rigging kit for the F115LB has no chosen price; it says so and links to Prices.</li></ul>
+  <h2>New quote, in this direction</h2>
+  <p>“What is being sold?” A boat (the largest door, with makers’ marks), a motor on its own, a trailer on its own, parts &amp; fit-out on their own. A parts-only quote opens this same map with no boat chosen.</p>
+  <h2>Risk</h2>
+  <p>One new setting (each aisle’s place), and an outline that suits a runabout better than a Highfield RIB.</p>
+</section>
+</div>
+</body></html>

@@ -89,7 +89,7 @@ import { ADDRESSED_TO_NOBODY } from '@/domain/quote/totals'
 import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
-import { copyOf, itemOf } from '@/data/pictures'
+import { copyOf, creditOf, itemOf, srcSetOf } from '@/data/pictures'
 import { measureMotorOnBoat } from '@/domain/fitment/envelope'
 import { ONE_TRAILER, sayVerdict } from '@/domain/fitment/say'
 import {
@@ -186,7 +186,15 @@ export interface OptionRow {
    *  (`copyOf` in @/data/pictures), or one a person marked as exactly this
    *  item. null where neither is held, or a finding refuses it —
    *  never a stand-in. */
-  picture: { src: string; width: number; height: number } | null
+  picture: {
+    src: string
+    width: number
+    height: number
+    /** the narrower copies, for the picture drawn large */
+    srcSet?: string
+    /** where it came from, under it large (`creditOf`) */
+    credit: string
+  } | null
   /** the two or three facts its own row states that decide it — a
    *  motor's "90 hp · 162 kg · 20″ shaft", a trailer's "for a 4.9–5.3
    *  m boat · 1,400 kg ATM · 13″ wheels" (`goodsSaid`); '' for
@@ -216,6 +224,8 @@ export interface OptionRow {
 export interface ChapterTable {
   /** the section's own block id, which is this table's identity here */
   id: string
+  /** the price list's register this table offers from (`parts` is the chandlery's) */
+  tableId: string
   title: string
   kind: TableKind
   /** the narrowing, in the operator's words, with the rate the price
@@ -707,6 +717,7 @@ function readTable(
 
   return {
     id: step.id,
+    tableId: step.section.tableId,
     title: step.title,
     kind,
     reason,
@@ -841,7 +852,15 @@ function goods(
   const listed = nameFirst(lineSaid(line.label, register), line.code, trailerSizeOf(entity, row))
   const kit = kitSaid(ctx, quote, line)
   return {
-    picture: held ? { src: held.src, width: held.width, height: held.height } : null,
+    picture: held
+      ? {
+          src: held.src,
+          width: held.width,
+          height: held.height,
+          ...(srcSetOf(held) ? { srcSet: srcSetOf(held) } : {}),
+          credit: creditOf(held),
+        }
+      : null,
     spec: goodsSaid(entity, row),
     power: powerOf(entity, row),
     name: kit === '' ? listed : kit,
@@ -1475,3 +1494,34 @@ export function matchesFinish(label: string, query: string): boolean {
 /** The cap the shortlist is trimmed at, re-exported so the screen
  *  can say the number rather than carry its own copy of it. */
 export { OFFER_CAP }
+
+/* ---------------------------------------------------------- */
+/* Rigging kits, said against the quote's motor                 */
+/* ---------------------------------------------------------- */
+
+/** The price list's register of rigging kits, which is one kit per motor. */
+export const RIG_KITS = 'rig_kits'
+
+/**
+ * ONLY THE KITS FOR A MOTOR ON THIS QUOTE (the flow walk, item 5: Dealer fit offered rigging kits
+ * for the F90LB2 White on a quote with no such motor, and "Show all 622"). A kit's tile names its
+ * motor (`kitSaid`), so a kit is offered where its words name the code of a motor on the quote;
+ * a kit already on the quote is never taken out of sight. With no motor on the quote no kit is
+ * offered, and the list says why once (`KITS_WAIT`).
+ */
+/** The words of a kit's name, each a whole token, so the F90LB is not the F90LB2. */
+const kitWords = (row: OptionRow): Set<string> =>
+  new Set(`${row.stem}${row.tail} ${row.listed}`.toUpperCase().split(/[^A-Z0-9.]+/))
+
+export function kitsForMotors(rows: readonly OptionRow[], motors: readonly string[]): OptionRow[] {
+  const codes = motors.map((m) => m.trim().toUpperCase()).filter((m) => m !== '')
+  return rows.filter((row) => row.fitted || codes.some((code) => kitWords(row).has(code)))
+}
+
+/** Why no rigging kit is offered while the quote has no motor. */
+export const KITS_WAIT =
+  'Each rigging kit is made for one motor. Choose the motor in 02 Motor and its kit is offered here.'
+
+/** Why no kit is offered for the motor this quote carries. */
+export const kitsNone = (motors: readonly string[]): string =>
+  `The price list has no rigging kit for the ${motors.join(' or the ')}.`

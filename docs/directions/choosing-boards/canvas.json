@@ -1,0 +1,70 @@
+{
+  "screen": "Choosing in the build — three ideas of how a part, a colour and a picture get chosen",
+  "job": "Chapter 04 of the build, Parts & fit-out, mid-way on the Stacer 529 Assault Pro (Tournament, $28,530 Cash) with the Yamaha F115LB ($16,667) and the T Alloy 1400 skid braked trailer ($8,703): three parts on (Battery MFM50 $199, Garmin Striker Vivid 7cv $699, Safety Gear · Smooth Waters $83, total $54,881) and a fourth, the GME GX700W VHF radio ($249), in the hand. Each direction also draws the parts catalogue on its own (2,238 parts on sale, 197 with the maker's own picture, measured through src/domain/model/pictures.ts on 2026-10-30), the Highfield Sport 560's finish as colour and as the row's own picture (Hypalon $48,350, Black / White / Carbon), and a dealer adding their own picture to a part with its provenance. Every price is the Cash level of the manifest; no cost appears. The four parts the price list makes for this boat have no picture, and every board draws that honest empty state.",
+  "directions": [
+    {
+      "id": "A",
+      "name": "A · The boat as the map",
+      "axis": "Found by where it goes: a side-on diagram of a boat in five places (bow, helm, deck, transom, trailer); a place lists the aisles Northside put there, and a part is dragged onto its place.",
+      "file": "a-the-boat-as-the-map.html",
+      "hand": "hand/a-the-boat-as-the-map-390.html",
+      "strip": "strip/a-the-boat-as-the-map.html",
+      "only": "Answers \"what goes at the helm?\" by pointing at the boat.",
+      "references": [
+        "docs/research/refs/configurator/premium/ikea-pax-planner.png",
+        "docs/research/refs/choosing/dnd/dndkit-droppable-keyboard.png"
+      ]
+    },
+    {
+      "id": "A2",
+      "name": "A · the catalogue on the map, a finish, a dealer's picture",
+      "axis": "Parts & Accessories opened on its own on the same map, every aisle placed and counted; the Sport 560 finish as chips over the row's own render; Add a picture of the Battery MFM50.",
+      "file": "a-the-boat-as-the-map-catalogue.html",
+      "only": "The catalogue is a map of the boat; unplaced aisles are counted, never hidden.",
+      "references": ["docs/research/refs/configurator/premium/ikea-pax-planner.png"]
+    },
+    {
+      "id": "B",
+      "name": "B · The chandlery",
+      "axis": "Found by what it is for: 18 aisles in dealer words with drawings, the quote's boat held as a chip, tiles dragged into a tray that is the quote in printed order.",
+      "file": "b-the-chandlery.html",
+      "hand": "hand/b-the-chandlery-390.html",
+      "strip": "strip/b-the-chandlery.html",
+      "recommended": true,
+      "only": "The parts chapter is the catalogue: the same aisles inside a quote and on their own, learned once.",
+      "references": [
+        "docs/research/refs/choosing/live/toyota-hilux-accessories-scrolled.png",
+        "docs/research/refs/choosing/live/rivian-gearshop.png"
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "B · the chandlery on its own, the finish aisle, a dealer's picture",
+      "axis": "All 18 aisles with measured counts and pictured counts; the finish pressed as colour with the render under it; Northside's own picture on its Safety Gear · Smooth Waters set.",
+      "file": "b-the-chandlery-catalogue.html",
+      "only": "One chandlery in the main list and in the build.",
+      "references": ["docs/research/refs/choosing/live/bcf-boating.png"]
+    },
+    {
+      "id": "C",
+      "name": "C · The printed quote, being pinned",
+      "axis": "Found by picture, chosen on the card: three weights (picture cards, ticked lines, counted bands) beside a live outline of the printed quote whose sections reorder or stay off by drag or by press.",
+      "file": "c-the-printed-quote.html",
+      "hand": "hand/c-the-printed-quote-390.html",
+      "strip": "strip/c-the-printed-quote.html",
+      "only": "Builds the quote and its printed pages in one place.",
+      "references": [
+        "docs/research/refs/choosing/live/polestar-4-configure.png",
+        "docs/research/refs/choosing/dnd/atlassian-pdnd-guidelines.png"
+      ]
+    },
+    {
+      "id": "C2",
+      "name": "C · the catalogue in three weights, finishes as picture cards, a dealer's picture",
+      "axis": "Bands that state their count, picture cards inside; each Sport 560 colourway a card with its own render; the empty square on the Battery Box · Small card as the way to add a picture.",
+      "file": "c-the-printed-quote-catalogue.html",
+      "only": "Every card keeps its height, picture or not.",
+      "references": ["docs/research/refs/choosing/shop/shopify-bundles-app.png"]
+    }
+  ]
+}

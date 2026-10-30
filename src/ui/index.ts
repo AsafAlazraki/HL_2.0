@@ -48,6 +48,13 @@ export { Chapter, type ChapterProps } from './Chapter'
 export { Moving, type MovingProps } from './Moving'
 export { Dashes, type DashesProps } from './Dashes'
 export { Picture, sharedName, type PictureProps } from './Picture'
+export {
+  AddPicture,
+  type AddPictureProps,
+  type HeldOptionPicture,
+  type PictureStep,
+} from './AddPicture'
+export { ExpandPicture, Lightbox, type LightboxPicture, type LightboxProps } from './Lightbox'
 export { Band, Water, type BandProps } from './Band'
 export { MotionRoot, useStill } from './MotionRoot'
 export { morph, canMorph } from './transition'

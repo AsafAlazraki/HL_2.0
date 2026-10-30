@@ -36,6 +36,7 @@ import { useCallback, useMemo, type ReactNode } from 'react'
 import {
   ArrowUpRightIcon,
   CaretDownIcon,
+  MinusCircleIcon,
   CaretRightIcon,
   DatabaseIcon,
   ListBulletsIcon,
@@ -59,6 +60,7 @@ import {
   type BoatFit,
   type BoatFound,
   type ListFit,
+  type Place,
   type Opens,
   type TrailerMade,
 } from '@/domain/fitment/boat'
@@ -78,12 +80,16 @@ import {
 } from '@/domain/fitment/plate'
 import { spokenBoat } from '@/domain/quote/spoken'
 import { Whole } from './Whole'
+import { useFitChange, type FitRefusal } from './useFitChange'
+import type { FitWay } from '@/domain/fitment/change'
 import { AnotherBoat, ChooseABoat } from './Chooser'
 import './fitment.css'
 
 export type { Opens }
 
 export interface FitmentPosition {
+  maker?: string
+  model?: string
   boat?: string
   line?: string
   all?: string
@@ -94,6 +100,9 @@ export interface FitmentPosition {
 export interface FitmentProps {
   /** the boat, by its line on the price list; '' for none chosen */
   boat: string
+  /** before a boat is chosen, the maker and the model open in the chooser; '' for none */
+  maker?: string
+  model?: string
   /** the plate's pressed line: 'motor', 'trailer' or 'also'; '' for the first */
   line: string
   /** the place whose whole list is open: 'motor', 'trailer' or a list's id */
@@ -114,6 +123,8 @@ const count = (n: number): string => AU.format(n)
 
 export function Fitment({
   boat,
+  maker = '',
+  model = '',
   line,
   all,
   only,
@@ -144,6 +155,8 @@ export function Fitment({
     () => (fit && all !== '' ? readWhole(ctx, fit, all) : null),
     [ctx, fit, all],
   )
+  /* ONE PRESS PUTS A THING ON THIS BOAT OR TAKES IT OFF, with its Undo (exposure.md, blocker) */
+  const { change, refusal } = useFitChange(ctx, fit)
 
   /* THE BOATS ALREADY ON QUOTES HERE, most recent first, offered before a word is typed */
   const recent = useMemo<BoatFound[]>(() => {
@@ -210,7 +223,14 @@ export function Fitment({
         <div className="ft-top">
           <p className="ft-eyebrow">Fitment · what goes on a boat</p>
         </div>
-        <ChooseABoat world={ctx} onChoose={openBoat} recent={recent} missing={boat !== ''} />
+        <ChooseABoat
+          world={ctx}
+          onChoose={openBoat}
+          recent={recent}
+          missing={boat !== ''}
+          at={{ maker, model }}
+          onAt={(next) => onPosition(next)}
+        />
       </main>
     )
   }
@@ -249,6 +269,9 @@ export function Fitment({
           onClose={() => onPosition({ all: '', only: '', find: '' })}
           sheetHref={sheetHref}
           openSheet={openSheet}
+          boatName={fit.name}
+          onChange={change}
+          refusal={refusal}
         />
       ) : (
         <>
@@ -272,6 +295,8 @@ export function Fitment({
                   <MotorOpen
                     fit={fit}
                     ctx={ctx}
+                    change={change}
+                    refusal={refusal}
                     showAll={showAll}
                     sheetHref={sheetHref}
                     openSheet={openSheet}
@@ -281,13 +306,21 @@ export function Fitment({
                   <TrailerOpen
                     fit={fit}
                     ctx={ctx}
+                    change={change}
+                    refusal={refusal}
                     showAll={showAll}
                     sheetHref={sheetHref}
                     openSheet={openSheet}
                     openRules={openRules}
                   />
                 ) : (
-                  <AlsoOpen lists={fit.lists} showAll={showAll} />
+                  <AlsoOpen
+                    lists={fit.lists}
+                    showAll={showAll}
+                    boatName={fit.name}
+                    change={change}
+                    refusal={refusal}
+                  />
                 )}
               </motion.div>
             ) : null}
@@ -435,7 +468,12 @@ function Band({ tiles }: { tiles: MotorTiles }) {
 /* Under the Motor line                                         */
 /* ---------------------------------------------------------- */
 
-interface OpenProps {
+interface Changing {
+  change: (target: Place, way: FitWay) => void
+  refusal: FitRefusal | null
+}
+
+interface OpenProps extends Changing {
   fit: BoatFit
   ctx: CatalogueCtx
   showAll: (slot: string, group?: string) => void
@@ -444,7 +482,16 @@ interface OpenProps {
   openRules: () => void
 }
 
-function MotorOpen({ fit, ctx, showAll, sheetHref, openSheet, openRules }: OpenProps) {
+function MotorOpen({
+  fit,
+  ctx,
+  showAll,
+  sheetHref,
+  openSheet,
+  openRules,
+  change,
+  refusal,
+}: OpenProps) {
   const motor = fit.motor
   const tiles = useMemo(() => motorTiles(ctx, fit), [ctx, fit])
   /* THE REASONS AND THEIR ONE HEAD FIGURE, read in src/domain off the plate line's own pair */
@@ -497,6 +544,14 @@ function MotorOpen({ fit, ctx, showAll, sheetHref, openSheet, openRules }: OpenP
                 {t.made.rule && t.made.rule.because !== '' ? (
                   <p className="ft-tile__rule">{t.made.rule.because}</p>
                 ) : null}
+                <TakeOff
+                  name={t.model}
+                  boatName={fit.name}
+                  onAccent={t.made.starred}
+                  place={t.made.place}
+                  change={change}
+                  refusal={refusal}
+                />
               </li>
             )
           })}
@@ -519,7 +574,16 @@ function MotorOpen({ fit, ctx, showAll, sheetHref, openSheet, openRules }: OpenP
 /* Under the Trailer line: E's answer, on the true weight       */
 /* ---------------------------------------------------------- */
 
-function TrailerOpen({ fit, ctx, showAll, sheetHref, openSheet, openRules }: OpenProps) {
+function TrailerOpen({
+  fit,
+  ctx,
+  showAll,
+  sheetHref,
+  openSheet,
+  openRules,
+  change,
+  refusal,
+}: OpenProps) {
   const trailer = fit.trailer
   const held = useMemo(() => heldBack(ctx, fit, 'trailer'), [ctx, fit])
   const load = useMemo(() => loadOf(ctx, fit), [ctx, fit])
@@ -571,6 +635,9 @@ function TrailerOpen({ fit, ctx, showAll, sheetHref, openSheet, openRules }: Ope
               offeredInstead={shown.some((o) => o.crosses && o.key !== t.key)}
               sheetHref={sheetHref}
               openSheet={openSheet}
+              boatName={fit.name}
+              change={change}
+              refusal={refusal}
             />
           ))}
         </ul>
@@ -601,7 +668,11 @@ function TrailerTile({
   offeredInstead,
   sheetHref,
   openSheet,
-}: {
+  boatName,
+  change,
+  refusal,
+}: Changing & {
+  boatName: string
   t: TrailerMade
   tow: Tow | null
   scale: number
@@ -666,6 +737,13 @@ function TrailerTile({
         </span>
       ) : null}
       {rule === '' ? null : <p className="ft-trl__rule">{rule}</p>}
+      <TakeOff
+        name={t.name}
+        boatName={boatName}
+        place={t.place}
+        change={change}
+        refusal={refusal}
+      />
     </li>
   )
 }
@@ -677,7 +755,11 @@ function TrailerTile({
 function AlsoOpen({
   lists,
   showAll,
-}: {
+  boatName,
+  change,
+  refusal,
+}: Changing & {
+  boatName: string
   lists: ListFit[]
   showAll: (slot: string, group?: string) => void
 }) {
@@ -726,6 +808,13 @@ function AlsoOpen({
                         {m.rule && m.rule.because !== '' ? (
                           <span className="ft-tile__rule">{m.rule.because}</span>
                         ) : null}
+                        <TakeOff
+                          name={m.name}
+                          boatName={boatName}
+                          place={m.place}
+                          change={change}
+                          refusal={refusal}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -735,6 +824,39 @@ function AlsoOpen({
           })}
       </div>
     </section>
+  )
+}
+
+/** THE PRESS THAT TAKES ONE THING OFF THIS BOAT, on the thing's own tile, and the sentence
+ *  where a press was refused. Putting one on is in Show all, beside each thing not made for
+ *  it, so the plate shows what goes on and the whole list what could. */
+function TakeOff({
+  name,
+  boatName,
+  place,
+  change,
+  refusal,
+  onAccent = false,
+}: Changing & { name: string; boatName: string; place: Place; onAccent?: boolean }) {
+  return (
+    <span className="ft-off">
+      <Button
+        /* the recommended tile stands in the accent, where a quiet ink would not read: there the
+           press is the kit's white plate */
+        intent={onAccent ? 'veiled' : 'quiet'}
+        size="sm"
+        icon={MinusCircleIcon}
+        onClick={() => change(place, 'off')}
+        aria-label={`Take the ${name} off what goes on the ${boatName}`}
+      >
+        Take it off
+      </Button>
+      {refusal?.rowId === place.rowId ? (
+        <span className="ft-off__why" role="alert">
+          {refusal.why}
+        </span>
+      ) : null}
+    </span>
   )
 }
 

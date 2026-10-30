@@ -145,6 +145,8 @@ export interface PackTable {
 export interface FleetIndex {
   /** `table::model name` → the model */
   models: Map<string, FleetModel>
+  /** the registers whose models are things a dealer fits, one name each (`fitItemsOf`) */
+  fit: Set<string>
   tables: Record<string, PackTable>
   rowsByEntity: Record<string, PackRow[]>
   /** the price file's own picture address on a row, or '' */
@@ -197,6 +199,9 @@ export async function fleetIndex(): Promise<FleetIndex> {
   const depicts = await appModule<Pick<FleetIndex, 'namesOfRow' | 'depictionOf'>>(
     'src/domain/catalogue/depicts.ts',
   )
+  const { fitItemsOf } = await appModule<{
+    fitItemsOf: (t: Record<string, PackTable>, r: Record<string, PackRow[]>) => FleetModel[]
+  }>('src/domain/catalogue/fitItems.ts')
   const pack = await loadPack()
   const tables: Record<string, PackTable> = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
   const models = new Map<string, FleetModel>()
@@ -204,6 +209,14 @@ export async function fleetIndex(): Promise<FleetIndex> {
     for (const brand of fleetOf(tables, pack.rowsByEntity, kind).brands) {
       for (const m of brand.models) models.set(`${m.tableId}::${m.name}`, m)
     }
+  }
+  /* A PART IS ITS OWN MODEL: one name in one fit register, and the rows that carry that name
+     (`fitItemsOf`). Parts, packages, rigging kits and consumables have no picker to collapse
+     them, so the domain names them for the ledger instead. */
+  const fit = new Set<string>()
+  for (const m of fitItemsOf(tables, pack.rowsByEntity)) {
+    models.set(`${m.tableId}::${m.name}`, m)
+    fit.add(m.tableId)
   }
   const addressOf = (table: string, rowId: string): string => {
     const field = tables[table]?.fields?.find((f) => f.type === 'image')?.id
@@ -213,6 +226,7 @@ export async function fleetIndex(): Promise<FleetIndex> {
   }
   return {
     models,
+    fit,
     tables,
     rowsByEntity: pack.rowsByEntity,
     addressOf,
@@ -239,6 +253,8 @@ export function exactRowsOf(index: FleetIndex, j: Judged, models: FleetModel[]):
   if (j.scope === 'hull' || models.length !== 1) return []
   const model = models[0]!
   if (model.variants.length === 1) return [model.variants[0]!.rowId]
+  /* a part the file names twice is one item said twice: its picture shows every row of it */
+  if (index.fit.has(j.table)) return model.variants.map((v) => v.rowId)
   const named = new Set([...j.depicts.matchAll(/\b([a-z]+_[a-z]+:\d+)\b/g)].map((m) => m[1]!))
   /* the judge's shorthand ":259" after a full id names a row of the same register */
   for (const m of j.depicts.matchAll(/(?:,|and|\()\s*:(\d+)\b/g)) named.add(`${j.table}:${m[1]}`)

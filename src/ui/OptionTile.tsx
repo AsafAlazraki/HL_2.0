@@ -4,6 +4,7 @@ import { useId, type ReactNode } from 'react'
 import type { TableKind } from '@/domain/model'
 import { Icon } from './Icon'
 import { KindMark } from './KindMark'
+import { ExpandPicture } from './Lightbox'
 import { Picture } from './Picture'
 import { Refusal } from './Refusal'
 import { describedBy } from './refuse'
@@ -56,6 +57,12 @@ export interface OptionTileProps {
   label?: string
   /** One of a long list: its picture is fetched only as it nears the window (`Picture`). */
   lazy?: boolean
+  /** THE PICTURE, LARGE (the owner, 2026-10-30): where the tile has a picture, a round press over
+   *  its corner opens it in the `Lightbox`. Its own button beside the tile's, never inside it. */
+  expand?: { label: string; onExpand: () => void }
+  /** THE PRICE LIST RECOMMENDS IT: the tile wears the recommendation's edge, so the one press
+   *  that puts it on is the first one the eye finds (the flow walk: nothing goes on by itself). */
+  recommended?: boolean
 }
 
 export function OptionTile({
@@ -72,12 +79,14 @@ export function OptionTile({
   refusedBy,
   label,
   lazy,
+  expand,
+  recommended,
 }: OptionTileProps) {
   const reasonId = useId()
   const refused = Boolean(refusedBecause) || Boolean(refusedBy)
   const saidAt = refusedBecause ? reasonId : refusedBy
   return (
-    <span className="ui-option-frame">
+    <span className="ui-option-frame" data-recommended={recommended ? '' : undefined}>
       <BaseButton
         className="ui-option"
         aria-pressed={selected}
@@ -117,6 +126,11 @@ export function OptionTile({
           )}
         </span>
       </BaseButton>
+      {expand && picture ? (
+        <span className="ui-option-expand">
+          <ExpandPicture label={expand.label} onExpand={expand.onExpand} />
+        </span>
+      ) : null}
       {refusedBecause ? <Refusal id={reasonId}>{refusedBecause}</Refusal> : null}
     </span>
   )

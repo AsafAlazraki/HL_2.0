@@ -1,13 +1,30 @@
-import { dexieCatalogue, dexieOrg, dexieQuotes, sharedDatabase } from './dexie/repositories'
+import {
+  dexieCatalogue,
+  dexieOrg,
+  dexieOwnPictures,
+  dexieQuotes,
+  sharedDatabase,
+} from './dexie/repositories'
 import { createMemoryDatabase, type MemoryDatabase } from './memory/database'
-import { memoryCatalogue, memoryOrg, memoryQuotes } from './memory/repositories'
-import type { CatalogueRepository, OrgRepository, QuoteRepository } from './repository'
+import {
+  memoryCatalogue,
+  memoryOrg,
+  memoryOwnPictures,
+  memoryQuotes,
+} from './memory/repositories'
+import type {
+  CatalogueRepository,
+  OrgRepository,
+  OwnPictureRepository,
+  QuoteRepository,
+} from './repository'
 
 export type {
   CatalogueMeta,
   CatalogueRepository,
   Filed,
   OrgRepository,
+  OwnPictureRepository,
   QuoteRepository,
   RecordStore,
   RowStore,
@@ -33,6 +50,8 @@ export interface Repositories {
   quotes: QuoteRepository
   /** Northside's own details, people and look (Milestone 4), beside the sheet and never in it */
   org: OrgRepository
+  /** the pictures Northside added to its options, beside the sheet and never in it */
+  pictures: OwnPictureRepository
 }
 
 /** vitest sets `MODE` to 'test' on every file it runs; the built app
@@ -66,6 +85,7 @@ export function repositories(orgId: string): Repositories {
       catalogue: memoryCatalogue(orgId, { db: memoryDb }),
       quotes: memoryQuotes(orgId, { db: memoryDb }),
       org: memoryOrg(orgId, { db: memoryDb }),
+      pictures: memoryOwnPictures(orgId, { db: memoryDb }),
     }
   } else {
     const db = sharedDatabase()
@@ -74,6 +94,7 @@ export function repositories(orgId: string): Repositories {
       catalogue: dexieCatalogue(orgId, { db }),
       quotes: dexieQuotes(orgId, { db }),
       org: dexieOrg(orgId, { db }),
+      pictures: dexieOwnPictures(orgId, { db }),
     }
   }
   held.set(orgId, made)

@@ -7,6 +7,7 @@ import {
   type CatalogueRepository,
   type Filed,
   type OrgRepository,
+  type OwnPictureRepository,
   type QuoteRepository,
   type RecordStore,
   type RowStore,
@@ -415,4 +416,14 @@ export function dexieOrg(orgId: string, options: DexieRepositoryOptions = {}): O
       await db.org.delete(orgId)
     },
   }
+}
+
+/** The pictures Northside added to its options: one store, its own write queue, never wiped
+ *  with the sheet. */
+export function dexieOwnPictures(
+  orgId: string,
+  options: DexieRepositoryOptions = {},
+): OwnPictureRepository {
+  const db = options.db ?? sharedDatabase()
+  return new DexieStore(db.ownPictures, orgId, 'picture', new WriteQueue())
 }

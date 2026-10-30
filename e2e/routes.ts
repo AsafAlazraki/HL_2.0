@@ -122,27 +122,15 @@ export const routes: Route[] = [
   {
     path: '/quotes',
     name: 'quotes',
-    /* THE FIRST COCKPIT SCREEN, and it is one: dense, worked in, and
-       it owes eighteen rows at 1280×800.
-
-       IT IS REACHED WITH A DOCUMENT ON IT, from 2026-09-22. Until then
-       every ruler opened a browser nobody had used and `density` read
-       "6 rows" off an empty register — three band heads and three
-       notices — a number that meant nothing either way, and the day
-       the walk could mint a quote it was the one red line on the gate.
-       Now the walk mints one and the ruler reads the pitch of that
-       real row against the room `.qr-list` has once it is full — the
-       act row under it is pushed to the foot of the frame and comes off
-       the figure by itself. The ruler is the only density reading of
-       this screen; `e2e/flows/quotes.spec.ts` no longer adds up its own. */
-    register: 'cockpit',
-    /* the register, ONCE IT HAS READ THIS BROWSER: `data-read` is the
-       store's own `loaded`. The main element is on the page before the
-       read lands, and a ruler that measured then counted the band heads
-       and not the document the walk had just filed. */
+    /* IT IS REACHED WITH A DOCUMENT ON IT, from 2026-09-22: the walk mints one, so the rulers
+       read a real deal rather than an empty desk. */
+    /* A DESK OF DEALS FROM 2026-10-30, NOT A COCKPIT: the owner's "i dont like the quotes home
+       page" redesigned it as one card per deal led by its picture, its customer and its total
+       (docs/DECISIONS.md), so the eighteen-row density a ledger owed is no longer its measure. */
+    register: 'showroom',
+    /* the desk, ONCE IT HAS READ THIS BROWSER: `data-read` is the store's own `loaded` */
     ready: '[data-testid="quotes"][data-read]',
     arrive: 'with-a-document',
-    density: { list: '.qr-list' },
   },
   {
     /* THE PICKER, and it is a Showroom screen rather than a Cockpit

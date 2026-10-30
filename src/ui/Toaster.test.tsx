@@ -94,6 +94,28 @@ describe('Toaster', () => {
     await waitFor(() => expect(screen.queryByTestId('taken')).not.toBeInTheDocument())
   })
 
+  test('a place that speaks again while its last card is leaving is heard', async () => {
+    // measured at 1440 and 1920 (the flow round's verify): the motor's step taken away as Who it
+    // is for opened, and the name saved in that beat, said nothing and offered no Undo
+    render(<Toaster />)
+    act(() => {
+      undo('Yamaha F8LMHB put on the quote', () => undefined, { id: 'step:three', testId: 'again' })
+    })
+    expect(await screen.findByTestId('again')).toHaveTextContent('F8LMHB')
+    act(() => {
+      unsay('step:three')
+    })
+    // a frame later the card is marked to go and its exit is running: the beat the name lands in
+    await act(() => new Promise((r) => setTimeout(r, 60)))
+    act(() => {
+      undo('For R. Kelleher', () => undefined, { id: 'step:three', testId: 'again' })
+    })
+    await waitFor(() => expect(screen.getByText('For R. Kelleher')).toBeInTheDocument())
+    await new Promise((r) => setTimeout(r, 800))
+    expect(screen.getByText('For R. Kelleher')).toBeInTheDocument()
+    expect(screen.queryByText('Yamaha F8LMHB put on the quote')).toBeNull()
+  })
+
   test('binds the figure at the end of a step to its words, and changes no word', () => {
     const NB = String.fromCharCode(160)
     const said = 'Yamaha F175XC taken off the quote · $25,355'

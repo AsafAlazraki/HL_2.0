@@ -1,0 +1,191 @@
+[
+  {
+    "id": "tesla-shop-accessories",
+    "url": "https://shop.tesla.com/category/vehicle-accessories",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://shop.tesla.com/category/vehicle-accessories",
+    "title": "Access Denied",
+    "file": "tesla-shop-accessories.png"
+  },
+  {
+    "id": "polestar-accessories",
+    "url": "https://www.polestar.com/au/accessories/",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.polestar.com/au/accessories/",
+    "title": "Pure progressive performance | Polestar",
+    "file": "polestar-accessories.png"
+  },
+  {
+    "id": "rivian-accessories",
+    "url": "https://rivian.com/accessories",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://rivian.com/accessories",
+    "title": "404 - Rivian",
+    "file": "rivian-accessories.png"
+  },
+  {
+    "id": "bmw-accessories",
+    "url": "https://www.bmw.com.au/en/topics/offers-and-services/original-bmw-accessories/overview.html",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.bmw.com.au/en/topics/offers-and-services/original-bmw-accessories/overview.html",
+    "title": "",
+    "file": "bmw-accessories.png"
+  },
+  {
+    "id": "volvo-accessories",
+    "url": "https://www.volvocars.com/au/accessories/",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.volvocars.com/au/accessories/",
+    "title": "Access Denied",
+    "file": "volvo-accessories.png"
+  },
+  {
+    "id": "toyota-hilux-accessories",
+    "url": "https://www.toyota.com.au/hilux/accessories",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.toyota.com.au/hilux/accessories",
+    "title": "HiLux Accessories | Bull Bars, Roof Racks, Canopies, Seat Covers and More | Toyota Australia",
+    "file": "toyota-hilux-accessories.png"
+  },
+  {
+    "id": "landrover-defender-accessories",
+    "url": "https://www.landrover.com.au/vehicles/defender/accessories.html",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.landrover.com.au/vehicles/defender/accessories.html",
+    "title": "Page Not Found - Land Rover",
+    "file": "landrover-defender-accessories.png"
+  },
+  {
+    "id": "axopar-configurator-full",
+    "url": "https://www.axopar.com/configurator/",
+    "fullPage": true,
+    "wait": 4000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.axopar.com/configurator/",
+    "title": "Configure Your Axopar – Axopar Boats",
+    "file": "axopar-configurator-full.png"
+  },
+  {
+    "id": "seadoo-build-price",
+    "url": "https://sea-doo.brp.com/us/en/build-and-price.html",
+    "wait": 3000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://sea-doo.brp.com/us/en/build-and-price.html",
+    "title": "Error 404 - Sea-Doo",
+    "file": "seadoo-build-price.png"
+  },
+  {
+    "id": "seadoo-accessories",
+    "url": "https://sea-doo.brp.com/us/en/accessories.html",
+    "wait": 3000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://sea-doo.brp.com/us/en/accessories.html",
+    "title": "Error 404 - Sea-Doo",
+    "file": "seadoo-accessories.png"
+  },
+  {
+    "id": "yamaha-waverunner-accessories",
+    "url": "https://www.yamahawaverunners.com/accessories",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.yamahawaverunners.com/accessories",
+    "title": "404",
+    "file": "yamaha-waverunner-accessories.png"
+  },
+  {
+    "id": "boatsnet-yamaha-diagrams",
+    "url": "https://www.boats.net/catalog/yamaha/outboard",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.boats.net/catalog/yamaha/outboard",
+    "title": "Just a moment...",
+    "file": "boatsnet-yamaha-diagrams.png"
+  },
+  {
+    "id": "westmarine-outfitting",
+    "url": "https://www.westmarine.com/boat-outfitting/",
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.westmarine.com/boat-outfitting/",
+    "title": "Sites-WestMarine-Site",
+    "file": "westmarine-outfitting.png"
+  },
+  {
+    "id": "polestar-4-configure",
+    "url": "https://www.polestar.com/au/configure/polestar-4-suv/",
+    "fullPage": true,
+    "wait": 6000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.polestar.com/au/configure/polestar-4-suv?customerSubtype=None&customerType=B2C&productType=Cash&state=eyJFIjp7ImUiOm51bGx9LCJTIjoiODE1UEJQQjBMMjQ2MzcxMDBQMDQzMDBfQTAxNTM3WFBJTE9UX19KRzIxIn0%3D",
+    "title": "Configure your Polestar 4 SUV online | Polestar Australia",
+    "file": "polestar-4-configure.png"
+  },
+  {
+    "id": "yamaha-waverunner-build",
+    "url": "https://www.yamahawaverunners.com/build-and-price/",
+    "wait": 5000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.yamahawaverunners.com/build-and-price/",
+    "title": "Build and Price | Yamaha WaveRunners",
+    "file": "yamaha-waverunner-build.png"
+  },
+  {
+    "id": "yamaha-waverunner-shop-accessories",
+    "url": "https://yamaha-motor.com/shop/waverunner/accessories",
+    "wait": 4000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://yamaha-motor.com/shop/waverunner/accessories",
+    "title": "Accessories | Yamaha Motor Corporation, U.S.A.",
+    "file": "yamaha-waverunner-shop-accessories.png"
+  },
+  {
+    "id": "seadoo-accessories-au",
+    "url": "https://sea-doo.brp.com/au/en/accessories-parts-gear.html",
+    "wait": 4000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://sea-doo.brp.com/au/en/accessories-parts-gear.html",
+    "title": "Sea-Doo: Accessories, Parts and Riding Gear - Sea-Doo",
+    "file": "seadoo-accessories-au.png"
+  },
+  {
+    "id": "rivian-gearshop",
+    "url": "https://gearshop.rivian.com/",
+    "wait": 3000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://gearshop.rivian.com/",
+    "title": "Rivian Gear Shop | Adventure Gear, Apparel & Accessories",
+    "file": "rivian-gearshop.png"
+  },
+  {
+    "id": "whitworths-home",
+    "url": "https://www.whitworths.com.au/",
+    "wait": 3000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.whitworths.com.au/",
+    "title": "Boat Accessories - Buy High-Quality Boat Accessories Online",
+    "file": "whitworths-home.png"
+  },
+  {
+    "id": "bcf-boating",
+    "url": "https://www.bcf.com.au/boating",
+    "wait": 3000,
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.bcf.com.au/boating",
+    "title": "Boat Accessories, Gear & Supplies Online Australia | BCF",
+    "file": "bcf-boating.png"
+  },
+  {
+    "id": "toyota-hilux-accessories-scrolled",
+    "url": "https://www.toyota.com.au/hilux/accessories",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1300
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-10-30",
+    "finalUrl": "https://www.toyota.com.au/hilux/accessories",
+    "title": "HiLux Accessories | Bull Bars, Roof Racks, Canopies, Seat Covers and More | Toyota Australia",
+    "file": "toyota-hilux-accessories-scrolled.png"
+  }
+]

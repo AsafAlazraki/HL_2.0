@@ -1,0 +1,203 @@
+/* A PICTURE, LARGE (Lightbox.tsx). The room behind it falls to the navy, deeper than a dialog's,
+   because a photograph reads against dark; the picture stands on the kit's white plate with its
+   name and where it came from over it and, where the chapter holds more than one, the way to the
+   next under it. Above the shell, as every dialog is (dialog.css). It fades in; only where
+   movement is asked for does the plate also rise 8px out of 98%. */
+.ui-lightbox-backdrop {
+  z-index: 60;
+  position: fixed;
+  inset: 0;
+  background: --alpha(var(--color-neutral-950) / 72%);
+  transition: opacity var(--duration-sheet) var(--ease-out);
+}
+.ui-lightbox-backdrop[data-starting-style],
+.ui-lightbox-backdrop[data-ending-style] {
+  opacity: 0;
+}
+
+.ui-lightbox {
+  z-index: 60;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+  inline-size: fit-content;
+  min-inline-size: min(calc(100vw - --spacing(8)), --spacing(80));
+  max-inline-size: calc(100vw - --spacing(8));
+  block-size: fit-content;
+  max-block-size: calc(100dvh - --spacing(8));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: --spacing(3);
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-lg);
+  outline: none;
+  transition: opacity var(--duration-sheet) var(--ease-out);
+}
+.ui-lightbox[data-starting-style],
+.ui-lightbox[data-ending-style] {
+  opacity: 0;
+}
+.ui-lightbox[data-ending-style],
+.ui-lightbox-backdrop[data-ending-style] {
+  transition-duration: var(--duration-enter);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-lightbox {
+    transition:
+      opacity var(--duration-sheet) var(--ease-out),
+      transform var(--duration-sheet) var(--ease-out);
+  }
+  .ui-lightbox[data-starting-style],
+  .ui-lightbox[data-ending-style] {
+    transform: translateY(--spacing(2)) scale(0.98);
+  }
+}
+
+.ui-lightbox-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: --spacing(4);
+  padding-inline-start: --spacing(1);
+}
+.ui-lightbox-words {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.ui-lightbox-title {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  text-wrap: pretty;
+}
+.ui-lightbox-credit {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.ui-lightbox-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-block-size: --spacing(10);
+  border: 0;
+  padding: 0 --spacing(4) 0 --spacing(3);
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink-file);
+  background: var(--color-wash);
+  cursor: pointer;
+}
+.ui-lightbox-close:focus-visible,
+.ui-lightbox-step:focus-visible,
+.ui-expand:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* THE PICTURE AT ITS OWN SIZE OR SMALLER: the held pixels are the ceiling (`--held-w`, `--held-h`
+   handed in by the primitive), and the window less the plate's words is the other. A render on
+   white sits on the plate as it is; nothing is cropped. */
+.ui-lightbox-figure {
+  display: grid;
+  place-items: center;
+  min-block-size: 0;
+  margin: 0;
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.ui-lightbox-img {
+  --held-w: 100%;
+  --held-h: 100%;
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: min(100%, var(--held-w));
+  max-block-size: min(var(--held-h), calc(100dvh - --spacing(48)));
+  object-fit: contain;
+  user-select: none;
+}
+
+.ui-lightbox-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: --spacing(4);
+}
+.ui-lightbox-count {
+  margin: 0;
+  min-inline-size: --spacing(32);
+  text-align: center;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.ui-lightbox-step {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(11);
+  block-size: --spacing(11);
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-lightbox-step:hover,
+  .ui-lightbox-close:hover {
+    background: var(--color-wash);
+  }
+}
+
+/* THE PRESS THAT OPENS A PICTURE LARGE (`ExpandPicture`): a round white button with the two
+   arrows going out, standing over a picture's corner wherever the screen puts it. 36px, and the
+   whole of it is the target. */
+.ui-expand {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(9);
+  block-size: --spacing(9);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  background: --alpha(var(--color-plate) / 92%);
+  box-shadow:
+    0 0 0 1px var(--color-rule-strong),
+    var(--shadow-lift);
+  cursor: zoom-in;
+  transition: background-color var(--duration-hover) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-expand:hover {
+    background: var(--color-plate);
+    color: var(--color-ink-file);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-expand {
+    transition:
+      background-color var(--duration-hover) var(--ease-out),
+      transform var(--duration-press) var(--ease-out);
+  }
+  .ui-expand:active,
+  .ui-lightbox-step:active {
+    transform: scale(0.94);
+  }
+}

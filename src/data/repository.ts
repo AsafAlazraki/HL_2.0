@@ -13,6 +13,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { OwnPicture } from '@/domain/model/ownPictures'
 
 /* ============================================================
    THE PERSISTENCE SEAM.
@@ -157,6 +158,11 @@ export function newestFirst(quotes: readonly QuoteDef[]): QuoteDef[] {
     (a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id),
   )
 }
+
+/** THE PICTURES NORTHSIDE ADDED TO ONE OPTION EACH (`@/domain/model/ownPictures`), their bytes
+ *  in the record. Beside the sheet and never in it, like Northside's settings: a sheet wipe and
+ *  putting the price list back cannot reach them, because they are behind their own interface. */
+export type OwnPictureRepository = RecordStore<OwnPicture>
 
 /* ---------------------------------------------------------- */
 /* Declared now, implemented in Milestones 4–6                  */

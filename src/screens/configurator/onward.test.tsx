@@ -8,13 +8,14 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
-import { Toaster } from '@/ui'
 import { mintQuote } from '@/domain/quote'
 import { Configurator } from './Configurator'
 import { readRail } from './chapters'
 
 /* ============================================================
-   THE BUILD MOVES ON TO WHAT IS LEFT, NEVER BACK TO THE HULL.
+   THE BUILD OPENS ON THE HULL AND MOVES ONLY WHEN THE DEALER MOVES IT
+   (the owner, 2026-10-30). Until that day it moved on to what was left
+   and never back to the hull:
 
    m2-last-critique.md, major 3: "Arriving from the picker (no ?at=),
    the motor chapter is open. After the F250XCB is pressed, the default
@@ -93,71 +94,33 @@ beforeAll(async () => {
 })
 
 describe('arriving from the picker, with no position in the address', () => {
-  it('opens on 02 Motor, the one band the picker leaves empty on the ADV7', () => {
+  /* THE OWNER, 2026-10-30: "always hull expanded first". The build opens on the boat, and moves
+     on only when the dealer presses another chapter — never by itself (the flow walk: the first
+     part pressed closed Dealer fit and jumped to Who it is for, and the behaviour changed under
+     the finger). */
+  it('opens on 01 The hull, whatever band is still empty', () => {
     const quote = theAdv7()
     const rail = railFor(quote)
-    const empty = rail.chapters.filter((c) => c.kind === 'band' && c.lines === 0)
-    expect(empty.map((c) => c.id)).toEqual(['motor'])
+    expect(rail.chapters.some((c) => c.kind === 'band' && c.lines === 0)).toBe(true)
     render(<Configurator quoteId={quote.id} />)
-    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(HULL)).toHaveAttribute('aria-expanded', 'false')
-  })
-
-  it('moves on to Who it is for when the motor goes on — and never opens the hull’s finishes', async () => {
-    const quote = theAdv7()
-    render(<Configurator quoteId={quote.id} />)
-    await userEvent.click(aMotor())
-
-    const after = railFor(quote)
-    expect(after.chapters.find((c) => c.id === 'motor')!.lines).toBe(1)
-    expect(head(WHO)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(HULL)).toHaveAttribute('aria-expanded', 'false')
+    expect(head(HULL)).toHaveAttribute('aria-expanded', 'true')
     expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'false')
-    /* the folded motor chapter states what went on it */
-    expect(head(MOTOR)).toHaveTextContent(after.chapters.find((c) => c.id === 'motor')!.fact)
-    /* the hull's finishes are not drawn: its chapter is shut */
-    const hull = screen.getByRole('region', { name: /01 The hull/ })
-    expect(within(hull).queryAllByRole('button', { pressed: true })).toEqual([])
-    /* the name is the next thing asked */
-    expect(screen.getByLabelText('Who the quote is for')).toBeInTheDocument()
   })
 
-  it('puts the keyboard on the chapter it moved to, not on the page’s body', async () => {
+  it('stays on the hull when a write answers the empty band, and moves on only by a press', async () => {
     const quote = theAdv7()
-    render(<Configurator quoteId={quote.id} />)
-    const motor = aMotor()
-    motor.focus()
-    await userEvent.keyboard('{Enter}')
-    expect(head(WHO)).toHaveAttribute('aria-expanded', 'true')
-    expect(document.activeElement).toBe(head(WHO))
-  })
-
-  it('moves on to the finale once the quote is addressed, where it is given', async () => {
-    const quote = theAdv7()
-    render(<Configurator quoteId={quote.id} />)
+    const goTo = (at: string): void => {
+      view.rerender(<Configurator quoteId={quote.id} at={at} />)
+    }
+    const view = render(<Configurator quoteId={quote.id} goTo={goTo} />)
+    await userEvent.click(head(MOTOR))
+    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
     await userEvent.click(aMotor())
-    await userEvent.type(screen.getByLabelText('Who the quote is for'), 'R. Kelleher')
-    await userEvent.click(screen.getByRole('button', { name: 'Put their name on it' }))
-    expect(head(FINALE)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(WHO)).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.getByRole('button', { name: 'Give it to the customer' })).toBeInTheDocument()
-  })
-
-  it('opens the motor again when the Undo takes it off', async () => {
-    const quote = theAdv7()
-    /* the step's Undo is the kit's toast, drawn by the one Toaster the root mounts */
-    render(
-      <>
-        <Configurator quoteId={quote.id} />
-        <Toaster />
-      </>,
-    )
-    await userEvent.click(aMotor())
-    await userEvent.click(
-      within(await screen.findByTestId('last-step')).getByRole('button', { name: 'Undo' }),
-    )
+    /* the motor went on, and the chapter the dealer opened stays open under the press */
+    expect(railFor(quote).chapters.find((c) => c.id === 'motor')!.lines).toBe(1)
     expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
     expect(head(WHO)).toHaveAttribute('aria-expanded', 'false')
+    expect(head(FINALE)).toHaveAttribute('aria-expanded', 'false')
   })
 })
 

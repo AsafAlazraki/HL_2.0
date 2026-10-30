@@ -55,6 +55,7 @@
 
 import type { ImageRef } from '@/domain/model'
 import { newId } from '@/domain/id'
+import { sizeSay } from './size'
 
 /* ============================================================
    MAY THIS ADDRESS BE STORED AT ALL — the scheme question, and only
@@ -107,12 +108,7 @@ export const LOGO_REFUSE_BYTES = 32 * 1024 * 1024
 
 /** A file size a person would recognise. Mono figures elsewhere; this
  *  is the string that goes INSIDE a sentence, so it carries its unit. */
-export function sizeSay(bytes: number): string {
-  if (bytes < 1024) return `${Math.max(0, Math.round(bytes))} bytes`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-  const mb = bytes / (1024 * 1024)
-  return `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`
-}
+export { sizeSay }
 
 /** How many bytes a `data:` URL really occupies. Base64 is 4 characters
  *  per 3 bytes, minus the padding — used to report what a shrink

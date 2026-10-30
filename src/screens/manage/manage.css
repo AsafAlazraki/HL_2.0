@@ -975,3 +975,20 @@
     padding-inline: --spacing(16);
   }
 }
+
+/* WHO IS AT THIS DESK, and the way to hand it to someone else (the flow round, 2026-10-30): one
+   line under the people's head, the sentence then its act, wrapping under it on a phone */
+.mg-desk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  margin: 0 0 --spacing(3);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.mg-desk b {
+  color: var(--color-ink);
+  font-weight: 600;
+}

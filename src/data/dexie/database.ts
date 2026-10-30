@@ -13,6 +13,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { OwnPicture } from '@/domain/model/ownPictures'
 import type { CatalogueMeta } from '../repository'
 
 /* ============================================================
@@ -63,6 +64,8 @@ export type HLDatabase = Dexie & {
   quotes: Records<QuoteDef>
   /** Northside's own details, people and look (Milestone 4): one per organisation */
   org: Records<OrgRecord>
+  /** the pictures Northside added to one option each, bytes in the record (2026-10-30) */
+  ownPictures: Records<OwnPicture>
 }
 
 /** NORTHSIDE AS IT HAS SET ITSELF, kept at `id = orgId` beside the sheet and never in it: a
@@ -100,6 +103,9 @@ export function openDatabase(name: string = DATABASE_NAME, options: DexieOptions
   /* VERSION 2 ADDS ONE TABLE AND MIGRATES NOTHING (2026-10-29): Northside's settings, which no
      earlier version held, so there is nothing to carry across and no upgrade() to argue about. */
   db.version(2).stores({ org: 'id, orgId' })
+  /* VERSION 3 ADDS ONE TABLE AND MIGRATES NOTHING (2026-10-30): the pictures Northside adds to
+     its options, which no earlier version held. Not a catalogue table, so no wipe reaches it. */
+  db.version(3).stores({ ownPictures: 'id, orgId' })
   return db
 }
 

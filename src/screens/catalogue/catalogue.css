@@ -1,0 +1,80 @@
+@reference '../../styles/app.css';
+
+/* ============================================================
+   /catalogue (Catalogue.tsx) — the chandlery's own page: a head on the
+   room's plain ground and the chandlery under it, in the page's
+   measure. The chandlery draws itself (chandlery.css).
+
+   THE REFLOW: the gutter is 16px in a hand (390 × 844), 32 on a
+   tablet and a phone turned over (834 × 1112, 844 × 390), 56 at a desk
+   (1280 × 800, 1440 × 900) and the measure stops at 90rem, centred, at
+   1920 × 1080. The head clears the shell's pill where it floats at the
+   top, and the page clears its tab bar where it stands at the foot.
+   ============================================================ */
+.catp {
+  --gutter: --spacing(14);
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: --spacing(360);
+  min-block-size: 100dvh;
+  margin-inline: auto;
+  padding: max(--spacing(6), var(--shell-inset)) var(--gutter)
+    calc(var(--shell-foot) + --spacing(16));
+  display: grid;
+  align-content: start;
+  gap: --spacing(6);
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
+.catp-head {
+  display: grid;
+  gap: --spacing(2);
+}
+.catp-eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.catp-title {
+  margin: 0;
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+}
+.catp-lede {
+  margin: 0;
+  max-inline-size: --spacing(160);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.catp-none {
+  display: grid;
+  gap: --spacing(3);
+  justify-items: start;
+  margin: 0;
+  color: var(--color-ink-2);
+}
+.catp-none > p {
+  margin: 0;
+}
+@media (max-width: 1199.98px) {
+  .catp {
+    --gutter: --spacing(8);
+  }
+}
+@media (max-width: 639.98px) {
+  .catp {
+    --gutter: --spacing(4);
+  }
+  .catp-title {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+}
