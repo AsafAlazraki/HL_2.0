@@ -5,7 +5,6 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { cardName } from '../mint'
 import { acrossTheBar } from '../fold'
-import { openingOnASeparator, setNames } from '../lines'
 import { decodePng } from '../rulers/measure/pixels'
 import { wearTheme } from '../rulers/measure/read'
 import { THEMES } from '../rulers/measure/theme'
@@ -198,7 +197,7 @@ test('the picker opens on the makers, each a door with its models counted off th
   await expect(page.getByText(`${au(MODELS)} models`)).toHaveCount(0)
   await expect(page.getByText(`${RUNG} prices`)).toHaveCount(0)
 
-  const doors = page.getByRole('region', { name: 'Makers' })
+  const doors = page.getByRole('region', { name: 'Boats' })
   for (const table of boats) {
     await expect(
       doors.getByRole('button', {
@@ -217,7 +216,7 @@ test('pressing a door puts the maker in the address and lists its boats with the
   await openPicker(page)
   const table = boats.find((t) => t.id === HIGHFIELD) as Table
   await page
-    .getByRole('region', { name: 'Makers' })
+    .getByRole('region', { name: 'Boats' })
     .getByRole('button', { name: new RegExp(`^${escapeRe(table.name)},`) })
     .click()
 
@@ -247,16 +246,15 @@ test('says nothing about rows, registers or rungs at any stage', async ({ page }
   expect(await words(), 'a maker').toEqual([])
 
   await chooseModel(page, busiest().name)
-  await page
-    .getByRole('complementary', { name: 'What is chosen' })
-    .locator('.picker-chip__name')
-    .first()
-    .click()
-  await expect(page).toHaveURL(/row=/)
+  await expect(page.getByRole('complementary', { name: 'What is chosen' })).toBeVisible()
   expect(await words(), 'a boat').toEqual([])
 })
 
-test('a model of many versions refuses the act with its reason, and takes it once one is chosen', async ({
+/* REWRITTEN 2026-10-31 (the owner, 2026-10-30: "the picking model color and all of that nonsense
+   to be done in hull section and same for all boats"): a model of many versions no longer asks
+   its material and colour on the plate, and the act no longer waits for them. It is live the
+   moment the boat is chosen, and its sentence says where the rest is chosen. */
+test('a model of many versions starts on its own, and says its material and colour are chosen in the hull section', async ({
   page,
 }) => {
   await openPicker(page)
@@ -266,31 +264,20 @@ test('a model of many versions refuses the act with its reason, and takes it onc
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   await expect(panel.getByRole('heading', { level: 2 })).toHaveText(model.name)
-
-  /* REFUSED, WITH A SENTENCE, IN THE PLACE IT IS REFUSED — and still
-     focusable, still named, never a dead control. */
   const act = panel.getByRole('button', { name: 'Start the quote' })
-  await expect(act).toHaveAttribute('aria-disabled', 'true')
-  await expect(act).toHaveAccessibleDescription(
-    'A quote is for one material and one colour, so choose a material above first.',
+  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+  await expect(panel.locator('.picker-act__say')).toHaveText(
+    'Its material and colour are chosen in the hull section, where the price follows each one.',
   )
-
-  /* EVERY MATERIAL THE FILE GIVES THIS MODEL, AND THE COLOUR NOT YET. */
-  await expect(panel.getByText('Material', { exact: true })).toBeVisible()
+  /* nothing of the material or the colour is asked here */
+  await expect(panel.getByText('Material', { exact: true })).toHaveCount(0)
   await expect(panel.getByText(/^Colour ·/)).toHaveCount(0)
+  await expect(panel.locator('.picker-money__fig')).toHaveText(/^from \$/)
 
-  const chips = panel.locator('.picker-chip__name')
-  expect(await chips.count()).toBe(model.materials)
-  await chips.first().click()
-
-  /* choosing a material chooses its first colour, so the act comes live
-     and the colours of that material are now the refinement */
-  await expect(page).toHaveURL(/row=/)
-  await expect(panel.getByText(/^Colour ·/)).toBeVisible()
-  await expect(panel.getByRole('button', { name: 'Start the quote' })).not.toHaveAttribute(
-    'aria-disabled',
-    'true',
-  )
+  /* and the hull chapter is where they are chosen */
+  await act.click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 15_000 })
+  await expect(page.getByTestId('boat-choices')).toBeVisible()
 })
 
 /* ============================================================
@@ -307,15 +294,13 @@ test('a model of many versions refuses the act with its reason, and takes it onc
    new address by putting the window back at the top. Nothing here
    scrolls now but the presses themselves.
    ============================================================ */
-test('the act is on the screen at the moment it becomes live', async ({ page }, testInfo) => {
+test('the act is on the screen, live, the moment a boat is chosen', async ({ page }) => {
   await openPicker(page)
   await page.goto(`/quote/new?brand=${HIGHFIELD}`)
   await chooseModel(page, busiest().name)
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
-  await pressAs(panel.locator('.picker-chip__name').first(), testInfo.project.use.hasTouch)
-  await expect(page).toHaveURL(/row=/)
   await expect(act).not.toHaveAttribute('aria-disabled', 'true')
 
   const figure = panel.locator('.picker-money__fig')
@@ -357,51 +342,27 @@ test('in a hand, a boat of one version has its act above the tab bar with nothin
   await expect(page.getByLabel(/Find a model/)).toHaveValue('519')
 })
 
-/* THE QUESTION THE ACT WAITS ON STANDS WHERE THE ACT IS
-   (built-critique-m2.md #3): every colour chip is in the plate's foot,
-   above the act, and the chips and the act are in ONE window together —
-   on arrival, with nothing scrolled for the reader. At 390 the ADV7's
-   chips stood under the tab bar and the act at 951 of 844
-   (built-critique-m2-close-2.md, major 9). */
-test('the colours the act waits on are on screen with it, above it', async ({ page }) => {
+/* REWRITTEN 2026-10-31: the ADV7's colours stood in the plate's foot over a refused act; they are
+   chosen in the hull section now, so a boat of one material and many colours is live at once,
+   says so, and its name, its price and its act are in one window with nothing scrolled. */
+test('a boat of one material and many colours is live at once, its price and act in the window', async ({
+  page,
+}) => {
   await openPicker(page)
   const model = oneMaterialMany()
-  const size = page.viewportSize() as { width: number; height: number }
   await page.goto(`/quote/new?brand=${HIGHFIELD}`)
   await chooseModel(page, model.name)
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
-  await expect(act).toHaveAttribute('aria-disabled', 'true')
-  await expect(act).toHaveAccessibleDescription(
-    'A quote is for one colour, so choose a colour above first.',
-  )
-
-  /* every colour of the model, named or not: a chip is its colour drawn
-     and named where the decode names it, and its code where it cannot */
-  const chips = panel.locator('.picker-stage__foot .picker-chips--codes button')
-  await expect(chips).toHaveCount(model.rows)
-
-  await expect(chips.first()).toBeInViewport({ ratio: 1 })
-  await expect(chips.last()).toBeInViewport({ ratio: 1 })
-  await expect(act).toBeInViewport({ ratio: 1 })
-  await expect.poll(() => inTheRoom(page, [chips.first(), chips.last(), act])).toEqual([])
-  const where = await page.evaluate(() => {
-    const codes = [...document.querySelectorAll('.picker-stage__foot .picker-chips--codes button')]
-    const press = document.querySelector('.picker-act button') as HTMLElement
-    const tops = codes.map((c) => c.getBoundingClientRect().top)
-    const bottoms = codes.map((c) => c.getBoundingClientRect().bottom)
-    const a = press.getBoundingClientRect()
-    return { first: Math.min(...tops), last: Math.max(...bottoms), act: a.top, actEnd: a.bottom }
-  })
-  expect(where.last).toBeLessThanOrEqual(where.act)
-  expect(where.actEnd - where.first).toBeLessThanOrEqual(size.height)
-
-  await chips.first().click()
-  await expect(page).toHaveURL(/row=/)
   await expect(act).not.toHaveAttribute('aria-disabled', 'true')
-  /* and the colour pressed does not take the act away with it */
+  await expect(panel.locator('.picker-act__say')).toHaveText(
+    'Its colour is chosen in the hull section, where the price follows it.',
+  )
+  await expect(panel.locator('.picker-chips--codes')).toHaveCount(0)
+  const figure = panel.locator('.picker-money__fig')
   await expect(act).toBeInViewport({ ratio: 1 })
+  await expect.poll(() => inTheRoom(page, [figure, act])).toEqual([])
 })
 
 /* ============================================================
@@ -418,7 +379,7 @@ test('the colours the act waits on are on screen with it, above it', async ({ pa
    is still in the window too. At every size, because a hand and a desk
    have to hold it as well as the tablet.
    ============================================================ */
-test('a boat pressed at the foot of its maker’s list opens in the window, colours and act with it', async ({
+test('a boat pressed at the foot of its maker’s list opens in the window, price and act with it', async ({
   page,
 }, testInfo) => {
   await openPicker(page)
@@ -436,18 +397,15 @@ test('a boat pressed at the foot of its maker’s list opens in the window, colo
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   const name = panel.getByRole('heading', { level: 2 })
-  /* every colour of the model, named or not: a chip is its colour drawn
-     and named where the decode names it, and its code where it cannot */
-  const chips = panel.locator('.picker-stage__foot .picker-chips--codes button')
+  const figure = panel.locator('.picker-money__fig')
   const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
   await expect(name).toHaveText(model.name)
-  await expect(chips).toHaveCount(model.rows)
 
-  for (const seen of [name, chips.first(), chips.last(), act])
+  for (const seen of [name, figure, act])
     await expect(seen, `${seen} after the press, from scrollY ${from}`).toBeInViewport({
       ratio: 1,
     })
-  await expect.poll(() => inTheRoom(page, [name, chips.first(), chips.last(), act])).toEqual([])
+  await expect.poll(() => inTheRoom(page, [name, figure, act])).toEqual([])
   if (size.width >= 834) {
     await expect(card).toHaveAttribute('aria-pressed', 'true')
     await expect(card).toBeInViewport()
@@ -477,12 +435,7 @@ test('where the room is fixed, the page is exactly the window at every stage', a
   expect(m.scroll, `${m.scroll} in ${m.inner} with a maker`).toBeLessThanOrEqual(m.inner)
 
   await chooseModel(page, busiest().name)
-  await page
-    .getByRole('complementary', { name: 'What is chosen' })
-    .locator('.picker-chip__name')
-    .first()
-    .click()
-  await expect(page).toHaveURL(/row=/)
+  await expect(page.getByRole('complementary', { name: 'What is chosen' })).toBeVisible()
   m = await fits()
   expect(m.scroll, `${m.scroll} in ${m.inner} with a boat chosen`).toBeLessThanOrEqual(m.inner)
 })
@@ -534,7 +487,7 @@ test('in a hand, nothing chosen is the doors, and a door brings its list', async
 
   const table = boats.find((t) => t.id === HIGHFIELD) as Table
   await page
-    .getByRole('region', { name: 'Makers' })
+    .getByRole('region', { name: 'Boats' })
     .getByRole('button', { name: new RegExp(`^${escapeRe(table.name)},`) })
     .click()
   await expect(page.getByRole('region', { name: 'Models' })).toBeVisible()
@@ -542,7 +495,7 @@ test('in a hand, nothing chosen is the doors, and a door brings its list', async
   /* and "All makers" is the way back, named for where it goes — its arrow is a glyph
      beside the words since the component kit (2026-09-28), so a reader hears the words */
   await page.getByRole('button', { name: 'All makers', exact: true }).click()
-  await expect(page.getByRole('region', { name: 'Makers' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Boats' })).toBeVisible()
 
   /* and typing reaches any model from the doors too */
   await page.getByLabel(/Find a model/).fill(busiest().name)
@@ -721,29 +674,6 @@ test('the act never covers the price, and says only what is true, from rest to t
   expect(await faults(), 'with the draft standing').toEqual([])
 })
 
-test('an undecoded colour is printed as the code it is', async ({ page }) => {
-  await openPicker(page)
-  const table = boats.find((t) => t.id === HIGHFIELD) as Table
-  const levels = table.hierarchy ?? []
-  const variantField = levels[levels.length - 1]
-
-  /* the first Highfield model whose colour code is `WH`, found in the
-     file rather than named here */
-  const row = rowsOf(HIGHFIELD).find((r) => cell(r, variantField).endsWith(' WH')) as Row
-  expect(row).toBeTruthy()
-  const model = cardName(HIGHFIELD, cell(row, levels[1]))
-
-  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
-  await chooseModel(page, model)
-
-  const panel = page.getByRole('complementary', { name: 'What is chosen' })
-  const materials = panel.locator('.picker-chip__name')
-  if ((await materials.count()) > 0) await materials.first().click()
-
-  await expect(panel.getByText('WH', { exact: true }).first()).toBeVisible()
-  await expect(panel).toContainText('The price list names no colour for')
-})
-
 /* ============================================================
    EVERY MAKER'S BOAT AS THE BUILD SAYS IT (m2-last-critique.md, major
    6). The picker named a Stacer "519 Sea Ranger SDF (Centre Console)"
@@ -864,17 +794,26 @@ const ratio = async (ink: Locator, ground: Locator): Promise<number> => {
 /* ============================================================
    WHILE THE ACT WAITS IT IS NOT THE LOUDEST THING ON THE PLATE (the
    M2-close-2 critique's minor 21, again in m2-last-critique.md minor
-   11): the ADV7 arrived with `Start the quote` refused in amber, the
-   colour that on this screen means "press this", before any colour was
-   chosen. It waits in the foot's own blue now, readable in both themes,
-   and is the act's amber the moment a colour makes it live.
+   11). REWRITTEN 2026-10-31: a boat's colour no longer holds the act
+   back (it is chosen in the hull section), so the act that waits is a
+   product's on a shelf sold only with a boat: it waits in the foot's own
+   blue, readable in both themes, and is the act's amber the moment the
+   switch beside its sentence sells the shelf on its own.
    ============================================================ */
 test('while the act waits it is drawn quietly and read in both themes, and it is amber once live', async ({
   page,
 }) => {
   await openPicker(page)
-  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
-  await chooseModel(page, oneMaterialMany().name)
+  const shelves = page.getByRole('region', { name: 'Sold on its own' })
+  const shut = shelves.locator('.picker-shelf').filter({ has: page.locator('.picker-shelf__shut') })
+  const row = shut.first().locator('.picker-shelf__rows button').first()
+  await row.scrollIntoViewIfNeeded()
+  await row.click()
+  await page
+    .getByRole('region', { name: 'Models' })
+    .locator('.picker-cards__item button')
+    .first()
+    .click()
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   const act = panel.getByRole('button', { name: 'Start the quote' })
@@ -916,55 +855,9 @@ test('while the act waits it is drawn quietly and read in both themes, and it is
   }
   await wearTheme(page, 'day')
 
-  await panel.locator('.picker-stage__foot .picker-chips--codes button').first().click()
+  await panel.getByRole('button', { name: 'Sell it on its own too' }).click()
   await expect(act).not.toHaveAttribute('aria-disabled', 'true')
   await expect.poll(fill).toBe(amber)
-})
-
-/* ============================================================
-   ON A TABLET HELD UPRIGHT THE COLOURS ARE NAMED ON THEIR CHIPS
-   (m2-last-critique.md, minor 11: "at 834 and 390 the chips are
-   swatches alone", and a finger has no hover to name one before it
-   chooses it). Wherever the plate stands beside the list in a window
-   900px tall or more, every colour the decode names is named on its
-   chip; a phone and a window turned sideways keep the colours alone and
-   name the one chosen under them (`picker.css` says why).
-   ============================================================ */
-test('where the plate has the room, every named colour is named on its chip', async ({ page }) => {
-  const size = page.viewportSize() as { width: number; height: number }
-  test.skip(
-    size.width < 834 || size.height < 900,
-    'a phone and a short window name the chosen colour under the chips instead',
-  )
-  await openPicker(page)
-  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
-  await chooseModel(page, oneMaterialMany().name)
-
-  const panel = page.getByRole('complementary', { name: 'What is chosen' })
-  const drawn = panel.locator('.picker-chip--colour[data-drawn]')
-  expect(await drawn.count()).toBeGreaterThan(0)
-  for (const chip of await drawn.all()) {
-    const name = chip.locator('.picker-chip__colour')
-    await expect(name).toBeVisible()
-    /* and no line of a name begins on its separator: the space before
-       each " / " is one a line cannot break at */
-    expect(await name.textContent()).not.toMatch(/ [/·] /)
-  }
-  /* READ BACK AS THE BROWSER SET THEM (m2-last-critique.md, minor 8: at
-     1440 a chip read "Black / Grey /" over "/ White/Blue"): no line of a
-     chip opens on a separator, and a colour breaks inside itself only
-     where it is as wide as the chip */
-  const set = await setNames(
-    panel.locator('.picker-chip--colour[data-drawn] .picker-chip__colour'),
-    '.picker-chip__part',
-  )
-  expect(set.length).toBeGreaterThan(0)
-  for (const chip of set) {
-    expect(openingOnASeparator(chip.lines), chip.lines.join(' ⏎ ')).toEqual([])
-    expect(chip.parts.length, chip.lines.join(' ')).toBeGreaterThan(0)
-    for (const part of chip.parts)
-      expect(part.lines === 1 || part.full, `"${part.text}" broke inside itself`).toBe(true)
-  }
 })
 
 /* ============================================================
@@ -1075,16 +968,23 @@ test('a search sets its boats side by side, and no tick lies on a photograph', a
   expect(tick.x + tick.width).toBeLessThanOrEqual(card.x + card.width)
 })
 
-/* THE FIRST WINDOW ENDS ON A SEAM BETWEEN ROWS OF DOORS (refine-critique.md, major 5): at 390
-   the second row's "from $2,770" and "from $74,410" stood half over the tab bar and half under
-   it with nothing scrolled. Every door's picture now takes the height that ends a whole row
-   above the bar (`useDoorsFit` in Picker.tsx). */
-test('in a hand, the doors end whole above the tab bar with nothing scrolled', async ({ page }) => {
+/* THE FIRST WINDOW ENDS ON A SEAM (refine-critique.md, major 5): at 390 the second row's "from
+   $2,770" and "from $74,410" stood half over the tab bar and half under it with nothing scrolled.
+   REWRITTEN 2026-10-31: in a hand a maker's door is its mark and its figures on one row, so the
+   seven makers take one window and the shelves begin in it (the critic's S-4, "quotes are not
+   just boats"); nothing stands across the bar, and the first shelf is in the window. */
+test('in a hand, the makers and the first shelf are in the first window, and nothing stands across the bar', async ({
+  page,
+}) => {
   const size = page.viewportSize() as { width: number; height: number }
   test.skip(size.width >= 600, `the pill is not at the foot at ${size.width}`)
   await openPicker(page)
-  await expect(page.getByRole('region', { name: 'Makers' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Boats' })).toBeVisible()
   await expect.poll(() => acrossTheBar(page, '[data-testid="picker"]')).toEqual([])
+  const doors = page.getByRole('region', { name: 'Boats' }).getByRole('listitem')
+  await expect(doors.last()).toBeInViewport({ ratio: 1 })
+  const shelves = page.getByRole('region', { name: 'Sold on its own' })
+  await expect.poll(() => inTheRoom(page, [shelves.getByRole('heading', { level: 2 })])).toEqual([])
   /* and the field is still named for a reader, by the words its line no longer spends */
   await expect(page.getByLabel(/Find a model/)).toBeVisible()
 })

@@ -1198,13 +1198,10 @@
   .way-find__word {
     display: none;
   }
-  /* AT THE TRAILING END ON A PHONE, and that is the reflow's own measure, not a second opinion:
-     here the bar is the tab bar at the foot (Apple's "dedicated search tab at the trailing end",
-     live2/apple-hig-tab-bars-ipad.png), the crest holds the leading cap, and the five doors are
-     spaced evenly between the two rounds. Between the crest and Home it would stand two rounds
-     side by side at the bar's left end and push Home off the thumb's arc. */
+  /* BEFORE HOME ON A PHONE TOO (the owner, 2026-10-30: "move find ... before home"; the critic,
+     2026-10-31, S-3, found it still at the trailing end on a phone). One bar, one order at every
+     size: the crest, Find, then the five doors spaced evenly to the bar's end. */
   .way-find {
-    order: 1;
     margin-inline-end: 0;
     padding: 0;
     inline-size: calc(var(--pill-h) - --spacing(1));

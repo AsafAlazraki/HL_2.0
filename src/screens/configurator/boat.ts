@@ -23,6 +23,9 @@ import type { OptionRow } from './chapters'
 
 export interface DrawnOption extends BoatOption {
   picture: OptionRow['picture']
+  /** the picture is a photograph on the water, which fills its well; a maker's drawing or render
+   *  stands whole in it */
+  scene: boolean
 }
 
 export interface DrawnAxis {
@@ -62,13 +65,9 @@ export function readBoatChoices(ctx: CatalogueCtx, quote: QuoteDef): DrawnChoice
     axes: choices.axes.map((axis) => {
       const options = axis.options.map((option) => {
         const item = itemOf(quote.rootTableId, option.rowId, option.address)
-        const picture =
-          axis.id === 'material'
-            ? null
-            : axis.id === 'colour'
-              ? drawn(copyOf(item))
-              : drawn(pictureOf(item))
-        return { ...option, picture }
+        const held =
+          axis.id === 'material' ? null : axis.id === 'colour' ? copyOf(item) : pictureOf(item)
+        return { ...option, picture: drawn(held), scene: held?.verdict === 'scene' }
       })
       return {
         id: axis.id,

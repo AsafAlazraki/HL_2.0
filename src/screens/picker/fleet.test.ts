@@ -5,6 +5,8 @@ import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { spokenBoat, spokenModel } from '@/domain/quote/spoken'
 import { countBoats } from '@/domain/quote/boats'
 import {
+  fleetsTogether,
+  openingOf,
   featuredOf,
   flagshipOf,
   fleetOf,
@@ -623,5 +625,35 @@ describe('a mark’s height', () => {
     expect(markScale(100, 100)).toBe(1.6)
     /* and a ledger row with no size is drawn at the plain height */
     expect(markScale(0, 100)).toBe(1)
+  })
+})
+
+describe('the version a quote opens on', () => {
+  it('is the first version its from figure prices, else the first it has', () => {
+    const fleet = fleetOf(tables, rows)
+    const all = fleet.brands.flatMap((b) => b.models)
+    const ranged = all.filter((m) => m.from !== null && m.from !== m.to)
+    expect(ranged.length).toBeGreaterThan(0)
+    for (const model of ranged) {
+      const opening = openingOf(model)
+      expect(opening?.amount, model.shown).toBe(model.from)
+      expect(opening).toBe(model.variants.find((v) => v.amount === model.from))
+    }
+    const unpriced = all.find((m) => m.from === null)
+    if (unpriced) expect(openingOf(unpriced)).toBe(unpriced.variants[0])
+    expect(openingOf({ variants: [], from: null })).toBeNull()
+  })
+})
+
+describe('everything sold as one fleet', () => {
+  it('keeps every list in the order given and sums every count', () => {
+    const fleet = fleetOf(tables, rows)
+    const half = { ...fleet, brands: fleet.brands.slice(0, 2) }
+    const both = fleetsTogether([fleet, half])
+    expect(both.brands).toEqual([...fleet.brands, ...half.brands])
+    expect(both.models).toBe(fleet.models + half.models)
+    expect(both.rows).toBe(fleet.rows * 2)
+    expect(both.rung).toBe(fleet.rung)
+    expect(fleetsTogether([]).brands).toEqual([])
   })
 })

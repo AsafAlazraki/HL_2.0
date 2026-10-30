@@ -410,7 +410,9 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
      copies must not move with the count of rows, which is the whole
      claim — so both are read and compared here rather than a number
      being typed in. */
-  const refused = page.locator('.cfg button[aria-disabled="true"]')
+  /* the build's own controls: below a desk the summary is always the page's end (2026-10-31), and
+     its "Email it" is refused for its own reason, the customer's line holding no address */
+  const refused = page.locator('.cfg-edit button[aria-disabled="true"]')
   const copies = page.locator('.cfg-shut')
   expect(await refused.count()).toBeGreaterThan(await copies.count())
   /* and not one refused control lost its reason: `refusedBy` points

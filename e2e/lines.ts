@@ -2,7 +2,7 @@
    INSIDE the page: Playwright serialises it and evaluates it with no closure, so its helpers
    cannot be hoisted out of it without breaking at runtime. */
 import { expect, type Locator, type Page } from '@playwright/test'
-import { cardName, escapeRe } from './mint'
+import { pickAndStart } from './mint'
 
 /* ============================================================
    THE LINES A NAME IS SET IN, AS THE BROWSER BROKE THEM.
@@ -76,25 +76,25 @@ export const openingOnASeparator = (lines: string[]): string[] =>
 
 /**
  * THE CRITIC'S OWN BOAT, IN A COLOUR THE DECODE NAMES. The walk the finding
- * was made on: a model chosen on the picker by the name its card says, the
- * first of its colours drawn as colour pressed (so its name has a boat, a
- * material and a colourway), and the quote started. Nothing is typed but
- * the model's code, and no colour is named here: the chip is found by its
- * swatches. Arrives on the build at its own address.
+ * was made on: a model chosen on the picker by the name its card says and the
+ * quote started, then — where the version it opened on is not a colour the
+ * decode names — the first colour drawn as colour pressed in the build's hull
+ * chapter, where a boat's colour is chosen since 2026-10-31 (the owner: "the
+ * picking model color and all of that nonsense to be done in hull section").
+ * Nothing is typed but the model's code, and no colour is named here: the
+ * choice is found by its swatches. Arrives on the build at its own address.
  */
 export async function startInANamedColour(page: Page, tableId: string, model: string) {
-  await page.goto(`/quote/new?brand=${tableId}`)
-  await expect(page.getByTestId('picker-counts')).toBeVisible()
-  await page.getByLabel(/Find a model/).fill(model)
-  await page
-    .getByRole('button', { name: new RegExp(`^${escapeRe(cardName(tableId, model))}\\b`) })
-    .first()
-    .click()
-  const panel = page.getByRole('complementary', { name: 'What is chosen' })
-  await panel.locator('.picker-chip--colour[data-drawn]').first().click()
-  await panel
-    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
-    .click()
-  await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
-  await expect(page.getByTestId('configurator')).toBeVisible()
+  await pickAndStart(page, tableId, model)
+  const colours = page
+    .getByTestId('boat-choices')
+    .locator('.cfg-axis[data-axis="colour"] .cfg-pick__press')
+  await expect(colours.first()).toBeVisible()
+  const named = (at: Locator): Locator =>
+    at.filter({ has: page.locator('.ui-swatch') }).filter({ hasNot: page.locator('.cfg-mono') })
+  const now = colours.and(page.locator('[aria-pressed="true"]'))
+  if ((await named(now).count()) > 0) return
+  const first = named(colours).first()
+  await first.click()
+  await expect(first).toHaveAttribute('aria-pressed', 'true')
 }

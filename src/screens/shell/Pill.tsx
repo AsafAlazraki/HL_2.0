@@ -13,7 +13,7 @@ import type { DoorCount } from '@/domain/shell/doors'
    ONE OBJECT, FLOATING, ON EVERY SCREEN BUT ENTRY, AND THE SAME
    OBJECT ON EVERY ONE OF THEM. No rail and no bar: the crest is its
    leading cap, the five doors are its words, and the finder is a
-   bubble of its own before Home (2026-10-30; a trailing one on a phone); only which door is lit changes between screens. It costs no layout height,
+   bubble of its own before Home (2026-10-30, at every size); only which door is lit changes between screens. It costs no layout height,
    which is why it is the only one of the four directions that leaves
    Home's two-photograph fold full-bleed AND leaves the register's
    eighteen rows whole — §9 of the critique prices what the other two
@@ -269,7 +269,7 @@ export function Pill({
           from the doors by a gap, and it still says only the word (the owner, 2026-10-30: "just
           find"); Ctrl K still opens it from the keyboard. Its accessible name is the word, never
           the chord: on a phone there is no chord to name. On a phone, where the bar is the tab
-          bar at the foot, it stands at the trailing end (shell.css says why). */}
+          bar at the foot, it stands before Home too, as the glyph alone. */}
       <button
         type="button"
         className="way-find"

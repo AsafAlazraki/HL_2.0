@@ -286,15 +286,30 @@
 
 /* ---- the doors ---------------------------------------------------------------------------- */
 
+/* THE HEAD OF EACH HALF OF THE FIRST QUESTION — Boats, and Sold on its own — in the same small
+   capitals, each with its kind's glyph, so the two halves read as one answer. */
+.picker-kind {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  min-block-size: --spacing(6);
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--color-blue-800);
+}
+
 .picker-doors {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  row-gap: --spacing(3);
   min-block-size: 0;
 }
 
 .picker-doors__grid {
-  /* the one height every door's picture takes in a hand, measured and written by the screen
-     (`useDoorsFit`); read only there, and only once it is written (`data-fit`) */
-  --door-frame: auto;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: --spacing(3);
@@ -334,15 +349,6 @@
   min-inline-size: 0;
 }
 
-/* THE PICTURE AND THE NAME UNDER IT, one block: the door's room for its boat. */
-.picker-door__pic {
-  display: flex;
-  flex-direction: column;
-  gap: --spacing(1.5);
-  flex: 1 1 auto;
-  min-block-size: 0;
-}
-
 .picker-door__frame {
   position: relative;
   display: block;
@@ -363,30 +369,28 @@
   background: var(--color-blue-50);
 }
 
-/* THE BOAT ON THE DOOR IS NAMED UNDER ITS PICTURE, so the picture belongs to that boat and to no
-   other: it is the dearest model the maker has a photograph of, not the maker. It stood on the
-   picture as a white capsule until the refine round (2026-10-21), and at 390 the capsule wrapped
-   to two lines and covered the lower 40% of the Signature Fisher 525F, its hull included; under
-   the picture a long name wraps and covers nothing. */
-.picker-door__pictured {
-  flex: none;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 600;
-  color: var(--ink-soft);
-  /* a long name wraps rather than losing its end: "SRT 635 Enc · Centre Cabin" at 390 */
-  text-wrap: balance;
-}
-
+/* THE COUNT OVER THE PRICE, THE WAY IN BESIDE THEM: one shape for every door's foot, so a narrow
+   door never sends its arrow to a line of its own and every picture in a row is one height
+   (measured at 1440 on 2026-10-31: "9 models · Not priced" kept one line and its neighbours two,
+   and their pictures stood 150 and 172px tall side by side). */
 .picker-door__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'n go' 'from go';
+  align-items: center;
   column-gap: --spacing(3);
-  row-gap: --spacing(0.5);
   flex: none;
-  /* the feet of a row of doors on one line, whether a name above wrapped or not */
+  /* the feet of a row of doors on one line, whatever stands above them */
   margin-block-start: auto;
+}
+.picker-door__n {
+  grid-area: n;
+}
+.picker-door__from {
+  grid-area: from;
+}
+.picker-door__go {
+  grid-area: go;
 }
 
 .picker-door__n {
@@ -493,7 +497,10 @@
 
 .picker-railrow__mark {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: --spacing(0.5);
   min-inline-size: 0;
   flex: 1 1 auto;
 }
@@ -582,13 +589,14 @@
    doors passed under the pill with nothing between: scrolled, the foot of Formosa's door ("39
    models" and its arrow) stood on both sides of the pill. The doors' cap is the same strip of
    paper, and like the list's it starts where the blue band ends rather than where the doors do,
-   so there is no scroll position at which a door stands beside the pill on no ground. The doors
-   run the full width of the floor, so the cap reaches both edges of the window. */
-.picker-doors > .picker-cap,
-.picker-doors__grid {
-  grid-area: 1 / 1;
+   so there is no scroll position at which a door stands beside the pill on no ground. It spans
+   the doors AND the shelves (2026-10-31), so a shelf going up passes under the same ground; the
+   two halves run the full width of the floor, so the cap reaches both edges of the window. */
+.picker-sold > .picker-cap {
+  grid-row: 1 / -1;
+  grid-column: 1 / -1;
 }
-.picker-doors {
+.picker-sold {
   --bleed-start: var(--gutter);
   --bleed-end: var(--gutter);
 }
@@ -635,19 +643,46 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  /* AND THE FIRST WINDOW ENDS ON A SEAM BETWEEN ROWS OF DOORS (refine-critique.md, major 5):
-     every picture takes the one height the screen measured (`useDoorsFit` in Picker.tsx), so
-     the last whole row ends 18px above the bar and the next begins under its ground. The
-     picture no longer grows into a door its neighbour's longer name made taller: the door's
-     foot keeps its place at the door's foot, as it does on a desk. */
-  .picker-doors__grid[data-fit] .picker-door__pic,
-  .picker-doors__grid[data-fit] .picker-door__frame {
-    flex: none;
+  /* IN A HAND A MAKER'S DOOR IS ITS MARK AND ITS FIGURES, ONE ROW (2026-10-31). Seven photograph
+     doors two abreast were four screens of boats before the first motor (the critic, S-4: "quotes
+     are not just boats"); as rows of marks, the seven makers take one window and the shelves
+     begin in it. The mark is the door's showpiece, and the boat's photograph is on its plate. */
+  .picker-doors__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(2);
   }
-  .picker-doors__grid[data-fit] .picker-door__frame,
-  .picker-doors__grid[data-fit] .picker-door[data-featured] .picker-door__frame {
-    aspect-ratio: auto;
-    block-size: var(--door-frame);
+  .picker-door[data-featured] {
+    grid-column: auto;
+  }
+  .picker-door {
+    --mark-h: --spacing(5);
+  }
+  /* the row is the tile's 16px less 8px a side, plus the few pixels it is given so the first
+     window ends on a seam (`useSeamAtTheFold`) */
+  .picker-door__in {
+    flex-direction: row;
+    align-items: center;
+    gap: --spacing(3);
+    margin-block: calc(var(--door-give) / 2 - --spacing(2));
+  }
+  .picker-door__mark {
+    flex: 1 1 auto;
+  }
+  .picker-door__frame {
+    display: none;
+  }
+  .picker-door__foot {
+    grid-template-columns: auto auto;
+    justify-items: end;
+    margin-block-start: 0;
+  }
+  .picker-door__n {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+  .picker-door__from {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
   }
 }
 
@@ -1699,11 +1734,11 @@
   }
 }
 
-/* FOUR DOORS ABREAST ON ANY WINDOW WIDER THAN IT IS TALL, from 834 up; two abreast on one
-   taller than it is wide. A tablet held upright is 834 x 1112, and four doors 180px wide in it
-   left 400px of floor under two short rows; two abreast, the doors are 373px wide, the page
-   is doors from the band down and it scrolls one screen and a half, on purpose. */
-@media (min-width: 834px) and (min-aspect-ratio: 1 / 1) {
+/* FOUR DOORS ABREAST FROM 834 UP, a tablet held upright included (2026-10-31). Two abreast, a
+   tablet's first window was boats from the band down and the first motor a screen and a half
+   below (the critic, S-4); four abreast, the boats take two short rows and the shelves stand in
+   the floor under them. */
+@media (min-width: 834px) {
   .picker-doors__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -1796,7 +1831,6 @@
     block-size: 100%;
     grid-auto-rows: minmax(0, 1fr);
   }
-  .picker-door__pic,
   .picker-door__frame,
   .picker-door[data-featured] .picker-door__frame {
     flex: 1 1 0;
@@ -1933,30 +1967,34 @@
 }
 
 /* ============================================================
-   WHAT IS SOLD (the owner, 2026-10-30) — the boats first and largest, then each shelf that
-   sells on its own, under one quiet head.
+   WHAT IS SOLD (the owner, 2026-10-30: "quotes are not just boats") — the boats first and
+   largest, and beside them on a desk each shelf that sells on its own, as a catalogue's
+   contents: one white plate per place in the business, one row per list on it. Stacked under
+   the boats below a desk.
    ============================================================ */
 
 .picker-sold {
+  /* the pixels each maker's row is given in a hand (`useSeamAtTheFold`); none until measured */
+  --door-give: 0px;
   display: grid;
-  gap: --spacing(10);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: --spacing(8);
   min-block-size: 0;
+}
+.picker-sold > .picker-doors {
+  grid-area: 1 / 1;
+}
+.picker-sold > .picker-alone {
+  grid-area: 2 / 1;
 }
 
 .picker-alone {
   display: grid;
-  gap: --spacing(6);
-  padding-block-start: --spacing(6);
-  border-block-start: 1px solid var(--rule);
-}
-
-.picker-alone__head {
-  margin: 0;
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 300;
-  letter-spacing: var(--tracking-display);
-  color: var(--ink);
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: --spacing(3);
+  min-block-size: 0;
 }
 
 .picker-alone__note {
@@ -1968,52 +2006,68 @@
   text-wrap: pretty;
 }
 
+/* ONE PLACE IN THE BUSINESS, ONE PLATE: its glyph and name, then its lists as rows, ruled
+   between and not boxed, so sixteen lists read as six short contents pages and not sixteen
+   cards. The plate is the kit's own: white, its hairline and its shadow. */
 .picker-shelf {
   display: grid;
-  gap: --spacing(3);
-}
-
-.picker-shelf__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: --spacing(5);
-  row-gap: --spacing(2);
+  align-content: start;
+  min-inline-size: 0;
+  /* `clip`, not `hidden`: a hidden box is a scroller, and a scroller in the shelves' column may
+     be squeezed under its own rows */
+  overflow: clip;
+  padding: --spacing(3) 0 0;
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
 }
 
 .picker-shelf__head {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps);
-  color: var(--color-blue-700);
+  padding: 0 --spacing(3) --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--ink);
+  border-block-end: 1px solid var(--rule);
 }
 
-/* A SHELF SOLD ONLY WITH A BOAT SAYS SO, AND THE SWITCH STANDS BESIDE THE SENTENCE */
+/* A SHELF SOLD ONLY WITH A BOAT SAYS SO UNDER ITS NAME, AND THE SWITCH STANDS BESIDE THE
+   SENTENCE */
 .picker-shelf__shut {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   column-gap: --spacing(3);
   row-gap: --spacing(2);
+  padding: --spacing(2.5) --spacing(3);
+  border-block-end: 1px solid var(--rule);
+  background: var(--color-wash);
 }
 .picker-shelf__shut p {
+  flex: 1 1 14rem;
   margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--ink-soft);
   text-wrap: pretty;
 }
 
-.picker-shelf__grid {
+.picker-shelf__rows {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: --spacing(3);
   margin: 0;
   padding: 0;
   list-style: none;
+}
+/* the last row's rule is the plate's own edge: it stands a pixel past the plate's foot, which
+   clips it */
+.picker-small:last-child {
+  margin-block-end: -1px;
 }
 
 .picker-small {
@@ -2027,38 +2081,63 @@
 
 .picker-small__in {
   display: flex;
-  flex-direction: column;
-  gap: --spacing(2.5);
-  block-size: 100%;
-  min-block-size: 0;
+  align-items: center;
+  gap: --spacing(3);
+  min-block-size: calc(var(--mark-h) * 1.6);
 }
 
 .picker-small__mark {
   display: flex;
   align-items: center;
-  flex: none;
-  min-block-size: calc(var(--mark-h) * 1.6);
+  flex: 1 1 auto;
   min-inline-size: 0;
+}
+.picker-small__mark .picker-mark {
+  max-inline-size: 9rem;
 }
 
 .picker-small__name {
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   font-weight: 600;
   color: var(--ink);
   text-wrap: balance;
 }
 
-.picker-small__frame {
+/* the count over the price, right-aligned, so a column of rows reads its figures down one edge */
+.picker-small__figures {
   display: grid;
-  place-items: center;
-  aspect-ratio: 3 / 2;
-  border-radius: var(--radius-field);
-  overflow: hidden;
-  background: var(--color-plate);
+  justify-items: end;
+  flex: none;
+  text-align: end;
 }
-.picker-small__frame[data-empty] {
-  background: var(--floor);
+.picker-small__n {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-quiet);
+  font-variant-numeric: tabular-nums;
+}
+.picker-small__from {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.picker-small .picker-door__go {
+  inline-size: --spacing(7);
+  block-size: --spacing(7);
+}
+@media (hover: hover) and (pointer: fine) {
+  .picker-small:hover .picker-door__go {
+    transform: translateX(--spacing(1));
+    color: var(--color-ink-on-accent);
+    background: var(--color-accent);
+  }
+}
+.picker-small:active .picker-door__go {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
 }
 
 .picker-capped {
@@ -2072,65 +2151,79 @@
 
 /* EVERY CARD IN A ROW IS ONE HEIGHT: the tile and its frame stretch to the row's tallest */
 .picker-cards__item > *,
-.picker-small > *,
 .picker-door > * {
   block-size: 100%;
 }
 
-/* FROM A TABLET UP, AN INDEX: each shelf's name in a column of its own, its doors beside it, so
-   five shelves read down one edge like a catalogue's contents and the doors are not each a row */
+/* A TABLET: the shelves two plates abreast under the boats, each in the floor's own order */
 @media (min-width: 834px) {
-  .picker-shelf {
-    grid-template-columns: 10rem minmax(0, 1fr);
-    column-gap: --spacing(6);
-    row-gap: --spacing(3);
+  .picker-alone {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
+    column-gap: --spacing(4);
+    row-gap: --spacing(4);
   }
-  .picker-shelf__top {
-    display: contents;
-  }
-  .picker-shelf__head {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    padding-block-start: --spacing(1);
-  }
-  .picker-shelf__shut {
-    grid-column: 2;
-  }
-  .picker-shelf__grid {
-    grid-column: 2;
-    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  .picker-alone > .picker-kind,
+  .picker-alone__note {
+    grid-column: 1 / -1;
   }
 }
 
+/* A DESK: THE TWO HALVES SIDE BY SIDE — the boats' doors in the floor's breadth, the shelves in
+   a column of their own at its right, one plate under another. */
 @media (min-width: 1200px) {
-  .picker-shelf {
-    grid-template-columns: 12rem minmax(0, 1fr);
+  .picker-sold {
+    grid-template-columns: minmax(0, 1fr) clamp(21rem, 26vw, 28rem);
+    grid-template-rows: auto;
     column-gap: --spacing(8);
   }
-  .picker-shelf__grid {
-    grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  .picker-sold > .picker-alone {
+    grid-area: 1 / 2;
+  }
+  .picker-alone {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
-/* IN THE DESK'S ROOM THE FIRST QUESTION SCROLLS AS ONE: the boats fill the window but for the
-   head of the shelves, which shows under them so the room says there is more below. */
+/* IN THE DESK'S ROOM BOTH HALVES ARE THE WINDOW'S HEIGHT: the boats' two rows of doors fill it,
+   and the shelves' column scrolls inside itself, so nothing else on the page moves. */
 @media (min-width: 1200px) and (min-height: 700px) {
   .picker-sold {
     block-size: 100%;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .picker-sold > .picker-doors {
+    block-size: 100%;
+  }
+  .picker-alone {
+    block-size: 100%;
     overflow-y: auto;
     overscroll-behavior: contain;
-    grid-template-rows: calc(100% - --spacing(16)) auto;
-    padding: --spacing(0.5);
-    margin: calc(--spacing(0.5) * -1);
+    /* room for the plates' hairline and shadow, which a scroller would otherwise clip */
+    padding: --spacing(0.5) --spacing(1) --spacing(6);
+    margin: calc(--spacing(0.5) * -1) calc(--spacing(1) * -1) 0;
     scrollbar-width: thin;
     scrollbar-color: var(--color-neutral-300) transparent;
+    /* its last 24px fade into the floor, so a plate the column cuts reads as more below and not
+       as a plate sliced (`currentColor` and `transparent` are all a mask needs) */
+    mask-image: linear-gradient(to bottom, currentColor calc(100% - --spacing(6)), transparent);
+  }
+  /* the shelves' head stays at the top of its column while its plates go up under it */
+  .picker-alone > .picker-kind {
+    position: sticky;
+    inset-block-start: calc(--spacing(0.5) * -1);
+    z-index: 1;
+    padding-block: 0 --spacing(1);
+    background: var(--floor);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .picker-small {
     animation: none;
+  }
+  .picker-small:hover .picker-door__go {
+    transform: none;
   }
 }
 

@@ -1,6 +1,6 @@
 import { Dialog as BaseDialog } from '@base-ui/react/dialog'
 import { XIcon } from '@phosphor-icons/react'
-import type { ReactElement, ReactNode } from 'react'
+import { useRef, type ReactElement, type ReactNode } from 'react'
 import { Icon } from './Icon'
 
 /**
@@ -66,16 +66,35 @@ function Overlay({
   children,
   placement,
 }: DialogProps & { placement: 'centre' | 'side' }) {
+  const plate = useRef<HTMLDivElement>(null)
   return (
     <BaseDialog.Root
       open={open}
       defaultOpen={defaultOpen}
-      onOpenChange={onOpenChange ? (next) => onOpenChange(next) : undefined}
+      onOpenChange={(next, details) => {
+        /* A PRESS INSIDE THE PLATE IS NEVER AN OUTSIDE PRESS. Measured 2026-10-31 on the
+           chandlery's sheet at 1440 × 900: after a part was dragged onto the sheet's total, the
+           next press on a part's Take off closed the whole sheet, Base UI reading that click
+           (its target the plate itself) as outside. Why Base UI loses the plate after a
+           dnd-kit drag was not found. A press whose target is within the plate is the plate's. */
+        const target = details.event?.target
+        if (
+          !next &&
+          details.reason === 'outside-press' &&
+          target instanceof Node &&
+          plate.current?.contains(target) === true
+        ) {
+          details.cancel()
+          return
+        }
+        onOpenChange?.(next)
+      }}
     >
       {trigger ? <BaseDialog.Trigger render={trigger} /> : null}
       <BaseDialog.Portal>
         <BaseDialog.Backdrop className="ui-dialog-backdrop" />
         <BaseDialog.Popup
+          ref={plate}
           className="ui-dialog"
           data-size={size}
           data-placement={placement}

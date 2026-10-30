@@ -816,7 +816,12 @@ async function land(page: Page): Promise<void> {
       [...document.images].map(async (img) => {
         if (img.complete) return
         try {
-          await img.decode()
+          /* a lazy picture the browser has not fetched (out of the window, or clipped out of a
+             shelf that scrolls) never decodes: it is waited for two seconds, not for ever
+             (New quote at 1440 × 900, 2026-10-31) */
+          await (img.loading === 'lazy'
+            ? Promise.race([img.decode(), new Promise((done) => setTimeout(done, 2000))])
+            : img.decode())
         } catch {
           /* a picture that cannot decode is the image ledger's problem */
         }

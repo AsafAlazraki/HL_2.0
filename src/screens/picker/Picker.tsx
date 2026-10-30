@@ -1,5 +1,4 @@
 import {
-  Fragment,
   useCallback,
   useEffect,
   useId,
@@ -16,8 +15,6 @@ import {
   ArrowRightIcon,
   FolderOpenIcon,
   MagnifyingGlassIcon,
-  PaletteIcon,
-  StackIcon,
   WarningCircleIcon,
 } from '@phosphor-icons/react'
 import {
@@ -28,7 +25,6 @@ import {
   KindMark,
   PriceFigure,
   STATE_GLYPH,
-  Swatches,
   Tile,
   canMorph,
   say,
@@ -47,9 +43,9 @@ import {
 import { isDone } from '@/domain/catalogue/commands'
 import { letQuote } from '@/domain/catalogue/quotingCommand'
 import { measured } from '@/domain/quote/spoken'
-/* THE CHIPS, THE CARDS AND THE DOORS NEVER OPEN A LINE ON A SEPARATOR
+/* THE CARDS AND THE DOORS NEVER OPEN A LINE ON A SEPARATOR
    (m2-last-critique.md, minor 8): the one rule the cascade and the register use */
-import { jointsOf, keepSeparators } from '@/domain/quote/wrap'
+import { keepSeparators } from '@/domain/quote/wrap'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { catalogue } from '@/state/catalogue'
@@ -59,12 +55,12 @@ import {
   featuredOf,
   flagshipOf,
   fleetOf,
+  fleetsTogether,
   matchModels,
   modelByKey,
   modelsOf,
+  openingOf,
   seriesOf,
-  unreadIn,
-  variantsIn,
   type Brand,
   type Fleet,
   type Model,
@@ -207,6 +203,16 @@ const rungSaid = (rung: string): string =>
 /** The most cards one list draws at once; the rest are said and reached by the search. */
 const CARD_CAP = 120
 
+/** The draft already standing for any version of this model with nobody named on it. */
+function standingFor(model: Model) {
+  const store = quotesStore.getState()
+  for (const v of model.variants) {
+    const draft = store.unaddressedDraftFor(model.tableId, v.rowId)
+    if (draft) return draft
+  }
+  return undefined
+}
+
 /** The lists a shelf sells from, by table id. */
 const tablesOf = (shelf: SellingShelf): string[] =>
   shelf.doors.flatMap((d) => d.tables.map((t) => t.id))
@@ -269,33 +275,51 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
   const door = shelf?.doors.find((d) => d.tables.some((t) => t.id === at.brand)) ?? null
   const noun = door ? nounOf(door) : 'boat'
 
-  const model = modelByKey(fleet, at.model ?? null)
+  /* EVERYTHING SOLD, AS ONE LIST FOR THE FIELD: before a maker or a shelf is chosen, the field
+     searches the boats and every shelf at once, because the question it stands beside is "What
+     are you selling?" and not "Which boat?" (the critic, 2026-10-31, S-4: "Search every boat"
+     under that question). */
+  const everything = useMemo(
+    () => fleetsTogether([boats, ...sold.alone.flatMap((s) => shelves.get(s.moduleId) ?? [])]),
+    [boats, sold, shelves],
+  )
+  /* what one thing on each list is called, for a list's count where the field found it */
+  const nouns = useMemo(() => {
+    const out = new Map<string, readonly [string, string]>()
+    for (const s of sold.alone)
+      for (const d of s.doors)
+        for (const t of d.tables) out.set(t.id, [nounOf(d), d.census.noun] as const)
+    return out
+  }, [sold])
+
+  const model = modelByKey(shelf ? fleet : everything, at.model ?? null)
   /* A MODEL NAMES ITS OWN MAKER, so an address that carries a model and
      no maker still lists that maker's boats beside it. */
   const brand = fleet.brands.find((b) => b.id === (at.brand ?? model?.tableId)) ?? null
   const typed = query.trim() !== ''
   const stage: Stage = model ? 'boat' : brand || typed ? 'models' : 'makers'
-  /* the way back to the first question, said as what it shows */
-  const allWord = shelf ? 'Everything sold' : 'All makers'
+  /* the list the field searches, and the rail beside what it found: the chosen maker's or
+     shelf's, else everything sold */
+  const searched = shelf || brand ? fleet : everything
+  /* the way back to the first question, said as what it shows: the boat makers' rail is "All
+     makers", and a shelf's, or everything sold while the field searches it, is "Everything sold" */
+  const allWord = shelf || searched === everything ? 'Everything sold' : 'All makers'
 
-  /* THE VERSION A QUOTE IS WRITTEN FOR. A model that is one line of the
-     file IS that version, so nothing is asked; a model built in two
-     materials and fifteen colours is a real choice, and the act refuses
-     with its reason until somebody makes it. */
-  const subject: Variant | null =
-    model === null
-      ? null
-      : model.splits
-        ? (model.variants.find((v) => v.rowId === at.row) ?? null)
-        : (model.variants[0] ?? null)
+  /* THE VERSION A QUOTE IS WRITTEN FOR, and nothing is asked here any more (the owner,
+     2026-10-30: "the picking model color and all of that nonsense to be done in hull section
+     and same for all boats please so they can see differences in real time"). The quote opens
+     on the version the card's "from" figure prices (`openingOf`); its material and colour are
+     chosen in the build's hull section, where the total answers each press. An address that
+     names a version (a door elsewhere that knows one) still opens on that one. */
+  const named = model?.variants.find((v) => v.rowId === at.row) ?? null
+  const subject: Variant | null = model === null ? null : (named ?? openingOf(model))
 
   /* The store's own reader decides what an already-standing draft is
      (`unaddressedDraftFor`, and the bug it was written for is in its
-     own header). Read on the render that `filed` above just caused. */
-  const standing =
-    model && subject
-      ? quotesStore.getState().unaddressedDraftFor(model.tableId, subject.rowId)
-      : undefined
+     own header). Any version of this model counts: a draft whose colour was changed in the
+     hull chapter is still the draft for this boat. Read on the render that `filed` above
+     just caused. */
+  const standing = model ? standingFor(model) : undefined
 
   /* THE ACT KEEPS THE WORDS IT WAS PRESSED UNDER (components-critique-2.md,
      major 4). The press files its draft, and the render that filing causes
@@ -311,18 +335,16 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
     started !== null &&
     started.ok &&
     model !== null &&
-    subject !== null &&
     started.quote.rootTableId === model.tableId &&
-    started.quote.rootRowId === subject.rowId
+    model.variants.some((v) => v.rowId === started.quote.rootRowId)
       ? started.already
       : undefined
   const actSays = pressed ?? standing !== undefined
 
   const move = useCallback(
-    (next: PickerAt, how?: { stay?: boolean }) => {
+    (next: PickerAt) => {
       setStarted(null)
-      if (how) goTo?.(next, how)
-      else goTo?.(next)
+      goTo?.(next)
     },
     [goTo],
   )
@@ -366,7 +388,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
         preparedBy: who,
         ...(now ? { at: now() } : {}),
       },
-      (tableId, rowId) => quotesStore.getState().unaddressedDraftFor(tableId, rowId),
+      () => standingFor(model),
     )
     setStarted(outcome)
     if (outcome.ok && outcome.event) quotesStore.getState().file(outcome.quote, outcome.event)
@@ -374,8 +396,8 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
   }, [model, subject, filed, who, now, openQuote, shelf])
 
   const shown = useMemo(
-    () => matchModels(modelsOf(fleet, brand?.id ?? null), query),
-    [fleet, brand, query],
+    () => matchModels(modelsOf(searched, brand?.id ?? null), query),
+    [searched, brand, query],
   )
   /* A LIST NOBODY CAN SCROLL TO THE END OF IS A LIST NOBODY READS: Parts & Accessories holds
      2,238 products. The first CARD_CAP are drawn in the list's own order and the rest are
@@ -384,10 +406,10 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
   const keep = useMemo(() => new Set(drawn.map((m) => m.key)), [drawn])
   const listed = useMemo(
     () =>
-      (brand ? [brand] : fleet.brands)
+      (brand ? [brand] : searched.brands)
         .map((b) => ({ brand: b, series: seriesOf(b, keep) }))
         .filter((section) => section.series.length > 0),
-    [brand, fleet, keep],
+    [brand, searched, keep],
   )
 
   return (
@@ -401,7 +423,11 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               the price. `picker-counts` is the mark the walks wait on: the file is read. */}
           <p className="picker-eyebrow">New quote</p>
           <h1 className="picker-ask">
-            {stage === 'makers' ? 'What are you selling?' : `Which ${noun} is it?`}
+            {stage === 'makers'
+              ? 'What are you selling?'
+              : brand || shelf
+                ? `Which ${noun} is it?`
+                : 'Which one is it?'}
           </h1>
           {open ? (
             <p className="picker-say" data-testid="picker-counts">
@@ -409,7 +435,9 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                 ? 'A boat, or a motor, a trailer or a part on its own.'
                 : shelf
                   ? `Choose the ${noun}.`
-                  : 'Choose the maker, then the boat.'}
+                  : brand
+                    ? 'Choose the maker, then the boat.'
+                    : 'Choose the one you are selling.'}
             </p>
           ) : null}
         </div>
@@ -426,7 +454,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               value={query}
               onValueChange={setQuery}
               aria-describedby="picker-find-said"
-              placeholder={`Search ${brand ? brand.name : 'every boat'}`}
+              placeholder={brand ? `Search ${brand.name}` : 'Search everything sold'}
             />
             {/* WHAT THE FIELD FOUND, and nothing while it is empty: a
                 sentence about an empty field is a sentence nobody asked
@@ -441,11 +469,19 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               {!typed ? (
                 ''
               ) : shown.length === 0 ? (
-                `No model from ${brand ? brand.name : `the ${fleet.brands.length} makers`} is called that.`
+                brand ? (
+                  `No model from ${brand.name} is called that.`
+                ) : (
+                  'Nothing on the price list is called that.'
+                )
               ) : (
                 <>
                   <Figure value={shown.length} />
-                  {shown.length === 1 ? ' model matches' : ' models match'}
+                  {brand && !shelf
+                    ? shown.length === 1
+                      ? ' model matches'
+                      : ' models match'
+                    : ' found'}
                   {brand ? ` from ${brand.name}` : ''}.
                 </>
               )}
@@ -457,23 +493,24 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
       {open ? (
         <div className="picker-floor">
           {stage === 'makers' ? (
-            <div className="picker-sold">
+            <Sold>
               <Doors fleet={boats} toMaker={toMaker} lifted={lift.mark} />
               <Shelves sold={sold} fleets={shelves} toMaker={toMaker} />
-            </div>
+            </Sold>
           ) : (
             <>
               <Rail
-                fleet={fleet}
+                fleet={searched}
                 chosen={brand}
                 toMaker={toMaker}
                 toMakers={toMakers}
                 lifted={lift.mark}
                 allWord={allWord}
-                held={fleet.heldBack.map((h) => h.sentence).join(' ')}
+                held={searched.heldBack.map((h) => h.sentence).join(' ')}
               />
               <Gallery
                 brand={brand}
+                nouns={nouns}
                 listed={listed}
                 chosen={model}
                 typed={typed}
@@ -485,12 +522,11 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               />
               {model ? (
                 <Plate
-                  /* ONE PLATE PER MODEL. What the pointer is resting on is
-                     this plate's own passing state, and it must not survive
-                     into the next boat's chips. */
+                  /* ONE PLATE PER MODEL, so its arrival runs once for each boat pressed */
                   key={model.key}
                   model={model}
                   subject={subject}
+                  ranged={named === null && model.from !== model.to}
                   standing={actSays}
                   started={started}
                   move={move}
@@ -639,15 +675,109 @@ const PLATE_SIZES = '(max-width: 833px) 100vw, 34rem'
 const NO_PHOTOGRAPH_YET = 'No photograph of this boat yet.'
 
 /* ---------------------------------------------------------- */
+/* The first question: the boats and the shelves               */
+/* ---------------------------------------------------------- */
+
+function Sold({ children }: { children: ReactNode }) {
+  const floor = useRef<HTMLDivElement>(null)
+  useSeamAtTheFold(floor)
+  return (
+    <div className="picker-sold" ref={floor}>
+      {/* THE FIRST QUESTION'S CAP UNDER THE PILL, as the list of boats has one: the floor the
+          pill stands on while the doors and the shelves scroll under it (picker.css, "the cap") */}
+      <div className="picker-cap" aria-hidden="true" />
+      {children}
+    </div>
+  )
+}
+
+/**
+ * IN A HAND THE FIRST WINDOW ENDS ON A SEAM, never through a row (refine-critique.md, major 5,
+ * 2026-10-21: at 390 × 844 the second row of doors stood half over the tab bar and half under
+ * it until the page moved). The makers are rows of marks in a hand now, with the shelves under
+ * them, so the seam is found among those rows: each maker's row is given the same few pixels
+ * more (`--door-give`, at most 8px a row) until no row, head or shelf row stands across the
+ * bar's top, read as the foot of the room `.picker` pads for the bar. The fewest pixels that do
+ * it win; where none do, nothing is given. Above 600px the bar is not at the foot (`.picker`'s
+ * own `--shell-foot` is 0) and nothing here runs.
+ */
+/* the seam may stand from 2px above the bar's room to 4px into it: every row keeps 8px of its own
+   ground inside its edge, so no word or mark of it reaches the bar's top, 3px into the room */
+const SEAM = { above: 2, into: 4 }
+/** An element's box in the page's own coordinates. */
+const pageY = (a: Element): { top: number; bottom: number } => {
+  const r = a.getBoundingClientRect()
+  return { top: r.top + window.scrollY, bottom: r.bottom + window.scrollY }
+}
+function useSeamAtTheFold(floor: RefObject<HTMLDivElement | null>): void {
+  useEffect(() => {
+    const el = floor.current
+    const room = el?.closest<HTMLElement>('.picker')
+    if (!el || !room || typeof ResizeObserver === 'undefined') return
+    let busy = false
+    const fit = (): void => {
+      if (busy) return
+      busy = true
+      el.style.removeProperty('--door-give')
+      const foot = Number.parseFloat(getComputedStyle(room).paddingBlockEnd) || 0
+      const doors = [...el.querySelectorAll<HTMLElement>('[data-seam="maker"]')]
+      if (foot <= 0 || doors.length === 0) {
+        busy = false
+        return
+      }
+      /* the first window at rest: where the bar's room begins, in the page's own coordinates */
+      const fold = window.innerHeight - foot
+      const pastDoors = pageY(doors.at(-1)!).bottom
+      /* each thing that must not be cut, and how many makers' rows stand above it */
+      const atoms = [...el.querySelectorAll<HTMLElement>('[data-seam]')].map((a) => {
+        const at = pageY(a)
+        const door = doors.indexOf(a)
+        const above = door >= 0 ? door : at.top >= pastDoors ? doors.length : 0
+        return { ...at, above, own: door >= 0 ? 1 : 0 }
+      })
+      const clear = (give: number): boolean =>
+        atoms.every(({ top, bottom, above, own }) => {
+          const t = top + above * give
+          const b = bottom + (above + own) * give
+          return b <= fold + SEAM.into || t >= fold - SEAM.above
+        })
+      const give = Array.from({ length: 17 }, (_, i) => i / 2).find((g) => clear(g))
+      if (give !== undefined && give > 0) el.style.setProperty('--door-give', `${give}px`)
+      busy = false
+    }
+    fit()
+    const watch = new ResizeObserver(fit)
+    watch.observe(el)
+    window.addEventListener('resize', fit)
+    return () => {
+      watch.disconnect()
+      window.removeEventListener('resize', fit)
+    }
+  }, [floor])
+}
+
+/* ---------------------------------------------------------- */
 /* The doors: seven makers, nothing asked yet                  */
 /* ---------------------------------------------------------- */
 
 /**
- * THE FIRST THING THE SCREEN ASKS, AND THE ONLY THING. Each door is a
- * maker's mark on paper, the dearest of its boats this browser holds a
- * photograph of (`flagshipOf`), named on the picture so the picture
- * belongs to that boat, and what the maker's boats start from. One door
- * is two cells wide when that fills the last row (`featuredOf`).
+ * THE MAKER'S PICTURE IS A BOAT ON THE WATER WHEREVER IT HAS ONE. The dearest boat this browser
+ * holds a photograph of (`flagshipOf`), and a scene before a studio render: Stacer's dearest was
+ * a cut-out on white, and in the one wide door it stood small in a white field among six boats on
+ * the water (the critic, 2026-10-31, S-4). A maker with only renders still shows its dearest.
+ */
+const doorPictureOf = (brand: Brand): Model | null =>
+  flagshipOf(brand, (m) => pictureOf(m)?.verdict === 'scene') ??
+  flagshipOf(brand, (m) => pictureOf(m) !== null)
+
+/**
+ * THE BOATS, FIRST AND LARGEST. Each door is a maker's mark on paper, a photograph of the dearest
+ * of its boats on the water (`doorPictureOf`), and what the maker's boats start from. One door is
+ * two cells wide when that fills the last row (`featuredOf`). The boat in the picture is no longer
+ * named under it (the owner, 2026-10-30, of the build: "we dont need that little text under the
+ * photo"): the door is the maker's, the picture is still that boat's own, and the plate names
+ * every boat once it is chosen. In a hand the doors are the makers' marks alone, as rows, so the
+ * first window shows the shelves start under them (picker.css).
  */
 function Doors({
   fleet,
@@ -660,11 +790,10 @@ function Doors({
   lifted: string | null
 }) {
   const featured = featuredOf(fleet)
-  /* THE WIDE DOOR IS THE LAST DOOR, because it is wide to fill the last row (2026-10-21). In its
-     place among the makers it filled the second row of four at a desk, and left a hole wherever
-     the doors stand two abreast: at 834 x 1112 and in a hand, Stabicraft and Surtees each stood
-     alone on a row beside an empty cell, either side of the wide Stacer. Last, it ends the
-     grid whole at four abreast and at two, and the order a screen reader says is the order drawn. */
+  const headId = useId()
+  /* THE WIDE DOOR IS THE LAST DOOR, because it is wide to fill the last row (2026-10-21): last,
+     it ends the grid whole at four abreast, and the order a screen reader says is the order
+     drawn. */
   const doors =
     featured === null
       ? fleet.brands
@@ -672,20 +801,20 @@ function Doors({
           ...fleet.brands.filter((b) => b.id !== featured),
           ...fleet.brands.filter((b) => b.id === featured),
         ]
-  const grid = useRef<HTMLUListElement>(null)
-  useDoorsFit(grid)
   return (
-    <section className="picker-doors" aria-label="Makers">
-      {/* THE DOORS' CAP UNDER THE PILL, as the list of boats has one: the floor the pill stands
-          on while the doors scroll under it (picker.css, "the cap") */}
-      <div className="picker-cap" aria-hidden="true" />
-      <ul className="picker-doors__grid" ref={grid}>
+    <section className="picker-doors" aria-labelledby={headId}>
+      <h2 className="picker-kind" id={headId} data-seam="">
+        <KindMark kind="boat" size="sm" />
+        Boats
+      </h2>
+      <ul className="picker-doors__grid">
         {doors.map((b, i) => {
-          const flagship = flagshipOf(b, (m) => pictureOf(m) !== null)
+          const flagship = doorPictureOf(b)
           const photo = flagship ? pictureOf(flagship) : null
           return (
             <li
               className="picker-door"
+              data-seam="maker"
               key={b.id}
               data-featured={b.id === featured ? '' : undefined}
               style={{ '--i': i } as CSSProperties}
@@ -699,25 +828,13 @@ function Doors({
                       travel={lifted === b.id ? markTravel(b.id) : undefined}
                     />
                   </span>
-                  {/* THE BOAT ON THE DOOR IS NAMED UNDER ITS PICTURE, never on it (the
-                      refine round, 2026-10-21): a white pill on the photograph wrapped to two
-                      lines at 390 and covered the lower 40% of the Signature Fisher 525F, its
-                      hull included. Under it, the name takes its own line and the boat is
-                      whole. */}
-                  <span className="picker-door__pic">
-                    <span className="picker-door__frame" data-empty={photo ? undefined : ''}>
-                      {photo ? (
-                        <Shot
-                          held={photo}
-                          sizes={b.id === featured ? FEATURED_SIZES : DOOR_SIZES}
-                          lazy={false}
-                        />
-                      ) : null}
-                    </span>
-                    {photo && flagship ? (
-                      <span className="picker-door__pictured">
-                        {keepSeparators(flagship.shown)}
-                      </span>
+                  <span className="picker-door__frame" data-empty={photo ? undefined : ''}>
+                    {photo ? (
+                      <Shot
+                        held={photo}
+                        sizes={b.id === featured ? FEATURED_SIZES : DOOR_SIZES}
+                        lazy={false}
+                      />
                     ) : null}
                   </span>
                   <span className="picker-door__foot">
@@ -734,8 +851,7 @@ function Doors({
                       )}
                     </span>
                     {/* THE DOOR'S WAY IN, a glyph in the plate's blue well that
-                        slides forward under the pointer — the typed "→" it
-                        replaced was a character of whatever face loaded */}
+                        slides forward under the pointer */}
                     <span className="picker-door__go" aria-hidden="true">
                       <Icon glyph={ArrowRightIcon} />
                     </span>
@@ -750,77 +866,6 @@ function Doors({
   )
 }
 
-/**
- * IN A HAND THE FIRST WINDOW ENDS ON A SEAM BETWEEN ROWS OF DOORS, never through a door
- * (refine-critique.md, major 5, 2026-10-21). At 390 × 844 the second row's "from $2,770",
- * "from $74,410" and their arrows stood at 757–797, and the tab bar begins at 794: half of
- * each price showed over the bar and half under it, until the page moved. The desk already
- * fills its floor with two rows of doors (picker.css, "the doors fill the floor"); a hand does
- * the same with the window it has. Every door's picture takes one height, so the last whole
- * row ends 18px above the bar — the same air the pill keeps over a screen's head on a desk —
- * and the next row begins under the bar's ground. The bar is drawn 6px inside its room
- * (`--shell-foot`), so the row ends 12px above the room.
- *
- * MEASURED, NOT TYPED: what stands above the pictures (the head, the marks, the names, the
- * feet) is read off the page, its pictures' own height taken away so the measure does not move
- * when they do, and the picture is never taller than its 4:3 nor shallower than 2:1 of its own
- * width. The most rows that fit within those two win. Where no count of rows fits, the
- * pictures keep their 4:3 (picker.css). Above 600px the bar is not at the foot (`.picker`'s
- * own `--shell-foot` is 0) and nothing here runs.
- */
-const ROOM_AIR = 12
-function useDoorsFit(grid: RefObject<HTMLUListElement | null>): void {
-  useEffect(() => {
-    const ul = grid.current
-    const room = ul?.closest<HTMLElement>('.picker')
-    if (!ul || !room || typeof ResizeObserver === 'undefined') return
-    let last = ''
-    const write = (frame: string): void => {
-      if (frame === last) return
-      last = frame
-      if (frame === '') {
-        ul.style.removeProperty('--door-frame')
-        delete ul.dataset.fit
-      } else {
-        ul.style.setProperty('--door-frame', frame)
-        ul.dataset.fit = ''
-      }
-    }
-    const fit = (): void => {
-      /* `.picker` pads its foot by `--shell-foot`, so its padding IS the bar's room, in px */
-      const foot = Number.parseFloat(getComputedStyle(room).paddingBlockEnd) || 0
-      const doors = [...ul.children].filter((n): n is HTMLElement => n instanceof HTMLElement)
-      const frame = ul.querySelector<HTMLElement>('.picker-door__frame')
-      if (foot <= 0 || doors.length === 0 || !frame) return write('')
-      /* layout offsets, not the painted box: a door rises into place on arrival */
-      const within = (d: HTMLElement): number =>
-        d.offsetParent === ul ? d.offsetTop : d.offsetTop - ul.offsetTop
-      const tops = [...new Set(doors.map(within))].toSorted((a, b) => a - b)
-      const top = ul.getBoundingClientRect().top + window.scrollY
-      const fold = window.innerHeight - foot - ROOM_AIR
-      const was = frame.offsetHeight
-      const wide = frame.offsetWidth
-      let best: number | null = null
-      for (let k = 1; k <= tops.length; k++) {
-        const end = Math.max(
-          ...doors.filter((d) => within(d) <= tops[k - 1]!).map((d) => within(d) + d.offsetHeight),
-        )
-        const height = (fold - (top + end - k * was)) / k
-        if (height >= wide / 2 && height <= (wide * 3) / 4) best = Math.floor(height)
-      }
-      write(best === null ? '' : `${best}px`)
-    }
-    fit()
-    const watch = new ResizeObserver(fit)
-    watch.observe(ul)
-    window.addEventListener('resize', fit)
-    return () => {
-      watch.disconnect()
-      window.removeEventListener('resize', fit)
-    }
-  }, [grid])
-}
-
 const doorLabel = (b: Brand, one = 'model', many = 'models'): string =>
   `${b.name}, ${countOf(b.models.length, one, many)}${b.from === null ? '' : `, from ${money(b.from)}`}`
 
@@ -828,17 +873,17 @@ const doorLabel = (b: Brand, one = 'model', many = 'models'): string =>
 /* The shelves: what is sold on its own                        */
 /* ---------------------------------------------------------- */
 
-/** A shelf's door is drawn at most a fifth of a desk, half a hand. */
-const SMALL_SIZES = '(max-width: 833px) 50vw, 20vw'
-
 /**
- * EVERYTHING ELSE NORTHSIDE SELLS ON ITS OWN, under the boats (the owner, 2026-10-30: "quotes
+ * EVERYTHING ELSE NORTHSIDE SELLS ON ITS OWN, beside the boats (the owner, 2026-10-30: "quotes
  * are not just boats - also motors or trailers or even dealer fit things"): a motor for a
- * repower, a trailer, a package, a part. One shelf per place in the business, in the
- * dashboard's order, each list on it a door drawn like a maker's: its mark or its name, the
- * dearest thing on it this browser holds a photograph of, how many and from what price. A
- * shelf that is sold only with a boat says so above its doors, with the switch that changes
- * it (`letQuote`); its doors still open, so what is on it can be looked at.
+ * repower, a trailer, a package, a part. One plate per place in the business, in the
+ * dashboard's order, each list on it one row: its maker's mark or its name, how many and from
+ * what price. No pictures: a shelf's lists are told apart by their makers, and the photographs
+ * they hold were a cut-out here, a lone photograph there and an empty tile with a glyph in a
+ * third (the critic, 2026-10-31, S-4). Beside the boats on a desk, so the first window answers
+ * "What are you selling?" whole. A shelf that is sold only with a boat says so under its name,
+ * with the switch that changes it (`letQuote`); its rows still open, so what is on it can be
+ * looked at.
  */
 function Shelves({
   sold,
@@ -853,7 +898,7 @@ function Shelves({
   if (sold.alone.length === 0 && sold.notGoods === '') return null
   return (
     <section className="picker-alone" aria-labelledby={headId}>
-      <h2 className="picker-alone__head" id={headId}>
+      <h2 className="picker-kind" id={headId} data-seam="">
         Sold on its own
       </h2>
       {sold.alone.map((shelf) => (
@@ -878,69 +923,67 @@ function Shelf({
   fleet: Fleet | null
   toMaker: (id: string) => void
 }) {
+  const headId = useId()
   const lists = shelf.doors.flatMap((door) =>
     door.tables.flatMap((table) => {
       const brand = fleet?.brands.find((b) => b.id === table.id)
       return brand ? [{ door, brand }] : []
     }),
   )
-  /* a frame for its photograph only where a door on this shelf holds one (`Card`'s rule) */
-  const framed = lists.some(({ brand }) => {
-    const flagship = flagshipOf(brand, (m) => pictureOf(m) !== null)
-    return flagship !== null
-  })
   /* TWO LISTS UNDER ONE MAKER'S MARK (Dunbier Trailers and Dunbier / Haines BMT) are told apart
      by their names under it */
   const marks = lists.map(({ brand }) => markOf(brand.name)?.at ?? '')
   const shared = new Set(marks.filter((at, i) => at !== '' && marks.indexOf(at) !== i))
   return (
-    <div className="picker-shelf">
-      <div className="picker-shelf__top">
-        <h3 className="picker-shelf__head">{shelf.name}</h3>
-        {shelf.refusal === '' ? null : (
-          <div className="picker-shelf__shut">
-            <p>{shelf.refusal}</p>
-            <SellAlone moduleId={shelf.moduleId} />
-          </div>
-        )}
-      </div>
-      <ul className="picker-shelf__grid">
+    <section className="picker-shelf" aria-labelledby={headId} data-ground="plate">
+      <h3 className="picker-shelf__head" id={headId} data-seam="">
+        <KindMark kind={shelf.doors[0]?.kind ?? 'custom'} size="sm" />
+        {shelf.name}
+      </h3>
+      {shelf.refusal === '' ? null : (
+        <div className="picker-shelf__shut" data-seam="">
+          <p>{shelf.refusal}</p>
+          <SellAlone moduleId={shelf.moduleId} />
+        </div>
+      )}
+      <ul className="picker-shelf__rows">
         {lists.map(({ door, brand }, i) => (
-          <li className="picker-small" key={brand.id} style={{ '--i': i } as CSSProperties}>
-            <SmallDoor
+          <li
+            className="picker-small"
+            key={brand.id}
+            data-seam=""
+            style={{ '--i': i } as CSSProperties}
+          >
+            <ShelfRow
               door={door}
               brand={brand}
-              framed={framed}
               named={shared.has(markOf(brand.name)?.at ?? '')}
               toMaker={toMaker}
             />
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   )
 }
 
-function SmallDoor({
+/** One list on a shelf: its maker's mark or its name, how many, from what, and the way in. */
+function ShelfRow({
   door,
   brand,
-  framed,
   named,
   toMaker,
 }: {
   door: QuoteDoor
   brand: Brand
-  framed: boolean
-  /** its mark is another list's too, so its name is said under it */
+  /** its mark is another list's too, so its name is said beside it */
   named: boolean
   toMaker: (id: string) => void
 }) {
   const one = nounOf(door)
   const many = door.census.noun
-  const flagship = flagshipOf(brand, (m) => pictureOf(m) !== null)
-  const photo = flagship ? pictureOf(flagship) : null
   return (
-    <Tile onSelect={() => toMaker(brand.id)} label={doorLabel(brand, one, many)}>
+    <Tile shape="row" onSelect={() => toMaker(brand.id)} label={doorLabel(brand, one, many)}>
       <span className="picker-small__in">
         <span className="picker-small__mark">
           {markOf(brand.name) ? (
@@ -952,19 +995,9 @@ function SmallDoor({
             <span className="picker-small__name">{brand.name}</span>
           )}
         </span>
-        {photo || framed ? (
-          <span className="picker-small__frame" data-empty={photo ? undefined : ''}>
-            {photo ? (
-              <Shot held={photo} sizes={SMALL_SIZES} />
-            ) : (
-              /* no photograph on this list: its kind's own glyph, which depicts no product */
-              <KindMark kind={door.kind} size="lg" />
-            )}
-          </span>
-        ) : null}
-        <span className="picker-door__foot">
-          <span className="picker-door__n">{countOf(brand.models.length, one, many)}</span>
-          <span className="picker-door__from">
+        <span className="picker-small__figures">
+          <span className="picker-small__n">{countOf(brand.models.length, one, many)}</span>
+          <span className="picker-small__from">
             {brand.from === null ? (
               <span className="picker-none">Not priced</span>
             ) : (
@@ -973,9 +1006,9 @@ function SmallDoor({
               </>
             )}
           </span>
-          <span className="picker-door__go" aria-hidden="true">
-            <Icon glyph={ArrowRightIcon} />
-          </span>
+        </span>
+        <span className="picker-door__go" aria-hidden="true">
+          <Icon glyph={ArrowRightIcon} />
         </span>
       </span>
     </Tile>
@@ -1041,6 +1074,10 @@ function Rail({
   /** what this list holds back and why, said under the makers; '' when nothing is */
   held: string
 }) {
+  /* TWO LISTS UNDER ONE MARK (Signature's boats and its packages, while the field searches
+     everything sold) are told apart by their names under it */
+  const marks = fleet.brands.map((b) => markOf(b.name)?.at ?? '')
+  const shared = new Set(marks.filter((at, i) => at !== '' && marks.indexOf(at) !== i))
   return (
     <nav className="picker-rail" aria-label="Makers">
       <ul className="picker-rail__list">
@@ -1080,6 +1117,9 @@ function Rail({
                     decorative
                     travel={lifted === b.id && chosen?.id !== b.id ? markTravel(b.id) : undefined}
                   />
+                  {shared.has(markOf(b.name)?.at ?? '') ? (
+                    <span className="picker-small__sub">{b.name}</span>
+                  ) : null}
                 </span>
                 <span className="picker-railrow__n">{b.models.length.toLocaleString('en-AU')}</span>
               </span>
@@ -1100,6 +1140,7 @@ function Rail({
 
 function Gallery({
   brand,
+  nouns,
   listed,
   chosen,
   typed,
@@ -1110,6 +1151,8 @@ function Gallery({
   total,
 }: {
   brand: Brand | null
+  /** what one thing on each list that is not a boat maker's is called, by its table */
+  nouns: ReadonlyMap<string, readonly [string, string]>
   listed: { brand: Brand; series: Series[] }[]
   chosen: Model | null
   typed: boolean
@@ -1163,7 +1206,7 @@ function Gallery({
           <h2 className="picker-head__name">
             <Mark name={brand.name} travel={markTravel(brand.id)} />
           </h2>
-          <BrandSay brand={brand} />
+          <BrandSay brand={brand} noun={nouns.get(brand.id)} />
         </div>
       ) : (
         <div className="picker-head">
@@ -1196,8 +1239,7 @@ function Gallery({
                 <span className="picker-brandhead__n">
                   {countOf(
                     section.series.reduce((n, s) => n + s.models.length, 0),
-                    'model',
-                    'models',
+                    ...(nouns.get(section.brand.id) ?? (['model', 'models'] as const)),
                   )}
                 </span>
               </h2>
@@ -1302,14 +1344,23 @@ function bringTheActIn(block: HTMLElement | null): void {
  * out of this line from 1200px up, where the rail is drawn; below that the
  * rail steps aside and this line is the only place the count is said.
  */
-function BrandSay({ brand }: { brand: Brand }) {
+const MODEL_NOUN = ['model', 'models'] as const
+
+function BrandSay({
+  brand,
+  noun = MODEL_NOUN,
+}: {
+  brand: Brand
+  /** what one thing on this list is called, where it is not a boat maker's */
+  noun?: readonly [string, string] | undefined
+}) {
   const rest: string[] = []
   if (brand.filesSeries && brand.named > 1) rest.push(`${brand.named} series`)
   if (brand.from !== null) rest.push(`from ${money(brand.from)}`)
   return (
     <p className="picker-head__say">
       <span className="picker-head__n">
-        {countOf(brand.models.length, 'model', 'models')}
+        {countOf(brand.models.length, ...noun)}
         {rest.length > 0 ? ' · ' : ''}
       </span>
       {rest.join(' · ')}
@@ -1537,6 +1588,7 @@ const cardLabel = (model: Model, colours: string | null, series: string | null):
 function Plate({
   model,
   subject,
+  ranged,
   standing,
   started,
   move,
@@ -1547,10 +1599,13 @@ function Plate({
   moduleId,
 }: {
   model: Model
+  /** the version the quote opens on (`openingOf`), or the one the address names */
   subject: Variant | null
+  /** the price is said as the span the model's versions run over, because no version was named */
+  ranged: boolean
   standing: boolean
   started: Started | null
-  move: (next: PickerAt, how?: { stay?: boolean }) => void
+  move: (next: PickerAt) => void
   press: () => void
   goes: boolean
   /** what one of these is called — "boat", "motor", "product" */
@@ -1561,102 +1616,44 @@ function Plate({
   moduleId: string | null
 }) {
   const sayId = useId()
-  /* WHICH CHIP THE POINTER OR THE FOCUS IS RESTING ON, so the line under
-     the codes can name it before anybody commits to it. Passing state,
-     never a position: nothing is written to the address until a press. */
-  const [resting, setResting] = useState<string | null>(null)
   /* THE ACT AND ITS SENTENCE, as one block the window can be brought to. */
   const go = useRef<HTMLDivElement>(null)
-  /* Where the page stood when a material or a colour was pressed, and
-     which version was chosen then; see `refine` below. Null when no
-     refinement is on its way. */
-  const kept = useRef<{ y: number; from: string | null } | null>(null)
   /* THE SAME PICTURE THE CARD DREW AND THE BUILD WILL STAND ON ITS
      STAGE: the model's photograph on the water where the heroes ledger
      holds one, else its catalogue copy (`pictureOf`, the M2-close
      critique's finding 11). */
   const picture = pictureOf(model)
   const plateSet = picture ? srcSetOf(picture) : undefined
-  const material = subject?.material ?? null
-  const codes = variantsIn(model, material)
-  const unread = unreadIn(codes)
   const back: PickerAt = { brand: model.tableId }
 
-  /* TWO QUESTIONS, ASKED ONE AT A TIME. The material is what moves the
-     price (in 43 of Highfield's 67 models the price is a function of
-     material alone), so it is asked first, and pressing it chooses that
-     material's first colour — so the price is real and the act is live
-     from that moment, and the colour is a refinement rather than a gate.
-     A model built in one material has no first question. */
-  const asksMaterial = model.materials.length > 1
-  const showsCodes = !asksMaterial || material !== null
-  const named = codes.find((v) => v.rowId === (resting ?? subject?.rowId)) ?? null
+  /* THE ONE REFUSAL LEFT: a place that does not sell on its own. A boat's material and colour
+     no longer hold the act back (the owner, 2026-10-30): they are chosen in the hull section. */
+  const refusal = shut !== '' ? shut : undefined
 
-  /* THE REFUSAL, WITH ITS REASON, POINTING AT CHIPS THAT ARE REALLY
-     THERE: the chips stand in the plate's foot directly over the act,
-     so "above" is true at every width (built-critique-m2.md #3). */
-  /* THE PLATE NAMES ITS BOAT ONCE, in its heading (the refine round,
-     2026-10-21), so the refusal says the reason and not the name again. */
-  const refusal =
-    shut !== ''
-      ? shut
-      : subject === null
-        ? `A quote is for one ${asksMaterial ? 'material and one colour' : 'colour'}, so choose ${asksMaterial ? 'a material' : 'a colour'} above first.`
-        : undefined
+  /* WHAT THE BUILD WILL ASK, SAID WHERE THE ACT IS: a model built in more than one version opens
+     on the one its "from" figure prices, and the rest are a press away in the build, where the
+     total answers each one. Said in the card's own words — materials, or colours. */
+  const later = !model.splits
+    ? ''
+    : `${model.materials.length > 1 ? 'Its material and colour are' : 'Its colour is'} chosen in ${
+        noun === 'boat' ? 'the hull section' : 'the build'
+      }, where the price follows ${model.materials.length > 1 ? 'each one' : 'it'}.`
 
   /* THE BOAT ARRIVES WITH ITS ACT IN REACH (built-critique-m2-close-2.md,
      blocker 2 and major 9). One plate is mounted per model, so this runs
-     once for each boat pressed. Measured before it, on the built app with
-     touch: at 390 x 844 the plate is the page and the router puts the
-     window back at the top on every change of address, so the ADV7's
-     chips stood under the tab bar and `Start the quote` at 951 of an 844
-     window; from 834 up the plate stands beside the list, which the CSS
-     now holds in the window (`picker.css`, "the plate stays"), and this
-     is the least move that shows its act where it does not yet — a press
-     near the top of a list in a window 390px tall. The frame is the one
-     after the router's own reset, which a promise runs before it. */
+     once for each boat pressed: in a hand the router puts the window back
+     at the top on every change of address, and this is the least move that
+     shows the act. The frame is the one after the router's own reset, which a
+     promise runs before it. */
   useEffect(() => {
     const frame = requestAnimationFrame(() => bringTheActIn(go.current))
     return () => cancelAnimationFrame(frame)
   }, [])
 
-  /* A MATERIAL OR A COLOUR IS A REFINEMENT, NOT A NEW PAGE. The press
-     writes the version to the address, and the router answers a new
-     address by putting the window back at the top: measured on the
-     tablet, a colour pressed at scrollY 143 left the list at 0 and the
-     boat's card 6,900px below it, and at 390 it took the act that had
-     just come live off the screen. So a refinement asks the route to
-     leave the window where it stands (`stay`, which the route turns into
-     the router's `resetScroll: false`), the page is put back where the
-     press found it should anything have moved it all the same, and the
-     act is then brought in when the answer has moved the act down (a
-     material's colours arriving above it). Pressing
-     the version already chosen writes nothing — it would be the same
-     address again, and a second copy of it in the history for Back to
-     step through. */
-  const version = subject?.rowId ?? null
-  const refine = (next: PickerAt) => {
-    if (next.row !== undefined && next.row === version) return
-    kept.current = typeof window === 'undefined' ? null : { y: window.scrollY, from: version }
-    move(next, { stay: true })
-  }
-  useEffect(() => {
-    const asked = kept.current
-    /* nothing pressed on this plate, or the address has not answered yet */
-    if (asked === null || asked.from === version) return
-    kept.current = null
-    const frame = requestAnimationFrame(() => {
-      if (window.scrollY !== asked.y) window.scrollTo({ top: asked.y, behavior: 'instant' })
-      bringTheActIn(go.current)
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [version, kept])
-
-  /* THE NAME THIS BOAT'S PHOTOGRAPH TRAVELS UNDER: the version a quote would
-     be written for, which is the row the build's stage names its photograph
-     by (`rootRowId`), so the act carries this photograph onto the stage. A
-     model not yet narrowed to one version has no quote to go to, and is
-     named by its first row. */
+  /* THE NAME THIS BOAT'S PHOTOGRAPH TRAVELS UNDER: the version the quote
+     will be written for, which is the row the build's stage names its
+     photograph by (`rootRowId`), so the act carries this photograph onto
+     the stage. */
   const travel = boatTravel(model.tableId, subject?.rowId ?? model.key)
 
   return (
@@ -1712,12 +1709,9 @@ function Plate({
           ) : (
             /* NO PHOTOGRAPH, SAID ONCE, IN THE WORDS EVERY SCREEN USES
                (docs/WORDS.md): the file's pale blue at the picture's size
-               with the sentence on it. The boat's name is the plate's
-               heading, so it is not set large here as well and then a third
-               time in the sentence (the refine round, 2026-10-21). It
-               depicts nothing, so nothing stands in; and the plate keeps its
-               shape, so the act does not climb the page for a boat nobody
-               has photographed. */
+               with the sentence on it. It depicts nothing, so nothing stands
+               in; and the plate keeps its shape, so the act does not climb
+               the page for a boat nobody has photographed. */
             <figcaption className="picker-shot__none">
               {noun === 'boat' ? NO_PHOTOGRAPH_YET : `No photograph of this ${noun} yet.`}
             </figcaption>
@@ -1726,160 +1720,13 @@ function Plate({
         {model.facts.length > 0 ? <Strip model={model} /> : null}
       </div>
 
-      {/* THE PLATE'S FOOT — THE QUESTION, THE PRICE AND THE ACT, AND NONE
-          OF THEM SCROLLS. Everything the act waits on is here, in the
-          order it is answered: the material, its colours, the price they
-          come to, then the press. It is the foot of the plate and never
-          a floating bar; under 1200px it is an ordinary block at the end
-          of the page, directly under the boat it quotes. */}
+      {/* THE PLATE'S FOOT — THE PRICE AND THE ACT, AND NEITHER SCROLLS. It is
+          the foot of the plate and never a floating bar; under 1200px it is an
+          ordinary block at the end of the page, directly under the boat it
+          quotes. */}
       <div className="picker-stage__foot">
-        {asksMaterial ? (
-          <Pick head="Material" glyph={StackIcon}>
-            <div className="picker-chips">
-              {model.materials.map((group) => (
-                <Tile
-                  key={group.name === '' ? 'none' : group.name}
-                  shape="chip"
-                  selected={material === group.name}
-                  onSelect={() =>
-                    refine({
-                      ...back,
-                      model: model.key,
-                      ...(group.variants[0] ? { row: group.variants[0].rowId } : {}),
-                    })
-                  }
-                  label={`${group.label}, ${countOf(group.variants.length, 'colour', 'colours')}`}
-                >
-                  <span className="picker-chip picker-chip--line">
-                    <span className="picker-chip__name">{group.label}</span>
-                    <span className="picker-chip__sub">
-                      {group.from === null
-                        ? 'no price'
-                        : group.from === group.to
-                          ? money(group.from)
-                          : `${money(group.from)} – ${money(group.to ?? group.from)}`}
-                    </span>
-                  </span>
-                </Tile>
-              ))}
-            </div>
-          </Pick>
-        ) : null}
-
-        {model.splits && showsCodes ? (
-          <Pick
-            head={`Colour · ${codes.length}${material === null || material === '' ? '' : ` in ${codes[0]?.materialSaid ?? material}`}`}
-            glyph={PaletteIcon}
-          >
-            <div className="picker-chips picker-chips--codes">
-              {codes.map((variant, n) => (
-                /* THE WRAPPER LISTENS AND THE TILE PRESSES. Resting a
-                   pointer or a focus on a code names it in the line
-                   below; only a press writes the version to the address. */
-                <span
-                  className="picker-rest"
-                  key={variant.rowId}
-                  style={{ '--i': Math.min(n, 11) } as CSSProperties}
-                  onPointerEnter={() => setResting(variant.rowId)}
-                  onPointerLeave={() => setResting(null)}
-                  onFocus={() => setResting(variant.rowId)}
-                  onBlur={() => setResting(null)}
-                >
-                  <Tile
-                    shape="chip"
-                    selected={subject?.rowId === variant.rowId}
-                    onSelect={() => refine({ ...back, model: model.key, row: variant.rowId })}
-                    label={
-                      variant.reads
-                        ? `${variant.say}, ${variant.code}`
-                        : variant.coded
-                          ? `${variant.code}, no colour name on the price list`
-                          : variant.code
-                    }
-                  >
-                    {/* THE COLOUR IS THE CONTENT (built-critique-m2-close-2.md,
-                        major 6): a swatch of each colour the decode names,
-                        and its name. A code the decode cannot read (I, O, R,
-                        WH) draws no swatch and is printed as the code — a
-                        colour nobody can name is a colour nobody may paint —
-                        and a colourway the file names in a word ("Dune") is
-                        that word. */}
-                    <span
-                      className="picker-chip picker-chip--colour"
-                      data-drawn={variant.reads ? '' : undefined}
-                    >
-                      <Swatches colour={variant.colour} />
-                      <span
-                        className={
-                          variant.reads || !variant.coded
-                            ? 'picker-chip__colour'
-                            : 'picker-chip__code'
-                        }
-                      >
-                        {variant.code === ''
-                          ? '—'
-                          : variant.reads
-                            ? jointsOf(variant.say).map((part, i) => (
-                                /* each colour one box, so a chip breaks between
-                                   its colours and never inside "Light Grey"; its
-                                   identity is its place in the colourway */
-                                // eslint-disable-next-line react/no-array-index-key
-                                <Fragment key={i}>
-                                  {i === 0 ? null : ' '}
-                                  <span className="picker-chip__part">{part}</span>
-                                </Fragment>
-                              ))
-                            : variant.code}
-                      </span>
-                    </span>
-                  </Tile>
-                </span>
-              ))}
-            </div>
-            {/* THE CHIP BEING POINTED AT, else the one chosen, said once
-                under all of them with the dealer's own code beside its
-                name — the code is what he orders by. Its height is held
-                when it is empty, so resting on a chip never moves the act.
-                A code with no colour name is its code alone here: that the
-                price list names no colour for it is said once, in the note
-                under this line (the refine round, 2026-10-21). */}
-            <p className="picker-named" aria-hidden="true">
-              {named === null ? null : (
-                <>
-                  {/* the "·" before the code and the price stays on the word
-                      before it, as it does inside the name (minor 8) */}
-                  {named.reads ? (
-                    <>
-                      {keepSeparators(named.say)}
-                      {' · '}
-                      <span className="picker-mono">{named.code}</span>
-                    </>
-                  ) : named.coded ? (
-                    <span className="picker-mono">{named.code}</span>
-                  ) : (
-                    named.code
-                  )}
-                  {named.amount !== null && model.from !== model.to ? (
-                    <>
-                      {' · '}
-                      <PriceFigure amount={named.amount} />
-                    </>
-                  ) : null}
-                </>
-              )}
-            </p>
-            {unread.length > 0 ? (
-              <p className="picker-note">
-                The price list names no colour for{' '}
-                <span className="picker-mono">{unread.join(', ')}</span>, so{' '}
-                {unread.length === 1 ? 'it shows as its code' : 'they show as their codes'}.
-              </p>
-            ) : null}
-          </Pick>
-        ) : null}
-
         {/* THE ACT WITH ITS PRICE AND ITS SENTENCE: the block the window is
-            brought to when a boat arrives, and kept on after a colour. */}
+            brought to when a boat arrives. */}
         <div className="picker-go" ref={go}>
           {/* THE PRICE AND THE PRESS ON ONE LINE once the plate is wide
             enough — `surtees-770.png`'s strip, with the act at its end. */}
@@ -1889,31 +1736,24 @@ function Plate({
                 <>
                   <p className="picker-money__none">Not priced</p>
                   <p className="picker-money__why">
-                    The price list has no price for this boat. The quote still opens, and you put
+                    The price list has no price for this {noun}. The quote still opens, and you put
                     the price on it.
                   </p>
                 </>
               ) : (
                 <>
                   <p className="picker-money__fig">
-                    {subject === null && model.from !== model.to ? 'from ' : ''}
-                    <PriceFigure amount={subject?.amount ?? model.from} />
+                    {ranged ? 'from ' : ''}
+                    <PriceFigure amount={ranged ? model.from : (subject?.amount ?? model.from)} />
                   </p>
                   <p className="picker-money__rung">
                     {rungSaid(model.rung)}
-                    {subject === null && model.from !== model.to
-                      ? `, up to ${money(model.to ?? model.from)}`
-                      : ''}
+                    {ranged ? `, up to ${money(model.to ?? model.from)}` : ''}
                   </p>
                 </>
               )}
             </div>
 
-            {/* WHILE IT WAITS, THE ACT IS THE QUIETEST THING ON THE PLATE
-                (m2-last-critique.md, minor 21 of the specification): the
-                question it waits on is the chips above it, and `data-waits`
-                draws the refused act in the foot's own blue rather than amber,
-                which on this plate means "press this". */}
             <div className="picker-act" data-waits={refusal === undefined ? undefined : ''}>
               {/* THE ONE LOUD PRESS ENDS ON ITS ARROW IN A DARK DISC, which
                   nudges forward under the pointer (the kit's act) */}
@@ -1932,7 +1772,7 @@ function Plate({
             {refusal ??
               (standing
                 ? `A draft for this ${noun} is already started with nobody named on it, so this reopens it rather than starting a second.`
-                : '')}
+                : later)}
           </p>
           {shut !== '' && moduleId !== null ? <SellAlone moduleId={moduleId} /> : null}
         </div>
@@ -1940,22 +1780,6 @@ function Plate({
         {started ? <Made started={started} goes={goes} /> : null}
       </div>
     </aside>
-  )
-}
-
-/** One question the act waits on, under its own small head and the glyph of
- *  what it asks — the layers of a material, the palette of a colour. */
-function Pick({ head, glyph, children }: { head: string; glyph: Glyph; children: ReactNode }) {
-  return (
-    <div className="picker-pick">
-      <p className="picker-pick__head">
-        <span className="picker-pick__glyph" aria-hidden="true">
-          <Icon glyph={glyph} />
-        </span>
-        {head}
-      </p>
-      {children}
-    </div>
   )
 }
 

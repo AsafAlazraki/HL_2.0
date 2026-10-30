@@ -370,6 +370,7 @@ function Deal({
       layout="position"
       transition={move.travel}
       className="qd-deal"
+      data-ground="plate"
       data-state={row.state}
       data-lit={lit ? '' : undefined}
       ref={keep}

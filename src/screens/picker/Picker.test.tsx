@@ -8,7 +8,6 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { spokenBoat } from '@/domain/quote/spoken'
-import { jointsOf } from '@/domain/quote/wrap'
 import {
   featuredOf,
   flagshipOf,
@@ -16,8 +15,6 @@ import {
   matchModels,
   modelsOf,
   seriesOf,
-  unreadIn,
-  variantsIn,
   type Brand,
   type Fleet,
   type Model,
@@ -54,20 +51,6 @@ const loadTheFile = async (): Promise<void> => {
 
 const au = (n: number): string => n.toLocaleString('en-AU')
 const models = (n: number): string => `${au(n)} ${n === 1 ? 'model' : 'models'}`
-const colours = (n: number): string => `${n} ${n === 1 ? 'colour' : 'colours'}`
-
-/** A colour's chip, found the way a reader hears it: its colour's name
- *  and then the dealer's code where the decode names it, the code alone
- *  where it cannot, the file's word where the file wrote one. */
-type Chipped = { reads: boolean; coded: boolean; say: string; code: string }
-const chipName = (variant: Chipped): string =>
-  variant.reads
-    ? `${variant.say}, ${variant.code}`
-    : variant.coded
-      ? `${variant.code}, no colour name on the price list`
-      : variant.code
-const chipOf = (inside: ReturnType<typeof within>, variant: Chipped): HTMLElement =>
-  inside.getByRole('button', { name: chipName(variant) })
 
 /* THE DATABASE'S OWN WORDS, which the M2-close critique counted on this
    screen — 128 "row" or "rows" and 10 "register" at 1440 — and which a
@@ -120,7 +103,7 @@ describe('the picker with the price file open', () => {
 
   it('opens on the makers: one door each, with its models and the price they start from', () => {
     render(<Picker />)
-    const doors = screen.getByRole('region', { name: 'Makers' })
+    const doors = screen.getByRole('region', { name: 'Boats' })
     for (const brand of fleet.brands) {
       const door = within(doors).getByRole('button', {
         name: `${brand.name}, ${models(brand.models.length)}${brand.from === null ? '' : `, from ${money(brand.from)}`}`,
@@ -133,11 +116,16 @@ describe('the picker with the price file open', () => {
     expect(screen.queryByRole('region', { name: 'Models' })).toBeNull()
   })
 
-  it('puts on each door the dearest boat it holds a photograph of, and names it there', () => {
+  /* REWRITTEN 2026-10-31: the door's picture is the dearest boat on the WATER where the maker
+     has one (Stacer's dearest was a cut-out on white, the critic's S-4), and the boat is no longer
+     named under it (the owner: "we dont need that little text under the photo") */
+  it('puts on each door the dearest boat it holds on the water, else its dearest render, and names no boat under it', () => {
     render(<Picker />)
-    const doors = screen.getByRole('region', { name: 'Makers' })
+    const doors = screen.getByRole('region', { name: 'Boats' })
     for (const brand of fleet.brands) {
-      const flagship = flagshipOf(brand, (m) => pictureOf(m) !== null)
+      const flagship =
+        flagshipOf(brand, (m) => pictureOf(m)?.verdict === 'scene') ??
+        flagshipOf(brand, (m) => pictureOf(m) !== null)
       const door = within(doors).getByRole('button', {
         name: new RegExp(`^${escape(brand.name)},`),
       })
@@ -148,8 +136,30 @@ describe('the picker with the price file open', () => {
       expect(door.querySelector('img.picker-photo')?.getAttribute('src')).toBe(
         pictureOf(flagship)?.at,
       )
-      expect(within(door).getByText(flagship.shown)).toBeInTheDocument()
+      expect(door.textContent).not.toContain(flagship.shown)
     }
+  })
+
+  /* NOT JUST BOATS (the owner, 2026-10-30): before a maker is chosen, the field searches
+     everything sold, and says so */
+  it('searches everything sold from the first question, a motor as well as a boat', async () => {
+    const motors = fleetOf(
+      Object.fromEntries(pack.entities.filter((e) => e.kind === 'motor').map((e) => [e.id, e])),
+      pack.rowsByEntity as Record<string, RowData[]>,
+      'motor',
+    )
+    const motor = motors.brands
+      .flatMap((b) => b.models)
+      .find((m) => matchModels(modelsOf(fleet, null), m.name).length === 0) as Model
+    expect(motor).toBeDefined()
+    render(<Picker />)
+    const field = screen.getByLabelText(/Find a model/)
+    expect(field).toHaveAttribute('placeholder', 'Search everything sold')
+    await userEvent.type(field, motor.name)
+    const index = screen.getByRole('region', { name: 'Models' })
+    expect(
+      within(index).getAllByRole('button', { name: new RegExp(`^${escape(motor.shown)},`) }).length,
+    ).toBeGreaterThan(0)
   })
 
   it('draws one door two cells wide when that fills the last row, and only that one', () => {
@@ -160,7 +170,7 @@ describe('the picker with the price file open', () => {
     /* and it is the LAST door, so it ends the grid whole at four abreast and at two, rather
        than leaving a cell empty on either side of it where the doors stand two abreast */
     if (featured !== null) {
-      const doors = within(screen.getByRole('region', { name: 'Makers' })).getAllByRole('listitem')
+      const doors = within(screen.getByRole('region', { name: 'Boats' })).getAllByRole('listitem')
       expect(doors.at(-1)).toBe(wide[0])
     }
   })
@@ -354,144 +364,108 @@ describe('the picker with the price file open', () => {
   })
 })
 
+/* ============================================================
+   A MODEL BUILT IN MANY VERSIONS STARTS ON ITS OWN (the owner, 2026-10-30: "the picking model
+   color and all of that nonsense to be done in hull section and same for all boats please so
+   they can see differences in real time"). REWRITTEN 2026-10-31 from the cases that held the
+   plate's material and colour chips and the act's refusal until one was chosen, which the
+   redesign made untrue: the plate asks nothing, the quote opens on the version its "from"
+   figure prices, and the act says where the rest is chosen.
+   ============================================================ */
 describe('a model built in many versions', () => {
   beforeAll(async () => {
     await loadTheFile()
+    await quotes.getState().openFor('northside')
     session.getState().signIn('Asaf')
   })
 
   const manyMaterials = (): Model =>
-    fleet.brands.flatMap((b) => b.models).find((m) => m.materials.length > 1) as Model
+    fleet.brands
+      .flatMap((b) => b.models)
+      .find((m) => m.materials.length > 1 && m.from !== m.to) as Model
 
-  it('refuses the act with its reason until one is chosen, and never with a dead control', () => {
+  it('starts on the model alone, live at once, and says where its material and colour are chosen', () => {
     const model = manyMaterials()
     render(<Picker at={{ brand: model.tableId, model: model.key }} />)
     const panel = screen.getByRole('complementary', { name: 'What is chosen' })
     const act = within(panel).getByRole('button', { name: 'Start the quote' })
-    expect(act).toHaveAttribute('aria-disabled', 'true')
-    /* refused, and still reachable by a keyboard and still named */
-    expect(act).toHaveAccessibleDescription(
-      'A quote is for one material and one colour, so choose a material above first.',
-    )
-    /* AND NOT THE LOUDEST THING ON THE PLATE WHILE IT WAITS (the M2-close-2
-       critique's minor 21): its block is marked waiting, which draws it in
-       the foot's blue and not the amber that means "press this" */
-    expect(act.closest('.picker-act')).toHaveAttribute('data-waits')
-  })
-
-  it('draws the act in amber the moment it can act, and only then', () => {
-    const model = manyMaterials()
-    render(<Picker at={{ brand: model.tableId, model: model.key, row: model.variants[0].rowId }} />)
-    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    const act = within(panel).getByRole('button', { name: 'Start the quote' })
     expect(act).not.toHaveAttribute('aria-disabled', 'true')
     expect(act.closest('.picker-act')).not.toHaveAttribute('data-waits')
-  })
-
-  /* TWO QUESTIONS, ASKED ONE AT A TIME. The material is what moves the
-     price, so it is asked first and the colours of that material follow
-     — which is also what keeps fifteen chips off the plate before
-     anybody has narrowed anything. */
-  it('offers every material with its own price, and asks the colour only after one', async () => {
-    const model = manyMaterials()
-    const goTo = vi.fn<(next: PickerAt, how?: { stay?: boolean }) => void>()
-    render(<Picker at={{ brand: model.tableId, model: model.key }} goTo={goTo} />)
-    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    for (const group of model.materials) {
-      expect(
-        within(panel).getByRole('button', {
-          name: `${group.label}, ${colours(group.variants.length)}`,
-        }),
-      ).toBeInTheDocument()
-    }
-    /* no colour is on the plate until a material has been chosen */
-    expect(within(panel).queryByText(/^Colour ·/)).toBeNull()
-
-    const first = model.materials[0]
-    await userEvent.click(
-      within(panel).getByRole('button', {
-        name: `${first.label}, ${colours(first.variants.length)}`,
-      }),
-    )
-    /* pressing it chooses that material's first colour, so the act is
-       live from that moment and the colour is a refinement */
-    expect(goTo).toHaveBeenCalledWith(
-      {
-        brand: model.tableId,
-        model: model.key,
-        row: first.variants[0].rowId,
-      },
-      /* the same boat on the same page: the route leaves the window be */
-      { stay: true },
-    )
-  })
-
-  /* THE COLOUR IS THE CONTENT (built-critique-m2-close-2.md, major 6):
-     a chip is the colour's name with a swatch of each colour the decode
-     names, and a code it cannot read is the code with no swatch at all. */
-  it('lists every colour of the chosen material as a person says it, drawn as colour', () => {
-    const model = manyMaterials()
-    const group = model.materials[0]
-    render(<Picker at={{ brand: model.tableId, model: model.key, row: group.variants[0].rowId }} />)
-    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
     expect(
-      within(panel).getByText(new RegExp(`^Colour · ${group.variants.length} `)),
+      within(panel).getByText(/^Its material and colour are chosen in the hull section/),
     ).toBeInTheDocument()
-    for (const variant of group.variants) {
-      const chip = chipOf(within(panel), variant)
-      /* the words are the decode's, and the space before each " / " is one
-         a line cannot break at (minor 8: "Black / Grey" over "/ White/Blue") */
-      expect(chip.textContent?.replaceAll(' ', ' ')).toBe(
-        variant.reads ? variant.say : variant.code,
-      )
-      expect(chip.textContent).not.toMatch(/ [/·] /)
-      /* and each colour is one box, so a chip breaks between its colours
-         and never inside "Light Grey" */
-      if (variant.reads)
-        expect([...chip.querySelectorAll('.picker-chip__part')].map((p) => p.textContent)).toEqual(
-          jointsOf(variant.say),
-        )
-      expect(chip.querySelectorAll('.ui-swatch').length, variant.code).toBe(
-        variant.reads ? variant.colour.parts.length : 0,
-      )
-    }
+    /* no material and no colour is asked on the plate */
+    expect(panel.querySelector('.picker-pick, .picker-chips')).toBeNull()
+    for (const group of model.materials)
+      expect(
+        within(panel).queryByRole('button', { name: new RegExp(`^${escape(group.label)},`) }),
+      ).toBeNull()
+    /* the price is the span its versions run over, as its card said it */
+    expect(panel.querySelector('.picker-money__fig')).toHaveTextContent(
+      `from ${money(model.from as number)}`,
+    )
+    expect(panel.querySelector('.picker-money__rung')).toHaveTextContent(
+      `up to ${money(model.to as number)}`,
+    )
   })
 
-  /* THE SENTENCE NAMES WHAT IS IN THE LIST IT SITS UNDER, so the case
-     is built the same way: the first version whose own material's codes
-     really do carry a token nothing decodes. */
-  it('prints an undecoded colour as the code it is, and says the price list names no colour for it', () => {
-    const found = fleet.brands
+  it('says a one-material model’s colour is chosen in the hull section too — the ADV7 case', () => {
+    const model = fleet.brands
       .flatMap((b) => b.models)
-      .flatMap((m) => m.variants.map((v) => ({ model: m, row: v })))
-      .find(({ model, row }) => unreadIn(variantsIn(model, row.material)).length > 0) as {
-      model: Model
-      row: { rowId: string; material: string }
-    }
-    expect(found).toBeDefined()
-    const { model, row } = found
-    const shown = unreadIn(variantsIn(model, row.material))
-    render(<Picker at={{ brand: model.tableId, model: model.key, row: row.rowId }} />)
-    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    const note = within(panel).getByText(/The price list names no colour for/)
-    expect(shown.length).toBeGreaterThan(0)
-    for (const token of shown) {
-      expect(token).toMatch(/^[A-Z]+$/)
-      expect(note.textContent).toContain(token)
-    }
-    expect(
-      within(panel).getAllByRole('button', { name: /no colour name on the price list/ }).length,
-    ).toBeGreaterThan(0)
-  })
-
-  it('becomes live once one is chosen, at that version’s own price', () => {
-    const model = manyMaterials()
-    const row = model.variants[0]
-    render(<Picker at={{ brand: model.tableId, model: model.key, row: row.rowId }} />)
+      .find((m) => m.splits && m.materials.length === 1) as Model
+    expect(model).toBeDefined()
+    render(<Picker at={{ brand: model.tableId, model: model.key }} />)
     const panel = screen.getByRole('complementary', { name: 'What is chosen' })
     const act = within(panel).getByRole('button', { name: 'Start the quote' })
     expect(act).not.toHaveAttribute('aria-disabled', 'true')
-    expect(panel.querySelector('.picker-money__fig')).toHaveTextContent(money(row.amount as number))
+    expect(within(panel).getByText(/^Its colour is chosen in the hull section/)).toBeInTheDocument()
+  })
+
+  it('opens the build on the version its "from" figure prices', async () => {
+    const model = manyMaterials()
+    const opening = model.variants.find((v) => v.amount === model.from)
+    expect(opening).toBeDefined()
+    const openQuote = vi.fn<(quoteId: string) => void>()
+    render(
+      <Picker
+        at={{ brand: model.tableId, model: model.key }}
+        now={() => AT}
+        openQuote={openQuote}
+      />,
+    )
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    await userEvent.click(
+      within(panel).getByRole('button', {
+        name: /^(Start the quote|Open the draft already standing)$/,
+      }),
+    )
+    await screen.findByTestId('picker-made')
+    const filed = quotes
+      .getState()
+      .quotes.find((q) => q.rootTableId === model.tableId && q.rootRowId === opening?.rowId)
+    expect(filed).toBeDefined()
+    expect(openQuote).toHaveBeenCalledWith(filed?.id)
+  })
+
+  it('hands back a draft standing for any version of the model rather than writing a second', () => {
+    const model = manyMaterials()
+    /* the draft the case above filed, on the opening version */
+    render(<Picker at={{ brand: model.tableId, model: model.key }} />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    expect(
+      within(panel).getByRole('button', { name: 'Open the draft already standing' }),
+    ).toBeInTheDocument()
+  })
+
+  it('opens on the version an address names, at that version’s own price', () => {
+    const model = manyMaterials()
+    const row = model.variants.findLast((v) => v.amount !== null && v.amount !== model.from)
+    expect(row).toBeDefined()
+    render(<Picker at={{ brand: model.tableId, model: model.key, row: row?.rowId }} />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    expect(panel.querySelector('.picker-money__fig')).toHaveTextContent(
+      new RegExp(`^${escape(money(row?.amount as number))}$`),
+    )
   })
 })
 
@@ -637,92 +611,25 @@ describe("the plate's foot", () => {
       .flatMap((b) => b.models)
       .find((m) => m.materials.length > 1 && pictureOf(m) !== null) as Model
 
-  it('holds the question, the price and the act together, and scrolls only the picture', () => {
+  /* REWRITTEN 2026-10-31: the foot held the material and colour chips over the act; they are
+     chosen in the hull section now, so the foot is the price, the act and its sentence */
+  it('holds the price, the act and its sentence in one block, and the picture in the body', () => {
     const model = manyMaterials()
-    const row = model.variants[0]
-    render(<Picker at={{ brand: model.tableId, model: model.key, row: row.rowId }} />)
-    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    const act = within(panel).getByRole('button', { name: 'Start the quote' })
-    const foot = act.closest('.picker-stage__foot')
-    expect(foot).not.toBeNull()
-    expect(foot).toContainElement(
-      within(foot as HTMLElement).getByText(money(row.amount as number), {
-        selector: '.picker-money__fig *',
-      }),
-    )
-    const first = model.materials[0]
-    const material = within(panel).getByRole('button', {
-      name: `${first.label}, ${first.variants.length} ${first.variants.length === 1 ? 'colour' : 'colours'}`,
-    })
-    expect(foot).toContainElement(material)
-    for (const variant of variantsIn(model, row.material)) {
-      expect(foot, `the colour ${variant.code} is not in the foot`).toContainElement(
-        chipOf(within(foot as HTMLElement), variant),
-      )
-    }
-    /* while the boat's own picture is in the body, which may scroll */
-    expect(
-      panel.querySelector('img.picker-shot__img')?.closest('.picker-stage__body'),
-    ).not.toBeNull()
-  })
-
-  it('stands a one-material model’s colours in the foot too — the ADV7 case', () => {
-    /* found, not named: a model of several versions in ONE material,
-       whose colour is the only question and the gate on the act */
-    const model = fleet.brands
-      .flatMap((b) => b.models)
-      .find((m) => m.splits && m.materials.length === 1) as Model
-    expect(model).toBeDefined()
     render(<Picker at={{ brand: model.tableId, model: model.key }} />)
     const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    const act = within(panel).getByRole('button', { name: 'Start the quote' })
-    expect(act).toHaveAttribute('aria-disabled', 'true')
-    expect(act).toHaveAccessibleDescription(
-      'A quote is for one colour, so choose a colour above first.',
-    )
-    const foot = act.closest('.picker-stage__foot') as HTMLElement
-    const first = model.variants[0]
-    const chip = chipOf(within(foot), first)
-    expect(chip).toBeDefined()
-    /* ABOVE, and in the same block that never scrolls */
-    expect(chip.compareDocumentPosition(act) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  })
-
-  /* THE ACT'S BLOCK AND THE REFINEMENT (built-critique-m2-close-2.md,
-     blocker 2 and major 9). A pixel is `picker.spec`'s to measure; what a
-     component test can hold is what the fix rests on: the price, the act
-     and the act's sentence are ONE block, which is what the window is
-     brought to; and a colour already chosen writes nothing, because the
-     same address pushed again is a page the router scrolls to the top
-     and a step Back has to walk through. */
-  it('keeps the price, the act and its sentence in one block, and a chosen colour writes nothing', async () => {
-    const model = fleet.brands
-      .flatMap((b) => b.models)
-      .find((m) => m.splits && m.materials.length === 1 && m.variants.length > 1) as Model
-    const [chosen, other] = model.variants
-    const goTo = vi.fn<(next: PickerAt, how?: { stay?: boolean }) => void>()
-    render(
-      <Picker at={{ brand: model.tableId, model: model.key, row: chosen.rowId }} goTo={goTo} />,
-    )
-    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    const act = within(panel).getByRole('button', { name: 'Start the quote' })
+    const act = within(panel).getByRole('button', { name: /Start the quote|Open the draft/ })
+    const foot = act.closest('.picker-stage__foot')
+    expect(foot).not.toBeNull()
     const block = act.closest('.picker-go') as HTMLElement
     expect(block).not.toBeNull()
     expect(block).toContainElement(panel.querySelector('.picker-money__fig'))
     expect(block).toContainElement(panel.querySelector('.picker-act__say'))
-
-    await userEvent.click(chipOf(within(panel), chosen))
-    expect(goTo).not.toHaveBeenCalled()
-    await userEvent.click(chipOf(within(panel), other))
-    expect(goTo).toHaveBeenCalledTimes(1)
-    expect(goTo).toHaveBeenCalledWith(
-      {
-        brand: model.tableId,
-        model: model.key,
-        row: other.rowId,
-      },
-      { stay: true },
-    )
+    /* the act is the foot's one press */
+    expect(foot?.querySelectorAll('button')).toHaveLength(1)
+    /* while the boat's own picture is in the body, which may scroll */
+    expect(
+      panel.querySelector('img.picker-shot__img')?.closest('.picker-stage__body'),
+    ).not.toBeNull()
   })
 
   /* THE M2-CLOSE CRITIQUE, FINDING 11: Home sells the Stacer 519 Sea
@@ -821,24 +728,32 @@ describe('the words that are counts', () => {
     session.getState().signIn('Asaf')
   })
 
-  it('counts the makers rather than saying seven, when nothing matches what was typed', async () => {
-    render(<Picker />)
+  /* REWRITTEN 2026-10-31: from the first question the field searches everything sold, so what
+     it says when nothing matches is about the price list and not about seven makers */
+  it('says what nothing matched in, when nothing matches what was typed', async () => {
+    const { unmount } = render(<Picker />)
     await userEvent.type(screen.getByLabelText(/Find a model/), 'zzzzqx')
-    expect(
-      screen.getByText(`No model from the ${fleet.brands.length} makers is called that.`),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Nothing on the price list is called that.')).toBeInTheDocument()
+    unmount()
+    const brand = fleet.brands[0] as Brand
+    render(<Picker at={{ brand: brand.id }} />)
+    await userEvent.type(screen.getByLabelText(/Find a model/), 'zzzzqx')
+    expect(screen.getByText(`No model from ${brand.name} is called that.`)).toBeInTheDocument()
   })
 
   it('has a singular: one model MATCHES', async () => {
-    const only = fleet.brands
-      .flatMap((b) => b.models)
-      .find((m) => matchModels(modelsOf(fleet, null), m.name).length === 1) as Model
-    expect(only).toBeDefined()
-    render(<Picker />)
+    const found = fleet.brands
+      .flatMap((b) => b.models.map((m) => ({ brand: b, model: m })))
+      .find(({ brand, model }) => matchModels(brand.models, model.name).length === 1)
+    expect(found).toBeDefined()
+    const only = found?.model as Model
+    render(<Picker at={{ brand: found?.brand.id }} />)
     await userEvent.type(screen.getByLabelText(/Find a model/), only.name)
     /* the whole sentence, read off its paragraph: the count is the kit's Figure, an element
        of its own inside it (2026-09-29), so no one element's own text is the sentence */
-    expect(document.getElementById('picker-find-said')).toHaveTextContent(/^1 model matches\.$/)
+    expect(document.getElementById('picker-find-said')).toHaveTextContent(
+      `1 model matches from ${found?.brand.name ?? ''}.`,
+    )
   })
 })
 
@@ -862,7 +777,7 @@ describe('the picker with no price file in this browser', () => {
     const openTheFile = vi.fn<() => void>()
     render(<Picker openTheFile={openTheFile} />)
     expect(screen.getByText(/No boats to choose from yet/)).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Makers' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Boats' })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Load the Master Price File' }))
     expect(openTheFile).toHaveBeenCalled()
   })

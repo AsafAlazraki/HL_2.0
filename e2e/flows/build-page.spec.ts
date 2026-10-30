@@ -215,19 +215,24 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   await expect(head).toContainText('Jordan Avery')
   await expect(head).toContainText('0400 000 000')
 
-  /* 7. THE SPECIFICATIONS, EVERY ONE, FROM A KEYBOARD */
+  /* 7. THE SPECIFICATIONS, EVERY ONE, FROM A KEYBOARD, over the page, said as a person says them
+     (the critic, 2026-10-31, P-2: they opened in the boat's column, took the photograph down to a
+     strip, and read "Min 90 HP", "Shaft Lgth", "Matrix", "Model Code") */
+  const shotBefore = (await page.locator('.cfg-shot').boundingBox())!
   const more = page.getByRole('button', { name: /^All \d+ specifications$/ })
   await more.focus()
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('button', { name: 'Fewer specifications' })).toHaveAttribute(
-    'aria-expanded',
-    'true',
-  )
-  await expect(page.locator('.cfg-specs__row').first()).toBeVisible()
+  const specs = page.getByRole('dialog', { name: /every specification$/ })
+  await expect(specs).toBeVisible()
+  await expect(specs.getByTestId('specifications')).toContainText('90–115 hp')
+  await expect(specs.getByTestId('specifications')).toContainText(/Shaft length/i)
+  await expect(specs.getByTestId('specifications')).not.toContainText(/Matrix|Model code|Lgth/i)
   await cameToRest(page)
   await shot('04-specs')
-  await page.getByRole('button', { name: 'Fewer specifications' }).click()
-  await expect(page.locator('.cfg-specs__row')).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(specs).toBeHidden()
+  await expect(more).toBeFocused()
+  expect((await page.locator('.cfg-shot').boundingBox())!.height).toBe(shotBefore.height)
 
   /* 8. AT A DESK ONLY THE CHAPTERS SCROLL */
   await page.getByRole('button', { name: /^02 Motor/ }).click()
@@ -258,12 +263,22 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
     expect(await column.evaluate((el) => el.scrollTop)).toBe(at)
     await shot('06-scrolled')
   } else {
-    /* below a desk the page scrolls, and the total stays in sight while the build is worked */
+    /* below a desk the page scrolls, and a total stays in sight: the floating one while the build
+       is worked, and the summary's own once the page has gone on past the build into it (the
+       critic, 2026-10-31, P-1: the summary is the page's end, a short build a wheel away) */
     await page.mouse.wheel(0, 900)
     await cameToRest(page)
     const after = (await tally.boundingBox())!
     expect(after.y + after.height).toBeLessThanOrEqual(size.height)
-    expect(after.y).toBeGreaterThanOrEqual(0)
+    const floating = after.y >= 0
+    const summed = await page
+      .getByTestId('summary')
+      .locator('.cfg-hand__fig')
+      .evaluate((el) => {
+        const figure = el.getBoundingClientRect()
+        return figure.top >= 0 && figure.bottom <= innerHeight
+      })
+    expect(floating || summed, 'no total in sight').toBe(true)
     await shot('06-scrolled')
   }
 
@@ -330,7 +345,11 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
     /* its head at the column's top, or as near as the column's end lets it come */
     const end = await column.evaluate((el) => el.scrollHeight - el.clientHeight - el.scrollTop)
     expect(trailer.y < box2.y + 40 || end <= 1).toBe(true)
-    expect(await column.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
+    /* moved there, wherever the column is long enough to move: at 1920 the open trailer, with its
+       empty list now one line at its foot (the critic, P-5), and every other chapter shut fit the
+       column whole */
+    const scrolls = await column.evaluate((el) => el.scrollHeight > el.clientHeight + 1)
+    if (scrolls) expect(await column.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
     expect(await page.evaluate(() => scrollY)).toBe(0)
   }
 
@@ -446,6 +465,13 @@ test('the boat chosen in its chapter, and the summary that fills the screen', as
       await page.waitForTimeout(120)
     }
   } else {
+    /* BELOW A DESK SCROLLING ON REACHES IT, with no press (the critic, P-1): it is the page's end */
+    for (let i = 0; i < 40; i += 1) await page.mouse.wheel(0, 800)
+    await cameToRest(page)
+    const reached = (await summary.boundingBox())!
+    expect(reached.y).toBeLessThan(size.height / 2)
+    await page.evaluate(() => scrollTo(0, 0))
+    await cameToRest(page)
     const door = page.getByRole('button', { name: /^The summary/ })
     await door.scrollIntoViewIfNeeded()
     await door.click()
@@ -468,6 +494,9 @@ test('the boat chosen in its chapter, and the summary that fills the screen', as
   await expect(summary.getByRole('heading', { level: 2 })).toHaveText(/Highfield Sport 520/)
   await expect(summary.locator('.cfg-sum__item')).toHaveCount(2)
   await expect(summary.locator('.cfg-hand')).toContainText('For Jordan Avery')
+  /* THE BOAT'S NAME ONCE, AND THE CONTACT LINE ON THE CARD (the critic, P-10) */
+  expect((await summary.innerText()).match(/Highfield Sport 520/g)?.length).toBe(1)
+  await expect(summary.locator('.cfg-hand')).toContainText('jordan.avery@example.com')
   await shot('11-summary')
 
   /* 4. GIVEN: the printed quote, and email from the dealer's own mail */
@@ -488,9 +517,12 @@ test('the boat chosen in its chapter, and the summary that fills the screen', as
       await page.mouse.wheel(0, -400)
       await page.waitForTimeout(120)
     }
+    await expect(summary).toBeHidden()
   } else {
+    /* below a desk the summary stays the page's end, and the page goes back up to the build */
     await summary.getByRole('button', { name: 'Back to the build' }).click()
+    await expect(page).not.toHaveURL(/at=finale/)
+    await cameToRest(page)
   }
-  await expect(summary).toBeHidden()
-  await expect(page.getByRole('button', { name: /^02 Motor/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^02 Motor/ })).toBeInViewport()
 })

@@ -635,6 +635,41 @@ export function modelByKey(fleet: Fleet, key: string | null): Model | null {
   )
 }
 
+/**
+ * THE VERSION A QUOTE OPENS ON, when New quote is pressed on the model alone (the owner,
+ * 2026-10-30: "the picking model color and all of that nonsense to be done in hull section").
+ * The material and the colour are chosen in the build's hull section, where the price answers
+ * each press; the quote opens on the version its card's "from" figure is the price of, so the
+ * total the build opens on is the figure the card said. The first such row in the file's order;
+ * where nothing is priced, the file's first row. Null only for a model with no rows.
+ */
+export function openingOf(model: Pick<Model, 'variants' | 'from'>): Variant | null {
+  if (model.from !== null) {
+    const cheapest = model.variants.find((v) => v.amount === model.from)
+    if (cheapest) return cheapest
+  }
+  return model.variants[0] ?? null
+}
+
+/**
+ * EVERYTHING SOLD AS ONE FLEET, so New quote's field searches the boats and every shelf at once
+ * ("quotes are not just boats"): the lists side by side in the order given, every count summed.
+ * The rung is one only where every fleet prices at the same one.
+ */
+export function fleetsTogether(fleets: readonly Fleet[]): Fleet {
+  const rungs = new Set(fleets.filter((f) => f.brands.length > 0).map((f) => f.rung))
+  return {
+    brands: fleets.flatMap((f) => f.brands),
+    rows: fleets.reduce((n, f) => n + f.rows, 0),
+    models: fleets.reduce((n, f) => n + f.models, 0),
+    series: fleets.reduce((n, f) => n + f.series, 0),
+    priced: fleets.reduce((n, f) => n + f.priced, 0),
+    zeroes: fleets.reduce((n, f) => n + f.zeroes, 0),
+    rung: rungs.size === 1 ? [...rungs][0]! : '',
+    heldBack: fleets.flatMap((f) => f.heldBack),
+  }
+}
+
 /** The rows of a model whose material is the chosen one; every row
  *  when none is chosen. */
 export const variantsIn = (model: Model, material: string | null): Variant[] =>

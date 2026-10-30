@@ -179,6 +179,12 @@ export async function settle(page: Page): Promise<void> {
     await Promise.all(
       [...document.images].map(async (img) => {
         if (img.complete) return
+        /* A LAZY PICTURE OUTSIDE THE WINDOW IS NOT FETCHED, and its decode() waits for a fetch
+           that never starts: measured 2026-10-31 on New quote at 1440 × 900, whose shelves of
+           goods sold on their own put lazy pictures below the fold, and every ruler there timed
+           out here. It paints nothing in the window, so nothing waits for it. */
+        const box = img.getBoundingClientRect()
+        if (img.loading === 'lazy' && (box.bottom <= 0 || box.top >= innerHeight)) return
         try {
           await img.decode()
         } catch {

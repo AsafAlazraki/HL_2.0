@@ -9,22 +9,22 @@
   gap: --spacing(1);
   min-width: 0;
 }
-/* THE PICTURE, LARGE (`expand`): its own round press in the tile's start corner, over the
-   picture's — the tick holds the end corner — so it never stands on the words or the figure. It
-   is a sibling of the tile's press, laid over it, and the tile keeps the rest of its face. */
+/* THE PICTURE, LARGE (`expand`): its own round press in the tile's bottom end corner — the tick
+   holds the top end, and the picture keeps the start (the build page's critic, 2026-10-31, P-14:
+   in the start corner it stood on the motor's own picture). The figure leaves it its room. It is a
+   sibling of the tile's press, laid over it, and the tile keeps the rest of its face. */
 .ui-option-expand {
   position: absolute;
   z-index: 2;
-  inset-block-start: --spacing(2.5);
-  inset-inline-start: --spacing(2.5);
+  inset-block-end: --spacing(2.5);
+  inset-inline-end: --spacing(2.5);
 }
-/* THE PRICE LIST RECOMMENDS IT: the tile's edge in the act's amber and the word on the tile —
-   one press puts it on, and nothing goes on by itself */
-.ui-option-frame[data-recommended] > .ui-option:not([aria-pressed='true']) {
-  box-shadow:
-    0 0 0 2px var(--color-act),
-    var(--shadow-lift);
+.ui-option-frame:has(> .ui-option-expand) .ui-option-figure {
+  margin-inline-end: --spacing(10);
 }
+/* THE PRICE LIST RECOMMENDS IT: said by the word on the tile, and by nothing that is the chosen
+   ring's (P-14: an amber 2px edge read as "selected" beside the accent's ring that means chosen).
+   One press puts it on, and nothing goes on by itself. */
 .ui-option {
   position: relative;
   display: grid;

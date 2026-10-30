@@ -772,11 +772,15 @@ describe('the finale is the handover', () => {
     const finale = screen.getByTestId('summary')
     const card = finale.querySelector('.cfg-hand')!
     expect(card).toHaveTextContent('For R. Kelleher')
-    /* the boat by its name; its finish is the masthead's, said once there */
+    /* THE BOAT BY ITS NAME ONCE, IN THE SUMMARY'S TITLE (the critic, 2026-10-31, P-10: the card
+       said it under the customer's name as well); the card's second line is the customer's
+       contact, and R. Kelleher was given none */
     const boat = spokenBoat(quote.rootTableId, quote.subjectLabel)
-    expect(card.querySelector('.cfg-hand__boat')).toHaveTextContent(
+    expect(within(finale).getByRole('heading', { level: 2 })).toHaveTextContent(
       new RegExp(`^${escape(boat.name)}$`),
     )
+    expect(card).not.toHaveTextContent(boat.name)
+    expect(card.querySelector('.cfg-hand__boat')).toBeNull()
     const level = rail.rungs.find((r) => r.key === standing.levelKey)!.label
     expect(card).toHaveTextContent(`Total at ${level}`)
     /* the head does not say the figure a line above the card that does */
@@ -1113,8 +1117,15 @@ describe('a given quote says what is not priced once', () => {
     expect(rail.unpriced, 'the 519 carries an unpriced rigging kit').toBe(1)
     for (const at of ['finale', 'motor'] as const) {
       rerender(<Configurator quoteId={quote.id} at={at} />)
+      /* ONCE IN WHAT IS IN VIEW: with the summary open, its card; with a chapter open, the build.
+         Below a desk the summary is always the page's end (the critic, 2026-10-31, P-1), a screen
+         below the build, and says it there too */
+      const inView =
+        at === 'finale'
+          ? screen.getByTestId('summary')
+          : (document.querySelector<HTMLElement>('.cfg-edit') ?? document.body)
       expect(
-        screen.getAllByText(
+        within(inView).getAllByText(
           totalNoteSay(rail.unpricedNames, false, rail.unpricedLists, rail.unpricedWhy),
         ),
       ).toHaveLength(1)
@@ -1136,7 +1147,9 @@ describe('the issued refusal is said once above a list, not once per row', () =>
     await issueOne(quote, rerender, { openDocument })
 
     rerender(<Configurator quoteId={quote.id} at="motor" openDocument={openDocument} />)
-    const refused = screen
+    /* the rail's own rows: below a desk the summary is the page's end, and its own refused
+       "Email it" says its own reason (`NO_EMAIL`) */
+    const refused = within(document.querySelector<HTMLElement>('.cfg-rail')!)
       .getAllByRole('button')
       .filter((b) => b.getAttribute('aria-disabled') === 'true')
     /* MEASURED BEFORE THE FIX: five copies of this sentence on one
@@ -1363,7 +1376,10 @@ describe('a change of mind puts the motor on instead, as one step', () => {
     expect(screen.getByTestId('orphaned-kit')).toHaveTextContent(odd[0]!.said)
     unmount()
     render(<Configurator quoteId={quote.id} at="fit" />)
-    const flag = screen.getByTestId('orphaned-kit')
+    /* at the kit, in its chapter (the summary at the page's end says it too) */
+    const flag = within(document.querySelector<HTMLElement>('[data-chapter="fit"]')!).getByTestId(
+      'orphaned-kit',
+    )
     expect(flag).toHaveTextContent(odd[0]!.said)
     await userEvent.click(within(flag).getByRole('button', { name: odd[0]!.actSay }))
     const fixed = quotes.getState().get(quote.id)!

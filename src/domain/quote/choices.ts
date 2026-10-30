@@ -82,6 +82,9 @@ export interface BoatOption {
   also: string[]
   /** the row's own picture address in the file, for a screen to find its picture; '' for none */
   address: string
+  /** A MODEL NO MAKER'S PAGE NAMES, said as the code the file writes (names.json `unnamed`:
+   *  Highfield's SP300); false on every other option */
+  coded: boolean
 }
 
 export interface BoatAxis {
@@ -120,6 +123,7 @@ interface Read {
   material: string
   colourCode: string
   colour: Colourway | null
+  coded: boolean
 }
 
 const AXES: readonly AxisId[] = ['model', 'trim', 'material', 'colour']
@@ -181,6 +185,7 @@ export function boatChoices(ctx: CatalogueCtx, quote: QuoteDef): BoatChoices {
       material: boat.material,
       colourCode: boat.colour?.code ?? '',
       colour: boat.colour,
+      coded: boat.from === 'code',
     }
   })
   /* A TRIM IS A VERSION ONLY WHERE EVERY ROW OF ITS MODEL WRITES ONE (the header) */
@@ -276,6 +281,7 @@ export function boatChoices(ctx: CatalogueCtx, quote: QuoteDef): BoatChoices {
               .map((a) => sayOf(reached.read, a))
               .filter((said) => said !== ''),
         address,
+        coded: axis === 'model' && sample.coded,
       })
     }
     axes.push({ id: axis, title: AXIS_TITLE[axis], options })

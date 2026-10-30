@@ -145,7 +145,7 @@ import {
 import type { Finish, Finishes } from './finishes'
 import type { DrawnAxis, DrawnChoices, DrawnOption } from './boat'
 import { hullHero, stageArt, type Held, type StageArt } from './stage'
-import { creditOf, itemOfQuote, markOnPaper, srcSetOf } from '@/data/pictures'
+import { copyOf, creditOf, itemOfQuote, markOnDark, markOnPaper, srcSetOf } from '@/data/pictures'
 import { kindOfAct, kindOfBoat, wayBack, type Step } from './step'
 import { GivenSeal, readyTheStamp } from './GivenSeal'
 import {
@@ -164,6 +164,7 @@ import {
   searchSay,
   sourcesSay,
   totalNoteSay,
+  unpricedSay,
   unpricedTag,
 } from './say'
 /* THE ADDRESS GRAMMAR OF A CASCADE, from the screen that owns it.
@@ -179,7 +180,8 @@ import { Chandlery, type ChandleryFitting } from '@/screens/catalogue/Chandlery'
 import { PartDrag, QUOTE_DROP, useQuoteDrop } from '@/screens/catalogue/drag'
 import { PARTS_TABLE } from '@/screens/catalogue/shelf'
 import { fitmentOf } from '@/app/ways'
-import { boatTravel, levelGlyph, specGlyphs } from './glyphs'
+import { boatTravel, levelGlyph } from './glyphs'
+import { specsSaid } from '@/domain/quote/specSay'
 import './configurator.css'
 
 /* ============================================================
@@ -264,7 +266,8 @@ import './configurator.css'
  *  onward control was `Make a new version`. The document is built, at
  *  `/quote/$id/document`, so the refusal is retired the way the
  *  picker's and the cascade's were: by having built the thing. */
-export const DOCUMENT_SAY = 'Once given, every price on it is final.'
+export const DOCUMENT_SAY =
+  'Once given, every price on it is final, and it can be printed or emailed from your own mail.'
 
 /** WHAT SENDING IS HERE, said under the act: the app has no mail of its own. */
 export const SEND_SAY =
@@ -335,7 +338,13 @@ function fitTheBoat(node: HTMLElement): () => void {
   const fit = (): void => {
     const stage = node.querySelector<HTMLElement>('.cfg-stage')
     const shot = node.querySelector<HTMLElement>('.cfg-shot')
-    const chapters = [...node.querySelectorAll<HTMLElement>('.cfg-chapter')]
+    /* the blocks a first window may end on: a chapter, or in a hand the boat's own specification
+       under its photograph (the critic, P-15), so the search field never stands half under the
+       floating total */
+    const chapters = [
+      ...node.querySelectorAll<HTMLElement>('.cfg-specs'),
+      ...node.querySelectorAll<HTMLElement>('.cfg-chapter'),
+    ]
     /* the tab bar's room, and the tally's where it stands over the foot of the window */
     const tally = node.querySelector<HTMLElement>('.cfg-tally')
     const over =
@@ -930,6 +939,14 @@ function Build({
   const firstBand = chapters.find((c) => c.kind === 'band')?.id ?? ''
   const seeSummary = (): void => {
     endStep()
+    /* below a desk the summary is always the page's end: where the address already names it, the
+       door takes the page there itself */
+    if (!desk && summaryOpen) {
+      document
+        .getElementById('cfg-summary')
+        ?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'instant' : 'smooth' })
+      return
+    }
     goTo?.('finale')
   }
   const backToBuild = (): void => {
@@ -997,9 +1014,16 @@ function Build({
   }
   const parts = chapters.flatMap((c) => c.tables).find((t) => t.tableId === PARTS_TABLE)
 
-  const summary = summaryOpen ? (
+  /* BELOW A DESK THE SUMMARY IS ALWAYS THE PAGE'S END (the critic, P-1: "scroll down and then see
+     big summary" — at 834 and 390, thirty turns of the wheel ended on the door and no summary):
+     scrolling on past the last chapter reaches it, and the door and its address bring the page to
+     it. At a desk it rises over the build only while the address names it. While a search
+     narrows the rail it steps aside, since the rail is then a list of answers. */
+  const summaryDrawn = desk ? summaryOpen : rail !== null && rail.searching !== true
+  const summary = summaryDrawn ? (
     <Summary
       key="summary"
+      open={summaryOpen}
       quote={quote}
       quoteId={quoteId}
       ctx={ctx}
@@ -1063,6 +1087,7 @@ function Build({
               <div className="cfg-side__in">
                 <Stage quote={quote} ctx={ctx} art={art!} rail={rail} onLarge={showLarge} />
                 <Tally
+                  desk={desk}
                   quote={quote}
                   rail={rail}
                   open={open}
@@ -1422,7 +1447,7 @@ function RangeSheet({
               icon={MagnifyingGlassIcon}
               value={find}
               onValueChange={setFind}
-              placeholder="A name, a code, a power"
+              placeholder={shown?.kind === 'motor' ? 'A name, a code, a power' : 'A name or a code'}
             />
           </div>
           <SheetTotal total={total} />
@@ -1801,10 +1826,15 @@ function useBroughtIn(
         return
       }
       const quiet = reducedMotion()
-      chapter.scrollIntoView({ block: 'start', behavior: quiet ? 'instant' : 'smooth' })
+      /* ONE MOVE, TO WHERE IT ENDS (the critic, P-7): brought up by its head and then back down
+         so the head above was not left cut, the page moved twice, past its rest and back; the
+         rest is worked out first and the page goes there once */
+      ;(moves ?? window).scrollBy({
+        top: landing(chapter, cover),
+        behavior: quiet ? 'instant' : 'smooth',
+      })
       if (quiet) {
         done()
-        uncut(chapter)
         return
       }
       moving = true
@@ -1814,14 +1844,69 @@ function useBroughtIn(
     for (const type of TAKES_OVER)
       window.addEventListener(type, takeOver, { capture: true, passive: true })
     pending.current = done
-    timer = window.setTimeout(
-      () => {
-        timer = null
-        bring()
-      },
-      reducedMotion() || caretInField() ? LEAVES_MS : FOLDS_MS,
-    )
+    /* BROUGHT IN ONCE THE CHAPTER IT REPLACED HAS FOLDED AWAY, measured where it rests: brought in
+       while that fold still ran, the page went past its rest and then back (the critic, P-7) */
+    const asked = performance.now()
+    const once = (): void => {
+      timer = null
+      if (folding(chapter) && performance.now() - asked < FOLD_WAIT_MS) {
+        timer = window.setTimeout(once, 16)
+        return
+      }
+      bring()
+    }
+    timer = window.setTimeout(once, reducedMotion() || caretInField() ? LEAVES_MS : FOLDS_MS)
   }, [rail, here, at, searching])
+}
+
+/**
+ * THE PRESSED HEAD STAYS UNDER THE POINTER WHILE THE CHAPTER IT REPLACES FOLDS (the critic, P-7:
+ * 140ms after "03 Trailer" was pressed the column had moved 48px and the hull's head was half cut
+ * at its top). Every frame until the fold is done (`FOLDS_MS`), whatever the fold above it moved is
+ * scrolled back by exactly that much, so the head stands where it was pressed and its body grows
+ * out under it; only then does `useBroughtIn` decide whether to bring it up. A wheel, a touch, a key
+ * or a press ends it at once.
+ */
+function holdStill(head: HTMLElement): void {
+  const box = scrollerOf(head)
+  const from = head.getBoundingClientRect().top
+  const began = performance.now()
+  let stopped = false
+  const stop = (): void => {
+    stopped = true
+  }
+  for (const kind of TAKES_OVER) window.addEventListener(kind, stop, { passive: true })
+  const step = (): void => {
+    /* until the chapter it replaces has folded away, and never longer than a fold can take */
+    const now = performance.now()
+    const going =
+      !stopped &&
+      head.isConnected &&
+      now - began < FOLD_WAIT_MS &&
+      (now - began < FOLDS_MS || folding(head))
+    if (going) {
+      const drift = head.getBoundingClientRect().top - from
+      if (Math.abs(drift) >= 0.5) (box ?? window).scrollBy({ top: drift, behavior: 'instant' })
+      requestAnimationFrame(step)
+      return
+    }
+    for (const kind of TAKES_OVER) window.removeEventListener(kind, stop)
+  }
+  requestAnimationFrame(step)
+}
+
+/** The longest a fold is waited for before a chapter is held or brought in regardless. */
+const FOLD_WAIT_MS = 700
+
+/** Whether a chapter is still folding away around this one: a shut chapter whose body is still in
+ *  the page, leaving on the kit's exit. */
+function folding(near: Element): boolean {
+  const rail = near.closest('.cfg-chapters')
+  if (!rail) return false
+  /* a body whose section is not the open one */
+  return [...rail.querySelectorAll('.cfg-body')].some(
+    (body) => !body.parentElement?.hasAttribute('data-open'),
+  )
 }
 
 /** What a reader does that takes the window over from a move the build started. */
@@ -1972,6 +2057,35 @@ function uncut(chapter: HTMLElement): void {
 }
 
 /**
+ * HOW FAR TO MOVE SO A CHAPTER BROUGHT IN BY ITS HEAD COMES TO REST: its head at the top of the
+ * room by its own scroll margin — or, where that would leave the head above it straddling the
+ * room's top edge, that head wholly in view at the top instead (what `uncut` used to put right with
+ * a second move).
+ */
+function landing(chapter: HTMLElement, cover: number): number {
+  const margin = Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockStart) || 0
+  const move = chapter.getBoundingClientRect().top - cover - margin
+  for (let el = chapter.previousElementSibling; el !== null; el = el.previousElementSibling) {
+    const box = (el.querySelector('.cfg-head') ?? el).getBoundingClientRect()
+    const peeks = box.bottom - move - cover
+    if (peeks <= HEAD_PEEKS) return peeks > 0 ? move + peeks : move
+    if (box.top - move < cover - HEAD_PEEKS)
+      return box.top - cover - (margin - coverOf(chapter) || 0)
+  }
+  return move
+}
+
+/** How much of a head may show at the room's top edge before it reads as a head cut in two: the
+ *  8px a chapter's scroll margin leaves over the head brought up shows the foot of the one above,
+ *  its padding and no words, and that is a gap, not a cut (measured at 390: 7px). */
+const HEAD_PEEKS = 10
+
+/** whether a head's foot, standing this far over the room's top edge, is under the bars */
+function underTheBars(bottom: number, cover: number): boolean {
+  return bottom <= cover + HEAD_PEEKS
+}
+
+/**
  * THE HEAD ABOVE A CHAPTER THAT STRADDLES THE BARS, IF ANY, AND NOT ONLY THE ONE NEXT TO IT
  * (the build's closing verify, 2026-10-20). At 1440 "On to the finale" shut Who it is for and
  * opened the finale where it stood, so the chapter next to it was wholly in view while Dealer
@@ -1984,8 +2098,9 @@ function cutAbove(chapter: HTMLElement, cover: number): DOMRect | null {
        bars is a list scrolled past, and bringing its top back would push the pressed chapter
        down out of reach */
     const box = (el.querySelector('.cfg-head') ?? el).getBoundingClientRect()
-    if (box.bottom <= cover + 1) return null
-    if (box.top < cover) return box
+    if (underTheBars(box.bottom, cover)) return null
+    /* a head a few pixels over the edge is a scroll's rounding, not a head cut in two */
+    if (box.top < cover - HEAD_PEEKS) return box
   }
   return null
 }
@@ -2165,6 +2280,7 @@ function Mast({
 }) {
   const boat = boatOfQuote(quote)
   const mark = markOnPaper(register)
+  const white = markOnDark(register)
   const given = quote.state !== 'draft'
   const by = preparer
     ? [preparer.name, preparer.title ?? '', preparer.phone ?? '']
@@ -2186,6 +2302,19 @@ function Mast({
                 width={mark.mark.width}
                 height={mark.mark.height}
               />
+            ) : white.drawn ? (
+              /* A MAKER WHO PUBLISHES WHITE INK ONLY (Stabicraft, Mercury) stands on the deep blue
+                 its white is made for, as the stage's well draws it (the critic, P-12: the bar
+                 said "STABICRAFT" in small blue capitals where Highfield's showed its mark) */
+              <span className="cfg-mast__badge">
+                <img
+                  className="cfg-mast__mark"
+                  src={white.mark.src}
+                  alt={white.mark.brand}
+                  width={white.mark.width}
+                  height={white.mark.height}
+                />
+              </span>
             ) : (
               <span className="cfg-mast__word">{register}</span>
             )}
@@ -2195,7 +2324,7 @@ function Mast({
             {boat.detail === '' ? null : (
               <p className="cfg-mast__detail">
                 <Swatches colour={boat.colour} />
-                <span>{boat.detail}</span>
+                <span>{slashed(boat.detail)}</span>
               </p>
             )}
           </div>
@@ -2436,6 +2565,7 @@ function CustomerForm({
  * steps aside (docs/WORDS.md, one fact once).
  */
 function Tally({
+  desk,
   quote,
   rail,
   open,
@@ -2448,6 +2578,8 @@ function Tally({
   onLarge,
   over = false,
 }: {
+  /** a desk, where the tally stands open in the boat's column and never folds */
+  desk: boolean
   quote: QuoteDef
   rail: Rail | null
   open: boolean
@@ -2483,11 +2615,17 @@ function Tally({
      part is carried it says so at its head, and it lights while the part is over it */
   const { place, carrying: lifted, over: overIt } = useQuoteDrop()
   const carrying = lifted && !over
+  /* BELOW A DESK IT FLOATS FOLDED TO ONE LINE, the figure and a caret (the critic, P-1b: open, it
+     stood 600 × 158 over the model prices at 834 and took 27% of every frame at 390). The caret
+     opens what it is made of over the page and folds it again; at a desk it is always open, in
+     the boat's column, and the caret is not drawn (configurator.css). */
+  const [unfolded, setUnfolded] = useState(false)
   return (
     <aside
       ref={place}
       data-carrying={carrying ? '' : undefined}
       data-over={carrying && overIt ? '' : undefined}
+      data-unfolded={unfolded ? '' : undefined}
       className="cfg-tally"
       aria-label="What the quote comes to"
       data-testid="running-total"
@@ -2528,10 +2666,21 @@ function Tally({
               <p className="cfg-tally__fig cfg-tally__fig--none">—</p>
             ) : (
               <p className="cfg-tally__fig">
-                <PriceFigure amount={rail.total} size="display" />
+                {/* folded below a desk, the figure is the line's own size */}
+                <PriceFigure amount={rail.total} size={desk || unfolded ? 'display' : 'lg'} />
               </p>
             )}
           </div>
+
+          <button
+            type="button"
+            className="cfg-tally__fold"
+            aria-expanded={unfolded}
+            aria-label={unfolded ? 'Fold the total' : 'What the total is made of'}
+            onClick={() => setUnfolded((was) => !was)}
+          >
+            <Icon glyph={CaretDownIcon} />
+          </button>
 
           {open ? (
             <div className="cfg-tally__level">
@@ -2687,6 +2836,12 @@ function Stage({
   }, [held])
 
   const note = said ? [said.shows, said.ours].filter((s) => s !== '').join(' ') : ''
+  /* THE FINISH ON THE QUOTE, DRAWN WHERE THE LEDGER HOLDS IT: this exact model in this colourway
+     (`copyOf`, never another colourway's), on the photograph's corner (`FinishInset`) */
+  const finish = useMemo(
+    () => (boatOfQuote(quote).colour ? copyOf(itemOfQuote(quote)) : null),
+    [quote],
+  )
 
   return (
     <section className="cfg-stage" aria-label="The boat this quote is about">
@@ -2751,6 +2906,13 @@ function Stage({
               />
             </span>
           ) : null}
+          {boat.colour && art.kind === 'photograph' ? (
+            <FinishInset
+              key={boat.colour.code}
+              colour={boat.colour}
+              render={finish && finish.src !== art.held.src ? finish : null}
+            />
+          ) : null}
         </figure>
       </div>
 
@@ -2770,6 +2932,47 @@ function Stage({
   )
 }
 
+/**
+ * THE FINISH ON THE QUOTE, ON THE PHOTOGRAPH'S CORNER (the owner, 2026-10-30: "so they can see
+ * differences in real time"; the critic, P-6: a colour pressed in the hull chapter changed the
+ * bar's swatches and nothing on the stage). The ledger holds one photograph per model, in the
+ * maker's own finish, so the photograph cannot answer a colour. What can: the maker's own drawing
+ * of this exact model in this colourway, where the ledger holds it, drawn in a white card on the
+ * photograph's foot with the colourway's swatches — and where it holds none, the swatches and the
+ * one sentence the photograph owes: that it shows the maker's finish. Keyed by the colourway, so
+ * each press brings the new one up on the reveal; the colour's words are the bar's, over it.
+ */
+function FinishInset({
+  colour,
+  render,
+}: {
+  colour: NonNullable<ReturnType<typeof boatOfQuote>['colour']>
+  render: Held | null
+}) {
+  return (
+    <span className="cfg-finish" data-testid="finish-inset">
+      {render ? (
+        <img
+          className="cfg-finish__img"
+          src={render.src}
+          alt={`The drawing of this boat in ${colour.read ? colour.say : colour.code}`}
+          width={render.width}
+          height={render.height}
+          decoding="async"
+          {...(render.widths.length > 1 ? { srcSet: srcSetOf(render), sizes: '160px' } : {})}
+        />
+      ) : null}
+      <span className="cfg-finish__words">
+        <span className="cfg-finish__lab">Your finish</span>
+        <Swatches colour={colour} />
+        {render ? null : (
+          <span className="cfg-finish__say">Photographed in the maker’s finish</span>
+        )}
+      </span>
+    </span>
+  )
+}
+
 /** How many of the boat's measures stand at rest, before "All the specifications". */
 const SPECS_LEAD = 4
 
@@ -2784,106 +2987,59 @@ const SPECS_LEAD = 4
  */
 function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
   const [open, setOpen] = useState(false)
-  const reduceMotion = useReducedMotion()
-  const stillNow = useStill()
-  const quiet = Boolean(reduceMotion) || stillNow
-  const id = useId()
+  const boat = boatOfQuote(quote)
+  /* SAID AS A PERSON SAYS THEM (`specsSaid`, src/domain/quote/specSay.ts): "Power 90–115 hp" for
+     the file's "Min 90 HP" and "Max 115 HP", "Shaft length", "105 L", and the file's own "Matrix"
+     and "Model Code" left out, since neither is the boat */
   const all = useMemo(
-    () => allSpecsOf(ctx, quote).map((spec) => measured(quote.rootTableId, spec)),
+    () => specsSaid(allSpecsOf(ctx, quote).map((spec) => measured(quote.rootTableId, spec))),
     [ctx, quote],
   )
-  const frozen = quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec))
+  const frozen = specsSaid(quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec)))
   const lead = frozen.slice(0, SPECS_LEAD)
-  const shown = new Set(lead.map((s) => s.label))
-  const rest = [
-    ...frozen.slice(SPECS_LEAD),
-    ...all.filter((s) => !frozen.some((f) => f.label === s.label)),
-  ].filter((s) => !shown.has(s.label))
-  const leadGlyphs = specGlyphs(lead.map((s) => s.label))
+  const every = [...frozen, ...all.filter((s) => !frozen.some((f) => f.label === s.label))]
+  /* EVERY MEASURE OPENS OVER THE PAGE (the critic, P-2: opened in the boat's column, fourteen rows
+     took the photograph down to a 160px strip of hull). The photograph keeps its height; the
+     whole specification is a sheet of its own, the figures large, closed by Escape back onto the
+     press that opened it. */
   return (
     <div className="cfg-specs">
       <dl className="cfg-specs__lead">
-        {lead.map((spec, i) => (
-          <SpecTile key={spec.label} label={spec.label} value={spec.value} glyph={leadGlyphs[i]} />
+        {lead.map((spec) => (
+          <SpecTile key={spec.label} label={spec.label} value={spec.value} />
         ))}
       </dl>
-      {rest.length === 0 ? null : (
-        <>
-          <button
-            type="button"
-            className="cfg-specs__more"
-            aria-expanded={open}
-            aria-controls={id}
-            onClick={() => setOpen((was) => !was)}
-          >
-            <span>
-              {open
-                ? 'Fewer specifications'
-                : `All ${(lead.length + rest.length).toLocaleString('en-AU')} specifications`}
-            </span>
-            <span className="cfg-specs__chev" aria-hidden="true">
-              <Icon glyph={CaretDownIcon} />
-            </span>
-          </button>
-          <AnimatePresence initial={false}>
-            {open ? (
-              <motion.div
-                key="rest"
-                id={id}
-                className="cfg-specs__rest"
-                /* clipped while it grows and shrinks, and only once it stands may a desk's short
-                   column scroll the list inside itself (configurator.css) */
-                style={{ overflowY: 'hidden' }}
-                initial={quiet ? { opacity: 0 } : { height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1, transitionEnd: { overflowY: 'auto' } }}
-                exit={
-                  quiet
-                    ? { opacity: 0, overflowY: 'hidden', transition: { duration: 0 } }
-                    : {
-                        height: 0,
-                        opacity: 0,
-                        overflowY: 'hidden',
-                        transition: transition('exit', false),
-                      }
-                }
-                transition={transition('travel', quiet)}
-              >
-                <dl className="cfg-specs__all">
-                  {rest.map((spec) => (
-                    <div className="cfg-specs__row" key={spec.label}>
-                      <dt className="cfg-specs__lab">{spec.label}</dt>
-                      <dd className="cfg-specs__val">{spec.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </>
+      {every.length <= lead.length ? null : (
+        <Dialog
+          open={open}
+          onOpenChange={setOpen}
+          size="lg"
+          title={`${boat.name}, every specification`}
+          description="Every measure the price list gives for this boat."
+          trigger={
+            <button type="button" className="cfg-specs__more" aria-haspopup="dialog">
+              <span>{`All ${every.length.toLocaleString('en-AU')} specifications`}</span>
+              <span className="cfg-specs__chev" aria-hidden="true">
+                <Icon glyph={ArrowsOutSimpleIcon} />
+              </span>
+            </button>
+          }
+        >
+          <dl className="cfg-specsheet" data-testid="specifications">
+            {every.map((spec) => (
+              <SpecTile key={spec.label} label={spec.label} value={spec.value} />
+            ))}
+          </dl>
+        </Dialog>
       )}
     </div>
   )
 }
 
-function SpecTile({
-  label,
-  value,
-  glyph,
-}: {
-  label: string
-  value: string
-  glyph: Glyph | null | undefined
-}) {
+function SpecTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="cfg-spec">
-      <dt className="cfg-spec__lab">
-        {glyph ? (
-          <span className="cfg-spec__glyph" aria-hidden="true">
-            <Icon glyph={glyph} />
-          </span>
-        ) : null}
-        {label}
-      </dt>
+      <dt className="cfg-spec__lab">{label}</dt>
       <dd className="cfg-spec__val">{value}</dd>
     </div>
   )
@@ -3191,7 +3347,6 @@ function ChapterCard({
               c.tables.flatMap((t) => t.also.map((row) => ({ name: row.tail, section: c.name }))),
             )}
           onPress={onPress}
-          onLarge={onLarge}
           refusedBy={refusedBy}
         />
       ) : chapter.finishes ? (
@@ -3208,28 +3363,35 @@ function ChapterCard({
 
       {/* THE PARTS TABLE IS A LIST LIKE ANY OTHER IN ITS CHAPTER: what the price list makes for
           this boat, and the chandlery's aisles over the page from its "Browse" press */}
-      {chapter.tables.map((table) => (
-        <TableBlock
-          key={table.id}
-          table={table}
-          orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
-          told={rail.unpricedLists}
-          quoteId={quoteId}
-          named={chapter.tables.length > 1}
-          query={searching ? query : ''}
-          level={level}
-          onPress={onPress}
-          onLarge={(set, picture) => onLarge(set, picture, chapter.name)}
-          onShowAll={onShowAll}
-          motors={quote.lines
-            .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
-            .map((line) => line.code ?? '')
-            .filter((code) => code !== '')}
-          refusedBy={refusedBy}
-          shop={shop}
-          go={go}
-        />
-      ))}
+      {/* A LIST WITH SOMETHING FOR THIS BOAT BEFORE ONE WITH NOTHING (the critic, P-5) */}
+      {chapter.tables
+        .toSorted(
+          (a, b) =>
+            Number(!searching && a.rows.length + a.also.length === 0) -
+            Number(!searching && b.rows.length + b.also.length === 0),
+        )
+        .map((table) => (
+          <TableBlock
+            key={table.id}
+            table={table}
+            orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
+            told={rail.unpricedLists}
+            quoteId={quoteId}
+            named={chapter.tables.length > 1}
+            query={searching ? query : ''}
+            level={level}
+            onPress={onPress}
+            onLarge={(set, picture) => onLarge(set, picture, chapter.name)}
+            onShowAll={onShowAll}
+            motors={quote.lines
+              .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
+              .map((line) => line.code ?? '')
+              .filter((code) => code !== '')}
+            refusedBy={refusedBy}
+            shop={shop}
+            go={go}
+          />
+        ))}
     </div>
   )
 
@@ -3257,7 +3419,15 @@ function ChapterCard({
           an outline; and a search opens every chapter with an answer at once,
           which a head that toggles itself cannot. */}
       <h2 className="cfg-head">
-        <button type="button" className="cfg-head__press" aria-expanded={showing} onClick={onOpen}>
+        <button
+          type="button"
+          className="cfg-head__press"
+          aria-expanded={showing}
+          onClick={(event) => {
+            if (!showing) holdStill(event.currentTarget)
+            onOpen()
+          }}
+        >
           <ChapterMark chapter={chapter} />
           {/* THE TWO CLOSING CHAPTERS CARRY NO NUMBER AND NO MARK IN ITS
               PLACE. The numbers are the engine's fixed reading order —
@@ -3289,7 +3459,7 @@ function ChapterCard({
                    dot (configurator.css, `[data-more]`), bound to the answer's last word by a
                    no-break space and in the quieter ink, so the line breaks after it instead. */
                   <span className="cfg-head__said" data-more={tail === '' ? undefined : ''}>
-                    {said}
+                    {slashed(said)}
                   </span>
                 )}
                 {tail === '' ? null : (
@@ -3583,7 +3753,6 @@ function BoatChooser({
   boat,
   carried,
   onPress,
-  onLarge,
   refusedBy,
 }: {
   boat: DrawnChoices
@@ -3591,7 +3760,6 @@ function BoatChooser({
    *  stands in, by its own name ("Motor") */
   carried: readonly { name: string; section: string }[]
   onPress: (act: Act) => void
-  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
   refusedBy: string | undefined
 }) {
   const headId = useId()
@@ -3599,8 +3767,6 @@ function BoatChooser({
     <div className="cfg-boat" data-testid="boat-choices">
       {boat.axes.map((axis) => {
         const now = axis.options.find((o) => o.current)
-        const pictured = axis.options.filter((o) => o.picture !== null)
-        const large = pictured.map((o) => largeOfRow(o.picture!, o.say))
         return (
           <fieldset
             key={axis.id}
@@ -3610,7 +3776,7 @@ function BoatChooser({
           >
             <h3 className="cfg-axis__head" id={`${headId}-${axis.id}`}>
               <span className="cfg-axis__name">{axis.title}</span>
-              {now ? <span className="cfg-axis__now">{now.say}</span> : null}
+              {now ? <span className="cfg-axis__now">{slashed(now.say)}</span> : null}
               <span className="cfg-axis__count">
                 {`${axis.options.length.toLocaleString('en-AU')} on the price list`}
               </span>
@@ -3623,11 +3789,6 @@ function BoatChooser({
                     axis={axis.id}
                     onPress={onPress}
                     refusedBy={refusedBy}
-                    onLarge={
-                      option.picture
-                        ? () => onLarge(large, pictured.indexOf(option), axis.title)
-                        : undefined
-                    }
                   />
                 </li>
               ))}
@@ -3662,13 +3823,11 @@ function BoatPick({
   axis,
   onPress,
   refusedBy,
-  onLarge,
 }: {
   option: DrawnOption
   axis: DrawnAxis['id']
   onPress: (act: Act) => void
   refusedBy: string | undefined
-  onLarge: (() => void) | undefined
 }) {
   const figure = option.current ? (
     option.amount === null ? null : (
@@ -3717,6 +3876,7 @@ function BoatPick({
       <button
         type="button"
         className="cfg-pick__press"
+        data-ground="plate"
         aria-pressed={option.current}
         aria-label={label}
         aria-disabled={refusedBy === undefined ? undefined : true}
@@ -3724,7 +3884,15 @@ function BoatPick({
         onClick={refusedBy === undefined ? press : undefined}
       >
         <span className="cfg-pick__in" data-axis={axis}>
-          <span className="cfg-pick__well" data-pictured={option.picture ? '' : undefined}>
+          {/* ONE WELL FOR EVERY CARD (the critic, P-8: photographs, line drawings and a glyph on a
+              blue tile made the grid look unfinished): a photograph on the water fills it; a
+              maker's drawing, or the boat's glyph where the ledger holds no picture, stands whole
+              on the same white well */}
+          <span
+            className="cfg-pick__well"
+            data-pictured={option.picture ? '' : undefined}
+            data-scene={option.scene ? '' : undefined}
+          >
             {option.picture ? (
               <img
                 className="cfg-pick__img"
@@ -3748,13 +3916,15 @@ function BoatPick({
               {axis === 'colour' && option.colour && !option.colour.read ? (
                 <span className="cfg-mono">{option.say}</span>
               ) : (
-                option.say
+                slashed(option.say)
               )}
             </span>
             {axis === 'colour' && option.picture && option.colour ? (
               <Swatches colour={option.colour} size="sm" />
             ) : null}
             {also === '' ? null : <span className="cfg-pick__also">{`in ${also}`}</span>}
+            {/* A CODE NO MAKER'S PAGE NAMES says why it is a code (names.json, `unnamed`) */}
+            {option.coded ? <span className="cfg-pick__also">Unnamed by its maker</span> : null}
             {/* ON THE QUOTE IT SAYS SO, and its figure is the total's beside the boat: the others
                 say what choosing them does to that total */}
             <span className="cfg-pick__delta" data-way={option.current ? 'on' : way(option.delta)}>
@@ -3763,11 +3933,6 @@ function BoatPick({
           </span>
         </span>
       </button>
-      {onLarge ? (
-        <span className="cfg-pick__expand">
-          <ExpandPicture label={`See the ${option.say} larger`} onExpand={onLarge} />
-        </span>
-      ) : null}
     </span>
   )
 }
@@ -4126,8 +4291,21 @@ function TableBlock({
     table.includes !== '' ||
     replaces !== '' ||
     table.oneTrailer !== ''
+  /* WHY NO LINE HERE HAS A FIGURE, ONCE, IN ITS OWN PLACE (the critic, P-3: the dealer-fit rows
+     stood with no figure and nothing but "Choose its price" by the list's name): said under the
+     name while the door beside it stands, and each row says what a press on it does */
+  const unpricedWhy = unpriced !== '' && table.unchosen !== '' ? unpricedSay(table) : ''
+  /* A LIST WITH NOTHING MADE FOR THIS BOAT, IN A CHAPTER WITH OTHERS, IS ONE QUIET LINE AT THE
+     CHAPTER'S FOOT (the critic, P-5: "Nothing from GFAB Trailers is made for this boat." stood in a
+     box above the trailer that is) — the chapter draws it last (`ChapterCard`) */
+  const bare =
+    named && !entire && query === '' && table.rows.length === 0 && table.also.length === 0
+  /* THE WHOLE RANGE, BY REASON (the critic, P-4 and P-9): over a whole list the rows the boat is
+     made for come first, under their own heading, and every other reason is a heading said once
+     over its rows — never the same sentence under two hundred tiles */
+  const groups = entire && query === '' ? rangeGroups(rows, table.sharedWhy) : null
   return (
-    <div className="cfg-table">
+    <div className="cfg-table" data-bare={bare ? '' : undefined}>
       {head ? (
         <div className="cfg-table__head">
           {named || unpriced !== '' ? (
@@ -4142,6 +4320,7 @@ function TableBlock({
               )}
             </div>
           ) : null}
+          {unpricedWhy === '' ? null : <p className="cfg-table__why">{unpricedWhy}</p>}
           {reason === '' ? null : <p className="cfg-table__why">{reason}</p>}
           {/* WHAT EVERY PRICE HERE ALREADY HAS IN IT, said once over the list rather than
               "PRE-DELIVERY INCLUDED" in caps on every tile (`includesSay`), and what every press
@@ -4182,13 +4361,49 @@ function TableBlock({
 
       {table.rows.length === 0 && table.ruled.some((r) => r.refuses) ? null : table.rows.length ===
         0 ? (
-        <Said className="cfg-why" glyph={InfoIcon}>
-          {query !== ''
-            ? `Nothing in ${table.title} is called that.`
-            : table.why !== ''
-              ? table.why
-              : `Nothing more from ${table.title} is made for this boat.`}
-        </Said>
+        bare ? (
+          <p className="cfg-table__none">
+            {table.why !== '' ? table.why : `Nothing from ${table.title} is made for this boat.`}
+          </p>
+        ) : (
+          <Said className="cfg-why" glyph={InfoIcon}>
+            {query !== ''
+              ? `Nothing in ${table.title} is called that.`
+              : table.why !== ''
+                ? table.why
+                : `Nothing more from ${table.title} is made for this boat.`}
+          </Said>
+        )
+      ) : groups ? (
+        groups.map((group) => (
+          <section className="cfg-group" key={group.head} aria-label={group.head}>
+            <h4 className="cfg-group__head">
+              <span>{group.head}</span>
+              <span className="cfg-group__count">{group.rows.length.toLocaleString('en-AU')}</span>
+            </h4>
+            <ul className={table.pictured ? 'cfg-tiles' : 'cfg-rows'}>
+              {group.rows.map((row) => (
+                <li key={row.key}>
+                  <OptionCard
+                    row={row}
+                    kind={table.kind}
+                    expand={expandOf(row)}
+                    query=""
+                    level={level}
+                    onPress={onPress}
+                    refusedBy={refusedBy}
+                    includes={table.includes !== ''}
+                    lazy
+                    tile={table.pictured}
+                    shop={shop}
+                    insteadSaid={instead}
+                    grouped
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
       ) : (
         <>
           {/* THE ONE REASON THEY ALL SHARE, said once above them —
@@ -4306,6 +4521,32 @@ function TableBlock({
   )
 }
 
+/**
+ * A WHOLE RANGE, BY WHY EACH ROW IS WHERE IT IS: what is made for this boat first, then one group
+ * per reason the rest give, each reason said once as its heading. A group of motors under the
+ * power the boat takes runs down from the nearest, so the first under its heading is the one a
+ * dealer would reach for, never a 2.5 hp outboard.
+ */
+function rangeGroups(
+  rows: readonly OptionRow[],
+  shared: string,
+): { head: string; rows: OptionRow[] }[] {
+  const by = new Map<string, OptionRow[]>()
+  for (const row of rows) {
+    if (!row.outside) continue
+    const why = row.why !== '' ? row.why : shared !== '' ? shared : 'Not on this boat’s list.'
+    by.set(why, [...(by.get(why) ?? []), row])
+  }
+  const fits = rows.filter((row) => !row.outside)
+  return [
+    ...(fits.length > 0 ? [{ head: 'Made for this boat', rows: fits }] : []),
+    ...[...by].map(([head, list]) => ({
+      head,
+      rows: /^Under\b/.test(head) ? list.toReversed() : list,
+    })),
+  ]
+}
+
 /* ---------------------------------------------------------- */
 /* One option                                                   */
 /* ---------------------------------------------------------- */
@@ -4338,7 +4579,12 @@ function OptionCard({
   shop: shopOpen,
   insteadSaid,
   expand,
+  grouped = false,
 }: {
+  /** under a heading that says why it is where it is (
+angeGroups): its own sentence is that
+   *  heading's, and is not said again under it */
+  grouped?: boolean
   /** the press that opens its picture large, where it has one */
   expand?: { label: string; onExpand: () => void } | undefined
   row: OptionRow
@@ -4427,7 +4673,7 @@ function OptionCard({
        workshop's, under it. Whether it is on the quote is said in words and in the line's own
        lit edge, never by a circle alone. */
     return (
-      <div className="cfg-opt" data-outside={row.outside ? '' : undefined}>
+      <div className="cfg-opt" data-outside={row.outside && !grouped ? '' : undefined}>
         <Tile
           tone="room"
           shape="row"
@@ -4443,6 +4689,7 @@ function OptionCard({
             figure={figure}
             way={row.fitted ? (row.amount === null ? 'none' : 'on') : way(row.delta)}
             figureSay={figureSay}
+            adds={!row.fitted && figure === null && figureSay === ''}
           >
             {name}
             {row.starred ? <span className="cfg-row__contains">Recommended</span> : null}
@@ -4451,7 +4698,7 @@ function OptionCard({
             {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
           </RowFace>
         </Tile>
-        {row.why === '' ? null : <p className="cfg-opt__why">{row.why}</p>}
+        {row.why === '' || grouped ? null : <p className="cfg-opt__why">{row.why}</p>}
         {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
       </div>
     )
@@ -4467,7 +4714,7 @@ function OptionCard({
       </>
     ) : undefined
   return (
-    <div className="cfg-opt" data-outside={row.outside ? '' : undefined}>
+    <div className="cfg-opt" data-outside={row.outside && !grouped ? '' : undefined}>
       <OptionTile
         name={name}
         facts={row.spec === '' ? undefined : row.spec}
@@ -4484,7 +4731,7 @@ function OptionCard({
         recommended={row.starred && !row.fitted}
         {...(expand ? { expand } : {})}
       />
-      {row.why === '' ? null : <p className="cfg-opt__why">{row.why}</p>}
+      {row.why === '' || grouped ? null : <p className="cfg-opt__why">{row.why}</p>}
       {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}
       {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
     </div>
@@ -4519,8 +4766,12 @@ function RowFace({
   figure,
   way: moves,
   figureSay,
+  adds = false,
   children,
 }: {
+  /** NO FIGURE, AND A PRESS PUTS IT ON: said in the figure's place (the critic, P-3), so a list
+   *  the price list prices nothing in still reads as things to add */
+  adds?: boolean
   on: boolean
   /** the tick in its disc, where the line has no words of its own for being chosen — a finish,
    *  whose figure is its price on the hull; a part says "on the quote" beside its figure */
@@ -4554,6 +4805,12 @@ function RowFace({
           </span>
         )}
         {figureSay === '' ? null : <span className="cfg-row__at">{figureSay}</span>}
+        {adds ? (
+          <span className="cfg-row__add" aria-hidden="true">
+            <Icon glyph={PlusIcon} size="sm" />
+            Add
+          </span>
+        ) : null}
       </span>
     </span>
   )
@@ -4863,6 +5120,7 @@ function SummaryDoor({
  * on a line the price list gives none, the rules' warnings, the seal's moment, the new version.
  */
 function Summary({
+  open,
   quote,
   quoteId,
   ctx,
@@ -4881,6 +5139,9 @@ function Summary({
   setStep,
   setRefused,
 }: {
+  /** the address names it (or the quote is given): it is brought into the window, and the caret
+   *  comes with it */
+  open: boolean
   quote: QuoteDef
   quoteId: string
   ctx: CatalogueCtx
@@ -4929,7 +5190,8 @@ function Summary({
         rail,
         subject
           ? {
-              name: boat.say,
+              /* the boat is the title's; its line says the finish it is built in */
+              name: isBoat && boat.detail !== '' ? boat.detail : boat.say,
               amount: lineAmount(subject).amount,
               picture: photo
                 ? {
@@ -4952,7 +5214,7 @@ function Summary({
      below a desk the page is brought to it */
   useEffect(() => {
     const node = box.current
-    if (!node) return
+    if (!node || !open) return
     heading.current?.focus({ preventScroll: true })
     if (desk || typeof node.scrollIntoView !== 'function') return
     /* once the address has settled: the router puts a new address at the page's top, and the
@@ -4987,7 +5249,7 @@ function Summary({
       window.removeEventListener('scrollend', arrived)
       for (const kind of TAKES_OVER) window.removeEventListener(kind, takeOver)
     }
-  }, [desk])
+  }, [desk, open])
   /* AT A DESK IT RISES OVER THE BUILD AND LOWERS AGAIN on the kit's travel spring; under reduced
      motion, or a caret in a field, it only fades. Below a desk it is simply there, at the page's end. */
   const reduce = useReducedMotion()
@@ -5017,6 +5279,7 @@ function Summary({
       id="cfg-summary"
       className="cfg-sum"
       data-testid="summary"
+      data-open={open ? '' : undefined}
       aria-labelledby={headId}
       initial={desk ? (quiet ? { opacity: 0 } : { y: '100%' }) : false}
       animate={{ y: 0, opacity: 1 }}
@@ -5035,15 +5298,12 @@ function Summary({
             <p className="cfg-eyebrow">
               {quote.state === 'draft' ? 'Summary · draft' : 'Summary · given'}
             </p>
+            {/* THE BOAT'S NAME ONCE ON THIS SCREEN (the critic, P-10: it was the title, the line
+                under the customer's name and the first line of the list): its finish is the hull's
+                line, below */}
             <h2 className="cfg-sum__name" id={headId} ref={heading} tabIndex={-1}>
               {boat.name}
             </h2>
-            {boat.detail === '' ? null : (
-              <p className="cfg-sum__detail">
-                <Swatches colour={boat.colour} />
-                <span>{boat.detail}</span>
-              </p>
-            )}
           </div>
           <Button intent="quiet" size="sm" icon={ArrowUpIcon} onClick={onBack}>
             Back to the build
@@ -5070,7 +5330,10 @@ function Summary({
                     height={photo.height}
                     decoding="async"
                     {...(photo.widths.length > 1
-                      ? { srcSet: srcSetOf(photo), sizes: '(max-width: 1199px) 100vw, 60vw' }
+                      ? /* THE FRAME COVERS, so the file chosen must cover its taller side too:
+                           at 1920 the photograph is cut to 967 × 890 from a 3 : 2 file, which
+                           needs 1,334 of its pixels across (the critic, P-11) */
+                        { srcSet: srcSetOf(photo), sizes: '(max-width: 1199px) 100vw, 80vw' }
                       : {})}
                   />
                   <span className="cfg-shot__expand">
@@ -5100,6 +5363,9 @@ function Summary({
             <div className="cfg-sum__card">
               {rail ? (
                 <Finale
+                  /* SHUT AND OPENED AGAIN, A GIVEN QUOTE IS SIMPLY THERE: below a desk the summary
+                     stays on the page, so its card is drawn anew each time it is brought in */
+                  key={open ? 'open' : 'shut'}
                   quote={quote}
                   quoteId={quoteId}
                   rail={rail}
@@ -5145,7 +5411,7 @@ function Summary({
                       )}
                     </span>
                     <span className="cfg-sum__words">
-                      <span className="cfg-sum__item-name">{item.name}</span>
+                      <span className="cfg-sum__item-name">{slashed(item.name)}</span>
                       <span className="cfg-sum__item-in">
                         <span className="cfg-sum__dot" aria-hidden="true" />
                         {item.chapter}
@@ -5327,7 +5593,8 @@ function Finale({
   }, [now, openQuote, quote])
 
   const photo = art?.kind === 'photograph' ? art.held : null
-  const email = emailIn(quote.customer.contact?.[0] ?? '')
+  const contact = quote.customer.contact?.[0]?.trim() ?? ''
+  const email = emailIn(contact)
 
   return (
     <div className="cfg-hand" data-arrives={plays ? '' : undefined}>
@@ -5380,7 +5647,7 @@ function Finale({
                   <Words text={quote.customer.name} />
                 </span>
               </span>
-              <span className="cfg-hand__boat">{boat.name}</span>
+              {contact === '' ? null : <span className="cfg-hand__boat">{contact}</span>}
             </span>
           </output>
         ) : (
@@ -5407,9 +5674,9 @@ function Finale({
                   )}
                 </span>
               </p>
-              {/* THE BOAT BY ITS NAME: its finish is the masthead's, over the stage (docs/WORDS.md,
-                  rule 2), and it wrapped the card's column to three lines */}
-              <p className="cfg-hand__boat">{boat.name}</p>
+              {/* THEIR LINE OF CONTACT, AS IT PRINTS (the critic, P-10: the bar said it and the card
+                  did not); the boat is the summary's title, over the card */}
+              {contact === '' ? null : <p className="cfg-hand__boat">{contact}</p>}
               {/* the same three lines as the given card, so the give changes the words and not
                   the card's height, and the total beside it does not move by a pixel. The quote's
                   number is the masthead's, over the card (the refine round, 2026-10-21: it was on
@@ -5979,6 +6246,10 @@ function ChapterMark({ chapter }: { chapter: Chapter }) {
 /** "the Yamaha F4SMHA, the Yamaha F2.5SMHB and 3 more" — at most three named. */
 /** a sentence starts with its capital */
 const upper = (said: string): string => said.charAt(0).toUpperCase() + said.slice(1)
+
+/** A COLOURWAY BREAKS BETWEEN ITS PARTS, NEVER BEFORE A SLASH (the critic, P-13: a tile read
+ *  "White / White" over "/ White/Blue"): the space before each " / " does not break. */
+const slashed = (said: string): string => said.replace(/ \/ /g, ' / ')
 
 function namesSay(names: readonly string[]): string {
   const shown = names.slice(0, 3).map((n) => `the ${n}`)

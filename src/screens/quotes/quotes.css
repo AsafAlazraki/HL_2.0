@@ -166,6 +166,8 @@
   padding: --spacing(3);
   padding-inline-end: --spacing(5);
   border-radius: var(--radius-plate);
+  /* a white plate at night too (data-ground='plate'): its words are the day's ink */
+  color: var(--color-ink);
   background: var(--color-plate);
   box-shadow: var(--shadow-plate);
 }
