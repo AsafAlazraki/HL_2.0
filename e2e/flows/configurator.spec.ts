@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { acrossTheBar } from '../fold'
-import { cameToRest, cardName, pickAndStart, priceWhatWaits } from '../mint'
+import { cameToRest, cardName, nameTheCustomer, pickAndStart, priceWhatWaits } from '../mint'
 import { decodePng } from '../rulers/measure/pixels'
 
 /* ============================================================
@@ -207,14 +207,15 @@ test('the running price is on screen from the first paint and never counts up', 
 
 test('every chapter states its own answer while it is shut', async ({ page }) => {
   await startAQuote(page)
-  /* four decisions the price file can carry, plus the two it cannot */
-  for (const name of ['The hull', 'Motor', 'Who it is for', 'The finale']) {
+  /* the decisions the price file can carry, and the finale; whom it is for is the bar's */
+  for (const name of ['The hull', 'Motor', 'The finale']) {
     await expect(
       page.getByRole('button', { name: new RegExp(escapeRe(name)) }).first(),
     ).toBeVisible()
   }
   const heads = page.locator('.cfg-head__press')
-  expect(await heads.count()).toBeGreaterThanOrEqual(5)
+  expect(await heads.count()).toBeGreaterThanOrEqual(4)
+  await expect(page.getByRole('button', { name: /^Who it is for/ })).toHaveCount(0)
   /* and not one of them is empty: a shut head that says nothing is the
      thing this pattern exists to replace */
   for (const fact of await page.locator('.cfg-head__fact').allInnerTexts()) {
@@ -326,33 +327,30 @@ test('an unaddressed quote is refused, with the engine’s own sentence', async 
   /* SAID ONCE, AND ANSWERED WHERE IT IS SAID (the refine round, 2026-10-21): the card does not
      say "nobody named yet" over the refusal; it offers the way to the name */
   await expect(page.getByTestId('configurator')).not.toContainText(/nobody named yet/)
+  /* and the way to it is the bar's: the customer's details open under their cell */
   await page.locator('.cfg-hand').getByRole('button', { name: 'Put their name on it' }).click()
-  await expect(page.getByRole('button', { name: /^Who it is for/ })).toHaveAttribute(
-    'aria-expanded',
-    'true',
-  )
-  await expect(page.getByLabel(/Who the quote is for/)).toBeVisible()
+  const panel = page.getByRole('dialog', { name: 'The customer' })
+  await expect(panel).toBeVisible()
+  await expect(panel.getByLabel(/Who the quote is for/)).toBeFocused()
 })
 
-/* THE COMPONENT CRITIQUE'S MAJOR 10, walked as the critic walked it: a name typed,
-   Tab, and The finale opened without pressing Put their name on it. The name was
-   thrown away and the finale said the quote was addressed to nobody. Closing the
-   chapter is the press now, said in the toast with its way back. */
-test('a name typed and left goes on the quote when its chapter closes', async ({ page }) => {
+/* THE COMPONENT CRITIQUE'S MAJOR 10, walked in the bar (the owner, 2026-10-30: "customer details
+   i live in the top bar"): a name typed and the panel left without pressing its act. The name
+   was thrown away once and the finale said the quote was addressed to nobody; leaving the panel
+   is the press now, said in the toast with its way back. */
+test('a name typed and left goes on the quote when its panel closes', async ({ page }) => {
   await startAQuote(page)
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  const field = page.getByLabel(/Who the quote is for/)
-  await field.click()
+  const bar = page.locator('.cfg-mast')
+  await bar.getByRole('button', { name: 'Name the customer' }).click()
+  const panel = page.getByRole('dialog', { name: 'The customer' })
+  await panel.getByLabel(/Who the quote is for/).click()
   await page.keyboard.type('R. Kelleher')
-  await expect(page.getByTestId('configurator')).toContainText(
-    'It goes on the quote when you press this, or when you move on.',
-  )
-  await page.keyboard.press('Tab')
-
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.keyboard.press('Escape')
+  await expect(panel).toBeHidden()
 
   await expect(page.getByTestId('last-step')).toContainText('For R. Kelleher')
-  await expect(page.getByRole('button', { name: /Who it is for/ })).toContainText('for R. Kelleher')
+  await expect(bar).toContainText('R. Kelleher')
+  await page.getByRole('button', { name: /The finale/ }).click()
   await expect(page.getByTestId('configurator')).not.toContainText(
     'No customer’s name is on this quote',
   )
@@ -365,37 +363,25 @@ test('a name typed and left goes on the quote when its chapter closes', async ({
   /* it is on the document, not only on the screen */
   await written(page)
   await page.reload()
-  await expect(page.getByRole('button', { name: /Who it is for/ })).toContainText('for R. Kelleher')
+  await expect(page.locator('.cfg-mast')).toContainText('R. Kelleher')
 })
 
-/* THE SECOND VERIFY ROUND (2026-09-29). A caret that arrived while a chapter was still
-   opening stopped its height where it stood: "Who it is for" pressed and the name typed at
-   once left the chapter open with its body folded to a sliver under the finale's head, and
-   "Put their name on it" could not be pressed for two minutes (the Customers flow at 1920 on
-   the ADV7, three runs of three on the old build). The body lands whole when the caret
-   arrives, and only its opacity fades. Walked on the ADV7, where it was found. */
-test('a name typed the moment its chapter opens lands in a chapter open to its whole height', async ({
-  page,
-}) => {
+/* THE SECOND VERIFY ROUND (2026-09-29) found a name typed the moment its chapter opened landing
+   in a body folded to a sliver. The name is the bar's panel now, which opens whole: typed the
+   moment it opens, its act is pressed at once. Walked on the ADV7, where it was found. */
+test('a name typed the moment its panel opens goes on at the first press', async ({ page }) => {
   await startAQuote(page, { table: 'boat_highfield', model: 'ADV7' })
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  const body = page.locator('[data-chapter="handover"] .cfg-body')
-  await expect
-    .poll(() =>
-      body.evaluate((el) => Math.round(el.scrollHeight - el.getBoundingClientRect().height)),
-    )
-    .toBeLessThanOrEqual(1)
-  await page.getByRole('button', { name: /Put their name on it/ }).click({ timeout: 15_000 })
+  await page.locator('.cfg-mast').getByRole('button', { name: 'Name the customer' }).click()
+  const panel = page.getByRole('dialog', { name: 'The customer' })
+  await panel.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await panel.getByRole('button', { name: 'Put their name on it' }).click({ timeout: 15_000 })
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
 })
 
 test('addressing it, issuing it, and then every edit refusing', async ({ page }) => {
   await startAQuote(page)
 
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, 'R. Kelleher')
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
 
   await page.getByRole('button', { name: /The finale/ }).click()
@@ -456,9 +442,7 @@ test('a given quote’s motors are priced as the change they would be, as the dr
   /* THE KIT'S PRICE IS CHOSEN FIRST (built-critique-m3.md, blocker 1): a quote carrying a kit
      whose price Northside has not chosen is not given, and choosing it moves what each motor's
      change would be, since its kit changes with it — so the draft is read once it is chosen */
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, 'R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
   const motor = page.getByRole('button', { name: /^02 Motor/ })
@@ -495,9 +479,7 @@ test('a given quote’s motors are priced as the change they would be, as the dr
 test('issuing it opens the sheet you hand over', async ({ page }) => {
   await startAQuote(page)
 
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, 'R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
 
@@ -537,21 +519,8 @@ async function toTheFinale(page: Page): Promise<void> {
      it was before a quote with an unchosen price was refused (built-critique-m3.md, blocker 1) */
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
-  /* the finale is open on its return, and carries a "Put their name on it" of its own */
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  /* pressed with the finale open, the build folds it and brings the chapter in a beat later; a
-     press taken in that beat lands on a page still moving, and at 844 × 390 it missed the act
-     every time (built-m3-2.md, 2026-10-28) */
-  await cameToRest(page)
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page
-    .getByRole('region', { name: 'Who it is for' })
-    .getByRole('button', { name: /Put their name on it|Save the name/ })
-    .click()
-  await expect(page.getByRole('button', { name: /^Who it is for/ })).toContainText(
-    'for R. Kelleher',
-  )
-  await page.getByRole('button', { name: /The finale/ }).click()
+  /* the name is the bar's, and naming it leaves the finale open where it stands */
+  await nameTheCustomer(page, 'R. Kelleher')
   await arrived(page)
 }
 
@@ -731,9 +700,7 @@ test('a given quote offers no way back, and its new version starts clean with an
   const build = page.getByTestId('configurator')
   const step = page.getByTestId('last-step')
 
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, 'R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
@@ -789,59 +756,50 @@ test('a given quote offers no way back, and its new version starts clean with an
    Only where both bars are sticky, which is 1200 and up; below that
    the field goes static and there is no pair to measure.
    ============================================================ */
-test('the masthead, the search field and the stage never cover each other', async ({
-  page,
-}, info) => {
+test('the masthead, the search field and the stage never cover each other', async ({ page }) => {
   await startAQuote(page)
-  const width = page.viewportSize()?.width ?? 0
-  test.skip(width < 1200, `the field is static at ${width}, so there are not two sticky bars`)
+  const size = page.viewportSize()!
+  test.skip(
+    size.width < 1200 || size.height < 700,
+    `the page scrolls as one column at ${size.width} × ${size.height}, and nothing sticks`,
+  )
 
+  /* AT A DESK ONLY THE CHAPTERS SCROLL (the owner, 2026-10-30): a wheel over them moves their
+     column, the page stands still, and the column's top edge stands under the search, so what
+     passes up the column goes out of sight under the field's foot and never behind the bar */
+  /* the motor open, so the column holds more than it shows */
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  await arrived(page)
+  const column = page.locator('.cfg-scroll')
+  const over = (await column.boundingBox())!
+  await page.mouse.move(over.x + over.width / 2, over.y + over.height / 2)
   await page.mouse.wheel(0, 400)
-  await page.waitForTimeout(200)
+  await expect.poll(() => column.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
 
   const bars = await page.evaluate(() => {
-    const mast = document.querySelector('.cfg-mast')!.getBoundingClientRect()
-    const find = document.querySelector('.cfg-find')!.getBoundingClientRect()
-    const stage = document.querySelector('.cfg-stage')!.getBoundingClientRect()
-    const rail = document.querySelector('.cfg-rail')!.getBoundingClientRect()
+    const [mast, find, stage, scroller] = [
+      '.cfg-mast',
+      '.cfg-find',
+      '.cfg-stage',
+      '.cfg-scroll',
+    ].map((sel) => document.querySelector(sel)!.getBoundingClientRect())
     return {
-      mastEnd: mast.bottom,
-      findTop: find.top,
-      stageTop: stage.top,
-      x: rail.x,
-      width: rail.width,
+      mastEnd: mast!.bottom,
+      findTop: find!.top,
+      findEnd: find!.bottom,
+      stageTop: stage!.top,
+      columnTop: scroller!.top,
       scrolled: scrollY,
     }
   })
-  expect(bars.scrolled, 'the page did not move, so nothing is stuck yet').toBeGreaterThan(0)
-  /* half a pixel of rounding either way is the measure and not the fault */
+  expect(bars.scrolled, 'the page itself moved').toBe(0)
+  expect(bars.findTop - bars.mastEnd, 'the search runs up behind the bar').toBeGreaterThanOrEqual(0)
+  expect(bars.stageTop - bars.mastEnd, 'the stage runs up behind the bar').toBeGreaterThanOrEqual(0)
   expect(
-    bars.findTop - bars.mastEnd,
-    'the search field runs up behind the masthead',
+    bars.columnTop - bars.findEnd,
+    'the chapters run up behind the search',
   ).toBeGreaterThanOrEqual(-0.5)
-  expect(
-    bars.stageTop - bars.mastEnd,
-    'the stage runs up behind the masthead',
-  ).toBeGreaterThanOrEqual(-0.5)
-
-  /* and whatever sliver is left is ground: one colour means the
-     ground, several mean letters moving through the gap */
-  const gap = bars.findTop - bars.mastEnd
-  if (gap > 2) {
-    const shot = await page.screenshot({
-      clip: { x: bars.x, y: bars.mastEnd + 1, width: bars.width, height: gap - 2 },
-    })
-    await info.attach('the band between the two sticky bars', {
-      body: shot,
-      contentType: 'image/png',
-    })
-    const seen = new Set<string>()
-    const img = decodePng(shot)
-    for (let i = 0; i < img.data.length; i += 4) {
-      seen.add(`${img.data[i]},${img.data[i + 1]},${img.data[i + 2]}`)
-    }
-    expect([...seen], 'the rows are painted in the gap between the two sticky bars').toHaveLength(1)
-  }
 })
 
 /* ============================================================
@@ -906,6 +864,13 @@ test('what passes under a bar that sticks goes under a line, and is veiled only 
   page,
 }, info) => {
   await startAQuote(page)
+  const size = page.viewportSize()!
+  /* AT A DESK NOTHING STICKS: the page stands still and the chapters scroll in their own column,
+     which cuts what passes cleanly at its top edge under the search (the test above) */
+  test.skip(
+    size.width >= 1200 && size.height >= 700,
+    'at a desk the page does not scroll, so no bar sticks over it',
+  )
   const motor = page.getByRole('button', { name: /^02 Motor/ })
   if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
   await arrived(page)
@@ -1041,13 +1006,18 @@ const hero = readJson<{
      Tiller" for the file's "Formosa - GRT 425 (Tiller)") */
   .find((h) => h.table === deep.table.id)
 
-test('the stage caption names this quote’s motor, where the photograph has another', async ({
+test('the boat drawn large names this quote’s motor, where the photograph has another', async ({
   page,
 }) => {
   expect(hero, 'the hero ledger holds no photograph of a boat').toBeDefined()
   await startAQuote(page, { table: hero!.table, model: hero!.model })
   await expect(page.locator('.cfg-shot[data-art="photograph"]')).toHaveCount(1)
-  const caption = page.getByTestId('stage-caption')
+  /* NOTHING IS PRINTED UNDER THE PHOTOGRAPH (the owner, 2026-10-30: "We dont need that little
+     text under the photo"): what it shows and what this quote carries are its caption drawn
+     large, with where it came from */
+  await expect(page.getByTestId('stage-caption')).toHaveCount(0)
+  await page.getByRole('button', { name: 'See the boat larger' }).click()
+  const caption = page.getByRole('dialog')
   await expect(caption).toBeVisible()
   await expect(caption).toContainText('the maker’s own finish and rig')
   const head = page.locator('.cfg-head__press').filter({
@@ -1284,7 +1254,7 @@ async function broughtIn(page: Page, chapter: string, act: string): Promise<bool
   return !fits || uncovered(section.getByRole('button', { name: act }))
 }
 
-test('pressing a motor moves the build on to the name, then the finale — never back to the hull', async ({
+test('the hull opens first, a motor pressed stays where it was pressed, and the finale comes by its head', async ({
   page,
 }) => {
   await throughTheDoor(page)
@@ -1309,22 +1279,21 @@ test('pressing a motor moves the build on to the name, then the finale — never
   await expect(page.getByTestId('running-total')).toBeVisible()
 
   const head = (name: RegExp) => page.getByRole('button', { name })
-  /* the one band the picker leaves empty on this boat */
-  await expect(head(/^02 Motor/)).toHaveAttribute('aria-expanded', 'true')
-
+  /* THE HULL FIRST, AND NOTHING MOVES ON BY ITSELF (the owner, 2026-10-30: "always hull expanded
+     first"; opening.ts, rule 3): the dealer opens the motor, and it stays open under the press */
+  await expect(head(/^01 The hull/)).toHaveAttribute('aria-expanded', 'true')
+  await head(/^02 Motor/).click()
+  await cameToRest(page)
   await page.locator('[data-chapter="motor"] .cfg-opt button[aria-pressed="false"]').first().click()
   await expect(page.getByTestId('last-step')).toContainText('put on the quote')
-  await expect(head(/^Who it is for/)).toHaveAttribute('aria-expanded', 'true')
+  await expect(head(/^02 Motor/)).toHaveAttribute('aria-expanded', 'true')
   await expect(head(/^01 The hull/)).toHaveAttribute('aria-expanded', 'false')
   await expect(page.locator('.cfg-head__press[aria-expanded="true"]')).toHaveCount(1)
-  await expect(head(/^Who it is for/)).toBeFocused()
-  await expect(page).not.toHaveURL(/at=/)
-  await expect.poll(() => broughtIn(page, 'handover', 'Put their name on it')).toBe(true)
 
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: 'Put their name on it' }).click()
+  /* the name in the bar, and the finale brought to the hand by its head */
+  await nameTheCustomer(page, 'R. Kelleher')
+  await head(/^The finale/).click()
   await expect(head(/^The finale/)).toHaveAttribute('aria-expanded', 'true')
-  await expect(head(/^The finale/)).toBeFocused()
   await expect.poll(() => broughtIn(page, 'finale', 'Give it to the customer')).toBe(true)
   await priceWhatWaits(page)
   await expect(page.getByRole('button', { name: 'Give it to the customer' })).not.toHaveAttribute(
@@ -1647,9 +1616,7 @@ test('a rule refusing the boat’s starred motor: the next draft leaves it off, 
   const before = await pickAndStart(page, STACER, MODEL_659)
   await page.getByRole('button', { name: /^02 Motor/ }).click()
   await expect(motorButton(/^Yamaha F130XA, recommended, on the quote$/)).toHaveCount(1)
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, 'R. Kelleher')
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
   await written(page)
 
@@ -1748,13 +1715,9 @@ test('the Classic 340’s finale says each reason the give waits once, under one
 
   /* the name on, the one cause left is said whole, as the give's one refusal */
   await page.locator('.cfg-hand').getByRole('button', { name: 'Put their name on it' }).click()
-  await cameToRest(page)
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page
-    .getByRole('region', { name: 'Who it is for' })
-    .getByRole('button', { name: /Put their name on it|Save the name/ })
-    .click()
-  await page.getByRole('button', { name: /The finale/ }).click()
+  const panel = page.getByRole('dialog', { name: 'The customer' })
+  await panel.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await panel.getByRole('button', { name: 'Put their name on it' }).click()
   await cameToRest(page)
   await expect(waits.getByRole('listitem')).toHaveCount(0)
   await expect(waits).toHaveText(

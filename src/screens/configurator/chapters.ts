@@ -41,7 +41,6 @@
 
 import type { CatalogueCtx, QuoteDef, QuoteLine, TableKind } from '@/domain/model'
 import {
-  HANDOVER_TITLE,
   OFFER_CAP,
   PAIR_SLOT_LABEL,
   buildSteps,
@@ -451,6 +450,8 @@ export interface RailOptions {
   query?: string
   /** the block ids whose narrowing has been switched off */
   showAll?: ReadonlySet<string>
+  /** how many rows a list switched to its whole range draws at most (`OFFER_CAP` unless said) */
+  cap?: number
 }
 
 /* ---------------------------------------------------------- */
@@ -528,6 +529,7 @@ function readTable(
   const counts = stepOffer(ctx, quote, step.section, {
     ...(searching ? { query } : {}),
     ...(showingAll ? { all: true } : {}),
+    ...(showingAll && options.cap !== undefined ? { cap: options.cap } : {}),
   })
 
   /* COMPUTED OVER THE WHOLE SHELF AT ONCE, because "does this fact
@@ -977,19 +979,9 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     return chapter
   })
 
-  chapters.push({
-    id: 'handover',
-    num: '',
-    name: HANDOVER_TITLE,
-    kind: 'handover',
-    fact:
-      quote.customer.name.trim() === '' ? 'nobody named yet' : `for ${quote.customer.name.trim()}`,
-    amount: null,
-    tables: [],
-    offered: 0,
-    matched: 0,
-    lines: 0,
-  })
+  /* WHO IT IS FOR IS NOT A CHAPTER ANY MORE (the owner, 2026-10-30: "customer details i live in
+     the top bar so we can remove who it for in the right hand scrolly"). The name and its line of
+     contact are the masthead's, and the rail is the build and its finale. */
 
   const totals = quoteTotals(quote)
   /* THE FINALE'S HEAD SAYS WHERE THE GIVE STANDS, AND NOTHING ELSE SAYS IT (the refine round,

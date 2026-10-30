@@ -154,11 +154,13 @@
   /* AND CLEAR OF IT (the refine round, 2026-10-21): under 1440 "New quote" and "Find a model"
      stood 6–8px under the pill's foot, read as its caption. The clearance itself now keeps
      18px of blue under the pill on every screen (tokens.css, --shell-inset). */
-  /* THE FILE'S BLUE, WITH THE KIT'S GRAIN ON IT: a material rather than a flat fill. The grain
-     is fractal noise at 9% white (tokens.css, --grain), a texture and not a picture of
-     anything, and it lifts no pixel far enough to move the words' contrast off its floor. */
-  background: var(--grain), linear-gradient(160deg, var(--color-blue-700), var(--color-blue-900));
-  color: var(--color-white);
+  /* A CALM HEAD ON THE ROOM'S OWN FLOOR (the owner's round, 2026-10-30). The blue band with its
+     grain read as a block over the doors; the question now stands on the floor the doors stand
+     on, in ink, and a hairline ends the head. The eyebrow keeps the shell's clearance above it
+     at every width, so the top edge never cuts it. */
+  background: var(--floor);
+  color: var(--ink);
+  border-block-end: 1px solid var(--rule);
   /* THE BAND GOES UP OVER THE CAP, NOT UNDER IT (refine-critique.md, major 10). The cap (below)
      sticks under the pill as soon as the band's foot reaches the pill's clearance, and the band
      is drawn over it, so scrolling uncovers the paper strip a pixel at a time from under the
@@ -192,7 +194,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-blue-100);
+  color: var(--color-blue-700);
 }
 
 .picker-ask {
@@ -201,14 +203,14 @@
   line-height: var(--text-4xl--line-height);
   font-weight: 300;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--ink);
 }
 
 .picker-say {
   margin: 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-blue-100);
+  color: var(--ink-soft);
   text-wrap: pretty;
 }
 
@@ -224,7 +226,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-blue-100);
+  color: var(--ink-quiet);
 }
 
 /* WHAT THE FIELD FOUND. Its line is held when it is empty, so typing the first letter never
@@ -234,7 +236,7 @@
   min-block-size: 1lh;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-blue-100);
+  color: var(--ink-quiet);
   font-variant-numeric: tabular-nums;
   text-wrap: pretty;
 }
@@ -834,19 +836,21 @@
    for anything. */
 .picker-card__frame[data-empty] {
   display: grid;
-  place-items: center;
   padding: --spacing(3);
   box-sizing: border-box;
-  background: linear-gradient(160deg, var(--color-blue-50), var(--color-blue-100));
+  background: var(--floor);
+  box-shadow: inset 0 0 0 1px var(--rule);
 }
 
 .picker-card__cover {
   display: grid;
-  place-items: center;
+  align-content: end;
+  justify-content: start;
 }
-.picker-card__cover-glyph {
-  display: inline-flex;
-  color: var(--color-blue-700);
+.picker-card__cover-word {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-quiet);
 }
 
 .picker-card__name {
@@ -957,12 +961,15 @@
   }
 }
 
+.picker-stage {
+  --stage-pad: --spacing(5);
+}
 .picker-stage__crest,
 .picker-stage__body,
 .picker-stage__foot {
   display: grid;
   align-content: start;
-  padding-inline: --spacing(5);
+  padding-inline: var(--stage-pad);
 }
 
 .picker-stage__crest {
@@ -1031,10 +1038,16 @@
   text-wrap: balance;
 }
 
+/* THE PHOTOGRAPH THE FULL WIDTH OF ITS PLATE (the owner's round, 2026-10-30): it bleeds past the
+   plate's own padding to both edges, a band of the boat between the name and the figures. */
 .picker-shot {
   margin: 0;
+  margin-inline: calc(var(--stage-pad) * -1);
   display: grid;
   min-inline-size: 0;
+}
+.picker-shot[data-empty] {
+  margin-inline: 0;
 }
 
 /* THE WHOLE PHOTOGRAPH, NEVER LARGER THAN ITS OWN PIXELS. The held copy's width and height
@@ -1049,10 +1062,13 @@
   display: block;
   inline-size: 100%;
   block-size: auto;
-  max-block-size: --spacing(64);
-  /* whole, and never larger than its own pixels, whatever room the plate gives it */
+  max-block-size: --spacing(72);
+  /* a scene fills the band edge to edge; a studio render on white is shown whole, never larger
+     than its own pixels */
+  object-fit: cover;
+}
+.picker-shot__img[data-art='studio'] {
   object-fit: scale-down;
-  border-radius: var(--radius-field);
 }
 
 /* NO PHOTOGRAPH: the file's pale blue at the picture's size, and on it the one sentence every
@@ -1062,11 +1078,14 @@
   place-content: center;
   justify-items: center;
   gap: --spacing(2);
-  min-block-size: --spacing(40);
+  min-block-size: --spacing(28);
   padding: --spacing(5);
   box-sizing: border-box;
   border-radius: var(--radius-field);
-  background: linear-gradient(160deg, var(--color-blue-50), var(--color-blue-100));
+  /* QUIET, AS A CARD'S IS (the owner, 2026-10-30): the floor and a hairline, the sentence in
+     the quiet ink, no struck camera */
+  background: var(--floor);
+  box-shadow: inset 0 0 0 1px var(--rule);
   text-align: center;
 }
 
@@ -1074,14 +1093,10 @@
   display: grid;
   justify-items: center;
   gap: --spacing(2);
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-blue-800);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-quiet);
   text-wrap: balance;
-}
-.picker-shot__glyph {
-  display: inline-flex;
-  color: var(--color-blue-700);
 }
 
 /* ---- the fact strip ----------------------------------------------------------------------- */
@@ -1111,11 +1126,11 @@
 }
 
 .picker-fact__label {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps);
+  /* THE LABEL IS A NOUN SAID IN SENTENCE CASE ("Max power"), not capitals shouting the file's
+     column (the owner, 2026-10-30: "Max power 90 hp", not "MAX 90 HP"; `./facts.ts`) */
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
   color: var(--ink-quiet);
   text-wrap: pretty;
 }
@@ -1548,10 +1563,8 @@
   .picker-cards {
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   }
-  .picker-stage__crest,
-  .picker-stage__body,
-  .picker-stage__foot {
-    padding-inline: --spacing(6);
+  .picker-stage {
+    --stage-pad: --spacing(6);
   }
 }
 
@@ -1917,4 +1930,235 @@
   .picker-door:hover .picker-door__go {
     transform: none;
   }
+}
+
+/* ============================================================
+   WHAT IS SOLD (the owner, 2026-10-30) — the boats first and largest, then each shelf that
+   sells on its own, under one quiet head.
+   ============================================================ */
+
+.picker-sold {
+  display: grid;
+  gap: --spacing(10);
+  min-block-size: 0;
+}
+
+.picker-alone {
+  display: grid;
+  gap: --spacing(6);
+  padding-block-start: --spacing(6);
+  border-block-start: 1px solid var(--rule);
+}
+
+.picker-alone__head {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+}
+
+.picker-alone__note {
+  margin: 0;
+  max-inline-size: 60ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-quiet);
+  text-wrap: pretty;
+}
+
+.picker-shelf {
+  display: grid;
+  gap: --spacing(3);
+}
+
+.picker-shelf__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: --spacing(5);
+  row-gap: --spacing(2);
+}
+
+.picker-shelf__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--color-blue-700);
+}
+
+/* A SHELF SOLD ONLY WITH A BOAT SAYS SO, AND THE SWITCH STANDS BESIDE THE SENTENCE */
+.picker-shelf__shut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: --spacing(3);
+  row-gap: --spacing(2);
+}
+.picker-shelf__shut p {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.picker-shelf__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.picker-small {
+  --i: 0;
+  --mark-h: --spacing(5);
+  display: grid;
+  min-inline-size: 0;
+  animation: picker-rise var(--duration-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 30ms);
+}
+
+.picker-small__in {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(2.5);
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+.picker-small__mark {
+  display: flex;
+  align-items: center;
+  flex: none;
+  min-block-size: calc(var(--mark-h) * 1.6);
+  min-inline-size: 0;
+}
+
+.picker-small__name {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.picker-small__frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-field);
+  overflow: hidden;
+  background: var(--color-plate);
+}
+.picker-small__frame[data-empty] {
+  background: var(--floor);
+}
+
+.picker-capped {
+  margin: 0;
+  padding-block: --spacing(4) --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-quiet);
+  text-wrap: pretty;
+}
+
+/* EVERY CARD IN A ROW IS ONE HEIGHT: the tile and its frame stretch to the row's tallest */
+.picker-cards__item > *,
+.picker-small > *,
+.picker-door > * {
+  block-size: 100%;
+}
+
+/* FROM A TABLET UP, AN INDEX: each shelf's name in a column of its own, its doors beside it, so
+   five shelves read down one edge like a catalogue's contents and the doors are not each a row */
+@media (min-width: 834px) {
+  .picker-shelf {
+    grid-template-columns: 10rem minmax(0, 1fr);
+    column-gap: --spacing(6);
+    row-gap: --spacing(3);
+    align-items: start;
+  }
+  .picker-shelf__top {
+    display: contents;
+  }
+  .picker-shelf__head {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    padding-block-start: --spacing(1);
+  }
+  .picker-shelf__shut {
+    grid-column: 2;
+  }
+  .picker-shelf__grid {
+    grid-column: 2;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .picker-shelf {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    column-gap: --spacing(8);
+  }
+  .picker-shelf__grid {
+    grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  }
+}
+
+/* IN THE DESK'S ROOM THE FIRST QUESTION SCROLLS AS ONE: the boats fill the window but for the
+   head of the shelves, which shows under them so the room says there is more below. */
+@media (min-width: 1200px) and (min-height: 700px) {
+  .picker-sold {
+    block-size: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    grid-template-rows: calc(100% - --spacing(16)) auto;
+    padding: --spacing(0.5);
+    margin: calc(--spacing(0.5) * -1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-neutral-300) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker-small {
+    animation: none;
+  }
+}
+
+/* WHAT A LIST HOLDS BACK, SAID ONCE: under the makers in the rail's column where the rail is drawn
+   (from 1200px), so it takes no row from the list beside it; at the floor's foot below that,
+   where the rail steps aside */
+.picker-rail > .picker-held {
+  display: none;
+}
+@media (min-width: 1200px) {
+  .picker-rail > .picker-held {
+    display: block;
+    margin-block-start: --spacing(4);
+  }
+  .picker[data-stage='models'] .picker-held--floor,
+  .picker[data-stage='boat'] .picker-held--floor {
+    display: none;
+  }
+}
+
+.picker-small__marked {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.picker-small__sub {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--ink-soft);
 }

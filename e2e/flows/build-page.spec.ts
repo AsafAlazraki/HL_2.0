@@ -1,46 +1,149 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { cameToRest, pickAndStart } from '../mint'
 
 /* ============================================================
-   THE BUILD PAGE AS THE OWNER ASKED FOR IT (2026-10-30, word for word:
-   "also on the /quote/ pages we need to be able to expand images of
-   products … Total should move from top right to bottom left area and
-   be way nicer and more visual and always hull expanded first and the
-   header section should be way nicer … and also i don't like how the
-   image goes all the way to left on big screen"), each measured at
-   every size the rulers run, on the Highfield Sport 560 started at the
-   picker's act:
+   THE BUILD PAGE AS THE OWNER ASKED FOR IT (2026-10-30, two rounds the
+   same day). The first: "always hull expanded first and the header
+   section should be way nicer … Total should move from top right to
+   bottom left … i don't like how the image goes all the way to left on
+   big screen … we need to be able to expand images of products". The
+   second, word for word in part: "the only thing that should scroll is
+   the right hand bar the rest stays as is please … We dont need that
+   little text under the photo on the left so we can make the most of the
+   space and make image bigger … the experience of viewing all of the
+   products and things should be popup please done nicely … in that left
+   hand side of that white bar on the top that is where you put
+   highfield logo and then have model details and things … for specs,
+   ability to open more of them and design that a bit nicer … remove the
+   photograph from media.high whatever because not needed. customer
+   details i live in the top bar so we can remove who it for in the
+   right hand scrolly … also things look a bit blurry sometimes".
 
-     1. the hull opens first, and the quote starts with the boat alone
-        (nothing nobody chose is on it);
+   Each measured at every size the rulers run, on the Highfield Sport 560
+   started at the picker's act:
+
+     1. the hull opens first, and the quote starts with the boat alone;
      2. the total stands at the bottom left, in sight, over no control
         and clear of the shell's bar, and says what it is made of;
-     3. the head is the quote's identity: the boat's name, the quote's
-        number, where it stands and whom it is for;
-     4. the boat's photograph stands inside the page's measure, never at
-        the window's edge;
-     5. a product's picture opens large, never past its own pixels, with
-        its caption and provenance, and Escape and the close return the
-        caret to the press that opened it.
+     3. THE TOP WHITE BAR is the quote's identity: the maker's mark, the
+        boat's name and finish, its number, where it stands, and the
+        customer — named there, and no "Who it is for" chapter;
+     4. the photograph stands inside the page's measure with nothing
+        under it, its words and provenance in the lightbox;
+     5. a product's picture opens large, never past its own pixels, and
+        Escape and the close return the caret to the press;
+     6. AT A DESK ONLY THE CHAPTERS SCROLL: a wheel over the column moves
+        the column and nothing else, a wheel over the boat moves nothing,
+        and a reload at a chapter opens the column there;
+     7. the specifications open, every one, from a keyboard;
+     8. "Show all" opens over the page, with its own find field and the
+        total, and a press inside it changes the total in place;
+     9. NOTHING IS BLURRY: every picture drawn at or under its own pixels,
+        and nothing at rest under a fractional transform or a blur.
 
    With HL2_LOOK set it also writes screenshots there, for a person.
    ============================================================ */
 
 const LOOK = process.env.HL2_LOOK ?? ''
 
-test('the build page: hull first, the total at the bottom left, the head, the picture, large', async ({
+/** Every picture in the window has its pixels, so a screenshot is the page and not its loading. */
+async function picturesIn(page: Page): Promise<void> {
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        [...document.images]
+          .filter((img) => {
+            const box = img.getBoundingClientRect()
+            return (
+              box.bottom > 0 && box.top < innerHeight && box.width > 0 && img.loading !== 'lazy'
+            )
+          })
+          .every((img) => img.complete),
+      ),
+    )
+    .toBe(true)
+}
+
+/**
+ * WHAT IS SOFT ON THE PAGE, MEASURED: each picture in the window, by the pixels of the file the
+ * browser chose (`currentSrc`) against the pixels it paints (its box, scaled as `object-fit`
+ * scales it, times the device's pixel ratio); and each element at rest under a transform that is
+ * not whole pixels, a filter that blurs, or a backdrop blur.
+ */
+/* eslint-disable unicorn/consistent-function-scoping -- the measuring function below runs INSIDE
+   the page, so every helper it uses must be declared inside it */
+async function softness(page: Page): Promise<{ pictures: string[]; soft: string[] }> {
+  return page.evaluate(async () => {
+    const pictures: string[] = []
+    const soft: string[] = []
+    const dpr = devicePixelRatio
+    const name = (el: Element): string =>
+      `${el.tagName.toLowerCase()}.${[...el.classList].join('.')}`
+    for (const img of document.images) {
+      const box = img.getBoundingClientRect()
+      if (box.width < 2 || box.bottom <= 0 || box.top >= innerHeight || !img.complete) continue
+      const file = new Image()
+      file.src = img.currentSrc || img.src
+      await Promise.race([
+        file.decode().catch(() => undefined),
+        new Promise((done) => setTimeout(done, 3000)),
+      ])
+      const fw = file.naturalWidth
+      const fh = file.naturalHeight
+      if (fw === 0 || fh === 0) continue
+      const fit = getComputedStyle(img).objectFit
+      const scale =
+        fit === 'cover'
+          ? Math.max(box.width / fw, box.height / fh)
+          : fit === 'contain' || fit === 'scale-down'
+            ? Math.min(box.width / fw, box.height / fh)
+            : box.width / fw
+      const painted = scale * dpr
+      pictures.push(
+        `${name(img)} ${(img.currentSrc || img.src).split('/').pop()} file ${fw}x${fh} box ${Math.round(box.width)}x${Math.round(box.height)} at ${painted.toFixed(2)}x`,
+      )
+      if (painted > 1.01) soft.push(`${name(img)} drawn at ${painted.toFixed(2)}x its pixels`)
+    }
+    for (const el of document.querySelectorAll<HTMLElement>('body *')) {
+      const box = el.getBoundingClientRect()
+      if (box.width === 0 || box.bottom <= 0 || box.top >= innerHeight) continue
+      const style = getComputedStyle(el)
+      /* a blur BEHIND a plate of words (the shell's glass pill) softens what passes under the
+         plate, never the words on it: said, not counted */
+      const behind = style.backdropFilter
+      const blurs = (said: string): boolean => /blur\((?!0px\))/.test(said)
+      if (behind && blurs(behind))
+        pictures.push(`glass: ${name(el)} backdrop ${behind}, its own words drawn sharp over it`)
+      if (blurs(style.filter)) soft.push(`${name(el)} filter ${style.filter}`)
+      if (style.transform !== 'none') {
+        const m = new DOMMatrixReadOnly(style.transform)
+        const scaled = Math.abs(m.a - 1) > 0.001 || Math.abs(m.d - 1) > 0.001
+        const half = Math.abs(m.e % 1) > 0.01 || Math.abs(m.f % 1) > 0.01
+        if ((scaled || half) && (el.textContent ?? '').trim() !== '')
+          soft.push(`${name(el)} transform ${style.transform}`)
+      }
+    }
+    return { pictures, soft }
+  })
+}
+/* eslint-enable unicorn/consistent-function-scoping */
+
+test('the build page: the bar, the boat, the column that scrolls, the range over the page', async ({
   page,
 }, info) => {
-  test.setTimeout(240_000)
+  test.setTimeout(180_000)
   await throughTheDoor(page)
   await pickAndStart(page, 'boat_highfield', 'SP560')
   await cameToRest(page)
   const size = page.viewportSize()!
+  const desk = size.width >= 1200 && size.height >= 700
   const shot = async (name: string): Promise<void> => {
-    if (LOOK !== '') await page.screenshot({ path: `${LOOK}/${info.project.name}-${name}.png` })
+    if (LOOK === '') return
+    await picturesIn(page)
+    await page.screenshot({ path: `${LOOK}/build-${info.project.name}-${name}.png` })
   }
-  await shot('top')
+  await shot('01-top')
 
   /* 1. THE HULL FIRST, AND THE BOAT ALONE */
   await expect(page.getByRole('button', { name: /^01 The hull/ })).toHaveAttribute(
@@ -59,23 +162,31 @@ test('the build page: hull first, the total at the bottom left, the head, the pi
   const pill = (await page.getByTestId('shell-pill').boundingBox())!
   const clear = box.y + box.height <= pill.y || pill.y + pill.height <= box.y
   expect(clear, 'the total stands over the shell’s bar').toBe(true)
-  /* what it is made of, said to a reader in the bar's name (not drawn in a short window's row) */
   await expect(tally).toContainText(/Made of: Hull \$/)
 
-  /* 3. THE HEAD IS THE QUOTE'S IDENTITY */
+  /* 3. THE TOP WHITE BAR: the mark, the boat, the quote, the customer — and no chapter for them */
   const head = page.locator('.cfg-mast')
+  await expect(head.getByRole('img', { name: /Highfield/i })).toBeVisible()
   await expect(head.getByRole('heading', { level: 1 })).toHaveText(/Highfield Sport 560/)
+  await expect(head).toContainText(/PVC/)
   await expect(head).toContainText(/Quote\s*\d{8}-\d{2}/)
   await expect(head).toContainText('Draft')
-  await expect(head.getByRole('button', { name: 'Name the customer' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Who it is for/ })).toHaveCount(0)
+  await expect(page.locator('[data-chapter="handover"]')).toHaveCount(0)
+  /* the page starts with the bar: nothing of the build stands above it */
+  const bar = (await page.locator('.cfg-mast__bar').boundingBox())!
+  const chapters = (await page.locator('.cfg-chapters').boundingBox())!
+  expect(bar.y).toBeLessThan(chapters.y)
 
-  /* 4. THE PHOTOGRAPH INSIDE THE PAGE'S MEASURE, its start edge on the head's */
+  /* 4. THE PHOTOGRAPH INSIDE THE PAGE'S MEASURE, its start edge on the bar's, nothing under it */
   const photo = (await page.locator('.cfg-shot').boundingBox())!
-  const name = (await head.getByRole('heading', { level: 1 }).boundingBox())!
   expect(photo.x).toBeGreaterThanOrEqual(16)
-  expect(Math.abs(photo.x - name.x)).toBeLessThanOrEqual(4)
+  expect(Math.abs(photo.x - bar.x)).toBeLessThanOrEqual(4)
+  await expect(page.getByTestId('stage-caption')).toHaveCount(0)
+  await expect(page.locator('.cfg-stage')).not.toContainText(/media\.highfieldboats\.com/)
+  await expect(page.locator('.cfg-stage')).not.toContainText(/maker’s own finish/)
 
-  /* 5. A PICTURE, LARGE: the boat's, then a motor's among its chapter's */
+  /* 5. A PICTURE, LARGE, carrying what stood under it */
   const opener = page.getByRole('button', { name: 'See the boat larger' })
   await opener.scrollIntoViewIfNeeded()
   await opener.click()
@@ -83,21 +194,83 @@ test('the build page: hull first, the total at the bottom left, the head, the pi
   await expect(large).toBeVisible()
   await expect(large).toContainText('Highfield Sport 560')
   await expect(large).toContainText(/from media\.highfieldboats\.com/)
+  await expect(large).toContainText(/On this quote: no motor yet/)
   const img = large.locator('img')
   const drawn = (await img.boundingBox())!
   const held = await img.evaluate((el: HTMLImageElement) => el.naturalWidth)
   expect(drawn.width).toBeLessThanOrEqual(held + 1)
-  await shot('large')
+  await shot('02-large')
   await page.keyboard.press('Escape')
   await expect(large).toBeHidden()
   await expect(opener).toBeFocused()
 
+  /* 6. THE CUSTOMER, NAMED IN THE BAR: the press opens their details under it, the act puts them
+     on, and the bar says them */
+  await head.getByRole('button', { name: 'Name the customer' }).click()
+  await page.getByLabel('Who the quote is for').fill('Jordan Avery')
+  await page.getByLabel('One line of contact, as it should print').fill('0400 000 000')
+  await shot('03-customer')
+  await page.getByRole('button', { name: 'Put their name on it' }).click()
+  await expect(page.getByLabel('Who the quote is for')).toBeHidden()
+  await expect(head).toContainText('Jordan Avery')
+  await expect(head).toContainText('0400 000 000')
+
+  /* 7. THE SPECIFICATIONS, EVERY ONE, FROM A KEYBOARD */
+  const more = page.getByRole('button', { name: /^All \d+ specifications$/ })
+  await more.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('button', { name: 'Fewer specifications' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
+  await expect(page.locator('.cfg-specs__row').first()).toBeVisible()
+  await cameToRest(page)
+  await shot('04-specs')
+  await page.getByRole('button', { name: 'Fewer specifications' }).click()
+  await expect(page.locator('.cfg-specs__row')).toHaveCount(0)
+
+  /* 8. AT A DESK ONLY THE CHAPTERS SCROLL */
   await page.getByRole('button', { name: /^02 Motor/ }).click()
   await cameToRest(page)
-  await shot('motor')
+  await shot('05-motor')
+  const column = page.locator('.cfg-scroll')
+  if (desk) {
+    const still = async () => ({
+      window: await page.evaluate(() => scrollY),
+      bar: (await page.locator('.cfg-mast__bar').boundingBox())!.y,
+      photo: (await page.locator('.cfg-shot').boundingBox())!.y,
+      tally: (await tally.boundingBox())!.y,
+    })
+    const before = await still()
+    const scrolled = await column.evaluate((el) => el.scrollTop)
+    const over = (await column.boundingBox())!
+    await page.mouse.move(over.x + over.width / 2, over.y + over.height / 2)
+    await page.mouse.wheel(0, 700)
+    await expect.poll(() => column.evaluate((el) => el.scrollTop)).toBeGreaterThan(scrolled)
+    expect(await still()).toEqual(before)
+    /* a wheel over the boat moves nothing at all */
+    const boat = (await page.locator('.cfg-shot').boundingBox())!
+    const at = await column.evaluate((el) => el.scrollTop)
+    await page.mouse.move(boat.x + boat.width / 2, boat.y + boat.height / 2)
+    await page.mouse.wheel(0, 700)
+    await page.waitForTimeout(400)
+    expect(await still()).toEqual(before)
+    expect(await column.evaluate((el) => el.scrollTop)).toBe(at)
+    await shot('06-scrolled')
+  } else {
+    /* below a desk the page scrolls, and the total stays in sight while the build is worked */
+    await page.mouse.wheel(0, 900)
+    await cameToRest(page)
+    const after = (await tally.boundingBox())!
+    expect(after.y + after.height).toBeLessThanOrEqual(size.height)
+    expect(after.y).toBeGreaterThanOrEqual(0)
+    await shot('06-scrolled')
+  }
+
+  /* 9. A MOTOR'S PICTURE, LARGE, among its chapter's */
   const motor = page.getByRole('region', { name: /^02 Motor/ })
   const expand = motor.getByRole('button', { name: 'See its picture larger' })
-  await expect(expand.first()).toBeVisible()
+  await expand.first().scrollIntoViewIfNeeded()
   await expand.first().click()
   await expect(large).toBeVisible()
   await expect(large).toContainText(/1 of \d+ · Motor/)
@@ -107,11 +280,67 @@ test('the build page: hull first, the total at the bottom left, the head, the pi
   await expect(large).toBeHidden()
   await expect(expand.first()).toBeFocused()
 
-  /* and the total stays in sight while the build is worked */
-  await page.mouse.wheel(0, 900)
+  /* 10. SHOW ALL OPENS OVER THE PAGE, with its own find field and the total */
+  const all = motor.getByRole('button', { name: /^Show all [\d,]+ in / })
+  await all.scrollIntoViewIfNeeded()
   await cameToRest(page)
-  const after = (await tally.boundingBox())!
-  expect(after.y + after.height).toBeLessThanOrEqual(size.height)
-  expect(after.y).toBeGreaterThanOrEqual(0)
-  await shot('scrolled')
+  await all.click()
+  const sheet = page.getByRole('dialog', { name: /^All [\d,]+ in / })
+  await expect(sheet).toBeVisible()
+  const sheetTotal = sheet.getByTestId('sheet-total')
+  await expect(sheetTotal).toContainText('$41,340')
+  await expect(sheet.locator('.cfg-tiles > li').first()).toBeVisible()
+  const tiles = await sheet.locator('.cfg-tiles > li').count()
+  expect(tiles).toBeGreaterThan(4)
+  await cameToRest(page)
+  await shot('07-range')
+  /* THE PAGE BEHIND IS LOCKED: a wheel over the dimmed page moves neither it nor the column */
+  const behind = async () =>
+    page.evaluate(() => [scrollY, document.querySelector('.cfg-scroll')?.scrollTop ?? 0])
+  const still = await behind()
+  await page.mouse.move(4, size.height / 2)
+  await page.mouse.wheel(0, 600)
+  await page.waitForTimeout(400)
+  expect(await behind()).toEqual(still)
+  /* its own find field narrows it */
+  await sheet.getByLabel(/^Find in /).fill('F115')
+  await expect.poll(() => sheet.locator('.cfg-tiles > li').count()).toBeLessThan(tiles)
+  /* a press inside it puts the motor on, and the total on the sheet says so in place */
+  await sheet.locator('.cfg-tiles .ui-option').first().click()
+  await expect(sheetTotal).not.toContainText('$41,340')
+  await expect(tally).not.toContainText('Not chosen yet: motor')
+  await shot('08-range-added')
+  /* and Escape hands the caret back to the press */
+  await page.keyboard.press('Escape')
+  await expect(sheet).toBeHidden()
+  await expect(all).toBeFocused()
+
+  /* 11. A RELOAD AT A CHAPTER OPENS THE COLUMN THERE (a desk); the page itself never moved */
+  if (desk) {
+    const url = new URL(page.url())
+    url.searchParams.set('at', 'trailer')
+    await page.goto(url.toString())
+    await expect(page.getByRole('button', { name: /^03 Trailer/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    const trailer = (await page.locator('[data-chapter="trailer"]').boundingBox())!
+    const box2 = (await column.boundingBox())!
+    expect(trailer.y).toBeGreaterThanOrEqual(box2.y)
+    /* its head at the column's top, or as near as the column's end lets it come */
+    const end = await column.evaluate((el) => el.scrollHeight - el.clientHeight - el.scrollTop)
+    expect(trailer.y < box2.y + 40 || end <= 1).toBe(true)
+    expect(await column.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
+    expect(await page.evaluate(() => scrollY)).toBe(0)
+  }
+
+  /* 12. NOTHING IS BLURRY: measured, and said */
+  await page.evaluate(() => scrollTo(0, 0))
+  await cameToRest(page)
+  await picturesIn(page)
+  const measured = await softness(page)
+  console.log(`[${info.project.name}] pictures:\n  ${measured.pictures.join('\n  ')}`)
+  console.log(`[${info.project.name}] soft: ${measured.soft.length === 0 ? 'none' : ''}`)
+  for (const said of measured.soft) console.log(`  ${said}`)
+  expect(measured.soft).toEqual([])
 })

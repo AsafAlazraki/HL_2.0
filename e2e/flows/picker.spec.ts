@@ -190,8 +190,11 @@ test('the picker opens on the makers, each a door with its models counted off th
 
   /* THE HEAD SAYS WHAT TO DO AND STOPS (the refine round, 2026-10-21): the doors count their
      own models, and the price's name is said by the price on the plate, not here as well */
+  /* REWRITTEN 2026-10-30: the first question is what is being sold (the owner: "quotes are not
+     just boats"), so the doors' line is no longer "Choose the maker, then the boat." */
   const counts = page.getByTestId('picker-counts')
-  await expect(counts).toHaveText('Choose the maker, then the boat.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What are you selling?')
+  await expect(counts).toHaveText('A boat, or a motor, a trailer or a part on its own.')
   await expect(page.getByText(`${au(MODELS)} models`)).toHaveCount(0)
   await expect(page.getByText(`${RUNG} prices`)).toHaveCount(0)
 
@@ -519,8 +522,15 @@ test('in a hand, nothing chosen is the doors, and a door brings its list', async
   test.skip(size.width >= 834, `the list stands beside the plate at ${size.width}`)
   await openPicker(page)
   await expect(page.getByRole('region', { name: 'Models' })).toHaveCount(0)
-  const tall = await page.evaluate(() => (document.scrollingElement as HTMLElement).scrollHeight)
-  expect(tall, `${tall}px of page with nothing chosen`).toBeLessThan(size.height * 3)
+  /* REWRITTEN 2026-10-30: the doors page now also holds what is sold on its own under the boats
+     (the owner: "quotes are not just boats"), so the page's measure is the boats' part of it —
+     the whole less the shelves' own height — and that is still under three windows */
+  const tall = await page.evaluate(() => {
+    const whole = (document.scrollingElement as HTMLElement).scrollHeight
+    const shelves = document.querySelector<HTMLElement>('.picker-alone')
+    return whole - (shelves ? shelves.getBoundingClientRect().height : 0)
+  })
+  expect(tall, `${tall}px of boats' page with nothing chosen`).toBeLessThan(size.height * 3)
 
   const table = boats.find((t) => t.id === HIGHFIELD) as Table
   await page
@@ -1077,4 +1087,59 @@ test('in a hand, the doors end whole above the tab bar with nothing scrolled', a
   await expect.poll(() => acrossTheBar(page, '[data-testid="picker"]')).toEqual([])
   /* and the field is still named for a reader, by the words its line no longer spends */
   await expect(page.getByLabel(/Find a model/)).toBeVisible()
+})
+
+/* ============================================================
+   NOT JUST BOATS (the owner, 2026-10-30: "quotes are not just boats - also motors or trailers
+   or even dealer fit things as well and you can sell those as well"). A motor on its own (a
+   repower), a trailer on its own and a part on its own each start from New quote's shelves and
+   reach the build at the quote's own address. Parts & Accessories is sold only with a boat until
+   Northside says otherwise, which it says where it is refused (`letQuote`, one step with Undo).
+   ============================================================ */
+test('a motor, a trailer and a part each start a quote of their own and reach the build', async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  const touch = testInfo.project.use.hasTouch
+  await openPicker(page)
+
+  /* `fresh` opens New quote at its address; a switch just pressed is pressed on, in the same
+     page, rather than across a reload that would race its own write */
+  const startOn = async (list: RegExp, which: string, fresh = true): Promise<void> => {
+    if (fresh) await page.goto('/quote/new')
+    const shelves = page.getByRole('region', { name: 'Sold on its own' })
+    const door = shelves.getByRole('button', { name: list })
+    await door.scrollIntoViewIfNeeded()
+    await pressAs(door, touch)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(which)
+    const card = page.getByRole('region', { name: 'Models' }).locator('.picker-cards__item button')
+    await pressAs(card.first(), touch)
+    const act = page
+      .getByRole('complementary', { name: 'What is chosen' })
+      .getByRole('button', { name: 'Start the quote' })
+    await act.scrollIntoViewIfNeeded()
+    await pressAs(act, touch)
+    await expect(page).toHaveURL(/\/quote\/(?!new)[^/?]+$/)
+    await expect(page.getByTestId('configurator')).toBeVisible()
+  }
+
+  await startOn(/^Yamaha Outboards, /, 'Which motor is it?')
+  await startOn(/^Dunbier Trailers, /, 'Which trailer is it?')
+
+  /* THE SHELF SOLD ONLY WITH A BOAT SAYS SO, AND IS SWITCHED WHERE IT IS REFUSED */
+  await page.goto('/quote/new')
+  const parts = page.getByRole('region', { name: 'Sold on its own' })
+  await expect(
+    parts.getByText(
+      'Parts & Accessories is sold only with a boat today, so it cannot start a quote on its own.',
+    ),
+  ).toBeVisible()
+  const sell = parts.getByRole('button', { name: 'Sell it on its own too' }).first()
+  await sell.scrollIntoViewIfNeeded()
+  await pressAs(sell, touch)
+  await expect(parts.getByText(/^Parts & Accessories is sold only with a boat/)).toHaveCount(0)
+  await startOn(/^Parts & Accessories, /, 'Which product is it?', false)
+
+  expect(errors).toEqual([])
 })

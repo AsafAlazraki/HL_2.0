@@ -69,7 +69,6 @@ function railFor(quote: QuoteDef) {
 const head = (name: RegExp): HTMLElement => screen.getByRole('button', { name })
 const HULL = /^01 The hull/
 const MOTOR = /^02 Motor/
-const WHO = /^Who it is for/
 const FINALE = /^The finale/
 
 /** The motor the critic pressed, where the file pairs it with this hull;
@@ -119,7 +118,6 @@ describe('arriving from the picker, with no position in the address', () => {
     /* the motor went on, and the chapter the dealer opened stays open under the press */
     expect(railFor(quote).chapters.find((c) => c.id === 'motor')!.lines).toBe(1)
     expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(WHO)).toHaveAttribute('aria-expanded', 'false')
     expect(head(FINALE)).toHaveAttribute('aria-expanded', 'false')
   })
 })
@@ -132,7 +130,7 @@ describe('a chapter the dealer opened himself', () => {
     expect(within(chapter).queryAllByRole('button', { pressed: true })).toEqual([])
     await userEvent.click(aMotor())
     expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(WHO)).toHaveAttribute('aria-expanded', 'false')
+    expect(head(FINALE)).toHaveAttribute('aria-expanded', 'false')
     /* the motor it took is lit where it was pressed */
     expect(within(chapter).getAllByRole('button', { pressed: true })).toHaveLength(1)
   })

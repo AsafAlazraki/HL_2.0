@@ -57,6 +57,8 @@ import {
   quoteDoors,
   subjectsIn,
   verbsOf,
+  whatIsSold,
+  nounOf,
 } from './start'
 import { placeRules, subjectVerdict } from './subjectRules'
 
@@ -594,5 +596,60 @@ describe('what the rules already decide about one row', () => {
     }
     const place = placeRules(boat.door.module, entities, [broken])
     expect(() => subjectVerdict(place, boat.entity, row)).not.toThrow()
+  })
+})
+
+/* ============================================================
+   5 · WHAT IS BEING SOLD — New quote's first question (the owner, 2026-10-30: "quotes are not
+   just boats - also motors or trailers or even dealer fit things as well")
+   ============================================================ */
+
+describe('what is sold, read off the places', () => {
+  const sold = () => whatIsSold(doors())
+
+  it('puts the seven boat makers first, and every place that sells goods after them in the dashboard order', () => {
+    expect(sold().boats.map((d) => d.tableId)).toHaveLength(7)
+    expect(sold().alone.map((s) => s.name)).toEqual([
+      'Motors',
+      'Factory Packages',
+      'Trailers',
+      'Parts & Accessories',
+      'Dealer Fit Packages',
+    ])
+  })
+
+  it('measures which can start a quote today: Parts & Accessories and Dealer Fit Packages cannot, and say why', () => {
+    const shut = sold().alone.filter((s) => s.refusal !== '')
+    expect(shut.map((s) => s.name)).toEqual(['Parts & Accessories', 'Dealer Fit Packages'])
+    for (const s of shut) expect(s.refusal).toContain(`${s.name} is sold only with a boat today`)
+  })
+
+  it('opens a shelf the moment Northside switches Quote on for it', () => {
+    const switched = doors().map((d) =>
+      d.moduleName === 'Parts & Accessories'
+        ? {
+            ...d,
+            module: { ...d.module, capabilities: [...d.module.capabilities, 'quote' as const] },
+          }
+        : d,
+    )
+    expect(whatIsSold(switched).alone.find((s) => s.name === 'Parts & Accessories')?.refusal).toBe(
+      '',
+    )
+  })
+
+  it('draws no door for a list with nothing left to sell, and says the fee lists once', () => {
+    const trailers = sold().alone.find((s) => s.name === 'Trailers')
+    expect(trailers?.doors.map((d) => d.tableId)).not.toContain('trl_obsolete')
+    expect(sold().notGoods).toBe(
+      'Labour Rates, Oils & Consumables and Registration Costs do not have Quote switched on, so a quote does not start from them.',
+    )
+  })
+
+  it('names one of each thing the way the census counts it', () => {
+    expect(nounOf(door('Yamaha Outboards'))).toBe('motor')
+    expect(nounOf(door('Dunbier Trailers'))).toBe('trailer')
+    expect(nounOf(door('Rigging Kits'))).toBe('rigging kit')
+    expect(nounOf(door('Stacer'))).toBe('boat')
   })
 })

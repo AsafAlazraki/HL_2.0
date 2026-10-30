@@ -6,11 +6,13 @@ import { cameToRest, pickAndStart } from '../mint'
    THE CHANDLERY, WALKED — direction B of docs/directions/choosing.md.
 
    On a Stacer 519 Sea Ranger SDF started at the picker's act, the
-   dealer opens Dealer fit, opens the Batteries & power aisle and puts
-   five parts on the quote: three by the Add press, one dragged onto
-   the total at the bottom left, and one by the keyboard (Space lifts
-   it, the right arrow takes it to the quote, Space puts it on). Then
-   one is taken off from the basket, and Ctrl Z puts it back — every
+   dealer opens Dealer fit, opens the chandlery over the page from it
+   (the owner, 2026-10-30: "viewing all of the products and things
+   should be popup"), opens the Batteries & power aisle and puts five
+   parts on the quote: three by the Add press, one dragged onto the
+   total at the sheet's head, and one by the keyboard (Space lifts it,
+   the right arrow takes it to the quote, Space puts it on). Then
+   one is taken off from the basket, and its way back puts it back — every
    add and remove is a quote command with an inverse.
 
    Nothing is typed into an assertion that the screen could say
@@ -28,7 +30,7 @@ const basket = (page: Page): Locator =>
 const aisle = (page: Page): Locator =>
   page.getByTestId('chandlery').getByRole('region', { name: 'Batteries & power' })
 const total = async (page: Page): Promise<string> =>
-  (await page.getByTestId('running-total').locator('.cfg-tally__fig').innerText()).trim()
+  (await page.getByTestId('sheet-total').locator('.cfg-sheet__fig').innerText()).trim()
 
 async function openTheAisle(page: Page): Promise<void> {
   await throughTheDoor(page)
@@ -36,6 +38,8 @@ async function openTheAisle(page: Page): Promise<void> {
   await cameToRest(page)
   await page.getByRole('button', { name: /^04 / }).click()
   await cameToRest(page)
+  await page.getByRole('button', { name: /^Browse all [\d,]+ in the chandlery$/ }).click()
+  await expect(page.getByRole('dialog', { name: 'The chandlery' })).toBeVisible()
   await page.getByRole('button', { name: /^Batteries & power/ }).click()
   await expect(aisle(page)).toBeVisible()
   await expect(page).toHaveURL(/aisle=power/)
@@ -70,7 +74,7 @@ test('three parts by press, one by drag, one by keyboard, and one taken off', as
   await page.mouse.move(from.x + from.width / 2 + 20, from.y + from.height / 2 + 20, { steps: 4 })
   const drop = page.getByText('Drop it here to put it on the quote')
   await expect(drop).toBeVisible()
-  const onto = (await page.getByTestId('running-total').boundingBox())!
+  const onto = (await page.getByTestId('sheet-total').boundingBox())!
   await page.mouse.move(onto.x + onto.width / 2, onto.y + onto.height / 2, { steps: 12 })
   await expect(drop).toBeVisible()
   await page.mouse.up()
@@ -95,8 +99,16 @@ test('three parts by press, one by drag, one by keyboard, and one taken off', as
     .click()
   await expect(basket(page)).toHaveCount(4)
   await expect.poll(() => total(page)).not.toBe(before)
-  await page.locator('body').click({ position: { x: 2, y: 2 } })
-  await page.keyboard.press('Control+z')
+  /* put back by its own way back where the sheet says the step (below 1440, where no toast
+     stands), and by Ctrl Z at a desk, the caret on no field */
+  const putBack = page
+    .getByRole('dialog', { name: 'The chandlery' })
+    .getByRole('button', { name: 'Put it back' })
+  if ((await putBack.count()) > 0) await putBack.click()
+  else {
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+    await page.keyboard.press('Control+z')
+  }
   await expect(basket(page)).toHaveCount(5)
   await expect.poll(() => total(page)).toBe(before)
 })

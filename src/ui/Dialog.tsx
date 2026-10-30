@@ -25,11 +25,16 @@ export interface DialogProps {
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
-  size?: 'sm' | 'md' | 'lg'
+  /** `xl` is a large sheet over the page — most of the window, its head standing while its body
+   *  scrolls — for a whole range of things to look through (the build's "Show all"). */
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   /** The close control's label. */
   closeLabel?: string
   /** Buttons for the foot of the dialog, usually ending with a `DialogClose`. */
   actions?: ReactNode
+  /** WHAT STANDS OVER THE BODY WHILE IT SCROLLS, in a large sheet: a find field, a figure. It is
+   *  outside the box that scrolls, so it never moves and is measured where it is drawn. */
+  bar?: ReactNode
   children?: ReactNode
 }
 
@@ -57,6 +62,7 @@ function Overlay({
   size = 'md',
   closeLabel = 'Close',
   actions,
+  bar,
   children,
   placement,
 }: DialogProps & { placement: 'centre' | 'side' }) {
@@ -87,6 +93,7 @@ function Overlay({
               {description}
             </BaseDialog.Description>
           ) : null}
+          {bar ? <div className="ui-dialog-bar">{bar}</div> : null}
           {children ? <div className="ui-dialog-body">{children}</div> : null}
           {actions ? <footer className="ui-dialog-actions">{actions}</footer> : null}
         </BaseDialog.Popup>

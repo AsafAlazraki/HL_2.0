@@ -41,19 +41,13 @@ describe('the chapters are the engine’s bands, and two more', () => {
     const rail = readRail(ctx, sp560)
     const names = rail.chapters.map((c) => c.name)
     /* the SP560's view carries seven tables — two trailer tables and
-       three the dealer fits — and they are four chapters plus two */
+       three the dealer fits — and they are four chapters and the finale; whom it is for is the
+       bar's (the owner, 2026-10-30) */
     expect(sp560.sections.length).toBe(7)
-    expect(names).toEqual([
-      'The hull',
-      'Motor',
-      'Trailer',
-      'Dealer fit',
-      'Who it is for',
-      'The finale',
-    ])
+    expect(names).toEqual(['The hull', 'Motor', 'Trailer', 'Dealer fit', 'The finale'])
   })
 
-  it('keeps the engine’s numbers and gives the last two none', () => {
+  it('keeps the engine’s numbers and gives the finale none', () => {
     const rail = readRail(ctx, sp560)
     expect(rail.chapters.filter((c) => c.kind === 'band').map((c) => c.num)).toEqual([
       '01',

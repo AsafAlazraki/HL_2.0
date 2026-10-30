@@ -335,14 +335,19 @@ export function freezeSpecs(
   entity: EntityDef,
   row: RowData,
   max = 5,
+  columns = 12,
 ): Array<{ label: string; value: string }> {
   const values = engine.valuesOf({ entityId: entity.id, row })
   const read = (fieldId: string): CellValue => values[fieldId] ?? null
   const out: Array<{ label: string; value: string }> = []
   const used = new Set<string>(entity.hierarchy ?? [])
 
+  /* A UNIT ONCE: a cell that already says its unit ("90 HP" under "Min HP") is not given it a
+     second time — the build's every-specification list read "Min 90 HP HP" (2026-10-30) */
   const withUnit = (label: string, text: string, unit?: string) =>
-    unit && unit.toLowerCase() !== label.toLowerCase()
+    unit &&
+    unit.toLowerCase() !== label.toLowerCase() &&
+    !text.toLowerCase().endsWith(unit.toLowerCase())
       ? { label, value: `${text} ${unit}` }
       : { label, value: text }
 
@@ -355,7 +360,7 @@ export function freezeSpecs(
     out.push(withUnit(pair.label, text, splitUnit(pair.min.name).unit))
   }
 
-  for (const fieldId of defaultColumns(entity, 12)) {
+  for (const fieldId of defaultColumns(entity, columns)) {
     if (out.length >= max) break
     if (used.has(fieldId)) continue
     const field = entity.fields.find((f) => f.id === fieldId)
@@ -368,6 +373,22 @@ export function freezeSpecs(
     out.push(withUnit(base, text, unit))
   }
   return out.slice(0, max)
+}
+
+/**
+ * EVERY MEASURE THE PRICE FILE HOLDS FOR THE BOAT A QUOTE IS ON, read live off the file — the
+ * build page's "All the specifications" (the owner, 2026-10-30: "for specs, ability to open more
+ * of them"). The same reading as the frozen five the paper prints, with no cap: never money, never
+ * a cost column. Where the file no longer holds the row, the frozen five are what there is.
+ */
+export function allSpecsOf(
+  ctx: CatalogueCtx,
+  quote: QuoteDef,
+): Array<{ label: string; value: string }> {
+  const root = ctx.entities[quote.rootTableId]
+  const row = root ? rowOf(ctx, root.id, quote.rootRowId) : undefined
+  if (!root || !row) return quote.subjectSpecs
+  return freezeSpecs(makeEngine(ctx), root, row, Number.POSITIVE_INFINITY, root.fields.length)
 }
 
 /** The row's own photograph — index 0 of its first picture column,
@@ -1368,6 +1389,9 @@ export interface StepOfferOptions {
   all?: boolean
   /** a search that ignores the narrowing entirely */
   query?: string
+  /** how many rows to draw at most: `OFFER_CAP` unless a screen showing a whole range over the
+   *  page asks for more (the build's range sheet) */
+  cap?: number
 }
 
 export function stepOffer(
@@ -1434,7 +1458,8 @@ export function stepOffer(
     onQuote.set(line.pairRowId ?? line.rowId, line.id)
   }
 
-  const candidates = selected.slice(0, OFFER_CAP).map((r) => {
+  const cap = options.cap ?? OFFER_CAP
+  const candidates = selected.slice(0, cap).map((r) => {
     const already = onQuote.get(r.pair?.rowId ?? r.row.id)
     /* RULE 10, ON THE ROW ITSELF. Only for the rows the narrowing left
        out — at most `OFFER_CAP` of them, each costing one re-run of the
@@ -1472,7 +1497,7 @@ export function stepOffer(
     admitted: result.rows.length + result.heldCount,
     beyond,
     matched: selected.length,
-    capped: selected.length > OFFER_CAP,
+    capped: selected.length > cap,
     heldCount: result.heldCount,
     ...(result.historic ? { historic: result.historic } : {}),
     reason: ruleReason(block?.rule, root, target),

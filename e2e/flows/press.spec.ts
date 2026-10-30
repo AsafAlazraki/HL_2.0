@@ -1,6 +1,14 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR } from '../door'
-import { cameToRest, CUSTOMER, DEEPEST, MODEL, pickAndStart, priceWhatWaits } from '../mint'
+import {
+  cameToRest,
+  CUSTOMER,
+  DEEPEST,
+  MODEL,
+  nameTheCustomer,
+  pickAndStart,
+  priceWhatWaits,
+} from '../mint'
 
 /* ============================================================
    THE PRESS SINKS, READ OFF THE LIVE CONTROLS WITH A MOUSE HELD DOWN.
@@ -98,9 +106,7 @@ test('the door and the act give when held down, and the act sinks', async ({ pag
   await door.click()
   await expect(page).toHaveURL(/\/$/, { timeout: 30_000 })
   await pickAndStart(page, DEEPEST.table.id, MODEL)
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, CUSTOMER)
   await expect(page.getByTestId('last-step')).toContainText(CUSTOMER)
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)

@@ -85,6 +85,18 @@ function fileAQuote(key: string, find: string): QuoteDef {
 
 /** The rail the engine reads for a document, so an assertion can ask
  *  for the figure the engine computed rather than one typed here. */
+/** NAMES THE CUSTOMER AS A DEALER DOES NOW (the owner, 2026-10-30: "customer details i live in the
+ *  top bar"): the bar's Customer cell, its name field, the act. */
+async function nameThem(name: string): Promise<void> {
+  await userEvent.click(
+    screen.getByRole('button', { name: /^Name the customer$|, change the customer$/ }),
+  )
+  await userEvent.type(await screen.findByLabelText(/Who the quote is for/), name)
+  await userEvent.click(
+    screen.getByRole('button', { name: /^Put their name on it|^Save the customer/ }),
+  )
+}
+
 function railFor(quote: QuoteDef) {
   const sheet = catalogue.getState()
   const ctx = makeCtx({
@@ -151,13 +163,13 @@ describe('a chapter head states its own answer while it is shut', () => {
 
   /* "The build numbers its last two chapters `·`. `01 02 03 04 · ·`" (the
      M2-close critique, #20): a mark in the number column nobody could
-     read. The two closing chapters carry no number, and nothing in its
-     place. */
-  it('prints no mark in the number column of the two chapters that close the sale', () => {
+     read. The chapter that closes the sale carries no number, and nothing
+     in its place (Who it is for was the other, and is the bar's now). */
+  it('prints no mark in the number column of the chapter that closes the sale', () => {
     render(<Configurator quoteId={quote.id} at="hull" />)
     const printed = [...document.querySelectorAll('.cfg-head__num')].map((n) => n.textContent)
     expect(printed).toEqual(railFor(quote).chapters.map((c) => c.num))
-    expect(printed.slice(-2)).toEqual(['', ''])
+    expect(printed.slice(-1)).toEqual([''])
     expect(printed).not.toContain('·')
   })
 
@@ -175,7 +187,9 @@ describe('a chapter head states its own answer while it is shut', () => {
     }
   })
 
-  it('draws the six chapters of a quote raised on a hull', () => {
+  /* WHO IT IS FOR IS THE BAR'S (the owner, 2026-10-30: "customer details i live in the top bar so
+     we can remove who it for in the right hand scrolly"): five chapters, and no sixth for a name */
+  it('draws the five chapters of a quote raised on a hull, and none for the customer', () => {
     render(<Configurator quoteId={quote.id} />)
     const rail = railFor(quote)
     for (const chapter of rail.chapters) {
@@ -190,9 +204,9 @@ describe('a chapter head states its own answer while it is shut', () => {
       'Motor',
       'Trailer',
       'Dealer fit',
-      'Who it is for',
       'The finale',
     ])
+    expect(screen.queryByRole('button', { name: /Who it is for/ })).toBeNull()
   })
 
   it('writes the chapter into the position when a head is pressed', async () => {
@@ -443,8 +457,16 @@ describe('a chapter with nothing to offer says why, and offers the way past', ()
         name: new RegExp(`Show all ${gfab.counts.catalogue} in GFAB Trailers`),
       }),
     )
-    expect(screen.getByText(/Back to the .* made for this boat/)).toBeInTheDocument()
-    expect(screen.getAllByText(/Nothing is wrong with it/).length).toBeGreaterThan(0)
+    /* THE WHOLE RANGE OPENS OVER THE PAGE (the owner, 2026-10-30: "viewing all of the products
+       and things should be popup"), never pushed into the column */
+    const sheet = await screen.findByRole('dialog', {
+      name: `All ${gfab.counts.catalogue} in GFAB Trailers`,
+    })
+    expect(within(sheet).getAllByText(/Nothing is wrong with it/).length).toBeGreaterThan(0)
+    expect(within(sheet).getByTestId('sheet-total')).toHaveTextContent(
+      money(quoteTotals(quote).total),
+    )
+    expect(screen.queryByText(/Back to the .* made for this boat/)).toBeNull()
   })
 })
 
@@ -639,8 +661,7 @@ describe('who it is for, and the finale', () => {
   it('addresses the quote, then issues it, then refuses every edit', async () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
     const { rerender } = render(<Configurator quoteId={quote.id} at="handover" />)
-    await userEvent.type(screen.getByLabelText(/Who the quote is for/), 'R. Kelleher')
-    await userEvent.click(screen.getByRole('button', { name: 'Put their name on it' }))
+    await nameThem('R. Kelleher')
     expect(quotes.getState().get(quote.id)!.customer.name).toBe('R. Kelleher')
 
     rerender(<Configurator quoteId={quote.id} at="finale" />)
@@ -667,30 +688,26 @@ describe('who it is for, and the finale', () => {
     expect(screen.getByText('Priced at')).toBeInTheDocument()
   })
 
-  it('puts a typed name on the quote when its chapter closes, and says so with a way back', async () => {
+  /* WHAT IS TYPED GOES ON THE QUOTE WHEN THE PANEL CLOSES (the component critique, 2026-09-28,
+     major 10, carried into the bar): a name typed and walked away from is put on, once, with a
+     way back. */
+  it('puts a typed name on the quote when its panel closes, and says so with a way back', async () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
-    const { rerender } = render(withTheToaster(<Configurator quoteId={quote.id} at="handover" />))
-    await userEvent.type(screen.getByLabelText(/Who the quote is for/), 'Jordan Pike')
-    /* the field says what closing it will do, before anything is written */
-    expect(
-      screen.getByText('It goes on the quote when you press this, or when you move on.'),
-    ).toBeInTheDocument()
-    await userEvent.tab()
+    render(withTheToaster(<Configurator quoteId={quote.id} at="motor" />))
+    await userEvent.click(screen.getByRole('button', { name: 'Name the customer' }))
+    await userEvent.type(await screen.findByLabelText(/Who the quote is for/), 'Jordan Pike')
+    expect(screen.getByText('Both print on the quote exactly as typed.')).toBeInTheDocument()
     expect(quotes.getState().get(quote.id)!.customer.name).toBe('')
 
-    /* the chapter closes on the name, and the finale opens on a quote that has it */
-    rerender(withTheToaster(<Configurator quoteId={quote.id} at="finale" />))
-    expect(quotes.getState().get(quote.id)!.customer.name).toBe('Jordan Pike')
-    expect(screen.getByRole('button', { name: 'Give it to the customer' })).not.toHaveAttribute(
-      'aria-disabled',
-      'true',
-    )
-    expect(screen.queryByText(/No customer’s name is on this quote/)).toBeNull()
+    /* Escape closes the panel, and the name is on the quote */
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(quotes.getState().get(quote.id)!.customer.name).toBe('Jordan Pike'))
+    await waitFor(() => expect(screen.queryByLabelText(/Who the quote is for/)).toBeNull())
+    expect(document.querySelector('.cfg-mast')).toHaveTextContent('Jordan Pike')
     /* said in the toast, with its way back, like the press it stands for */
     const step = await screen.findByTestId('last-step')
     expect(step).toHaveTextContent('For Jordan Pike')
-    await waitFor(() => expect(screen.queryByLabelText(/Who the quote is for/)).toBeNull())
-    /* one write, not one for the fold and another for the unmount */
+    /* one write, not one for the close and another for the unmount */
     expect(
       quotes
         .getState()
@@ -702,12 +719,22 @@ describe('who it is for, and the finale', () => {
     await waitFor(() => expect(quotes.getState().get(quote.id)!.customer.name).toBe(''))
   })
 
-  it('puts it on at Enter, and when the build is left with a name still in the field', async () => {
+  it('puts it on at Enter, keeps its line of contact, and writes nothing that did not change', async () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
-    const first = render(<Configurator quoteId={quote.id} at="handover" />)
-    await userEvent.type(screen.getByLabelText(/Who the quote is for/), 'Jordan Pike{Enter}')
+    render(<Configurator quoteId={quote.id} at="motor" />)
+    await userEvent.click(screen.getByRole('button', { name: 'Name the customer' }))
+    await userEvent.type(await screen.findByLabelText(/Who the quote is for/), 'Jordan Pike')
+    await userEvent.type(screen.getByLabelText(/One line of contact/), '0400 000 000{Enter}')
     expect(quotes.getState().get(quote.id)!.customer.name).toBe('Jordan Pike')
-    /* Enter on a field that already matches the quote writes nothing */
+    expect(quotes.getState().get(quote.id)!.customer.contact).toEqual(['0400 000 000'])
+    await waitFor(() => expect(screen.queryByLabelText(/Who the quote is for/)).toBeNull())
+    const bar = document.querySelector<HTMLElement>('.cfg-mast')!
+    expect(bar).toHaveTextContent('Jordan Pike')
+    expect(bar).toHaveTextContent('0400 000 000')
+
+    /* opened again it holds what is on the quote, and Enter on it writes nothing */
+    await userEvent.click(screen.getByRole('button', { name: 'Jordan Pike, change the customer' }))
+    expect(await screen.findByLabelText(/Who the quote is for/)).toHaveValue('Jordan Pike')
     await userEvent.type(screen.getByLabelText(/Who the quote is for/), '{Enter}')
     expect(
       quotes
@@ -715,10 +742,6 @@ describe('who it is for, and the finale', () => {
         .get(quote.id)!
         .events.filter((e) => e.kind === 'customer-set'),
     ).toHaveLength(1)
-
-    await userEvent.type(screen.getByLabelText(/One line of contact/), '0400 000 000')
-    first.unmount()
-    expect(quotes.getState().get(quote.id)!.customer.contact).toEqual(['0400 000 000'])
   })
 })
 
@@ -734,9 +757,8 @@ describe('who it is for, and the finale', () => {
 const unpricedKit = (q: QuoteDef) =>
   q.lines.find((l) => l.label !== q.subjectLabel && l.unitPrice === null)!
 
-/** The finale's head and Who it is for's, as a reader reaches them. */
+/** The finale's head, as a reader reaches it. */
 const finaleHead = () => screen.getByRole('button', { name: /The finale/ })
-const whoHead = () => screen.getByRole('button', { name: /Who it is for/ })
 
 describe('the finale is the handover', () => {
   it('says who it is for, the boat, the total at its level and one act — and the total once', () => {
@@ -828,37 +850,31 @@ describe('the finale is the handover', () => {
      "nobody named yet", "A quote needs a name before it can be given." and "The finale · not
      ready to give yet" in one window, and the card's "For nobody named yet" over the give's
      refusal made four). */
-  it('says who it is for on the card and not in the masthead, and the head says only whether it can be given', async () => {
+  it('names the customer in the bar, and the finale head says only whether it can be given', async () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
     const head = finaleHead
-    const who = whoHead
     const nobody = /nobody named yet|name before it can be given|not ready to give/
 
-    /* no name, Motor open: Who it is for's head says so, and the shut finale says only where
-       it comes, never the gap again */
+    /* no name, Motor open: the bar offers to name them, and the shut finale says only where it
+       comes, never the gap again */
     const motor = render(<Configurator quoteId={quote.id} at="motor" />)
-    expect(who()).toHaveTextContent(/nobody named yet$/)
+    expect(screen.getByRole('button', { name: 'Name the customer' })).toBeInTheDocument()
     expect(head()).toHaveTextContent(/^The finale\s*after their name$/)
-    expect(screen.getAllByText(nobody)).toHaveLength(1)
+    expect(screen.queryAllByText(nobody)).toEqual([])
     motor.unmount()
 
-    /* no name, Who it is for open: the sentence under its act says it, and its head does not */
-    const asking = render(<Configurator quoteId={quote.id} at="handover" />)
-    expect(who()).toHaveTextContent(/^Who it is for$/)
-    expect(screen.getAllByText(nobody)).toHaveLength(1)
-    asking.unmount()
-
-    /* no name, the finale open: the give's refusal says it once, and the card offers the way to it */
+    /* no name, the finale open: the give's refusal says it once, and the card's press opens the
+       customer's details in the bar */
     const goTo = vi.fn<(id: string) => void>()
     const shut = render(<Configurator quoteId={quote.id} at="finale" goTo={goTo} />)
     expect(head()).toHaveTextContent(/^The finale$/)
-    expect(who()).toHaveTextContent(/^Who it is for$/)
     expect(screen.queryAllByText(nobody)).toEqual([])
     /* said once, as one of the give's causes or as its one (built-critique-m3-2.md, major 5) */
     expect(screen.getAllByText(/No customer’s name is on (this quote|it)/)).toHaveLength(1)
     const card = document.querySelector<HTMLElement>('.cfg-hand')!
     await userEvent.click(within(card).getByRole('button', { name: 'Put their name on it' }))
-    expect(goTo).toHaveBeenCalledWith('handover')
+    expect(await screen.findByLabelText(/Who the quote is for/)).toBeInTheDocument()
+    expect(goTo).not.toHaveBeenCalled()
     shut.unmount()
 
     quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
@@ -866,9 +882,8 @@ describe('the finale is the handover', () => {
     /* open, the card and its act say where the give stands; the head is its name */
     expect(head()).toHaveTextContent(/^The finale$/)
     expect(document.querySelector('.cfg-hand')).toHaveTextContent('For R. Kelleher')
-    /* THE MASTHEAD IS THE QUOTE'S IDENTITY AND ALWAYS SAYS WHOM IT IS FOR (the owner, 2026-10-30:
-       "the header section should be way nicer"; it is what is sold, for whom, its number and
-       state), the finale's card saying it again where the quote is given */
+    /* THE BAR IS THE QUOTE'S IDENTITY AND ALWAYS SAYS WHOM IT IS FOR, the finale's card saying
+       it again where the quote is given */
     expect(document.querySelector('.cfg-mast')).toHaveTextContent('R. Kelleher')
     open.unmount()
 
@@ -1072,8 +1087,7 @@ const sheetCtx = () =>
  *  one irreversible act in this app and the state four of the
  *  findings below are about. */
 async function issueOne(quote: QuoteDef, rerender: (ui: ReactElement) => void, extra = {}) {
-  await userEvent.type(screen.getByLabelText(/Who the quote is for/), 'R. Kelleher')
-  await userEvent.click(screen.getByRole('button', { name: 'Put their name on it' }))
+  await nameThem('R. Kelleher')
   rerender(<Configurator quoteId={quote.id} at="finale" {...extra} />)
   await userEvent.click(screen.getByRole('button', { name: 'Give it to the customer' }))
   expect(quotes.getState().get(quote.id)!.state).toBe('issued')
@@ -1370,12 +1384,14 @@ describe('the stage draws the model’s own photograph where the ledger holds on
     const drawn = screen.getByRole('img', { name: hero!.subject })
     expect(drawn).toHaveAttribute('src', hero!.src)
     expect(drawn).toHaveAttribute('width', String(hero!.width))
-    /* THE LEDGER'S SIZE RIDES ON THE LINE AS DATA, and the line a
-       customer reads says only where the photograph came from — it
-       printed "Stage copy 2,560 × 1,708 … never enlarged" (M2-close
-       critique #4, #21). */
-    const prov = screen.getByText(/^Photograph from /)
-    expect(prov).toHaveAttribute('data-held', `${hero!.width}x${hero!.height}`)
+    /* THE LEDGER'S SIZE RIDES ON THE PICTURE AS DATA, and nothing is printed under it (the
+       owner, 2026-10-30: "remove the photograph from media.high whatever because not needed"):
+       where it came from is the lightbox's caption, one press away */
+    expect(document.querySelector('.cfg-shot')).toHaveAttribute(
+      'data-held',
+      `${hero!.width}x${hero!.height}`,
+    )
+    expect(screen.queryByText(/^Photograph from /)).not.toBeInTheDocument()
     expect(screen.queryByText(/Stage copy|never enlarged/)).not.toBeInTheDocument()
     /* AND IT IS WHERE THE PICKER'S PHOTOGRAPH LANDS (the component kit,
        2026-09-28): the stage names its picture by the row this quote is
@@ -1387,13 +1403,18 @@ describe('the stage draws the model’s own photograph where the ledger holds on
 
   /* THE CUSTOMER READS THE PICTURE (built-critique-m2.md #24). The
      SP560's hero is the maker's own photograph, with the maker's own
-     outboard on it; the caption under it says so and names the motor
-     THIS document carries, read off its own lines. */
-  it('captions the photograph with whose rig it is, and this quote’s own motor', () => {
+     outboard on it; its caption says so and names the motor THIS
+     document carries, read off its own lines — under the picture drawn
+     large now, with where it came from (the owner, 2026-10-30: "We dont
+     need that little text under the photo on the left"). */
+  it('captions the photograph, drawn large, with whose rig it is, this quote’s own motor and where it came from', async () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     const hero = hullHero(sheetCtx(), quote)!
     render(<Configurator quoteId={quote.id} at="hull" />)
-    const caption = screen.getByTestId('stage-caption')
+    expect(screen.queryByTestId('stage-caption')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'See the boat larger' }))
+    const caption = await screen.findByRole('dialog')
+    expect(caption).toHaveTextContent(/Photograph from /)
     expect(caption).toHaveTextContent(hero.subject)
     expect(caption).toHaveTextContent('the maker’s own finish and rig')
     const motors = quote.lines.filter((l) => pack.ctx.entities[l.entityId]?.kind === 'motor')
@@ -1419,7 +1440,7 @@ describe('the stage draws the model’s own photograph where the ledger holds on
 
     render(<Configurator quoteId={quote.id} at="hull" />)
     expect(screen.getByRole('img', { name: hero!.subject })).toHaveAttribute('src', hero!.src)
-    expect(screen.getByText(/^Photograph from /)).toBeInTheDocument()
+    expect(document.querySelector('.cfg-shot')).toHaveAttribute('data-held')
     expect(screen.queryByText(/no photograph of this boat is held/i)).not.toBeInTheDocument()
   })
 
@@ -1437,12 +1458,15 @@ describe('the stage draws the model’s own photograph where the ledger holds on
     expect(hullHero(sheetCtx(), quote)).toBeNull()
   })
 
-  it('draws the catalogue copy for a hull the hero ledger does not carry', () => {
+  it('draws the catalogue copy for a hull the hero ledger does not carry', async () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
     expect(hullHero(sheetCtx(), quote)).toBeNull()
     render(<Configurator quoteId={quote.id} at="hull" />)
+    /* the catalogue copy, on the stage, its provenance the lightbox's */
+    expect(document.querySelector('.cfg-shot')).toHaveAttribute('data-held')
+    await userEvent.click(screen.getByRole('button', { name: 'See the boat larger' }))
+    expect(await screen.findByRole('dialog')).toHaveTextContent(/Picture from /)
     expect(screen.queryByText(/^Photograph from /)).not.toBeInTheDocument()
-    expect(screen.getByText(/^Picture from /)).toHaveAttribute('data-held')
   })
 })
 
@@ -1672,13 +1696,21 @@ describe('past the motor, the thing a person recognises leads', () => {
      times … no glyph"). The code the order goes out under is still one press away, whole. */
   /* THE PARTS ARE THE CHANDLERY'S (direction B, picked 2026-10-30): each part the price list makes
      for this boat a card with its name and one figure, its code never on the card, and Add */
-  it('draws the parts made for this boat as the chandlery’s cards, named, priced and never coded', () => {
+  /* THE CHANDLERY'S AISLES OPEN OVER THE PAGE (the owner, 2026-10-30: "viewing all of the
+     products and things should be popup"): the fit chapter's parts list ends on the press that
+     opens them, and the chandlery inside it is the same cards as /catalogue */
+  it('draws the parts made for this boat as the chandlery’s cards, named, priced and never coded', async () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
     render(<Configurator quoteId={quote.id} at="fit" />)
     const parts = chapterOf(quote, 'fit').tables.find((t) => t.title === 'Parts & Accessories')!
     const made = parts.rows.filter((r) => !r.outside)
     expect(made.length).toBeGreaterThan(0)
-    const shelf = within(screen.getByTestId('chandlery')).getByRole('region', {
+    expect(screen.queryByTestId('chandlery')).toBeNull()
+    await userEvent.click(
+      screen.getByRole('button', { name: /^Browse all [\d,]+ in the chandlery$/ }),
+    )
+    const sheet = await screen.findByRole('dialog', { name: 'The chandlery' })
+    const shelf = within(within(sheet).getByTestId('chandlery')).getByRole('region', {
       name: /^Made for the /,
     })
     for (const row of made) {

@@ -12,8 +12,8 @@ import type { DoorCount } from '@/domain/shell/doors'
 
    ONE OBJECT, FLOATING, ON EVERY SCREEN BUT ENTRY, AND THE SAME
    OBJECT ON EVERY ONE OF THEM. No rail and no bar: the crest is its
-   leading cap, the five doors are its words, and the finder is its
-   trailing bubble; only which door is lit changes between screens. It costs no layout height,
+   leading cap, the five doors are its words, and the finder is a
+   bubble of its own before Home (2026-10-30; a trailing one on a phone); only which door is lit changes between screens. It costs no layout height,
    which is why it is the only one of the four directions that leaves
    Home's two-photograph fold full-bleed AND leaves the register's
    eighteen rows whole — §9 of the critique prices what the other two
@@ -264,6 +264,28 @@ export function Pill({
           carries its own way back, which knows the chapter it came from.
           So the pill is the same object on every screen — crest, five
           doors, finder — and only which door is lit changes. */}
+      {/* THE FINDER LEADS THE BAR, BEFORE HOME (the owner, 2026-10-30: "move find in the top float
+          bar to the top left in the bar before home"). It is still a bubble of its own, set apart
+          from the doors by a gap, and it still says only the word (the owner, 2026-10-30: "just
+          find"); Ctrl K still opens it from the keyboard. Its accessible name is the word, never
+          the chord: on a phone there is no chord to name. On a phone, where the bar is the tab
+          bar at the foot, it stands at the trailing end (shell.css says why). */}
+      <button
+        type="button"
+        className="way-find"
+        onClick={find}
+        aria-label="Find"
+        aria-haspopup="dialog"
+        aria-expanded={finding}
+      >
+        <span className="way-find__glyph" aria-hidden="true">
+          <Icon glyph={MagnifyingGlassIcon} />
+        </span>
+        <span className="way-find__word" aria-hidden="true">
+          Find
+        </span>
+      </button>
+
       <ul className="way-doors">
         {doors.map(({ door, here, count }) => {
           const glyph = glyphOfWay(door.href)
@@ -315,31 +337,6 @@ export function Pill({
           )
         })}
       </ul>
-
-      {/* THE FINDER IS A BUBBLE OF ITS OWN, at the trailing end, with
-          a gap between it and the words: Apple's own 2026 form, "a
-          dedicated search tab at the trailing end". Attio puts
-          `Quick Actions ⌘K` at the head of its rail for the same
-          reason — the finder is found by eye and not only by chord.
-          Its accessible name is the word, never the chord: on a phone
-          there is no chord to name. It SAYS only the word (the owner,
-          2026-10-30: "i don't like in the floating bar the ctrl k inside
-          the find, just find"); Ctrl K still opens it from the keyboard. */}
-      <button
-        type="button"
-        className="way-find"
-        onClick={find}
-        aria-label="Find"
-        aria-haspopup="dialog"
-        aria-expanded={finding}
-      >
-        <span className="way-find__glyph" aria-hidden="true">
-          <Icon glyph={MagnifyingGlassIcon} />
-        </span>
-        <span className="way-find__word" aria-hidden="true">
-          Find
-        </span>
-      </button>
     </motion.nav>
   )
 }

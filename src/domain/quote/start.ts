@@ -498,3 +498,98 @@ export function flowPreview(
 /** "7 stops" — the figure under the strip, counted the way the
  *  sequence counts: the subject and the handover are both stops. */
 export const stopCount = (preview: FlowPreview): number => preview.stops.length
+
+/* ---------------------------------------------------------- */
+/* WHAT IS BEING SOLD — New quote's first question             */
+/* ---------------------------------------------------------- */
+
+/* ============================================================
+   THE OWNER, 2026-10-30: "quotes are not just boats - also motors or
+   trailers or even dealer fit things as well and you can sell those as
+   well." So New quote asks what is being sold before it asks which one:
+   the boat first and largest, then each place that sells something on
+   its own — a motor (a repower), a trailer, the dealer's parts and fit —
+   in the dashboard's own order.
+
+   Measured on the places the browser mints (start.test.ts): Boats,
+   Motors, Factory Packages and Trailers carry Quote; Parts &
+   Accessories and Dealer Fit Packages do not until Northside switches
+   it on (`letQuote`). A shelf that cannot start a quote is still drawn,
+   with its reason and the switch that clears it, because a door that
+   silently vanished would teach the desk that a part cannot be sold.
+
+   A place whose kind is no kind of goods — Labour Rates, Oils &
+   Consumables, Registration Costs — is no shelf here: none carries Quote,
+   and the one sentence under the shelves says so rather than dropping
+   it silently.
+   A place with nothing left to sell (OBSOLETE Trailers) is no door: its
+   own list says so where it is drawn (`heldBack`).
+   ============================================================ */
+
+/** One place in the business that sells something on its own. */
+export interface SellingShelf {
+  moduleId: string
+  /** the place's own name, the shelf's heading — "Motors", "Trailers" */
+  name: string
+  /** its lists with something to sell, each a door */
+  doors: QuoteDoor[]
+  /** what one of them is called — "motor", "trailer", "product" */
+  noun: string
+  /** why a quote cannot start here, or '' when it can */
+  refusal: string
+}
+
+export interface WhatIsSold {
+  /** the boat makers with something to sell */
+  boats: QuoteDoor[]
+  /** every other place that sells goods, in the dashboard's order */
+  alone: SellingShelf[]
+  /** the places that are fees rather than goods, said once; '' when none */
+  notGoods: string
+}
+
+/** "motors" → "motor", "rigging kits" → "rigging kit": the census's own plural, made one. */
+export const oneOf = (plural: string): string =>
+  plural.endsWith('ies') ? `${plural.slice(0, -3)}y` : plural.replace(/s$/u, '')
+
+/** What one thing on this door is called, for "Which motor is it?". A boat maker's census
+ *  counts its variants, so a boat is said by its kind. */
+export const nounOf = (door: Pick<QuoteDoor, 'kind' | 'census'>): string =>
+  door.kind === 'boat' ? 'boat' : oneOf(door.census.noun)
+
+/** New quote's first question, read off the doors: the boats, then each place that sells on its own. */
+export function whatIsSold(doors: readonly QuoteDoor[]): WhatIsSold {
+  const boats: QuoteDoor[] = []
+  const shelves = new Map<string, SellingShelf>()
+  const fees: string[] = []
+  for (const door of doors) {
+    if (door.kind === 'custom' && !door.module.capabilities.includes('quote')) {
+      if (!fees.includes(door.moduleName)) fees.push(door.moduleName)
+      continue
+    }
+    if (door.census.items === 0) continue
+    if (door.kind === 'boat') {
+      boats.push(door)
+      continue
+    }
+    const shelf = shelves.get(door.moduleId)
+    if (shelf) {
+      shelf.doors.push(door)
+      continue
+    }
+    shelves.set(door.moduleId, {
+      moduleId: door.moduleId,
+      name: door.moduleName,
+      doors: [door],
+      noun: nounOf(door),
+      refusal: door.module.capabilities.includes('quote')
+        ? ''
+        : `${door.moduleName} is sold only with a boat today, so it cannot start a quote on its own.`,
+    })
+  }
+  const notGoods =
+    fees.length === 0
+      ? ''
+      : `${andList(fees)} ${fees.length === 1 ? 'does' : 'do'} not have Quote switched on, so a quote does not start from ${fees.length === 1 ? 'it' : 'them'}.`
+  return { boats, alone: [...shelves.values()], notGoods }
+}

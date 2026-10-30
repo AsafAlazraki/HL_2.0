@@ -48,6 +48,59 @@
 .ui-dialog[data-size='lg'] {
   width: min(calc(100vw - --spacing(8)), --spacing(160));
 }
+/* A LARGE SHEET OVER THE PAGE (`size="xl"`): most of the window, its head standing while its
+   body scrolls under it, its overscroll kept to itself. In a hand it is the window less a margin. */
+.ui-dialog[data-size='xl'] {
+  width: min(calc(100vw - --spacing(8)), --spacing(320));
+  height: calc(100dvh - --spacing(12));
+  max-height: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* CENTRED BY ITS MARGINS, NOT A TRANSFORM: half of an odd window is half a pixel, and a plate
+     translated by half a pixel draws every word on it soft. At rest it stands on whole pixels. */
+  inset: 0;
+  margin: auto;
+  transform: none;
+}
+.ui-dialog[data-size='xl'][data-starting-style],
+.ui-dialog[data-size='xl'][data-ending-style] {
+  transform: translateY(--spacing(2)) scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-dialog[data-size='xl'][data-starting-style],
+  .ui-dialog[data-size='xl'][data-ending-style] {
+    transform: none;
+  }
+}
+.ui-dialog[data-size='xl'] > .ui-dialog-bar {
+  flex: none;
+  padding-block-end: --spacing(4);
+  border-block-end: 1px solid var(--color-rule);
+}
+.ui-dialog[data-size='xl'] > .ui-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-inline: calc(-1 * --spacing(6));
+  padding-inline: --spacing(6);
+  margin-block-end: calc(-1 * --spacing(6));
+  padding-block-end: --spacing(6);
+}
+@media (max-width: 639.98px) {
+  .ui-dialog[data-size='xl'] {
+    width: calc(100vw - --spacing(4));
+    height: calc(100dvh - --spacing(4));
+    padding: --spacing(4);
+  }
+  .ui-dialog[data-size='xl'] > .ui-dialog-body {
+    margin-inline: calc(-1 * --spacing(4));
+    padding-inline: --spacing(4);
+    margin-block-end: calc(-1 * --spacing(4));
+    padding-block-end: --spacing(4);
+  }
+}
 .ui-dialog[data-starting-style],
 .ui-dialog[data-ending-style] {
   opacity: 0;

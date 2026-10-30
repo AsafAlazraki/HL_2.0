@@ -880,3 +880,30 @@ test.describe('the lit capsule', () => {
     }
   })
 })
+
+/* FIND LEADS THE BAR, BEFORE HOME (the owner, 2026-10-30: "move find in the top float bar to the
+   top left in the bar before home"), still the word and its glyph and no chord; on a phone, where
+   the bar is the tab bar at the foot, it keeps the trailing end the reflow measured for it. */
+test('Find stands before Home in the bar, and at the trailing end of a phone’s tab bar', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await page.goto('/quote/new')
+  const pill = page.getByTestId('shell-pill')
+  const find = pill.getByRole('button', { name: 'Find' })
+  const home = pill.getByRole('link', { name: /^Home/ })
+  const history = pill.getByRole('link', { name: /^History/ })
+  const f = await find.boundingBox()
+  const h = await home.boundingBox()
+  const last = await history.boundingBox()
+  expect(f && h && last).toBeTruthy()
+  if (!f || !h || !last) return
+  const phone = (page.viewportSize()?.width ?? 0) < 600
+  if (phone) expect(f.x).toBeGreaterThan(last.x + last.width)
+  else {
+    expect(f.x + f.width).toBeLessThanOrEqual(h.x)
+    await expect(find).toHaveText('Find')
+  }
+  await page.keyboard.press('Control+k')
+  await expect(page.getByTestId('shell-finder')).toBeVisible()
+})

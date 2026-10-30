@@ -39,6 +39,10 @@ export interface LightboxPicture {
   caption: string
   /** where it came from: "Picture from yamaha-motor.com.au", "Added by Asaf, 30 October 2026" */
   credit: string
+  /** WHAT THE PICTURE SHOWS THAT THE THING ON THE QUOTE MAY NOT, where a screen has a sentence
+   *  for it: "Highfield Sport 560 on the water, in the maker's own finish and rig. On this
+   *  quote: the Yamaha F90XB." The build's caption under its photograph lives here now. */
+  note?: string
 }
 
 export interface LightboxProps {
@@ -97,6 +101,7 @@ export function Lightbox({ pictures, at, onAt, title }: LightboxProps) {
                 {picture?.caption ?? title}
               </BaseDialog.Title>
               <BaseDialog.Description className="ui-lightbox-credit">
+                {picture?.note ? <span className="ui-lightbox-note">{picture.note}</span> : null}
                 {picture?.credit ?? ''}
               </BaseDialog.Description>
             </div>

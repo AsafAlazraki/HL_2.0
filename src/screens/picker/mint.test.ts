@@ -223,3 +223,40 @@ describe('refusing, with a sentence', () => {
     expect(outcome.refused).toContain(pack.byKey('boat_stacer').name)
   })
 })
+
+/* ============================================================
+   NOT JUST BOATS (the owner, 2026-10-30: "quotes are not just boats - also motors or trailers
+   or even dealer fit things as well and you can sell those as well"). A motor on its own (a
+   repower), a trailer on its own and a part on its own each start a quote whose subject is
+   that line, at that line's own price, and open at the quote's own address — the same act,
+   the same engine, no flag.
+   ============================================================ */
+describe('a quote for something sold on its own', () => {
+  const firstPriced = (tableId: string): RowData => {
+    const table = pack.byKey(tableId)
+    const level = table.priceLevels?.[0]
+    const row = pack.rowsByEntity[tableId]?.find((r) => {
+      const v = level ? r.values[level.fieldId] : undefined
+      return typeof v === 'number' && v > 0 && r.values.discontinued !== true
+    })
+    if (!row) throw new Error(`the pack holds no priced line in ${tableId}`)
+    return row
+  }
+
+  for (const tableId of ['mot_yamaha', 'trl_dunbier', 'parts']) {
+    it(`starts on one line of ${tableId}, with that line alone on it`, () => {
+      const row = firstPriced(tableId)
+      const outcome = startQuote(
+        { tableId, rowId: row.id, sheet, orgId: 'northside', filed: [], at: AT },
+        nothingStanding,
+      )
+      expect(outcome.ok).toBe(true)
+      if (!outcome.ok) return
+      expect(outcome.quote.rootTableId).toBe(tableId)
+      expect(outcome.quote.rootRowId).toBe(row.id)
+      expect(outcome.quote.lines).toHaveLength(1)
+      expect(outcome.quote.lines[0]?.rowId).toBe(row.id)
+      expect(outcome.goTo).toBe(addressOf(outcome.quote.id))
+    })
+  }
+})

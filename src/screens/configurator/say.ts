@@ -357,8 +357,8 @@ export function includesSay(contains: readonly string[]): string {
  *  stood over every list in the database's capitals, beside a head that already says "13 more
  *  offered", a search that says how many it found and a switch that says "Show all 2,238". ''
  *  where every one is drawn. */
-export function cappedSay(table: ChapterTable): string {
-  return table.counts.capped ? `The first ${au(OFFER_CAP)} are shown.` : ''
+export function cappedSay(table: ChapterTable, cap: number = OFFER_CAP): string {
+  return table.counts.capped ? `The first ${au(cap)} are shown.` : ''
 }
 
 /** WHY THE LIST IS THE LENGTH IT IS, where the counted line has not

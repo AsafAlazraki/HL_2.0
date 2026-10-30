@@ -14,7 +14,6 @@ import { flushSync } from 'react-dom'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  CameraSlashIcon,
   FolderOpenIcon,
   MagnifyingGlassIcon,
   PaletteIcon,
@@ -26,13 +25,27 @@ import {
   Figure,
   Icon,
   Input,
+  KindMark,
   PriceFigure,
   STATE_GLYPH,
   Swatches,
   Tile,
   canMorph,
+  say,
+  undo,
+  unsay,
   type Glyph,
 } from '@/ui'
+import type { EntityDef, TableKind } from '@/domain/model'
+import {
+  nounOf,
+  quoteDoors,
+  whatIsSold,
+  type QuoteDoor,
+  type SellingShelf,
+} from '@/domain/quote/start'
+import { isDone } from '@/domain/catalogue/commands'
+import { letQuote } from '@/domain/catalogue/quotingCommand'
 import { measured } from '@/domain/quote/spoken'
 /* THE CHIPS, THE CARDS AND THE DOORS NEVER OPEN A LINE ON A SEPARATOR
    (m2-last-critique.md, minor 8): the one rule the cascade and the register use */
@@ -61,6 +74,7 @@ import {
 import { markOf, pictureOf, srcSetOf, type Held } from './pictures'
 import { startQuote, type Started } from './mint'
 import { stripGlyphs } from './glyphs'
+import { spokenFact } from './facts'
 import { boatTravel, markTravel } from './travel'
 import './picker.css'
 
@@ -185,6 +199,38 @@ interface Lift {
 }
 const NOTHING_LIFTED: Lift = Object.freeze({ mark: null })
 
+/** The price's name under the figure: "Cash price", and a rung the file already calls a price
+ *  ("Sell Price") is not called a price twice. */
+const rungSaid = (rung: string): string =>
+  rung.trim() === '' ? 'Price' : /\bprice\b/i.test(rung) ? rung.trim() : `${rung.trim()} price`
+
+/** The most cards one list draws at once; the rest are said and reached by the search. */
+const CARD_CAP = 120
+
+/** The lists a shelf sells from, by table id. */
+const tablesOf = (shelf: SellingShelf): string[] =>
+  shelf.doors.flatMap((d) => d.tables.map((t) => t.id))
+
+/** Each shelf's lists read as a fleet — makers, series, models, prices — exactly as the boats
+ *  are, over that shelf's own tables and nothing else. */
+function shelfFleets(
+  alone: readonly SellingShelf[],
+  tables: Readonly<Record<string, EntityDef>>,
+  sheet: Parameters<typeof fleetOf>[1],
+): Map<string, Fleet> {
+  const out = new Map<string, Fleet>()
+  for (const shelf of alone) {
+    const own: Record<string, EntityDef> = {}
+    for (const id of tablesOf(shelf)) {
+      const table = tables[id]
+      if (table) own[id] = table
+    }
+    const kind: TableKind = shelf.doors[0]?.kind ?? 'custom'
+    out.set(shelf.moduleId, fleetOf(own, sheet, kind))
+  }
+  return out
+}
+
 export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: PickerProps) {
   const status = useCatalogue((s) => s.status)
   const problem = useCatalogue((s) => s.problem)
@@ -206,8 +252,22 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
     if (canMorph()) flushSync(() => setLift(next))
   }, [])
 
-  const fleet = useMemo(() => fleetOf(tables, rows), [tables, rows])
-  const open = status === 'ready' && fleet.brands.length > 0
+  const modules = useCatalogue((s) => s.modules)
+  const boats = useMemo(() => fleetOf(tables, rows), [tables, rows])
+  const open = status === 'ready' && boats.brands.length > 0
+
+  /* WHAT IS SOLD, read off the places the dealer made (the owner, 2026-10-30: "quotes are
+     not just boats"). Each shelf's own lists are read the way the boats are, by `fleetOf`
+     over that shelf's tables alone, once per sheet. */
+  const sold = useMemo(() => whatIsSold(quoteDoors(modules, tables, rows)), [modules, tables, rows])
+  const shelves = useMemo(() => shelfFleets(sold.alone, tables, rows), [sold, tables, rows])
+  /* the shelf this address is about, when it names one of a shelf's lists */
+  const shelf = at.brand
+    ? (sold.alone.find((s) => tablesOf(s).includes(at.brand ?? '')) ?? null)
+    : null
+  const fleet = (shelf ? shelves.get(shelf.moduleId) : undefined) ?? boats
+  const door = shelf?.doors.find((d) => d.tables.some((t) => t.id === at.brand)) ?? null
+  const noun = door ? nounOf(door) : 'boat'
 
   const model = modelByKey(fleet, at.model ?? null)
   /* A MODEL NAMES ITS OWN MAKER, so an address that carries a model and
@@ -215,6 +275,8 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
   const brand = fleet.brands.find((b) => b.id === (at.brand ?? model?.tableId)) ?? null
   const typed = query.trim() !== ''
   const stage: Stage = model ? 'boat' : brand || typed ? 'models' : 'makers'
+  /* the way back to the first question, said as what it shows */
+  const allWord = shelf ? 'Everything sold' : 'All makers'
 
   /* THE VERSION A QUOTE IS WRITTEN FOR. A model that is one line of the
      file IS that version, so nothing is asked; a model built in two
@@ -293,7 +355,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
   )
 
   const press = useCallback(() => {
-    if (!model || !subject) return
+    if (!model || !subject || (shelf?.refusal ?? '') !== '') return
     const outcome = startQuote(
       {
         tableId: model.tableId,
@@ -309,13 +371,17 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
     setStarted(outcome)
     if (outcome.ok && outcome.event) quotesStore.getState().file(outcome.quote, outcome.event)
     if (outcome.ok) openQuote?.(outcome.quote.id)
-  }, [model, subject, filed, who, now, openQuote])
+  }, [model, subject, filed, who, now, openQuote, shelf])
 
   const shown = useMemo(
     () => matchModels(modelsOf(fleet, brand?.id ?? null), query),
     [fleet, brand, query],
   )
-  const keep = useMemo(() => new Set(shown.map((m) => m.key)), [shown])
+  /* A LIST NOBODY CAN SCROLL TO THE END OF IS A LIST NOBODY READS: Parts & Accessories holds
+     2,238 products. The first CARD_CAP are drawn in the list's own order and the rest are
+     said, and the search reaches every one (`picker-capped`). No maker of boats holds more. */
+  const drawn = useMemo(() => shown.slice(0, CARD_CAP), [shown])
+  const keep = useMemo(() => new Set(drawn.map((m) => m.key)), [drawn])
   const listed = useMemo(
     () =>
       (brand ? [brand] : fleet.brands)
@@ -334,10 +400,16 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               "Cash prices" beside the plate's "Cash price". The price's name is said once, by
               the price. `picker-counts` is the mark the walks wait on: the file is read. */}
           <p className="picker-eyebrow">New quote</p>
-          <h1 className="picker-ask">Which boat is it?</h1>
+          <h1 className="picker-ask">
+            {stage === 'makers' ? 'What are you selling?' : `Which ${noun} is it?`}
+          </h1>
           {open ? (
             <p className="picker-say" data-testid="picker-counts">
-              Choose the maker, then the boat.
+              {stage === 'makers'
+                ? 'A boat, or a motor, a trailer or a part on its own.'
+                : shelf
+                  ? `Choose the ${noun}.`
+                  : 'Choose the maker, then the boat.'}
             </p>
           ) : null}
         </div>
@@ -354,7 +426,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               value={query}
               onValueChange={setQuery}
               aria-describedby="picker-find-said"
-              placeholder={`Search ${brand ? brand.name : 'every maker'}`}
+              placeholder={`Search ${brand ? brand.name : 'every boat'}`}
             />
             {/* WHAT THE FIELD FOUND, and nothing while it is empty: a
                 sentence about an empty field is a sentence nobody asked
@@ -385,7 +457,10 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
       {open ? (
         <div className="picker-floor">
           {stage === 'makers' ? (
-            <Doors fleet={fleet} toMaker={toMaker} lifted={lift.mark} />
+            <div className="picker-sold">
+              <Doors fleet={boats} toMaker={toMaker} lifted={lift.mark} />
+              <Shelves sold={sold} fleets={shelves} toMaker={toMaker} />
+            </div>
           ) : (
             <>
               <Rail
@@ -394,6 +469,8 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                 toMaker={toMaker}
                 toMakers={toMakers}
                 lifted={lift.mark}
+                allWord={allWord}
+                held={fleet.heldBack.map((h) => h.sentence).join(' ')}
               />
               <Gallery
                 brand={brand}
@@ -402,6 +479,9 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                 typed={typed}
                 toBoat={toBoat}
                 toMakers={toMakers}
+                allWord={allWord}
+                capped={shown.length - drawn.length}
+                total={shown.length}
               />
               {model ? (
                 <Plate
@@ -416,6 +496,9 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                   move={move}
                   press={press}
                   goes={openQuote !== undefined}
+                  noun={noun}
+                  shut={shelf?.refusal ?? ''}
+                  moduleId={shelf?.moduleId ?? null}
                 />
               ) : null}
             </>
@@ -426,7 +509,9 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               said. On this file nothing is held back, and a sentence
               announcing that nothing happened is not drawn. */}
           {fleet.heldBack.length > 0 ? (
-            <p className="picker-held">{fleet.heldBack.map((h) => h.sentence).join(' ')}</p>
+            <p className="picker-held picker-held--floor">
+              {fleet.heldBack.map((h) => h.sentence).join(' ')}
+            </p>
           ) : null}
         </div>
       ) : (
@@ -736,8 +821,195 @@ function useDoorsFit(grid: RefObject<HTMLUListElement | null>): void {
   }, [grid])
 }
 
-const doorLabel = (b: Brand): string =>
-  `${b.name}, ${countOf(b.models.length, 'model', 'models')}${b.from === null ? '' : `, from ${money(b.from)}`}`
+const doorLabel = (b: Brand, one = 'model', many = 'models'): string =>
+  `${b.name}, ${countOf(b.models.length, one, many)}${b.from === null ? '' : `, from ${money(b.from)}`}`
+
+/* ---------------------------------------------------------- */
+/* The shelves: what is sold on its own                        */
+/* ---------------------------------------------------------- */
+
+/** A shelf's door is drawn at most a fifth of a desk, half a hand. */
+const SMALL_SIZES = '(max-width: 833px) 50vw, 20vw'
+
+/**
+ * EVERYTHING ELSE NORTHSIDE SELLS ON ITS OWN, under the boats (the owner, 2026-10-30: "quotes
+ * are not just boats - also motors or trailers or even dealer fit things"): a motor for a
+ * repower, a trailer, a package, a part. One shelf per place in the business, in the
+ * dashboard's order, each list on it a door drawn like a maker's: its mark or its name, the
+ * dearest thing on it this browser holds a photograph of, how many and from what price. A
+ * shelf that is sold only with a boat says so above its doors, with the switch that changes
+ * it (`letQuote`); its doors still open, so what is on it can be looked at.
+ */
+function Shelves({
+  sold,
+  fleets,
+  toMaker,
+}: {
+  sold: ReturnType<typeof whatIsSold>
+  fleets: ReadonlyMap<string, Fleet>
+  toMaker: (id: string) => void
+}) {
+  const headId = useId()
+  if (sold.alone.length === 0 && sold.notGoods === '') return null
+  return (
+    <section className="picker-alone" aria-labelledby={headId}>
+      <h2 className="picker-alone__head" id={headId}>
+        Sold on its own
+      </h2>
+      {sold.alone.map((shelf) => (
+        <Shelf
+          key={shelf.moduleId}
+          shelf={shelf}
+          fleet={fleets.get(shelf.moduleId) ?? null}
+          toMaker={toMaker}
+        />
+      ))}
+      {sold.notGoods === '' ? null : <p className="picker-alone__note">{sold.notGoods}</p>}
+    </section>
+  )
+}
+
+function Shelf({
+  shelf,
+  fleet,
+  toMaker,
+}: {
+  shelf: SellingShelf
+  fleet: Fleet | null
+  toMaker: (id: string) => void
+}) {
+  const lists = shelf.doors.flatMap((door) =>
+    door.tables.flatMap((table) => {
+      const brand = fleet?.brands.find((b) => b.id === table.id)
+      return brand ? [{ door, brand }] : []
+    }),
+  )
+  /* a frame for its photograph only where a door on this shelf holds one (`Card`'s rule) */
+  const framed = lists.some(({ brand }) => {
+    const flagship = flagshipOf(brand, (m) => pictureOf(m) !== null)
+    return flagship !== null
+  })
+  /* TWO LISTS UNDER ONE MAKER'S MARK (Dunbier Trailers and Dunbier / Haines BMT) are told apart
+     by their names under it */
+  const marks = lists.map(({ brand }) => markOf(brand.name)?.at ?? '')
+  const shared = new Set(marks.filter((at, i) => at !== '' && marks.indexOf(at) !== i))
+  return (
+    <div className="picker-shelf">
+      <div className="picker-shelf__top">
+        <h3 className="picker-shelf__head">{shelf.name}</h3>
+        {shelf.refusal === '' ? null : (
+          <div className="picker-shelf__shut">
+            <p>{shelf.refusal}</p>
+            <SellAlone moduleId={shelf.moduleId} />
+          </div>
+        )}
+      </div>
+      <ul className="picker-shelf__grid">
+        {lists.map(({ door, brand }, i) => (
+          <li className="picker-small" key={brand.id} style={{ '--i': i } as CSSProperties}>
+            <SmallDoor
+              door={door}
+              brand={brand}
+              framed={framed}
+              named={shared.has(markOf(brand.name)?.at ?? '')}
+              toMaker={toMaker}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function SmallDoor({
+  door,
+  brand,
+  framed,
+  named,
+  toMaker,
+}: {
+  door: QuoteDoor
+  brand: Brand
+  framed: boolean
+  /** its mark is another list's too, so its name is said under it */
+  named: boolean
+  toMaker: (id: string) => void
+}) {
+  const one = nounOf(door)
+  const many = door.census.noun
+  const flagship = flagshipOf(brand, (m) => pictureOf(m) !== null)
+  const photo = flagship ? pictureOf(flagship) : null
+  return (
+    <Tile onSelect={() => toMaker(brand.id)} label={doorLabel(brand, one, many)}>
+      <span className="picker-small__in">
+        <span className="picker-small__mark">
+          {markOf(brand.name) ? (
+            <span className="picker-small__marked">
+              <Mark name={brand.name} decorative />
+              {named ? <span className="picker-small__sub">{brand.name}</span> : null}
+            </span>
+          ) : (
+            <span className="picker-small__name">{brand.name}</span>
+          )}
+        </span>
+        {photo || framed ? (
+          <span className="picker-small__frame" data-empty={photo ? undefined : ''}>
+            {photo ? (
+              <Shot held={photo} sizes={SMALL_SIZES} />
+            ) : (
+              /* no photograph on this list: its kind's own glyph, which depicts no product */
+              <KindMark kind={door.kind} size="lg" />
+            )}
+          </span>
+        ) : null}
+        <span className="picker-door__foot">
+          <span className="picker-door__n">{countOf(brand.models.length, one, many)}</span>
+          <span className="picker-door__from">
+            {brand.from === null ? (
+              <span className="picker-none">Not priced</span>
+            ) : (
+              <>
+                from <PriceFigure amount={brand.from} />
+              </>
+            )}
+          </span>
+          <span className="picker-door__go" aria-hidden="true">
+            <Icon glyph={ArrowRightIcon} />
+          </span>
+        </span>
+      </span>
+    </Tile>
+  )
+}
+
+const SELL_STEP = 'picker-sell-alone'
+
+/** THE SWITCH, WHERE THE REFUSAL IS: Northside's own setting for the place (`letQuote`, the
+ *  same one step with its Undo as the place's Settings tab), pressed from New quote. */
+function SellAlone({ moduleId }: { moduleId: string }) {
+  const press = (): void => {
+    const outcome = catalogue.getState().apply(letQuote(moduleId, true))
+    if (!isDone(outcome)) {
+      if (outcome.refused !== '') say(outcome.refused, { id: SELL_STEP })
+      return
+    }
+    unsay(SELL_STEP)
+    const eventId = outcome.event.id
+    undo(
+      outcome.said,
+      () => {
+        const back = catalogue.getState().undo(eventId)
+        say(isDone(back) ? back.said : back.refused || 'Nothing to change.', { id: SELL_STEP })
+      },
+      { id: SELL_STEP },
+    )
+  }
+  return (
+    <Button intent="secondary" size="sm" onClick={press}>
+      Sell it on its own too
+    </Button>
+  )
+}
 
 /* ---------------------------------------------------------- */
 /* The rail: the makers, once one is chosen                    */
@@ -755,6 +1027,8 @@ function Rail({
   toMaker,
   toMakers,
   lifted,
+  allWord,
+  held,
 }: {
   fleet: Fleet
   chosen: Brand | null
@@ -762,6 +1036,10 @@ function Rail({
   toMakers: () => void
   /** the maker whose mark a press is carrying from this rail to the head */
   lifted: string | null
+  /** the first row's words: back to the first question */
+  allWord: string
+  /** what this list holds back and why, said under the makers; '' when nothing is */
+  held: string
 }) {
   return (
     <nav className="picker-rail" aria-label="Makers">
@@ -771,11 +1049,17 @@ function Rail({
             shape="row"
             selected={chosen === null}
             onSelect={toMakers}
-            label={`All makers, ${countOf(fleet.models, 'model', 'models')}`}
+            label={
+              allWord === 'All makers'
+                ? `All makers, ${countOf(fleet.models, 'model', 'models')}`
+                : allWord
+            }
           >
             <span className="picker-railrow">
-              <span className="picker-railrow__all">All makers</span>
-              <span className="picker-railrow__n">{fleet.models.toLocaleString('en-AU')}</span>
+              <span className="picker-railrow__all">{allWord}</span>
+              {allWord === 'All makers' ? (
+                <span className="picker-railrow__n">{fleet.models.toLocaleString('en-AU')}</span>
+              ) : null}
             </span>
           </Tile>
         </li>
@@ -803,6 +1087,9 @@ function Rail({
           </li>
         ))}
       </ul>
+      {/* NOTHING VANISHES SILENTLY: what this list holds back is said under its makers, in the
+          rail's own column, so it never takes a row from the list beside it */}
+      {held === '' ? null : <p className="picker-held">{held}</p>}
     </nav>
   )
 }
@@ -818,6 +1105,9 @@ function Gallery({
   typed,
   toBoat,
   toMakers,
+  allWord,
+  capped,
+  total,
 }: {
   brand: Brand | null
   listed: { brand: Brand; series: Series[] }[]
@@ -825,6 +1115,10 @@ function Gallery({
   typed: boolean
   toBoat: (model: Model) => void
   toMakers: () => void
+  allWord: string
+  /** how many the search matched that are not drawn */
+  capped: number
+  total: number
 }) {
   const ref = useRef<HTMLElement>(null)
   const was = useRef<string | null>(null)
@@ -860,7 +1154,7 @@ function Gallery({
         <div className="picker-head">
           <div className="picker-back picker-back--makers">
             <Button intent="secondary" size="sm" icon={ArrowLeftIcon} onClick={toMakers}>
-              All makers
+              {allWord}
             </Button>
           </div>
           {/* THE MAKER'S MARK AT THE HEAD OF ITS BOATS, where a pressed door's
@@ -875,7 +1169,7 @@ function Gallery({
         <div className="picker-head">
           <div className="picker-back picker-back--makers">
             <Button intent="secondary" size="sm" icon={ArrowLeftIcon} onClick={toMakers}>
-              All makers
+              {allWord}
             </Button>
           </div>
         </div>
@@ -929,6 +1223,13 @@ function Gallery({
           </div>
         ))}
       </div>
+      {capped > 0 ? (
+        <p className="picker-capped" data-testid="picker-capped">
+          The first {CARD_CAP.toLocaleString('en-AU')} of {total.toLocaleString('en-AU')} are shown.
+          Search {brand ? brand.name : 'the list'} to reach the other{' '}
+          {capped.toLocaleString('en-AU')}.
+        </p>
+      ) : null}
     </section>
   )
 }
@@ -1027,6 +1328,7 @@ function SeriesBlock({
   chosen: Model | null
   toBoat: (model: Model) => void
 }) {
+  const framed = group.models.some((m) => pictureOf(m) !== null)
   return (
     <div className="picker-series">
       {/* A MAKER THAT FILES NO SERIES HAS NO SERIES HEADING: its boats
@@ -1055,6 +1357,7 @@ function SeriesBlock({
           >
             <Card
               model={model}
+              framed={framed}
               selected={chosen?.key === model.key}
               onSelect={() => toBoat(model)}
             />
@@ -1086,6 +1389,7 @@ function Found({
   toBoat: (model: Model) => void
 }) {
   const named = brand.filesSeries && groups.length > 1
+  const framed = groups.some((group) => group.models.some((m) => pictureOf(m) !== null))
   const found = groups.flatMap((group) =>
     group.models.map((model) => ({
       model,
@@ -1103,6 +1407,7 @@ function Found({
         >
           <Card
             model={model}
+            framed={framed}
             series={series}
             selected={chosen?.key === model.key}
             onSelect={() => toBoat(model)}
@@ -1122,11 +1427,15 @@ function Found({
  */
 function Card({
   model,
+  framed,
   series = null,
   selected,
   onSelect,
 }: {
   model: Model
+  /** a frame is drawn for its photograph: false where nothing beside it holds one, so a run of
+   *  cards with no photograph between them is a run of names and prices, not of empty frames */
+  framed: boolean
   /** the series it is filed under, said over its name where a search set
    *  it beside boats of other series (`Found`); null under a series head */
   series?: string | null
@@ -1151,23 +1460,21 @@ function Card({
       tick="foot"
     >
       <span className="picker-card">
-        <span className="picker-card__frame" data-empty={held ? undefined : ''}>
-          {held ? (
-            <Shot held={held} sizes={CARD_SIZES} />
-          ) : (
-            /* NO PHOTOGRAPH, AS THE CAMERA STRUCK THROUGH, and not the boat's name a second time:
-               the cover set the name large over the card's own name, "359 Skimma HS" over "359
-               Skimma · HS" (the refine round's second pass, 2026-10-21). The sentence every
-               screen uses is said once, on the plate, when the boat is chosen; a grid of covers
-               each saying it would be the one fact said down the page. It depicts nothing, so
-               nothing stands in for the boat. */
-            <span className="picker-card__cover" title={NO_PHOTOGRAPH_YET}>
-              <span className="picker-card__cover-glyph" aria-hidden="true">
-                <Icon glyph={CameraSlashIcon} size="lg" />
+        {held || framed ? (
+          <span className="picker-card__frame" data-empty={held ? undefined : ''}>
+            {held ? (
+              <Shot held={held} sizes={CARD_SIZES} />
+            ) : (
+              /* NO PHOTOGRAPH, SAID QUIETLY IN THE FRAME'S CORNER (the owner, 2026-10-30: shown
+               honestly, "not as a big crossed-camera tile"). The frame keeps its place so every
+               card in a row is one height, and it depicts nothing, so nothing stands in for the
+               model. Not the name a second time: that was the cover of 2026-10-21. */
+              <span className="picker-card__cover">
+                <span className="picker-card__cover-word">No photograph yet</span>
               </span>
-            </span>
-          )}
-        </span>
+            )}
+          </span>
+        ) : null}
         {series === null || namesSeries(model.shown, series) ? null : (
           <span className="picker-card__series">{keepSeparators(series)}</span>
         )}
@@ -1235,6 +1542,9 @@ function Plate({
   move,
   press,
   goes,
+  noun,
+  shut,
+  moduleId,
 }: {
   model: Model
   subject: Variant | null
@@ -1243,6 +1553,12 @@ function Plate({
   move: (next: PickerAt, how?: { stay?: boolean }) => void
   press: () => void
   goes: boolean
+  /** what one of these is called — "boat", "motor", "product" */
+  noun: string
+  /** why this place cannot start a quote on its own, or '' */
+  shut: string
+  /** the place in the business that would be switched on, where it is shut */
+  moduleId: string | null
 }) {
   const sayId = useId()
   /* WHICH CHIP THE POINTER OR THE FOCUS IS RESTING ON, so the line under
@@ -1282,9 +1598,11 @@ function Plate({
   /* THE PLATE NAMES ITS BOAT ONCE, in its heading (the refine round,
      2026-10-21), so the refusal says the reason and not the name again. */
   const refusal =
-    subject === null
-      ? `A quote is for one ${asksMaterial ? 'material and one colour' : 'colour'}, so choose ${asksMaterial ? 'a material' : 'a colour'} above first.`
-      : undefined
+    shut !== ''
+      ? shut
+      : subject === null
+        ? `A quote is for one ${asksMaterial ? 'material and one colour' : 'colour'}, so choose ${asksMaterial ? 'a material' : 'a colour'} above first.`
+        : undefined
 
   /* THE BOAT ARRIVES WITH ITS ACT IN REACH (built-critique-m2-close-2.md,
      blocker 2 and major 9). One plate is mounted per model, so this runs
@@ -1401,10 +1719,7 @@ function Plate({
                shape, so the act does not climb the page for a boat nobody
                has photographed. */
             <figcaption className="picker-shot__none">
-              <span className="picker-shot__glyph" aria-hidden="true">
-                <Icon glyph={CameraSlashIcon} size="md" />
-              </span>
-              {NO_PHOTOGRAPH_YET}
+              {noun === 'boat' ? NO_PHOTOGRAPH_YET : `No photograph of this ${noun} yet.`}
             </figcaption>
           )}
         </figure>
@@ -1585,7 +1900,7 @@ function Plate({
                     <PriceFigure amount={subject?.amount ?? model.from} />
                   </p>
                   <p className="picker-money__rung">
-                    {model.rung === '' ? 'Price' : `${model.rung} price`}
+                    {rungSaid(model.rung)}
                     {subject === null && model.from !== model.to
                       ? `, up to ${money(model.to ?? model.from)}`
                       : ''}
@@ -1616,9 +1931,10 @@ function Plate({
           <p className="picker-act__say" id={sayId}>
             {refusal ??
               (standing
-                ? 'A draft for this boat is already started with nobody named on it, so this reopens it rather than starting a second.'
+                ? `A draft for this ${noun} is already started with nobody named on it, so this reopens it rather than starting a second.`
                 : '')}
           </p>
+          {shut !== '' && moduleId !== null ? <SellAlone moduleId={moduleId} /> : null}
         </div>
 
         {started ? <Made started={started} goes={goes} /> : null}
@@ -1686,7 +2002,10 @@ function Made({ started, goes }: { started: Started; goes: boolean }) {
  * bare figure.
  */
 function Strip({ model }: { model: Model }) {
-  const facts = model.facts.map((fact) => ({ ...fact, ...measured(model.tableId, fact) }))
+  const facts = model.facts.map((fact) => ({
+    ...fact,
+    ...spokenFact(measured(model.tableId, fact)),
+  }))
   const glyphs = stripGlyphs(facts.map((f) => f.label))
   return (
     <dl className="picker-strip">

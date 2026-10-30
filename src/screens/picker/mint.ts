@@ -89,13 +89,13 @@ export function startQuote(
   if (!table) {
     return {
       ok: false,
-      refused: 'That maker is no longer on the price list, so there is nothing to quote.',
+      refused: 'That list is no longer on the price list, so there is nothing to quote.',
     }
   }
   if (!sheet.index.rowById[rowId]) {
     return {
       ok: false,
-      refused: `That boat is no longer in ${table.name}, so there is nothing to quote.`,
+      refused: `That line is no longer in ${table.name}, so there is nothing to quote.`,
     }
   }
 
@@ -136,7 +136,7 @@ export function startQuote(
   if (!minted) {
     return {
       ok: false,
-      refused: `${table.name} could not be quoted: the boat was read and the quote came back empty. Nothing was written.`,
+      refused: `${table.name} could not be quoted: the line was read and the quote came back empty. Nothing was written.`,
     }
   }
 

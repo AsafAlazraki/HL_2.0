@@ -1,6 +1,7 @@
 import {
   createRef,
   useCallback,
+  useDeferredValue,
   useEffect,
   useEffectEvent,
   useId,
@@ -14,11 +15,10 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react'
-import { AnimatePresence, motion, useIsPresent, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
-  ArrowsInSimpleIcon,
   ArrowsLeftRightIcon,
   ArrowsOutSimpleIcon,
   CaretDownIcon,
@@ -49,6 +49,7 @@ import {
   Button,
   Chip,
   Dashes,
+  Dialog,
   ExpandPicture,
   Field,
   Icon,
@@ -58,6 +59,7 @@ import {
   Lightbox,
   OptionTile,
   Picture,
+  Popover,
   PriceFigure,
   RESPONSE,
   Refusal,
@@ -79,6 +81,7 @@ import {
 import { useChapterProgress, useSmoothScroll } from '@/ui/scroll'
 import type { TableKind } from '@/domain/model'
 import { boatOfQuote, measured } from '@/domain/quote/spoken'
+import { allSpecsOf } from '@/domain/quote/freeze'
 import { chapterToOpen } from '@/domain/quote/opening'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { NO_WAYS, type Way } from '@/app/ways'
@@ -126,7 +129,6 @@ import {
   kitsForMotors,
   kitsNone,
   matchesFinish,
-  offeredHere,
   readRail,
   type Act,
   type OrphanFix,
@@ -167,8 +169,8 @@ import {
 import { finishFix, levelFix } from '@/screens/cascade/proposal'
 /* THE CHANDLERY IS ONE COMPONENT IN TWO PLACES (direction B): the fit chapter's parts, and
    /catalogue. It is the catalogue's own screen, reached from here as a component, never copied. */
-import { Chandlery } from '@/screens/catalogue/Chandlery'
-import { PartDrag, useQuoteDrop } from '@/screens/catalogue/drag'
+import { Chandlery, type ChandleryFitting } from '@/screens/catalogue/Chandlery'
+import { PartDrag, QUOTE_DROP, useQuoteDrop } from '@/screens/catalogue/drag'
 import { PARTS_TABLE } from '@/screens/catalogue/shelf'
 import { fitmentOf } from '@/app/ways'
 import { boatTravel, levelGlyph, specGlyphs } from './glyphs'
@@ -462,7 +464,38 @@ function Build({
   const who = useSession((s) => s.name)
 
   const [query, setQuery] = useState('')
-  const [showAll, setShowAll] = useState<ReadonlySet<string>>(() => new Set())
+  /* THE WHOLE RANGE OF ONE LIST, OPEN OVER THE PAGE (`RangeSheet`), or the chandlery's aisles
+     (`ChandlerySheet`): what is open is state, and the chandlery's open aisle is the address's,
+     so a chandlery opened at an aisle opens again at it */
+  const [range, setRange] = useState<{ tableId: string; chapter: string } | null>(null)
+  const [ranging, setRanging] = useState(false)
+  /* the list stays named through the sheet's exit, then is let go, so a closed sheet reads
+     nothing as the quote changes */
+  const letGo = useRef<number | null>(null)
+  useEffect(
+    () => () => {
+      if (letGo.current !== null) window.clearTimeout(letGo.current)
+    },
+    [],
+  )
+  const [aisles, setAisles] = useState(aisle !== '')
+  /* THE CUSTOMER'S DETAILS, open under their cell in the bar (`Customer`) */
+  const [asking, setAsking] = useState(false)
+  /* AT A DESK ONLY THE CHAPTERS SCROLL, inside their own column (`.cfg-scroll`) */
+  const desk = useDesk()
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
+  /* THE WIDTH THE BROWSER GIVES THE COLUMN'S SCROLLBAR, so the plate's end edge stays on the
+     bar's whether the scrollbar is drawn beside it or laid over it (configurator.css) */
+  useEffect(() => {
+    if (!scroller || typeof ResizeObserver === 'undefined') return
+    const measure = (): void => {
+      scroller.style.setProperty('--cfg-bar-w', `${scroller.offsetWidth - scroller.clientWidth}px`)
+    }
+    measure()
+    const watch = new ResizeObserver(measure)
+    watch.observe(scroller)
+    return () => watch.disconnect()
+  }, [scroller])
   const [step, setStep] = useState<Step | null>(null)
   const [refused, setRefused] = useState<string | null>(null)
   const field = useRef<HTMLElement>(null)
@@ -503,23 +536,9 @@ function Build({
          every word under it where it was. */
   const watchFloor = useCallback((node: HTMLElement | null) => {
     if (!node) return
-    /* WHERE THE BOAT'S COLUMN RESTS, so at a desk it is as tall as the window has room for under
-       it and the tally at its foot is in sight from the first frame (configurator.css, "the
-       side"). Read from the layout's offsets, never the painted box, when the page is drawn and
-       whenever the head above it changes height — never while the page scrolls. */
-    let sideAt = ''
-    const placeSide = (): void => {
-      const side = node.querySelector<HTMLElement>('.cfg-side')
-      if (!side) return
-      const rests = `${Math.ceil(pageTop(side))}px`
-      if (rests === sideAt) return
-      sideAt = rests
-      node.style.setProperty('--cfg-side-top', rests)
-    }
-    placeSide()
-    const head = node.querySelector('.cfg-mast')
-    const headWatch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(placeSide)
-    if (head) headWatch?.observe(head)
+    /* AT A DESK THE BOAT'S COLUMN IS AS TALL AS THE WINDOW LEAVES IT: the page is the window's
+       height and only the chapters scroll (configurator.css, "the floor"), so nothing about where
+       the column rests is measured any more. */
     let frame = 0
     const look = (): void => {
       frame = 0
@@ -537,7 +556,6 @@ function Build({
     window.addEventListener('resize', soon)
     const unfit = fitTheBoat(node)
     return () => {
-      headWatch?.disconnect()
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', soon)
       window.removeEventListener('resize', soon)
@@ -665,6 +683,7 @@ function Build({
      was is remembered, and the way back's own press keeps the caret on it, as the toast's did. */
   const caretWas = useRef<HTMLElement | null>(null)
   const stepLine = useRef<HTMLOutputElement>(null)
+  const sheetStep = useRef<HTMLOutputElement>(null)
   const toTheStep = useEffectEvent((event: KeyboardEvent) => {
     const line = stepLine.current
     if (!line) return
@@ -744,8 +763,8 @@ function Build({
   }, [])
 
   const rail: Rail | null = useMemo(
-    () => (quote && open ? readRail(ctx, quote, { query, showAll }) : null),
-    [ctx, quote, open, query, showAll],
+    () => (quote && open ? readRail(ctx, quote, { query }) : null),
+    [ctx, quote, open, query],
   )
 
   /* THE CHAPTER THE READER IS ON: the one the address names, else the
@@ -765,6 +784,7 @@ function Build({
   const chaptersRef = useRef<HTMLDivElement>(null)
   useOnward(chaptersRef, here, at, quote?.events.length ?? 0, rail?.searching === true)
   useBroughtIn(chaptersRef, here, at, rail?.searching === true)
+  useOpenedAt(scroller, here, at)
 
   /* THE BOAT'S PICTURE, read once for the two places that draw it: the stage, and the finale
      where the stage is not beside it (below 1200px, where the finale hands the photograph to the
@@ -811,7 +831,7 @@ function Build({
             title: 'On this build',
             say: 'Each part of this quote, on this screen.',
             rows: () =>
-              readRail(ctx, quote, { showAll }).chapters.map((chapter) => ({
+              readRail(ctx, quote).chapters.map((chapter) => ({
                 id: `here:${chapter.id}`,
                 name: chapter.num === '' ? chapter.name : `${chapter.num} ${chapter.name}`,
                 fact: chapter.fact,
@@ -824,7 +844,7 @@ function Build({
             },
           }
         : null,
-    [ctx, quote, open, showAll, goTo, endStep],
+    [ctx, quote, open, goTo, endStep],
   )
   useSetScope(scope)
 
@@ -889,6 +909,46 @@ function Build({
         {refused}
       </Said>
     ) : null
+  /* AND ON A SHEET, WHERE THE TALLY THAT SAYS IT IS BEHIND THE SHEET (below 1440): the step a press
+     inside the sheet took, with its way back, at the sheet's own head */
+  const sheetSaid =
+    !toasts && step !== null && back !== null ? (
+      <StepLine
+        ref={sheetStep}
+        said={step.said}
+        kind={step.kind}
+        way={back}
+        onBack={() => goBack(step)}
+      />
+    ) : null
+
+  /* THE CUSTOMER IS NAMED IN THE BAR, from wherever the build asks for them (the finale's card):
+     the bar is brought into the window where the page has scrolled it away, and its cell opens */
+  const askWho = (): void => {
+    endStep()
+    document
+      .querySelector('[data-testid="configurator"] .cfg-mast')
+      ?.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+    setAsking(true)
+  }
+
+  /* EVERY "SHOW ALL" OPENS OVER THE PAGE (the owner, 2026-10-30: "the experience of viewing all
+     of the products and things should be popup please done nicely"): a list's whole range in the
+     range sheet, and the parts table's in the chandlery's aisles */
+  const showAllOf = (tableId: string): void => {
+    const chapter = chapters.find((c) => c.tables.some((t) => t.id === tableId))
+    const table = chapter?.tables.find((t) => t.id === tableId)
+    if (!chapter || !table) return
+    if (table.tableId === PARTS_TABLE) {
+      setAisles(true)
+      return
+    }
+    if (letGo.current !== null) window.clearTimeout(letGo.current)
+    letGo.current = null
+    setRange({ tableId, chapter: chapter.name })
+    setRanging(true)
+  }
+  const parts = chapters.flatMap((c) => c.tables).find((t) => t.tableId === PARTS_TABLE)
 
   return (
     <main
@@ -903,13 +963,14 @@ function Build({
     >
       <Mast
         quote={quote}
+        quoteId={quoteId}
         register={ctx.entities[quote.rootTableId]?.name ?? ''}
         preparer={quote.preparer ?? preparerNow(sheet, quote.preparedBy ?? who)}
         kept={kept}
-        onWho={() => {
-          endStep()
-          goTo?.('handover')
-        }}
+        asking={asking}
+        onAsking={setAsking}
+        setStep={setStep}
+        setRefused={setRefused}
       />
 
       {/* A PART CARRIED FROM THE CHANDLERY TO THE TOTAL travels inside this (`PartDrag`) */}
@@ -931,6 +992,7 @@ function Build({
                 raise={raise}
                 refusal={refusal}
                 onLarge={showLarge}
+                over={ranging || aisles}
               />
             </div>
           </div>
@@ -967,6 +1029,7 @@ function Build({
                   placeholder={open ? 'A name, a code, a rigging kit' : 'Nothing to search'}
                 />
                 <Reading
+                  scroller={desk ? scroller : null}
                   chapters={chapterRefs}
                   open={rail?.searching === true ? -1 : chapters.findIndex((c) => c.id === here)}
                   names={chapters.map((c) =>
@@ -986,66 +1049,98 @@ function Build({
             {/* THE CHAPTERS RISE INTO PLACE ON A DRAFT'S FIRST PAINT, a few frames
               apart (configurator.css); an issued document is still from its first
               frame, because every figure on it is final. */}
-            <div
-              className="cfg-chapters"
-              ref={chaptersRef}
-              data-rise={quote.state === 'draft' ? '' : undefined}
-            >
-              {chapters.map((chapter, i) => (
-                <ChapterCard
-                  key={chapter.id}
-                  at={chapterRefs[i]}
-                  index={i}
-                  chapter={chapter}
-                  quote={quote}
-                  rail={rail!}
-                  open={chapter.id === here}
-                  here={here}
-                  searching={rail?.searching === true}
-                  query={query}
-                  level={level}
-                  onOpen={() => {
-                    endStep()
-                    goTo?.(chapter.id)
-                  }}
-                  onFinale={() => {
-                    endStep()
-                    goTo?.('finale')
-                  }}
-                  onWho={() => {
-                    endStep()
-                    goTo?.('handover')
-                  }}
-                  onPress={press}
-                  onLarge={showLarge}
-                  ctx={ctx}
-                  aisle={aisle}
-                  maker={maker}
-                  goAisle={goAisle}
-                  go={go}
-                  onRaise={raise}
-                  onShowAll={(id) =>
-                    setShowAll((was) => {
-                      const next = new Set(was)
-                      if (next.has(id)) next.delete(id)
-                      else next.add(id)
-                      return next
-                    })
-                  }
-                  refusal={refusal}
-                  quoteId={quoteId}
-                  art={art}
-                  openQuote={openQuote}
-                  openDocument={openDocument}
-                  now={now}
-                  justGiven={justGiven}
-                  setStep={setStep}
-                  setRefused={setRefused}
-                />
-              ))}
+            {/* AT A DESK THE ONE THING ON THE PAGE THAT SCROLLS (the owner, 2026-10-30: "the only
+                thing that should scroll is the right hand bar the rest stays as is"): the
+                chapters, inside their own column, the bar, the boat and the total standing still
+                beside them. Below a desk it is a plain block and the page scrolls. */}
+            <div className="cfg-scroll" ref={setScroller}>
+              <div
+                className="cfg-chapters"
+                ref={chaptersRef}
+                data-rise={quote.state === 'draft' ? '' : undefined}
+              >
+                {chapters.map((chapter, i) => (
+                  <ChapterCard
+                    key={chapter.id}
+                    at={chapterRefs[i]}
+                    index={i}
+                    chapter={chapter}
+                    quote={quote}
+                    rail={rail!}
+                    open={chapter.id === here}
+                    here={here}
+                    searching={rail?.searching === true}
+                    query={query}
+                    level={level}
+                    onOpen={() => {
+                      endStep()
+                      goTo?.(chapter.id)
+                    }}
+                    onWho={askWho}
+                    onPress={press}
+                    onLarge={showLarge}
+                    ctx={ctx}
+                    go={go}
+                    onRaise={raise}
+                    onShowAll={showAllOf}
+                    refusal={refusal}
+                    quoteId={quoteId}
+                    art={art}
+                    openQuote={openQuote}
+                    openDocument={openDocument}
+                    now={now}
+                    justGiven={justGiven}
+                    setStep={setStep}
+                    setRefused={setRefused}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         </div>
+
+        {/* THE WHOLE RANGE OF A LIST, AND THE CHANDLERY'S AISLES, OVER THE PAGE */}
+        <RangeSheet
+          open={ranging}
+          onClose={() => {
+            setRanging(false)
+            letGo.current = window.setTimeout(() => {
+              letGo.current = null
+              setRange(null)
+            }, SHEET_LEAVES_MS)
+          }}
+          tableId={range?.tableId ?? ''}
+          chapter={range?.chapter ?? ''}
+          ctx={ctx}
+          quote={quote}
+          quoteId={quoteId}
+          level={level}
+          total={rail?.total ?? null}
+          said={sheetSaid}
+          refusal={refusal}
+          onPress={press}
+          go={go}
+        />
+        {parts ? (
+          <ChandlerySheet
+            open={aisles}
+            onClose={() => {
+              setAisles(false)
+              if (aisle !== '' || maker !== '') goAisle?.('', '')
+            }}
+            ctx={ctx}
+            quote={quote}
+            table={parts}
+            aisle={aisle}
+            maker={maker}
+            goAisle={goAisle}
+            total={rail?.total ?? null}
+            said={sheetSaid}
+            refusal={refusal}
+            onPress={press}
+            go={go}
+          />
+        ) : null}
       </PartDrag>
       <Lightbox
         pictures={large?.set ?? []}
@@ -1054,6 +1149,362 @@ function Build({
         onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
       />
     </main>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* A desk, where only the chapters scroll                       */
+/* ---------------------------------------------------------- */
+
+/** WHERE THE PAGE STANDS STILL AND ONLY THE CHAPTERS SCROLL: two columns, and a window tall
+ *  enough for the boat's column to hold its photograph, its facts and its total (the ladder in
+ *  configurator.css; the same query). */
+const DESK = '(min-width: 1200px) and (min-height: 700px)'
+
+function deskNow(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+  return window.matchMedia(DESK).matches
+}
+
+/** Whether this window is a desk, where the chapters scroll in their own column. */
+function useDesk(): boolean {
+  const [desk, setDesk] = useState(deskNow)
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia(DESK)
+    const changed = (): void => setDesk(query.matches)
+    query.addEventListener('change', changed)
+    return () => query.removeEventListener('change', changed)
+  }, [])
+  return desk
+}
+
+/**
+ * THE CHAPTER THE ADDRESS NAMES IS WHERE THE COLUMN OPENS (the owner's "only the right hand bar
+ * scrolls", 2026-10-30). The column's scroll is a position, and the position is already in the
+ * address as the chapter (`?at=`): so a reload, Back or a shared link opens the column with that
+ * chapter's head at its top, at once and without a move. Once, when the build is first drawn; from
+ * then on the dealer's own presses bring chapters in (`useBroughtIn`). Below a desk the window
+ * scrolls and the first address moves nothing, as before.
+ */
+function useOpenedAt(scroller: HTMLElement | null, here: string, at: string): void {
+  const done = useRef(false)
+  useLayoutEffect(() => {
+    if (done.current || !scroller || here === '') return
+    done.current = true
+    if (at === '' || scrollerOf(scroller.firstElementChild) === null) return
+    const chapter = scroller.querySelector<HTMLElement>(`[data-chapter="${here}"]`)
+    if (!chapter || chapter === scroller.querySelector('[data-chapter]')) return
+    const margin = Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockStart) || 0
+    scroller.scrollTo({
+      top:
+        chapter.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top +
+        scroller.scrollTop -
+        margin,
+      behavior: 'instant',
+    })
+  }, [scroller, here, at])
+}
+
+/* ---------------------------------------------------------- */
+/* The whole range of a list, over the page                     */
+/* ---------------------------------------------------------- */
+
+/** How long a sheet is given to leave before its list is let go: the kit's dialog leaves in
+ *  `--duration-enter` (200ms), and this is twice that. */
+const SHEET_LEAVES_MS = 400
+
+/** How many powers a whole range may chip before the chips step aside for the find field. */
+const POWERS_AT_MOST = 12
+
+/** HOW MANY OF A LIST THE RANGE SHEET DRAWS AT MOST, where the column draws forty: the whole of a
+ *  maker's motors ("All 209 in Yamaha Outboards" on the Sport 560, measured 2026-10-30). Past it
+ *  the sheet says how many it draws, and its find field narrows. */
+const RANGE_CAP = 400
+
+/**
+ * THE QUOTE'S TOTAL, DRAWN AGAIN ON A SHEET (`RangeSheet`, `ChandlerySheet`): the figure as it
+ * stands, set and never counted, so a press inside the sheet is seen to change what the quote
+ * comes to without closing it; and the place a part carried in the chandlery is let go, saying
+ * so while one is carried (`useQuoteDrop`).
+ */
+function SheetTotal({ total }: { total: number | null }) {
+  const { place, carrying, over } = useQuoteDrop(`${QUOTE_DROP}:sheet`)
+  return (
+    <div
+      ref={place}
+      className="cfg-sheet__total"
+      data-testid="sheet-total"
+      data-carrying={carrying ? '' : undefined}
+      data-over={over ? '' : undefined}
+    >
+      <span className="cfg-sheet__lab">Total</span>
+      <span className="cfg-sheet__fig">
+        {total === null ? '—' : <PriceFigure amount={total} />}
+      </span>
+      {carrying ? (
+        <output className="cfg-sheet__drop">Drop it here to put it on the quote</output>
+      ) : null}
+    </div>
+  )
+}
+
+/**
+ * EVERY ONE OF A LIST, OVER THE PAGE (the owner, 2026-10-30: "the experience of viewing all of the
+ * products and things should be popup please done nicely"). "Show all 209 in Yamaha Outboards"
+ * used to push 209 tiles into the column under the four made for this boat, and the column was a
+ * catalogue until it was pressed shut again. Now it opens this: a large sheet over the page, with
+ * its own find field, the list's pictures as tiles, and the quote's total at its head, which a
+ * press on a tile changes in place. Escape, a press outside it or its close hand the caret back
+ * to the press that opened it; the page behind it does not scroll while it stands.
+ *
+ * The list is the rail's own reading with its narrowing off (`readRail`, `showAll`), so every tile
+ * is the build's own tile and every press the build's own act. A picture opens large over the
+ * sheet, among the sheet's own pictures.
+ */
+function RangeSheet({
+  open,
+  onClose,
+  tableId,
+  chapter,
+  ctx,
+  quote,
+  quoteId,
+  level,
+  total,
+  said,
+  refusal,
+  onPress,
+  go,
+}: {
+  open: boolean
+  onClose: () => void
+  /** the list's block on the quote */
+  tableId: string
+  /** the chapter it is a list of, for the pictures' set */
+  chapter: string
+  ctx: CatalogueCtx
+  quote: QuoteDef
+  quoteId: string
+  level: string | null
+  total: number | null
+  /** the last step and its way back, where no toast says it */
+  said: ReactNode
+  refusal: string | undefined
+  onPress: (act: Act) => void
+  go?: ((href: string) => void) | undefined
+}) {
+  const [find, setFind] = useState('')
+  const typed = useDeferredValue(find.trim())
+  const [large, setLarge] = useState<{ set: readonly LightboxPicture[]; at: number } | null>(null)
+  const read = useMemo(
+    () =>
+      tableId === ''
+        ? null
+        : readRail(ctx, quote, { query: typed, showAll: new Set([tableId]), cap: RANGE_CAP }),
+    [tableId, ctx, quote, typed],
+  )
+  /* the list is read while its list is named, which the build keeps through the sheet's exit,
+     so the sheet leaves with its tiles rather than empty */
+  const shown = read?.chapters.flatMap((c) => c.tables).find((t) => t.id === tableId)
+  const shutId = 'cfg-sheet-shut'
+  const all = shown?.counts.catalogue ?? 0
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) return
+        onClose()
+        setFind('')
+      }}
+      size="xl"
+      title={shown ? `All ${all.toLocaleString('en-AU')} in ${shown.title}` : chapter}
+      description="Every one the price list holds, whether it is made for this boat or not. A press puts it on the quote, and another takes it off."
+      bar={
+        <div className="cfg-sheet__bar">
+          <div className="cfg-sheet__find">
+            <label className="cfg-sheet__label" htmlFor="cfg-sheet-find">
+              {shown ? `Find in ${shown.title}` : 'Find'}
+            </label>
+            <Input
+              id="cfg-sheet-find"
+              type="search"
+              icon={MagnifyingGlassIcon}
+              value={find}
+              onValueChange={setFind}
+              placeholder="A name, a code, a power"
+            />
+          </div>
+          <SheetTotal total={total} />
+          {said ? <div className="cfg-sheet__step">{said}</div> : null}
+        </div>
+      }
+    >
+      <div className="cfg-sheet" data-testid="range-sheet">
+        {refusal === undefined ? null : (
+          <Said className="cfg-shut" id={shutId} glyph={LockSimpleIcon}>
+            {refusal}
+          </Said>
+        )}
+        {shown && read ? (
+          <TableBlock
+            table={shown}
+            orphans={[]}
+            told={read.unpricedLists}
+            quoteId={quoteId}
+            named={false}
+            query={typed.length >= 2 ? typed : ''}
+            level={level}
+            onPress={onPress}
+            onLarge={(set, at) => setLarge({ set, at })}
+            onShowAll={() => {}}
+            motors={quote.lines
+              .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
+              .map((line) => line.code ?? '')
+              .filter((code) => code !== '')}
+            refusedBy={refusal === undefined ? undefined : shutId}
+            shop={false}
+            go={go}
+            entire
+          />
+        ) : null}
+      </div>
+      <Lightbox
+        pictures={large?.set ?? []}
+        at={large?.at ?? null}
+        title={chapter}
+        onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
+      />
+    </Dialog>
+  )
+}
+
+/** What the chandlery needs to fit a part on this quote, read off the rail's parts table. */
+function fittingOf(
+  quote: QuoteDef,
+  table: ChapterTable,
+  onPress: (act: Act) => void,
+  refusedBy: string | undefined,
+): ChandleryFitting {
+  return {
+    boat: boatOfQuote(quote).name,
+    fitsHref: fitmentOf(quote.rootRowId),
+    /* by the part's own row, which a pairing's key is not */
+    madeFor: table.rows
+      .filter((row) => !row.outside)
+      .flatMap((row) => {
+        const act = row.act
+        const id =
+          act.do === 'add'
+            ? act.line.rowId
+            : act.do === 'remove'
+              ? quote.lines.find((line) => line.id === act.lineId)?.rowId
+              : undefined
+        return id ? [id] : []
+      }),
+    on: new Map(
+      quote.lines
+        .filter((line) => line.entityId === table.tableId)
+        .map((line) => [line.rowId, line.id]),
+    ),
+    put: (line) => onPress({ do: 'add', blockId: table.id, line }),
+    takeOff: (lineId) =>
+      onPress({
+        do: 'remove',
+        lineId,
+        label: quote.lines.find((line) => line.id === lineId)?.label ?? '',
+      }),
+    refusedBy,
+  }
+}
+
+/**
+ * THE CHANDLERY'S AISLES, OVER THE PAGE (direction B, picked 2026-10-30, and the owner the same
+ * day: "viewing all of the products and things should be popup"). The same catalogue as
+ * /catalogue — one component in two places — fitting this boat: what the price list makes for
+ * it, the eighteen aisles, the open aisle's parts as cards with Add, and the quote's total at the
+ * sheet's head, where a carried part is let go. The open aisle and its maker stay the address's
+ * (`aisle`, `maker`), so a chandlery opened at an aisle opens again at it; closing the sheet
+ * clears them.
+ */
+function ChandlerySheet({
+  open,
+  onClose,
+  ctx,
+  quote,
+  table,
+  aisle,
+  maker,
+  goAisle,
+  total,
+  said,
+  refusal,
+  onPress,
+  go,
+}: {
+  open: boolean
+  onClose: () => void
+  ctx: CatalogueCtx
+  quote: QuoteDef
+  /** the rail's parts table, for what is made for this boat and what is on the quote */
+  table: ChapterTable
+  aisle: string
+  maker: string
+  goAisle?: ((aisle: string, maker: string) => void) | undefined
+  total: number | null
+  /** the last step and its way back, where no toast says it */
+  said: ReactNode
+  refusal: string | undefined
+  onPress: (act: Act) => void
+  go?: ((href: string) => void) | undefined
+}) {
+  const [large, setLarge] = useState<{
+    set: readonly LightboxPicture[]
+    at: number
+    title: string
+  } | null>(null)
+  const shutId = 'cfg-chandlery-shut'
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose()
+      }}
+      size="xl"
+      title="The chandlery"
+      description={`Every part on the price list, by what it is for, fitting the ${boatOfQuote(quote).name}.`}
+      bar={
+        <div className="cfg-sheet__bar cfg-sheet__bar--end">
+          {said ? <div className="cfg-sheet__step">{said}</div> : null}
+          <SheetTotal total={total} />
+        </div>
+      }
+    >
+      <div className="cfg-sheet" data-testid="chandlery-sheet">
+        {refusal === undefined ? null : (
+          <Said className="cfg-shut" id={shutId} glyph={LockSimpleIcon}>
+            {refusal}
+          </Said>
+        )}
+        <Chandlery
+          ctx={ctx}
+          levelKey={quote.levelKey}
+          aisle={aisle}
+          maker={maker}
+          onAisle={(a, m) => goAisle?.(a, m)}
+          onLarge={(set, at, title) => setLarge({ set, at, title })}
+          go={go}
+          fitting={fittingOf(quote, table, onPress, refusal === undefined ? undefined : shutId)}
+        />
+      </div>
+      <Lightbox
+        pictures={large?.set ?? []}
+        at={large?.at ?? null}
+        title={large?.title ?? ''}
+        onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
+      />
+    </Dialog>
   )
 }
 
@@ -1136,8 +1587,9 @@ function useOnward(
     if (typeof chapter.scrollIntoView !== 'function') return
     const bring = (): void => {
       const margins = getComputedStyle(chapter)
+      const view = viewOf(chapter)
       const room =
-        window.innerHeight -
+        (view.box ? view.bottom - view.top : window.innerHeight) -
         (Number.parseFloat(margins.scrollMarginBlockStart) || 0) -
         (Number.parseFloat(margins.scrollMarginBlockEnd) || 0)
       const quiet = reducedMotion()
@@ -1146,7 +1598,7 @@ function useOnward(
         behavior: quiet ? 'instant' : 'smooth',
       })
       if (quiet) uncut(chapter)
-      else window.addEventListener('scrollend', () => uncut(chapter), { once: true })
+      else (view.box ?? window).addEventListener('scrollend', () => uncut(chapter), { once: true })
     }
     /* THE CHAPTER IS BROUGHT IN ONCE IT HAS OPENED (the component kit,
        2026-09-28). Its body now grows out of its head on the travel spring,
@@ -1217,12 +1669,14 @@ function useBroughtIn(
 
     let timer: number | null = null
     let moving = false
+    /* what moves: the chapters' own column at a desk, the window below one */
+    let moves: HTMLElement | null = null
     const done = (): void => {
       if (timer !== null) window.clearTimeout(timer)
       timer = null
       moving = false
       for (const type of TAKES_OVER) window.removeEventListener(type, takeOver, true)
-      window.removeEventListener('scrollend', arrived)
+      ;(moves ?? window).removeEventListener('scrollend', arrived)
       if (pending.current === done) pending.current = null
     }
     /* the move ran to its end with nobody taking over: no head is left half under the bars */
@@ -1231,14 +1685,19 @@ function useBroughtIn(
       uncut(chapter!)
     }
     function takeOver(): void {
-      if (moving) window.scrollTo({ top: window.scrollY, behavior: 'instant' })
+      if (moving) {
+        if (moves) moves.scrollTo({ top: moves.scrollTop, behavior: 'instant' })
+        else window.scrollTo({ top: window.scrollY, behavior: 'instant' })
+      }
       done()
     }
     const bring = (): void => {
-      const cover = coverOf(chapter)
-      chapter.style.setProperty('--cfg-cover', `${cover}px`)
+      chapter.style.setProperty('--cfg-cover', `${coverOf(chapter)}px`)
+      const view = viewOf(chapter)
+      moves = view.box
+      const cover = view.top
       const foot = Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockEnd) || 0
-      const room = window.innerHeight - cover - foot
+      const room = view.bottom - cover - foot
       const top = chapter.getBoundingClientRect().top
       /* AND NO HEAD LEFT HALF UNDER THE BARS (build-close-critique.md, 2026-10-19, minor 5: the
          page settled with "Trailer" cut through its title under the search band at 1440, and
@@ -1258,7 +1717,7 @@ function useBroughtIn(
         return
       }
       moving = true
-      window.addEventListener('scrollend', arrived)
+      ;(moves ?? window).addEventListener('scrollend', arrived)
       timer = window.setTimeout(done, BRINGS_MS)
     }
     for (const type of TAKES_OVER)
@@ -1357,17 +1816,18 @@ function useStandsStill(written: string): {
   const hold = useCallback(() => {
     const rail = document.querySelector<HTMLElement>('[data-testid="configurator"] .cfg-chapters')
     if (!rail) return
-    const cover = coverOf(rail)
+    const view = viewOf(rail)
+    const cover = view.top
     const shown = (control: Element): boolean => {
       const { top } = control.getBoundingClientRect()
-      return top >= cover && top < window.innerHeight
+      return top >= cover && top < view.bottom
     }
     const own = last.current
     if (own?.isConnected && rail.contains(own) && shown(own)) {
       remember(own)
       return
     }
-    const middle = (cover + window.innerHeight) / 2
+    const middle = (cover + view.bottom) / 2
     let seen: Element | null = null
     let off = Infinity
     for (const control of rail.querySelectorAll('button[aria-pressed]')) {
@@ -1394,7 +1854,8 @@ function useStandsStill(written: string): {
       : was.chapter?.isConnected
         ? was.chapter.getBoundingClientRect().top - was.chapterAt
         : 0
-    if (Math.abs(moved) >= 1) window.scrollBy({ top: moved, behavior: 'instant' })
+    if (Math.abs(moved) >= 1)
+      (buildScroller() ?? window).scrollBy({ top: moved, behavior: 'instant' })
   }, [written])
 
   return { note, hold }
@@ -1408,12 +1869,13 @@ function useStandsStill(written: string): {
  * straddling the bars, the window comes back up until it is wholly in view.
  */
 function uncut(chapter: HTMLElement): void {
-  const cover = coverOf(chapter)
-  const above = cutAbove(chapter, cover)
+  const view = viewOf(chapter)
+  const above = cutAbove(chapter, view.top)
   if (above === null) return
-  const gap = Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockStart) - cover || 0
-  window.scrollBy({
-    top: above.top - cover - gap,
+  const gap =
+    Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockStart) - coverOf(chapter) || 0
+  ;(view.box ?? window).scrollBy({
+    top: above.top - view.top - gap,
     behavior: reducedMotion() ? 'instant' : 'smooth',
   })
 }
@@ -1435,6 +1897,34 @@ function cutAbove(chapter: HTMLElement, cover: number): DOMRect | null {
     if (box.top < cover) return box
   }
   return null
+}
+
+/**
+ * THE BOX THE CHAPTERS SCROLL IN. At a desk it is their own column (`.cfg-scroll`,
+ * configurator.css, "the floor"), and the page itself does not move; below a desk there is none
+ * and the window scrolls. Asked of the stylesheet, so the answer is the layout's own.
+ */
+function scrollerOf(el: Element | null | undefined): HTMLElement | null {
+  const box = el?.closest<HTMLElement>('.cfg-scroll') ?? null
+  return box && /auto|scroll/.test(getComputedStyle(box).overflowY) ? box : null
+}
+
+/** The chapters' scroller on the build in the document, where there is one. */
+function buildScroller(): HTMLElement | null {
+  return scrollerOf(document.querySelector('[data-testid="configurator"] .cfg-chapters'))
+}
+
+/**
+ * THE BAND THE CHAPTERS ARE READ IN, in the window's own coordinates: at a desk the column's
+ * box; below, the window under whatever sticks over its top. `box` is what to scroll.
+ */
+function viewOf(el: HTMLElement): { top: number; bottom: number; box: HTMLElement | null } {
+  const box = scrollerOf(el)
+  if (box) {
+    const { top, bottom } = box.getBoundingClientRect()
+    return { top, bottom, box }
+  }
+  return { top: coverOf(el), bottom: window.innerHeight, box: null }
 }
 
 /** How far down the window the bars that stick over this screen reach,
@@ -1543,42 +2033,47 @@ function Missing({
 /* ---------------------------------------------------------- */
 /* The masthead: what is sold, for whom, its number and state   */
 /* ---------------------------------------------------------- */
-
 /**
- * THE QUOTE'S IDENTITY, COMPOSED (the owner, 2026-10-30: "the header section should be way nicer
- * for the quote page way way nicer"). It was a line of small caps over a name, with the total
- * at its right. Now it is two tiers, the way the best build-and-price summaries and order pages
- * set a document's head (docs/research/refs/choosing/notes.md): what is sold, large — the maker's
- * own mark over the boat's name as a person says it, its finish under it in colour — and under
- * that the quote's facts as one strip of labelled cells on the kit's white plate: its number,
- * where it stands, the day it was started, whom it is for, and who prepared it.
+ * THE MASTHEAD IS THE TOP WHITE BAR, AND THE PAGE STARTS WITH IT (the owner, 2026-10-30: "in that
+ * left hand side of that white bar on the top that is where you put highfield logo and then have
+ * model details and things … customer details i live in the top bar"). One white plate, read
+ * left to right: the maker's own mark beside the boat's name as a person says it and its finish
+ * (the colours drawn, then the words), then the quote's facts as labelled cells — its number,
+ * where it stands, the day it was started, the CUSTOMER, and who prepared it.
  *
- * THE TOTAL IS NOT HERE ANY MORE. It is the tally's, at the bottom left (`Tally`), and so this
- * head no longer sticks: it is the top of the document, and scrolls away with it.
+ * THE CUSTOMER IS KEPT HERE, NOT IN A CHAPTER. "Who it is for" was the last chapter of the
+ * right-hand column; the name and the one line of contact it held are this cell's now, a press
+ * that opens them under it (`Customer`). The rail is the build and nothing else.
  *
- * WHO IT IS FOR IS ANSWERED, NOT ONLY SAID: with nobody named yet the cell is the press that goes
- * to the name ("Name the customer"), where the finale's card offers the same.
+ * THE TOTAL IS NOT HERE. It is the tally's, at the foot of the boat's column (`Tally`).
  */
 function Mast({
   quote,
+  quoteId,
   register,
   preparer,
   kept,
-  onWho,
+  asking,
+  onAsking,
+  setStep,
+  setRefused,
 }: {
   quote: QuoteDef
+  quoteId: string
   /** the maker's register, by the dealer's name for it ("Stacer"), for its mark */
   register: string
   /** who prepared it, with the title and number the paper prints (carried finding 2) */
   preparer: FrozenPreparer | undefined
   /** whether the last write was kept (`savedSay`) */
   kept: string | null
-  /** opens Who it is for */
-  onWho: () => void
+  /** whether the customer's details stand open under their cell */
+  asking: boolean
+  onAsking: (open: boolean) => void
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
 }) {
   const boat = boatOfQuote(quote)
   const mark = markOnPaper(register)
-  const named = quote.customer.name.trim() !== ''
   const given = quote.state !== 'draft'
   const by = preparer
     ? [preparer.name, preparer.title ?? '', preparer.phone ?? '']
@@ -1587,77 +2082,241 @@ function Mast({
     : ''
   return (
     <header className="cfg-mast">
-      <div className="cfg-mast__what">
-        {/* THE MAKER'S OWN MARK, in the dark ink paper takes, where the ledger holds one; its
-            name in type where it does not (Mercury and Stabicraft publish white ink only) */}
-        <p className="cfg-mast__maker">
-          {mark.drawn ? (
-            <img
-              className="cfg-mast__mark"
-              src={mark.mark.src}
-              alt={mark.mark.brand}
-              width={mark.mark.width}
-              height={mark.mark.height}
-            />
-          ) : (
-            <span className="cfg-mast__word">{register}</span>
-          )}
-        </p>
-        <h1 className="cfg-mast__name">{boat.name}</h1>
-        {boat.detail === '' ? null : (
-          <p className="cfg-mast__detail">
-            <Swatches colour={boat.colour} />
-            {boat.detail}
-          </p>
-        )}
-      </div>
-
-      <dl className="cfg-mast__facts">
-        <div className="cfg-mast__fact">
-          <dt className="cfg-mast__lab">Quote</dt>
-          <dd className="cfg-mast__val cfg-mono">{quote.reference}</dd>
-        </div>
-        <div className="cfg-mast__fact">
-          <dt className="cfg-mast__lab">Stands</dt>
-          <dd className="cfg-mast__val">
-            {/* WHERE THE QUOTE STANDS, as a dot in its own ink beside its word — draft rose,
-                given leaf (tokens.css, THE KIT). Keyed by the state, so the moment a quote is
-                given its dot lands anew on the settle spring. */}
-            <span className="cfg-state" data-state={given ? 'given' : 'draft'}>
-              <span className="cfg-state__dot" key={quote.state} aria-hidden="true" />
-              {given ? 'Given' : 'Draft'}
-            </span>
-          </dd>
-        </div>
-        <div className="cfg-mast__fact">
-          <dt className="cfg-mast__lab">{given ? 'Given' : 'Started'}</dt>
-          <dd className="cfg-mast__val">
-            {daySaid(given && quote.issuedAt ? quote.issuedAt : quote.createdAt)}
-          </dd>
-        </div>
-        <div className="cfg-mast__fact cfg-mast__fact--who">
-          <dt className="cfg-mast__lab">For</dt>
-          <dd className="cfg-mast__val">
-            {named ? (
-              <span className="cfg-mast__who">{quote.customer.name.trim()}</span>
-            ) : given ? (
-              '—'
+      <div className="cfg-mast__bar">
+        <div className="cfg-mast__what">
+          {/* THE MAKER'S OWN MARK, in the dark ink paper takes, where the ledger holds one; its
+              name in type where it does not (Mercury and Stabicraft publish white ink only) */}
+          <p className="cfg-mast__maker">
+            {mark.drawn ? (
+              <img
+                className="cfg-mast__mark"
+                src={mark.mark.src}
+                alt={mark.mark.brand}
+                width={mark.mark.width}
+                height={mark.mark.height}
+              />
             ) : (
-              <Button intent="quiet" size="sm" icon={UserCheckIcon} onClick={onWho}>
-                Name the customer
-              </Button>
+              <span className="cfg-mast__word">{register}</span>
             )}
-          </dd>
+          </p>
+          <div className="cfg-mast__words">
+            <h1 className="cfg-mast__name">{boat.name}</h1>
+            {boat.detail === '' ? null : (
+              <p className="cfg-mast__detail">
+                <Swatches colour={boat.colour} />
+                <span>{boat.detail}</span>
+              </p>
+            )}
+          </div>
         </div>
-        <div className="cfg-mast__fact cfg-mast__fact--by">
-          <dt className="cfg-mast__lab">Prepared by</dt>
-          <dd className="cfg-mast__val">
-            <span>{by === '' ? '—' : by}</span>
-            <span className="cfg-mast__kept">{savedSay(kept, given)}</span>
-          </dd>
-        </div>
-      </dl>
+
+        <dl className="cfg-mast__facts">
+          <div className="cfg-mast__fact">
+            <dt className="cfg-mast__lab">Quote</dt>
+            <dd className="cfg-mast__val cfg-mono">{quote.reference}</dd>
+          </div>
+          <div className="cfg-mast__fact">
+            <dt className="cfg-mast__lab">Stands</dt>
+            <dd className="cfg-mast__val">
+              {/* WHERE THE QUOTE STANDS, as a dot in its own ink beside its word — draft rose,
+                  given leaf (tokens.css, THE KIT). Keyed by the state, so the moment a quote is
+                  given its dot lands anew on the settle spring. */}
+              <span className="cfg-state" data-state={given ? 'given' : 'draft'}>
+                <span className="cfg-state__dot" key={quote.state} aria-hidden="true" />
+                {given ? 'Given' : 'Draft'}
+              </span>
+            </dd>
+          </div>
+          <div className="cfg-mast__fact cfg-mast__fact--day">
+            <dt className="cfg-mast__lab">{given ? 'Given' : 'Started'}</dt>
+            <dd className="cfg-mast__val">
+              {daySaid(given && quote.issuedAt ? quote.issuedAt : quote.createdAt)}
+            </dd>
+          </div>
+          <div className="cfg-mast__fact cfg-mast__fact--who">
+            <dt className="cfg-mast__lab">Customer</dt>
+            <dd className="cfg-mast__val">
+              <Customer
+                quote={quote}
+                quoteId={quoteId}
+                open={asking}
+                onOpen={onAsking}
+                setStep={setStep}
+                setRefused={setRefused}
+              />
+            </dd>
+          </div>
+          <div className="cfg-mast__fact cfg-mast__fact--by">
+            <dt className="cfg-mast__lab">Prepared by</dt>
+            <dd className="cfg-mast__val">
+              <span>{by === '' ? '—' : by}</span>
+              <span className="cfg-mast__kept">{savedSay(kept, given)}</span>
+            </dd>
+          </div>
+        </dl>
+      </div>
     </header>
+  )
+}
+
+/**
+ * THE CUSTOMER, IN THE BAR. A press on the cell opens what the quote holds about them under it —
+ * their name and one line of contact, both printed on the quote exactly as typed — and a given
+ * quote says them and offers nothing.
+ *
+ * THIS FILE HAS NO CUSTOMER REGISTER — `hasCustomerRegister` reads false on the pack, measured —
+ * so the name is typed, frozen onto the document the moment it is put on, and belongs to this
+ * quote alone: a quote is a photograph, and a name corrected in a register on Friday must not
+ * rewrite the document handed over on Monday.
+ *
+ * WHAT IS TYPED GOES ON THE QUOTE WHEN IT IS PUT ON, AND WHEN THE PANEL CLOSES (the component
+ * critique, 2026-09-28, major 10: a name typed and walked away from was thrown away without a
+ * word). Enter, the act, Escape, a press outside: each writes what differs from the quote with
+ * the engine's own command, so the step and its Undo say it.
+ */
+function Customer({
+  quote,
+  quoteId,
+  open,
+  onOpen,
+  setStep,
+  setRefused,
+}: {
+  quote: QuoteDef
+  quoteId: string
+  open: boolean
+  onOpen: (open: boolean) => void
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const name = quote.customer.name.trim()
+  const contact = quote.customer.contact?.[0] ?? ''
+  if (quote.state !== 'draft') {
+    return name === '' ? (
+      <span>—</span>
+    ) : (
+      <span className="cfg-who">
+        <span className="cfg-who__name">{name}</span>
+        {contact === '' ? null : <span className="cfg-who__contact">{contact}</span>}
+      </span>
+    )
+  }
+  return (
+    <Popover
+      open={open}
+      onOpenChange={onOpen}
+      side="bottom"
+      align="start"
+      title="The customer"
+      trigger={
+        name === '' ? (
+          <Button intent="quiet" size="sm" icon={UserCheckIcon}>
+            Name the customer
+          </Button>
+        ) : (
+          <button
+            type="button"
+            className="cfg-who cfg-who--press"
+            aria-label={`${name}, change the customer`}
+          >
+            <span className="cfg-who__name">{name}</span>
+            {contact === '' ? null : <span className="cfg-who__contact">{contact}</span>}
+            <span className="cfg-who__edit" aria-hidden="true">
+              <Icon glyph={PencilSimpleIcon} />
+            </span>
+          </button>
+        )
+      }
+    >
+      <CustomerForm
+        quote={quote}
+        quoteId={quoteId}
+        onDone={() => onOpen(false)}
+        setStep={setStep}
+        setRefused={setRefused}
+      />
+    </Popover>
+  )
+}
+
+function CustomerForm({
+  quote,
+  quoteId,
+  onDone,
+  setStep,
+  setRefused,
+}: {
+  quote: QuoteDef
+  quoteId: string
+  onDone: () => void
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const [name, setName] = useState(quote.customer.name)
+  const [contact, setContact] = useState(quote.customer.contact?.[0] ?? '')
+  const named = quote.customer.name.trim() !== ''
+
+  /* only a difference is written, read off the document as it stands at that moment: the panel
+     closing after the act must find nothing left to write */
+  const commit = (): void => {
+    const standing = quotesStore.getState().quotes.find((q) => q.id === quoteId)
+    if (!standing || standing.state !== 'draft') return
+    const differs =
+      name.trim() !== standing.customer.name.trim() ||
+      contact.trim() !== (standing.customer.contact?.[0] ?? '').trim()
+    if (!differs) return
+    const outcome = quotesStore.getState().apply(
+      quoteId,
+      setCustomer({
+        name: name.trim(),
+        ...(contact.trim() === '' ? {} : { contact: [contact.trim()] }),
+      }),
+    )
+    if ('refused' in outcome) {
+      setRefused(outcome.refused === '' ? null : outcome.refused)
+      return
+    }
+    setRefused(null)
+    setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: false })
+  }
+  const onClose = useEffectEvent(commit)
+  useEffect(() => () => onClose(), [])
+  const put = (): void => {
+    commit()
+    onDone()
+  }
+  const onEnter = (event: ReactKeyboardEvent<HTMLInputElement>): void => {
+    if (event.key !== 'Enter' || event.nativeEvent.isComposing) return
+    event.preventDefault()
+    put()
+  }
+
+  return (
+    <div className="cfg-whoform">
+      <Field label="Who the quote is for">
+        <Input
+          id="cfg-customer"
+          value={name}
+          onValueChange={setName}
+          onKeyDown={onEnter}
+          autoComplete="name"
+          placeholder="Their name, as it should print"
+        />
+      </Field>
+      <Field label="One line of contact, as it should print">
+        <Input
+          id="cfg-contact"
+          value={contact}
+          onValueChange={setContact}
+          onKeyDown={onEnter}
+          placeholder="A phone number, an email, an address"
+        />
+      </Field>
+      <p className="cfg-whoform__say">Both print on the quote exactly as typed.</p>
+      <Button intent="act" icon={UserCheckIcon} onClick={put}>
+        {named ? 'Save the customer' : 'Put their name on it'}
+      </Button>
+    </div>
   )
 }
 
@@ -1696,11 +2355,14 @@ function Tally({
   raise,
   refusal,
   onLarge,
+  over = false,
 }: {
   quote: QuoteDef
   rail: Rail | null
   open: boolean
   art: StageArt | null
+  /** a sheet stands over the page, and a part carried in it is dropped on the sheet's own total */
+  over?: boolean
   /** what is not in the total, once (`totalNoteSay`); '' for nothing */
   note: string
   /** the last step and its way back, or the refusal of the last press, below 1440 */
@@ -1728,12 +2390,13 @@ function Tally({
   const heard = made.shares.map((s) => `${s.name} ${money(s.amount)}`).join(', ')
   /* THE TOTAL IS WHERE A PART IS DROPPED (the chandlery's tray, made the total itself): while a
      part is carried it says so at its head, and it lights while the part is over it */
-  const { place, carrying, over } = useQuoteDrop()
+  const { place, carrying: lifted, over: overIt } = useQuoteDrop()
+  const carrying = lifted && !over
   return (
     <aside
       ref={place}
       data-carrying={carrying ? '' : undefined}
-      data-over={over ? '' : undefined}
+      data-over={carrying && overIt ? '' : undefined}
       className="cfg-tally"
       aria-label="What the quote comes to"
       data-testid="running-total"
@@ -1834,7 +2497,7 @@ function Tally({
 }
 
 /** One held picture, as the lightbox draws it large. */
-function largeOf(held: Held, caption: string, alt: string): LightboxPicture {
+function largeOf(held: Held, caption: string, alt: string, note = ''): LightboxPicture {
   const srcSet = srcSetOf(held)
   return {
     src: held.src,
@@ -1844,6 +2507,7 @@ function largeOf(held: Held, caption: string, alt: string): LightboxPicture {
     alt: held.subject === '' ? alt : held.subject,
     caption,
     credit: creditOf(held),
+    ...(note === '' ? {} : { note }),
   }
 }
 
@@ -1871,12 +2535,17 @@ function chapterKindOf(chapter: Chapter): TableKind | null {
 /* ---------------------------------------------------------- */
 
 /**
- * THE BOAT, INSIDE THE PAGE'S MEASURE (the owner, 2026-10-30: "i don't like how the image goes
- * all the way to left on big screen"). The plate the photograph is cut from bled off the start
- * edge of the window at every desk width; it now keeps the page's gutter like everything else on
- * the page and lines up with the masthead over it, round on every corner. It takes the height
- * the boat's column has left once its facts and the tally are counted, and never more than its
- * own pixels. A press on its corner opens it large.
+ * THE BOAT, AS LARGE AS ITS COLUMN ALLOWS (the owner, 2026-10-30: "We dont need that little text
+ * under the photo on the left so we can make the most of the space and make image bigger …
+ * remove the photograph from media.high whatever because not needed"). Nothing is drawn under the
+ * photograph any more: what it shows, what this quote carries that it may not (the motor), and
+ * where it came from are the lightbox's caption, one press away on its corner, so nothing is lost,
+ * only moved. The room they took is the picture's.
+ *
+ * Inside the page's measure, round on every corner, and NEVER PAST ITS OWN PIXELS: the ledger's
+ * width and height are the ceiling on the box (`maxInlineSize`, `maxBlockSize`), so `cover` can
+ * only scale down. The size it is painted at rides on the figure as `data-drawn`, beside
+ * `data-held`, so "never enlarged" stays checkable at every width.
  */
 function Stage({
   quote,
@@ -1894,16 +2563,16 @@ function Stage({
 }) {
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
   const boat = boatOfQuote(quote)
-  /* WHAT THE PICTURE SHOWS AND WHAT THIS QUOTE CARRIES, because the
-     customer at the desk reads the picture (#24). `say.ts` argues it. */
+  /* WHAT THE PICTURE SHOWS AND WHAT THIS QUOTE CARRIES, because the customer at the desk reads
+     the picture (#24) — said in the lightbox now, under the picture drawn large. `say.ts` argues
+     it. */
   const said = pictureSays(art, quote, rail, ctx)
   const [drawn, setDrawn] = useState<{ w: number; h: number } | null>(null)
   const photo = useRef<HTMLImageElement>(null)
   const held = art.kind === 'photograph' ? art.held : null
 
   /* THE PAINTED SIZE, NOT THE BOX: `object-fit: cover` scales the whole picture until it covers
-     the box, so the scale is the larger of the two ratios. It rides on the provenance line as
-     `data-drawn`, beside `data-held`, so "never enlarged" stays checkable at every width. */
+     the box, so the scale is the larger of the two ratios */
   useEffect(() => {
     const img = photo.current
     if (!held || !img || typeof ResizeObserver === 'undefined') return
@@ -1921,15 +2590,17 @@ function Stage({
     }
   }, [held])
 
+  const note = said ? [said.shows, said.ours].filter((s) => s !== '').join(' ') : ''
+
   return (
     <section className="cfg-stage" aria-label="The boat this quote is about">
-      {/* THE PICTURE AND ITS CAPTION, AS ONE PIECE, because in a hand they stand above the rail
-          and the rest of the stage below it (configurator.css) */}
       <div className="cfg-stage__pic">
         <figure
           className="cfg-shot"
           data-art={art.kind}
           data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
+          data-held={art.kind === 'photograph' ? `${art.held.width}x${art.held.height}` : undefined}
+          data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
           /* NEVER ENLARGED, STRUCTURALLY: the ledger's own pixels are the ceiling on the box, so
              `cover` can only scale down */
           style={
@@ -1950,7 +2621,7 @@ function Stage({
                 ? {
                     srcSet: srcSetOf(art.held),
                     sizes:
-                      '(max-width: 1199px) and (max-height: 700px) 288px, (max-width: 1199px) 100vw, (max-width: 1439px) 44vw, 48vw',
+                      '(max-width: 1199px) and (max-height: 700px) 288px, (max-width: 1199px) 100vw, 48vw',
                   }
                 : {})}
               decoding="async"
@@ -1976,67 +2647,147 @@ function Stage({
             <span className="cfg-shot__expand">
               <ExpandPicture
                 label="See the boat larger"
-                onExpand={() => onLarge([largeOf(art.held, boat.name, boat.say)], 0, 'The boat')}
+                onExpand={() =>
+                  onLarge([largeOf(art.held, boat.name, boat.say, note)], 0, 'The boat')
+                }
               />
             </span>
           ) : null}
         </figure>
-        {said ? (
-          <p className="cfg-caption" data-testid="stage-caption">
-            <span className="cfg-caption__shows">{said.shows}</span>
-            {said.ours === '' ? null : <span className="cfg-caption__ours">{said.ours}</span>}
-          </p>
-        ) : null}
       </div>
 
       {/* THE BOAT'S OWN FACTS, under its picture */}
       <div className="cfg-stage__say">
         <h2 className="cfg-stage__name">{boat.name}</h2>
         {quote.subjectSpecs.length > 0 ? (
-          <Specs quote={quote} />
+          <Specs quote={quote} ctx={ctx} />
         ) : (
           <p className="cfg-note">The price list gives no specifications for this boat.</p>
         )}
-        <p
-          className="cfg-prov"
-          data-held={art.kind === 'photograph' ? `${art.held.width}x${art.held.height}` : undefined}
-          data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
-        >
-          {art.kind === 'photograph' ? creditOf(art.held) : art.because}
-        </p>
+        {/* WHERE NO PHOTOGRAPH IS HELD, WHY — the one sentence a reader needs about the mark in
+            its place; a photograph's provenance is its lightbox's */}
+        {art.kind === 'photograph' ? null : <p className="cfg-prov">{art.because}</p>}
       </div>
     </section>
   )
 }
 
+/** How many of the boat's measures stand at rest, before "All the specifications". */
+const SPECS_LEAD = 4
+
 /**
- * THE BOAT'S SPECIFICATION, ruled — each label led by the glyph of what it
- * measures where every label in the strip has one (`specGlyphs`). A UNIT ON
- * EVERY MEASURE the file or its maker states one for (`measured`): "OA Length
- * 6.98 m", never a bare 6.98.
+ * THE BOAT'S SPECIFICATION (the owner, 2026-10-30: "for specs, ability to open more of them and
+ * design that a bit nicer"). The few the paper prints lead — the file's own first measures, as
+ * the quote froze them — each a small tile: the glyph of what it measures, the figure large and
+ * bold, its label under it. A press under them opens EVERY measure the price file holds for this
+ * boat (`allSpecsOf`, read live, never a price and never a cost), growing out of the strip on
+ * the travel spring with its caret turning over; under reduced motion it is simply there. A UNIT
+ * ON EVERY MEASURE the file or its maker states one for (`measured`): "6.98 m", never a bare 6.98.
  */
-function Specs({ quote }: { quote: QuoteDef }) {
-  const specs = quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec))
-  const glyphs = specGlyphs(specs.map((s) => s.label))
+function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
+  const [open, setOpen] = useState(false)
+  const reduce = useReducedMotion()
+  const still = useStill()
+  const quiet = Boolean(reduce) || still
+  const id = useId()
+  const all = useMemo(
+    () => allSpecsOf(ctx, quote).map((spec) => measured(quote.rootTableId, spec)),
+    [ctx, quote],
+  )
+  const frozen = quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec))
+  const lead = frozen.slice(0, SPECS_LEAD)
+  const shown = new Set(lead.map((s) => s.label))
+  const rest = [
+    ...frozen.slice(SPECS_LEAD),
+    ...all.filter((s) => !frozen.some((f) => f.label === s.label)),
+  ].filter((s) => !shown.has(s.label))
+  const leadGlyphs = specGlyphs(lead.map((s) => s.label))
   return (
-    <dl className="cfg-specs">
-      {specs.map((spec, i) => {
-        const glyph = glyphs[i]
-        return (
-          <div className="cfg-spec" key={spec.label}>
-            <dt className="cfg-spec__lab">
-              {glyph ? (
-                <span className="cfg-spec__glyph" aria-hidden="true">
-                  <Icon glyph={glyph} />
-                </span>
-              ) : null}
-              {spec.label}
-            </dt>
-            <dd className="cfg-spec__val">{spec.value}</dd>
-          </div>
-        )
-      })}
-    </dl>
+    <div className="cfg-specs">
+      <dl className="cfg-specs__lead">
+        {lead.map((spec, i) => (
+          <SpecTile key={spec.label} label={spec.label} value={spec.value} glyph={leadGlyphs[i]} />
+        ))}
+      </dl>
+      {rest.length === 0 ? null : (
+        <>
+          <button
+            type="button"
+            className="cfg-specs__more"
+            aria-expanded={open}
+            aria-controls={id}
+            onClick={() => setOpen((was) => !was)}
+          >
+            <span>
+              {open
+                ? 'Fewer specifications'
+                : `All ${(lead.length + rest.length).toLocaleString('en-AU')} specifications`}
+            </span>
+            <span className="cfg-specs__chev" aria-hidden="true">
+              <Icon glyph={CaretDownIcon} />
+            </span>
+          </button>
+          <AnimatePresence initial={false}>
+            {open ? (
+              <motion.div
+                key="rest"
+                id={id}
+                className="cfg-specs__rest"
+                /* clipped while it grows and shrinks, and only once it stands may a desk's short
+                   column scroll the list inside itself (configurator.css) */
+                style={{ overflowY: 'hidden' }}
+                initial={quiet ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1, transitionEnd: { overflowY: 'auto' } }}
+                exit={
+                  quiet
+                    ? { opacity: 0, overflowY: 'hidden', transition: { duration: 0 } }
+                    : {
+                        height: 0,
+                        opacity: 0,
+                        overflowY: 'hidden',
+                        transition: transition('exit', false),
+                      }
+                }
+                transition={transition('travel', quiet)}
+              >
+                <dl className="cfg-specs__all">
+                  {rest.map((spec) => (
+                    <div className="cfg-specs__row" key={spec.label}>
+                      <dt className="cfg-specs__lab">{spec.label}</dt>
+                      <dd className="cfg-specs__val">{spec.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </>
+      )}
+    </div>
+  )
+}
+
+function SpecTile({
+  label,
+  value,
+  glyph,
+}: {
+  label: string
+  value: string
+  glyph: Glyph | null | undefined
+}) {
+  return (
+    <div className="cfg-spec">
+      <dt className="cfg-spec__lab">
+        {glyph ? (
+          <span className="cfg-spec__glyph" aria-hidden="true">
+            <Icon glyph={glyph} />
+          </span>
+        ) : null}
+        {label}
+      </dt>
+      <dd className="cfg-spec__val">{value}</dd>
+    </div>
   )
 }
 
@@ -2196,14 +2947,10 @@ function ChapterCard({
   query,
   level,
   onOpen,
-  onFinale,
   onWho,
   onPress,
   onLarge,
   ctx,
-  aisle,
-  maker,
-  goAisle,
   onRaise,
   onShowAll,
   refusal,
@@ -2219,12 +2966,8 @@ function ChapterCard({
 }: {
   /** opens a picture large, among its chapter's (`Lightbox`) */
   onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
-  /** the sheet, for the chandlery */
+  /** the sheet */
   ctx: CatalogueCtx
-  /** the chandlery's open aisle and maker, and where a press writes them */
-  aisle: string
-  maker: string
-  goAisle?: ((aisle: string, maker: string) => void) | undefined
   /** follow an address without a page load — a rule's sentence to the rule on /rules */
   go?: (href: string) => void
   /** where the reading light finds this chapter */
@@ -2242,9 +2985,7 @@ function ChapterCard({
   /** the price the quote is at, by its declared name */
   level: string | null
   onOpen: () => void
-  /** opens the finale, the step after the name */
-  onFinale: () => void
-  /** opens Who it is for, from the finale of a quote with no name on it */
+  /** opens the customer's details in the bar, from the finale of a quote with no name on it */
   onWho: () => void
   onPress: (act: Act) => void
   onRaise: (fix: string) => void
@@ -2371,85 +3112,30 @@ function ChapterCard({
 
       {shopped ? <ShopSwitch open={shop} onToggle={() => setShop((was) => !was)} /> : null}
 
-      {chapter.tables.map((table) =>
-        /* THE CHANDLERY, WHERE THIS CHAPTER OFFERS THE PRICE LIST'S PARTS (direction B, picked
-           2026-10-30): the same catalogue as /catalogue, fitting this boat. While the build's own
-           search runs, the list answers it as every other list does. */
-        table.tableId === PARTS_TABLE && !searching ? (
-          <Chandlery
-            key={table.id}
-            ctx={ctx}
-            levelKey={quote.levelKey}
-            aisle={aisle}
-            maker={maker}
-            onAisle={(a, m) => goAisle?.(a, m)}
-            onLarge={onLarge}
-            go={go}
-            fitting={{
-              boat: boatOfQuote(quote).name,
-              fitsHref: fitmentOf(quote.rootRowId),
-              /* by the part's own row, which a pairing's key is not */
-              madeFor: table.rows
-                .filter((row) => !row.outside)
-                .flatMap((row) => {
-                  const act = row.act
-                  const id =
-                    act.do === 'add'
-                      ? act.line.rowId
-                      : act.do === 'remove'
-                        ? quote.lines.find((line) => line.id === act.lineId)?.rowId
-                        : undefined
-                  return id ? [id] : []
-                }),
-              on: new Map(
-                quote.lines
-                  .filter((line) => line.entityId === table.tableId)
-                  .map((line) => [line.rowId, line.id]),
-              ),
-              put: (line) => onPress({ do: 'add', blockId: table.id, line }),
-              takeOff: (lineId) =>
-                onPress({
-                  do: 'remove',
-                  lineId,
-                  label: quote.lines.find((line) => line.id === lineId)?.label ?? '',
-                }),
-              refusedBy,
-            }}
-          />
-        ) : (
-          <TableBlock
-            key={table.id}
-            table={table}
-            orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
-            told={rail.unpricedLists}
-            quoteId={quoteId}
-            named={chapter.tables.length > 1}
-            query={searching ? query : ''}
-            level={level}
-            onPress={onPress}
-            onLarge={(set, picture) => onLarge(set, picture, chapter.name)}
-            onShowAll={onShowAll}
-            motors={quote.lines
-              .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
-              .map((line) => line.code ?? '')
-              .filter((code) => code !== '')}
-            refusedBy={refusedBy}
-            shop={shop}
-            go={go}
-          />
-        ),
-      )}
-
-      {chapter.kind === 'handover' ? (
-        <Handover
-          quote={quote}
+      {/* THE PARTS TABLE IS A LIST LIKE ANY OTHER IN ITS CHAPTER: what the price list makes for
+          this boat, and the chandlery's aisles over the page from its "Browse" press */}
+      {chapter.tables.map((table) => (
+        <TableBlock
+          key={table.id}
+          table={table}
+          orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
+          told={rail.unpricedLists}
           quoteId={quoteId}
-          refusal={refusal}
-          onNext={onFinale}
-          setStep={setStep}
-          setRefused={setRefused}
+          named={chapter.tables.length > 1}
+          query={searching ? query : ''}
+          level={level}
+          onPress={onPress}
+          onLarge={(set, picture) => onLarge(set, picture, chapter.name)}
+          onShowAll={onShowAll}
+          motors={quote.lines
+            .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
+            .map((line) => line.code ?? '')
+            .filter((code) => code !== '')}
+          refusedBy={refusedBy}
+          shop={shop}
+          go={go}
         />
-      ) : null}
+      ))}
 
       {chapter.kind === 'finale' ? (
         <Finale
@@ -3066,9 +3752,12 @@ function TableBlock({
   go,
   quoteId,
   motors,
+  entire = false,
 }: {
   /** the codes of the motors on this quote, which a rigging kit is offered for */
   motors: readonly string[]
+  /** drawn in the range sheet, where the list is already its whole range */
+  entire?: boolean
   /** opens one of this list's pictures large, among the others it draws */
   onLarge: (set: readonly LightboxPicture[], at: number) => void
   /** follow an address without a page load — a rule's sentence to the rule on /rules */
@@ -3094,14 +3783,13 @@ function TableBlock({
   shop: boolean
 }) {
   const counts = table.counts
-  const offered = offeredHere(table)
   const reason = reasonSay(table)
   /* A LIST THE PRICE LIST GIVES NO PRICE SAYS SO ONCE: as a tag beside its name while nothing
      from it is on the quote, and in the line under the total once something is, which names the
      list itself (`unpricedTag`, `totalNoteSay`) */
   const unpriced = unpricedTag(table, told)
-  const capped = cappedSay(table)
-  const whole = allSay(table)
+  const capped = cappedSay(table, entire ? RANGE_CAP : undefined)
+  const whole = entire ? allSay(table) : ''
 
   /* THE KIT'S POWER CHIPS OVER A LIST OF MOTORS (the components critique, 2026-09-29,
      blocker 2: /kit drew "90 hp 2 · 115 hp 2 · 130 hp 1 · 150 hp 1" over its Yamahas and the
@@ -3116,9 +3804,18 @@ function TableBlock({
     const held = new Map<string, number>()
     for (const row of table.rows)
       if (row.power !== '') held.set(row.power, (held.get(row.power) ?? 0) + 1)
-    /* from the least power to the most, as a person reads a range of outboards */
-    return [...held].toSorted(([a], [b]) => Number(a) - Number(b) || a.localeCompare(b))
-  }, [table, query])
+    /* from the least power to the most, as a person reads a range of outboards — a twin by the
+       power it puts on the transom, so "2 x 115" stands after "200" and not before "2.5" */
+    const transom = (rating: string): number => {
+      const each = Number(/(\d+(?:\.\d+)?)\s*$/.exec(rating)?.[1] ?? Number.NaN)
+      const many = Number(/^(\d+)\s*x/i.exec(rating)?.[1] ?? 1)
+      return each * many
+    }
+    const sorted = [...held].toSorted(([a], [b]) => transom(a) - transom(b) || a.localeCompare(b))
+    /* OVER A WHOLE RANGE THE CHIPS STEP ASIDE where they would be a wall (Yamaha's 209 rate at
+       forty-odd powers): the sheet's find field narrows by power there */
+    return entire && sorted.length > POWERS_AT_MOST ? [] : sorted
+  }, [table, query, entire])
   const narrowed = powers.length > 1 && powers.some(([p]) => p === power) ? power : null
   /* A RIGGING KIT IS OFFERED ONLY FOR A MOTOR ON THIS QUOTE (`kitsForMotors`), while no search
      is reaching past the list */
@@ -3233,7 +3930,11 @@ function TableBlock({
               live. */}
           {table.sharedWhy === '' ? null : (
             <Said className="cfg-shared" glyph={InfoIcon}>
-              {table.sharedWhy}
+              {/* THE COMMONEST REASON, SAID ONCE, IS NOT EVERY ROW'S: where a tile has another, it
+                  says so under itself, and this says that it will */}
+              {rows.some((r) => r.outside && r.why !== '')
+                ? `${table.sharedWhy} Where one differs, it says so under it.`
+                : table.sharedWhy}
             </Said>
           )}
           {powers.length > 1 ? (
@@ -3314,21 +4015,24 @@ function TableBlock({
         </Said>
       )}
 
-      {counts.catalogue > counts.narrowed && !kits ? (
+      {/* THE WHOLE RANGE OPENS OVER THE PAGE (`RangeSheet`, `ChandlerySheet`), never pushed into
+          the column under what is made for this boat: the column stays the build */}
+      {counts.catalogue > counts.narrowed && !kits && !entire ? (
         <div className="cfg-all">
           <Button
             intent="veiled"
             size="sm"
-            icon={table.showingAll ? ArrowsInSimpleIcon : ArrowsOutSimpleIcon}
+            icon={ArrowsOutSimpleIcon}
+            aria-haspopup="dialog"
             onClick={() => onShowAll(table.id)}
           >
-            {table.showingAll
-              ? `Back to the ${offered.toLocaleString('en-AU')} made for this boat`
+            {table.tableId === PARTS_TABLE
+              ? `Browse all ${counts.catalogue.toLocaleString('en-AU')} in the chandlery`
               : `Show all ${counts.catalogue.toLocaleString('en-AU')} in ${table.title}`}
           </Button>
-          {whole === '' ? null : <p className="cfg-all__say">{whole}</p>}
         </div>
       ) : null}
+      {whole === '' ? null : <p className="cfg-all__say">{whole}</p>}
     </div>
   )
 }
@@ -3647,7 +4351,12 @@ function ShopSwitch({ open, onToggle }: { open: boolean; onToggle: () => void })
 function shopOf(row: OptionRow): { label: string; value: string }[] {
   return [
     ...(row.listed === '' ? [] : [{ label: 'On the price list', value: row.listed }]),
-    ...(row.twin ? [] : row.facts.map((f) => ({ label: f.label, value: f.full }))),
+    /* a fact this row leaves empty is not a line with nothing after its label */
+    ...(row.twin
+      ? []
+      : row.facts
+          .filter((f) => f.full.trim() !== '')
+          .map((f) => ({ label: f.label, value: f.full }))),
     ...(row.code === '' ? [] : [{ label: 'Code', value: row.code }]),
   ]
 }
@@ -3736,158 +4445,6 @@ function Marked({ text, query }: { text: string; query: string }) {
         ),
       )}
     </>
-  )
-}
-
-/* ---------------------------------------------------------- */
-/* Who it is for                                                */
-/* ---------------------------------------------------------- */
-
-/**
- * THE ONE CHAPTER NO TABLE CAN CARRY. This file has no customer
- * register — `hasCustomerRegister` reads false on the pack, measured
- * — so the name is typed, frozen onto the document the moment it is
- * typed, and belongs to this quote alone. That is not a shortcut: a
- * quote is a photograph, and a name corrected in a register on
- * Friday must not rewrite the document handed over on Monday.
- */
-function Handover({
-  quote,
-  quoteId,
-  refusal,
-  onNext,
-  setStep,
-  setRefused,
-}: {
-  quote: QuoteDef
-  quoteId: string
-  refusal: string | undefined
-  /** where the sale goes once it has a name: the finale */
-  onNext: () => void
-  setStep: (step: Step) => void
-  setRefused: (said: string | null) => void
-}) {
-  const [name, setName] = useState(quote.customer.name)
-  const [contact, setContact] = useState(quote.customer.contact?.[0] ?? '')
-  const issued = refusal !== undefined
-  const named = quote.customer.name.trim() !== ''
-  const savedContact = quote.customer.contact?.[0] ?? ''
-  const pending =
-    !issued &&
-    (name.trim() !== quote.customer.name.trim() || contact.trim() !== savedContact.trim())
-
-  const save = useCallback(() => {
-    const outcome = quotesStore.getState().apply(
-      quoteId,
-      setCustomer({
-        name: name.trim(),
-        ...(contact.trim() === '' ? {} : { contact: [contact.trim()] }),
-      }),
-    )
-    if ('refused' in outcome) {
-      setRefused(outcome.refused === '' ? null : outcome.refused)
-      return
-    }
-    setRefused(null)
-    setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: false })
-  }, [contact, name, quoteId, setRefused, setStep])
-
-  /* WHAT IS TYPED HERE GOES ON THE QUOTE WHEN THE CHAPTER CLOSES (the component
-     critique, 2026-09-28, major 10). Typing "Jordan Pike", pressing Tab and
-     opening The finale threw the name away without a word, and the finale then
-     said the quote was addressed to nobody — on a screen whose stage says
-     "Saved as you go". So closing the chapter is the press: the same command,
-     the same step in the toast with its Undo, and the finale opens on a quote
-     that has the name. Leaving the build does the same, with nobody left to
-     say it to. Only a difference is written, and it is read off the document
-     as it stands at that moment: a closing chapter is drawn from its last
-     props, and the second ask (the fold, then the unmount) must find nothing
-     left to write. */
-  const commit = (): void => {
-    const standing = quotesStore.getState().quotes.find((q) => q.id === quoteId)
-    if (!standing || standing.state !== 'draft') return
-    const differs =
-      name.trim() !== standing.customer.name.trim() ||
-      contact.trim() !== (standing.customer.contact?.[0] ?? '').trim()
-    if (differs) save()
-  }
-  const onClose = useEffectEvent(commit)
-  const present = useIsPresent()
-  /* before the paint, so the finale's first frame already reads the name */
-  useLayoutEffect(() => {
-    if (!present) onClose()
-  }, [present])
-  useEffect(() => () => onClose(), [])
-  /* and Enter in either field is the press, as it is in any form */
-  const onEnter = (event: ReactKeyboardEvent<HTMLInputElement>): void => {
-    if (event.key !== 'Enter' || event.nativeEvent.isComposing || issued) return
-    event.preventDefault()
-    commit()
-  }
-
-  return (
-    <div className="cfg-table">
-      <div className="cfg-table__head">
-        {/* WHAT HAPPENS TO A NAME TYPED HERE, and nothing about where it
-            is stored. This said "This price file carries no customer
-            register … It is frozen onto the document", which was the
-            engine explaining itself — and on this tree it was also
-            wrong, since Customers keeps a book. */}
-        <p className="cfg-table__why">Both print on the quote exactly as typed.</p>
-      </div>
-
-      <div className="cfg-ask">
-        <Field label="Who the quote is for">
-          <Input
-            id="cfg-customer"
-            value={name}
-            onValueChange={setName}
-            onKeyDown={onEnter}
-            readOnly={issued}
-            autoComplete="name"
-            placeholder="Their name"
-          />
-        </Field>
-      </div>
-      <div className="cfg-ask">
-        <Field label="One line of contact, as it should print">
-          <Input
-            id="cfg-contact"
-            value={contact}
-            onValueChange={setContact}
-            onKeyDown={onEnter}
-            readOnly={issued}
-            placeholder="A phone number, an email, an address"
-          />
-        </Field>
-      </div>
-      <div className="cfg-act">
-        {/* ONCE IT IS ADDRESSED THE AMBER LEADS ON, NOT BACK (build-close-critique.md,
-            2026-10-19, minor 4: "Save the name" kept the amber as the loudest thing on the screen,
-            pointing at a thing already done, while the finale was a quiet row under it). With
-            the name on the quote and nothing typed since, the act is the next real step. */}
-        {named && !pending && !issued ? (
-          <Button intent="act" icon={FlagCheckeredIcon} onClick={onNext}>
-            On to the finale
-          </Button>
-        ) : (
-          <Button intent="act" icon={UserCheckIcon} onClick={save} refusedBecause={refusal}>
-            {named ? 'Save the name' : 'Put their name on it'}
-          </Button>
-        )}
-        {/* WHAT A PRESS, OR MOVING ON, WILL DO while the fields differ from the quote, and why
-            the name matters while there is none. Once it is named the head says whom for
-            ("for R. Kelleher"), and so do the masthead and the step: a fourth "This quote is
-            addressed to …" here was the same fact again. */}
-        {pending || !named ? (
-          <p className="cfg-act__say">
-            {pending
-              ? 'It goes on the quote when you press this, or when you move on.'
-              : 'A quote needs a name before it can be given.'}
-          </p>
-        ) : null}
-      </div>
-    </div>
   )
 }
 
@@ -4792,17 +5349,20 @@ function Said({
  * drawn (configurator.css).
  */
 function Reading({
+  scroller,
   chapters,
   open,
   names,
 }: {
+  /** the chapters' own column where it is what scrolls (a desk), else null for the window */
+  scroller: HTMLElement | null
   chapters: readonly RefObject<HTMLElement | null>[]
   /** the chapter that is open, or -1 where none is (a search opens every one with an answer) */
   open: number
   names: DashesProps['chapters']
 }) {
-  const place = useChapterProgress(chapters)
-  useSmoothScroll()
+  const place = useChapterProgress(chapters, scroller)
+  useSmoothScroll(scroller === null)
   useEffect(() => {
     chapters.forEach((ref, i) => {
       const el = ref.current

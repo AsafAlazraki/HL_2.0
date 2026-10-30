@@ -582,15 +582,15 @@
 
 /* ---- the finder's bubble, at the trailing end -------------------------------------- */
 
-/* APPLE'S OWN 2026 FORM: "a dedicated search tab at the trailing end", set apart from the
-   words by a gap rather than sitting among them (live2/apple-hig-tab-bars-ipad.png). Attio
-   puts the same thing at the head of its rail so the finder is found by eye and not only by
-   chord (live/attio-home-rail.png). In the kit it is a well on a hairline with the magnifier
+/* AT THE HEAD OF THE BAR, BEFORE HOME (the owner, 2026-10-30: "move find in the top float bar
+   to the top left in the bar before home") — where Attio puts its finder, at the head of its
+   rail, so it is found by eye and not only by chord (live/attio-home-rail.png) — set apart from
+   the doors by a gap rather than sitting among them. In the kit it is a well on a hairline with the magnifier
    leading its word — the find field's own glyph (src/ui/Input.tsx). The word, and no chord: the
    owner, 2026-10-30, "just find". Ctrl K still opens the finder; it is not drawn. */
 .way-find {
   flex: 0 0 auto;
-  margin-inline-start: --spacing(2);
+  margin-inline-end: --spacing(2);
   display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
@@ -1198,8 +1198,14 @@
   .way-find__word {
     display: none;
   }
+  /* AT THE TRAILING END ON A PHONE, and that is the reflow's own measure, not a second opinion:
+     here the bar is the tab bar at the foot (Apple's "dedicated search tab at the trailing end",
+     live2/apple-hig-tab-bars-ipad.png), the crest holds the leading cap, and the five doors are
+     spaced evenly between the two rounds. Between the crest and Home it would stand two rounds
+     side by side at the bar's left end and push Home off the thumb's arc. */
   .way-find {
-    margin-inline-start: 0;
+    order: 1;
+    margin-inline-end: 0;
     padding: 0;
     inline-size: calc(var(--pill-h) - --spacing(1));
     justify-content: center;

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { escapeRe, pickAndStart, priceWhatWaits } from '../mint'
+import { escapeRe, nameTheCustomer, pickAndStart, priceWhatWaits } from '../mint'
 
 /* ============================================================
    A RULE THAT WARNS, WHERE THE CHOICE IS MADE (built-critique-m3-2.md, major 3).
@@ -82,9 +82,7 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
   await page.screenshot({ path: info.outputPath('warned-tile.png') })
 
   /* WHERE IT IS HANDED OVER: said over the give, and the give stays live */
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, 'R. Kelleher')
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)

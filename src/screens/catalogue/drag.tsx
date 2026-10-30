@@ -52,8 +52,11 @@ import { reducedMotion } from '@/ui'
    over it. Under reduced motion it lands without the drop's glide.
    ============================================================ */
 
-/** The one place a part can be dropped: the quote, at its total. */
+/** The one place a part can be dropped: the quote, at its total. A sheet standing over the build
+ *  draws the total again on its own foot, under a name that starts with this one. */
 export const QUOTE_DROP = 'the-quote'
+/** Whether a drop target is the quote's total, wherever it is drawn. */
+const isQuote = (id: unknown): boolean => String(id ?? '').startsWith(QUOTE_DROP)
 
 /** What a lifted part carries: how it is said, and the act that puts it on. */
 export interface Carried {
@@ -72,11 +75,11 @@ const ANNOUNCED: Announcements = {
   onDragStart: ({ active }) =>
     `${said(active.data.current as Carried | undefined)} is lifted. Press the right arrow to take it to the quote, Space to put it on, Escape to put it back where it was.`,
   onDragOver: ({ active, over }) =>
-    over?.id === QUOTE_DROP
+    isQuote(over?.id)
       ? `${said(active.data.current as Carried | undefined)} is over the quote. Space puts it on.`
       : `${said(active.data.current as Carried | undefined)} is not over the quote.`,
   onDragEnd: ({ active, over }) =>
-    over?.id === QUOTE_DROP
+    isQuote(over?.id)
       ? `${said(active.data.current as Carried | undefined)} is on the quote.`
       : `${said(active.data.current as Carried | undefined)} is back where it was.`,
   onDragCancel: ({ active }) =>
@@ -164,7 +167,7 @@ export function PartDrag({ children }: { children: ReactNode }) {
   const end = (event: DragEndEvent): void => {
     const carried = event.active.data.current as Carried | undefined
     setLifted(null)
-    if (event.over?.id === QUOTE_DROP) carried?.put()
+    if (isQuote(event.over?.id)) carried?.put()
   }
   return (
     <KeyLiftContext value={keys}>
@@ -263,9 +266,10 @@ export function usePart(id: string, carried: Carried, live: boolean) {
   }
 }
 
-/** The quote's total as the place a part is dropped: whether one is lifted, and whether over it. */
-export function useQuoteDrop() {
-  const drop = useDroppable({ id: QUOTE_DROP })
+/** The quote's total as the place a part is dropped: whether one is lifted, and whether over it.
+ *  `id` names a second drawing of the total (a sheet's foot); it starts with `QUOTE_DROP`. */
+export function useQuoteDrop(id: string = QUOTE_DROP) {
+  const drop = useDroppable({ id })
   const { active } = useDndContext()
   const keys = use(KeyLiftContext)
   return {

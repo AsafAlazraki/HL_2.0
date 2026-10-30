@@ -62,9 +62,12 @@ export interface ChapterPlace {
 const QUIET_MS = 200
 
 /** `chapters` is one array for the life of the screen (a ref's or a memo's), so the
- *  triggers are made once and killed once. */
+ *  triggers are made once and killed once. `scroller` is the box the chapters scroll in where
+ *  it is not the window (the build at a desk, whose chapters scroll in their own column); the
+ *  triggers are made again when it changes. */
 export function useChapterProgress(
   chapters: readonly RefObject<HTMLElement | null>[],
+  scroller: HTMLElement | null = null,
 ): ChapterPlace {
   const [at, setAt] = useState(0)
   const through = useMotionValue(0)
@@ -81,6 +84,7 @@ export function useChapterProgress(
       return [
         ScrollTrigger.create({
           trigger,
+          ...(scroller ? { scroller } : {}),
           start: 'top center',
           end: 'bottom center',
           onUpdate: (self) => {
@@ -123,14 +127,15 @@ export function useChapterProgress(
           })
     for (const el of elements) sized?.observe(el)
     if (typeof document !== 'undefined') sized?.observe(document.body)
-    globalThis.addEventListener('scroll', onScroll, { passive: true })
+    const moves: EventTarget = scroller ?? globalThis
+    moves.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       window.clearTimeout(timer)
       sized?.disconnect()
-      globalThis.removeEventListener('scroll', onScroll)
+      moves.removeEventListener('scroll', onScroll)
       for (const t of triggers) t.kill()
     }
-  }, [chapters, through])
+  }, [chapters, through, scroller])
   return { at, through }
 }
 
@@ -150,9 +155,11 @@ function hides(el: Element): boolean {
   return /hidden|clip/.test(getComputedStyle(el).overflowY)
 }
 
-export function useSmoothScroll(): void {
+/** `on` is false where the window does not scroll at all (the build at a desk, where only its
+ *  chapters' own column does, and the browser's wheel is the right one for a box). */
+export function useSmoothScroll(on = true): void {
   useEffect(() => {
-    if (!smoothable()) return
+    if (!on || !smoothable()) return
     register()
     const lenis = new Lenis({
       autoRaf: true,
@@ -177,5 +184,5 @@ export function useSmoothScroll(): void {
       document.removeEventListener('focusout', hold)
       lenis.destroy()
     }
-  }, [])
+  }, [on])
 }

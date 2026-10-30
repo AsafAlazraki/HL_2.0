@@ -82,6 +82,13 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
+/* what the picture shows that the thing on the quote may not, over where it came from */
+.ui-lightbox-note {
+  display: block;
+  margin-block-end: --spacing(0.5);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
 .ui-lightbox-close {
   flex: none;
   display: inline-flex;

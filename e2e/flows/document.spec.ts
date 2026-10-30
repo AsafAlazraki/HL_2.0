@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { throughTheDoor } from '../door'
-import { cardName, priceWhatWaits } from '../mint'
+import { cardName, nameTheCustomer, priceWhatWaits } from '../mint'
 import { pageCountOf } from '../print/pdf'
 
 /* ============================================================
@@ -134,9 +134,7 @@ async function issueAQuote(
   await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
   await expect(page.getByTestId('configurator')).toBeVisible()
 
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, CUSTOMER)
 
   await page.getByRole('button', { name: /The finale/ }).click()
 
@@ -571,9 +569,7 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   const figure = (await hull.locator('.cfg-head__sum').innerText()).trim()
   expect(figure).toMatch(/^\$[\d,]+$/)
 
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, CUSTOMER)
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
@@ -810,9 +806,7 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   await page.getByRole('button', { name: 'Leave it as it is' }).click()
   await expect(build).toBeVisible()
 
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, CUSTOMER)
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
@@ -942,9 +936,7 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
   await expect(build).toBeVisible()
 
   /* THE PAPER'S COVER: the held copy itself, whole, under the same name, with its line */
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, CUSTOMER)
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()

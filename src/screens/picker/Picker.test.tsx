@@ -93,10 +93,14 @@ describe('the picker with the price file open', () => {
      makers, at Cash prices" stood beside "All makers 289" and each door's count, and "Cash
      prices" beside the plate's "Cash price". Each is said once: a count by its door or its rail
      row, the price's name by the price. */
-  it('asks for the maker and the boat in the band, and says the price’s name once, by the price', () => {
+  it('asks what is sold, then for the maker and the boat, and says the price’s name once, by the price', () => {
+    /* THE FIRST QUESTION IS WHAT IS SOLD (the owner, 2026-10-30: "quotes are not just boats"):
+       rewritten from "Choose the maker, then the boat." on the doors, which the redesign made
+       untrue there; a maker's page still says it */
     const { unmount } = render(<Picker />)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('What are you selling?')
     expect(screen.getByTestId('picker-counts')).toHaveTextContent(
-      /^Choose the maker, then the boat\.$/,
+      /^A boat, or a motor, a trailer or a part on its own\.$/,
     )
     expect(document.body.textContent).not.toContain(models(fleet.models))
     expect(document.body.textContent).not.toContain(`${fleet.rung} price`)
@@ -105,6 +109,10 @@ describe('the picker with the price file open', () => {
       .flatMap((b) => b.models)
       .find((m) => !m.splits && m.from !== null) as Model
     render(<Picker at={{ brand: model.tableId, model: model.key }} />)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Which boat is it?')
+    expect(screen.getByTestId('picker-counts')).toHaveTextContent(
+      /^Choose the maker, then the boat\.$/,
+    )
     expect((document.body.textContent ?? '').split(`${fleet.rung} price`)).toHaveLength(2)
     const panel = screen.getByRole('complementary', { name: 'What is chosen' })
     expect(within(panel).getByText(`${fleet.rung} price`)).toBeInTheDocument()
@@ -223,14 +231,14 @@ describe('the picker with the price file open', () => {
     const without = within(index).getByRole('button', {
       name: new RegExp(`^${escape(none.shown)},`),
     })
-    /* nothing stands in: no picture at all, the cover is the camera struck through with the
-       one sentence as its title, and it does not set the boat's name over its own name a
-       second time (the refine round's second pass, 2026-10-21) */
+    /* nothing stands in: no picture at all, and the cover says so quietly in its corner. No
+       longer the big crossed camera (the owner, 2026-10-30: shown honestly, "not as a big
+       crossed-camera tile"; rewritten from the camera's assertion, which the redesign made
+       untrue), and it does not set the boat's name over its own name a second time */
     expect(without.querySelector('img')).toBeNull()
     const cover = without.querySelector('.picker-card__cover')
-    expect(cover).toHaveAttribute('title', 'No photograph of this boat yet.')
-    expect(cover?.querySelector('svg')).not.toBeNull()
-    expect(cover?.textContent ?? '').toBe('')
+    expect(cover?.querySelector('svg')).toBeNull()
+    expect(cover?.textContent ?? '').toBe('No photograph yet')
     expect(without.textContent?.split(none.said).length).toBe(2)
   })
 

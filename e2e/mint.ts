@@ -219,25 +219,29 @@ export async function raiseTheRung(page: Page): Promise<string> {
   return label
 }
 
+/**
+ * NAME THE CUSTOMER AS A DEALER DOES ON THE BUILD (the owner, 2026-10-30: "customer details i
+ * live in the top bar"): the bar's Customer cell, the name in its panel, and the act. The bar
+ * then says the name.
+ */
+export async function nameTheCustomer(page: Page, who: string = CUSTOMER): Promise<void> {
+  const bar = page.locator('.cfg-mast')
+  await bar.getByRole('button', { name: /^Name the customer$|, change the customer$/ }).click()
+  const panel = page.getByRole('dialog', { name: 'The customer' })
+  await panel.getByLabel(/Who the quote is for/).fill(who)
+  await panel.getByRole('button', { name: /Put their name on it|Save the customer/ }).click()
+  await expect(panel).toBeHidden()
+  await expect(bar).toContainText(who)
+}
+
 /** Address the draft and give it to the customer, on the build. */
 export async function issueIt(page: Page, who: string = CUSTOMER): Promise<void> {
   /* what waits for a price is priced first, so the step standing at the give is the name's */
   await page.getByRole('button', { name: /The finale/ }).click()
   await priceWhatWaits(page)
-  /* the finale is open on its return, and carries a "Put their name on it" of its own */
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  /* the finale folds and the chapter is brought in a beat after the press: wait it out, or the
-     press below lands on a page still moving (built-m3-2.md, 2026-10-28) */
+  /* the name is the bar's: named there, the bar says it (the step may be a toast that has gone) */
+  await nameTheCustomer(page, who)
   await cameToRest(page)
-  await page.getByLabel(/Who the quote is for/).fill(who)
-  await page
-    .getByRole('region', { name: 'Who it is for' })
-    .getByRole('button', { name: /Put their name on it|Save the name/ })
-    .click()
-  /* the name is on the quote: its chapter's head says so (the step may be a toast that has gone) */
-  await expect(page.getByRole('button', { name: /^Who it is for/ })).toContainText(`for ${who}`)
-
-  await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
 }
@@ -301,11 +305,14 @@ export async function openTheDocument(page: Page): Promise<void> {
  * move (the build's closing verify, 2026-10-20).
  */
 export async function cameToRest(page: Page): Promise<void> {
-  let last = await page.evaluate(() => scrollY)
+  /* the window, and at a desk the build's chapters, which scroll in their own column */
+  const where = (): Promise<string> =>
+    page.evaluate(() => `${scrollY}:${document.querySelector('.cfg-scroll')?.scrollTop ?? 0}`)
+  let last = await where()
   await expect
     .poll(async () => {
       await page.waitForTimeout(300)
-      const now = await page.evaluate(() => scrollY)
+      const now = await where()
       const same = now === last
       last = now
       return same

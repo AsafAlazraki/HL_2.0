@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { pickAndStart, written } from '../mint'
+import { nameTheCustomer, pickAndStart, written } from '../mint'
 
 /* ============================================================
    PRICES — what the rulers cannot see. The rulers measure the page
@@ -236,9 +236,7 @@ test('the build says a price not chosen, opens it here, and the line takes the c
   )
   await expect(page.getByTestId('configurator')).not.toContainText('no price on the price list')
 
-  await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await nameTheCustomer(page, 'R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
 
   const give = page.getByRole('button', { name: 'Give it to the customer' })

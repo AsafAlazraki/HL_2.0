@@ -49,38 +49,46 @@
    both.
 
    ------------------------------------------------------------------------------------
-   THE REFLOW LADDER, at the six widths the rulers run (rewritten 2026-10-30, the flow round:
-   the total at the bottom left, the masthead as the quote's identity, the boat inside the page's
-   measure, every product picture opening large).
+   THE REFLOW LADDER, at the six widths the rulers run (rewritten 2026-10-30 a second time, the
+   owner's own words: "the only thing that should scroll is the right hand bar the rest stays as
+   is"; the page starts with the white bar, which holds the maker's mark, the boat and the
+   customer; the photograph has nothing under it; every "Show all" opens over the page).
 
    THE RULE THAT DECIDES EVERY STEP: the rail is the work, the boat is the reason for it, and the
-   total is always in sight beside the work and over none of it.
+   total is always in sight beside the work and over none of it. AT A DESK THE PAGE STANDS STILL
+   AND ONLY THE CHAPTERS SCROLL; in a hand and on a tablet there is one column, and one column is
+   read by scrolling the page, so there the page scrolls as a document does.
 
-     390 x 844 (phone)         One column, 16px gutter. The masthead (the maker's mark, the name,
-                               and the quote's number, where it stands and whom it is for in a
-                               two-across strip) scrolls away with the page. The photograph
-                               stands above the rail, the boat's facts below it. The tally is a
-                               card the window's width over the tab bar, sticky at its foot: the
-                               figure and the price it is at, the bar and its key, the step and
-                               its Undo; at the page's end it rests in its place.
-     844 x 390 (phone, turned) The rail first, then the stage. The head's strip is one row of
-                               three and its mark leaves; the tally is one row — the figure and
-                               the price it is at — so the work keeps the window.
-     834 x 1112 (tablet)       The masthead's strip three across. The stage is a band the
-                               chapters start under in the first window: the photograph 3 : 2 on
-                               the larger half, the boat's facts two across beside it. The tally
-                               is a card at the bottom left, at most 600px, with the boat small
-                               beside its figure.
-     1280 x 800 (laptop)       Two columns, the rail the fixed one at 40rem. The boat's column
-                               (the side) sticks under the shell's pill: the photograph, its
-                               caption and facts, and the tally at its foot, the column as tall
-                               as the window has room for under where it rests (--cfg-side-top),
-                               so the tally is in sight from the first frame. The photograph
-                               flexes into what is left, never past its pixels.
-     1440 x 900 (desk)         The same at 44rem and a 56px gutter. The photograph's start edge
-                               stands on the masthead's, inside the gutter, round on every corner.
+     390 x 844 (phone)         One column, 16px gutter, and the page scrolls. The bar stacks: the
+                               mark over the boat's name and finish, then the quote's number and
+                               where it stands two across and the customer the bar's width (the
+                               press that names them, or their name and contact and a pencil).
+                               The photograph stands above the search and the rail, the boat's
+                               specifications plate below the rail. The tally is a card the
+                               window's width over the tab bar, sticky at its foot; at the page's
+                               end it rests in its place. A "Show all" sheet is the window less
+                               8px, its find field and the total side by side at its head.
+     844 x 390 (phone, turned) The rail first, then the stage. The bar is one strip of three — the
+                               number, where it stands, the customer — and the tally one row, so
+                               the work keeps the window.
+     834 x 1112 (tablet)       The bar stacks, its facts three across with the customer two wide.
+                               The stage is a band the chapters start under: the photograph 3 : 2
+                               on the larger half, the specifications plate beside it, opening
+                               downwards. The tally is a card at the bottom left with the boat
+                               small beside its figure. The page scrolls.
+     1280 x 800 (laptop)       Two columns, and THE PAGE IS THE WINDOW: the bar across the top;
+                               on the left the photograph, taking whatever the specifications
+                               and the total under it leave, never past its pixels; on the right
+                               the search and the step meter over the chapters, which scroll in
+                               their own column, its scrollbar in the gutter at the window's
+                               edge. Opening every specification takes its room from the
+                               photograph, down to a band, and past that the list scrolls in its
+                               own plate: nothing in the column runs past the window.
+     1440 x 900 (desk)         The same at 44rem and a 56px gutter.
      1920 x 1080 (showroom)    The rail does not grow; every extra pixel goes to the boat's
                                column, still inside the page's 80px gutter.
+     A wide window under 700px tall keeps two columns and lets the page scroll, both columns at
+     their own height: the boat's column has no room to stand in it.
 
    ------------------------------------------------------------------------------------
    MOTION. NO FIGURE ON THIS SCREEN MOVES: a price that counts up reads as a price still being
@@ -94,7 +102,12 @@
      · on a draft's first paint the chapters rise into place a few frames apart; a given
        quote is still from its first frame;
      · a chapter's body grows out of its head on the travel spring and closes faster, a caret
-       in its head turns over, a row's tick fills on the settle spring;
+       in its head turns over, a row's tick fills on the settle spring; every specification
+       grows out of the specifications plate the same way, its caret turning;
+     · when a line changes, each part's length in the total's bar travels to its new share on
+       the travel spring (a new part grows out of nothing), and the figure is set, not counted;
+     · a "Show all" sheet and the chandlery rise over the page on the kit's dialog, the page
+       behind dimmed and still, and leave faster than they came;
      · the moment a quote is given is the one authored moment on this screen (the finale's
        handover, below): the seal is stamped where the customer's name stood (a Lottie
        timeline played once, GivenSeal.tsx and seal.ts), the given leaf spreads out from under
@@ -218,36 +231,50 @@
   margin: --spacing(5) 0 0;
 }
 
-/* ---- the masthead: what is sold, for whom, its number and state ------------------- */
+/* ---- the masthead: the top white bar --------------------------------------------- */
 
-/* THE QUOTE'S IDENTITY IN TWO TIERS (the owner, 2026-10-30: "the header section should be way
-   nicer for the quote page way way nicer"; `Mast` in Configurator.tsx). Above, what is sold:
-   the maker's own mark, then the boat's name as the largest type on the screen, light and
-   tracked tight, its finish under it with the colours drawn. Below, the quote's facts as one
-   strip of labelled cells on the kit's white plate — an order page's summary line, not a
-   sentence in small caps. It no longer sticks: the total that made it sticky is the tally's.
-   Its own top is the shell's clearance at a desk, where the pill floats over it. */
+/* THE PAGE STARTS WITH THE BAR (the owner, 2026-10-30: "in that left hand side of that white bar
+   on the top that is where you put highfield logo and then have model details and things";
+   `Mast` in Configurator.tsx). One white plate on its shadow: at its start the maker's mark
+   beside the boat's name and its finish, ruled off from the quote's facts — its number, where it
+   stands, its day, the customer and who prepared it — each a small label over its value. Its own
+   top is the shell's clearance at a desk, where the pill floats over the room above it. */
 .cfg-mast {
-  display: grid;
-  gap: --spacing(5);
-  padding: --spacing(6) var(--gutter) 0;
-  padding-block-start: max(--spacing(6), var(--shell-inset));
+  padding: --spacing(5) var(--gutter) 0;
+  padding-block-start: max(--spacing(5), var(--shell-inset));
+}
+.cfg-mast__bar {
+  display: flex;
+  align-items: stretch;
+  /* a height of its own, above what any cell needs, so the bar stands the same height named or
+     not, drafted or given: nothing under it moves at the give */
+  min-block-size: --spacing(20);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
 }
 .cfg-mast__what {
+  flex: none;
   min-inline-size: 0;
-}
-.cfg-mast__maker {
+  max-inline-size: 46%;
   display: flex;
   align-items: center;
-  min-block-size: --spacing(7);
-  margin: 0 0 --spacing(3);
+  gap: --spacing(4);
+  padding: --spacing(3.5) --spacing(6) --spacing(3.5) --spacing(5);
+  border-inline-end: 1px solid var(--color-rule);
+}
+.cfg-mast__maker {
+  flex: none;
+  display: flex;
+  align-items: center;
+  margin: 0;
 }
 /* the maker's mark at a wordmark's height, never past its own pixels */
 .cfg-mast__mark {
   display: block;
   inline-size: auto;
   block-size: --spacing(7);
-  max-inline-size: --spacing(44);
+  max-inline-size: --spacing(36);
   object-fit: contain;
   object-position: left center;
 }
@@ -259,12 +286,17 @@
   text-transform: uppercase;
   color: var(--color-ink-file);
 }
+.cfg-mast__words {
+  min-inline-size: 0;
+  display: grid;
+  gap: --spacing(0.5);
+}
 .cfg-mast__name {
   margin: 0;
-  font-size: var(--text-6xl);
-  line-height: var(--text-6xl--line-height);
-  font-weight: 300;
-  letter-spacing: var(--tracking-display);
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 600;
+  letter-spacing: -0.015em;
   color: var(--color-ink);
   text-wrap: balance;
 }
@@ -275,29 +307,28 @@
   flex-wrap: wrap;
   align-items: center;
   gap: --spacing(2);
-  margin: --spacing(2) 0 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
 
-/* THE QUOTE'S FACTS, ONE STRIP: five cells on one white plate, ruled between, each a small
-   label over its value. Who it is for is the widest, and with nobody named it is the press that
-   names them. */
+/* THE QUOTE'S FACTS: five cells across the rest of the bar, ruled between, each a small label
+   over its value. The customer's is the widest; with nobody named it is the press that names
+   them. */
 .cfg-mast__facts {
+  flex: 1 1 auto;
+  min-inline-size: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: auto auto auto minmax(--spacing(48), 1fr) minmax(0, 1.4fr);
-  border-radius: var(--radius-plate);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-plate);
+  grid-template-columns: auto auto auto minmax(--spacing(44), 1.4fr) minmax(0, 1fr);
 }
 .cfg-mast__fact {
   min-inline-size: 0;
   display: grid;
-  align-content: start;
+  align-content: center;
   gap: --spacing(1);
-  padding: --spacing(3.5) --spacing(5);
+  padding: --spacing(3) --spacing(5);
 }
 .cfg-mast__fact + .cfg-mast__fact {
   border-inline-start: 1px solid var(--color-rule);
@@ -322,17 +353,103 @@
   font-weight: 600;
   color: var(--color-ink);
 }
-.cfg-mast__who {
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 700;
-}
 /* whether the last write was kept, quietly, under who prepared it */
 .cfg-mast__kept {
   flex-basis: 100%;
+  /* its line is kept whether or not it says anything, so the bar never moves at the give */
+  min-block-size: 1lh;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 400;
+  color: var(--color-ink-2);
+}
+
+/* THE CUSTOMER, NAMED: the name bold over its line of contact, and where it can still change a
+   pencil beside it — the whole cell one press, answered as the kit answers a press: the room's
+   wash under the pointer and a hair under a finger. */
+.cfg-who {
+  min-inline-size: 0;
+  /* the same height pressable and given, so the bar does not move at the give */
+  min-block-size: --spacing(7);
+  align-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: --spacing(2);
+  text-align: start;
+}
+.cfg-who__name {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cfg-who__contact {
+  grid-column: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+.cfg-who__edit {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(7);
+  block-size: --spacing(7);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+}
+.cfg-who--press {
+  inline-size: 100%;
+  margin: calc(-1 * --spacing(1.5)) calc(-1 * --spacing(2.5));
+  padding: --spacing(1.5) --spacing(2.5);
+  border: 0;
+  border-radius: var(--radius-field);
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    transform var(--duration-press) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cfg-who--press:hover {
+    background: var(--color-wash);
+  }
+}
+.cfg-who--press:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cfg-who--press:active {
+    transform: scale(0.98);
+  }
+}
+/* THE CUSTOMER'S DETAILS, under their cell (`CustomerForm`): the two fields, what happens to
+   them, and the act */
+.cfg-whoform {
+  display: grid;
+  gap: --spacing(3);
+  inline-size: min(--spacing(88), calc(100vw - --spacing(12)));
+}
+.cfg-whoform__say {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
 
@@ -340,42 +457,131 @@
 
 /* THE RAIL IS THE FIXED MEASURE AND THE BOAT'S COLUMN TAKES WHAT IS LEFT. A chapter row has one
    right line length, about 700px, and every pixel a wider window has goes to the boat — the one
-   thing on the screen that gets better the larger it is.
-
-   AND THE BOAT STANDS INSIDE THE PAGE'S MEASURE (the owner, 2026-10-30: "i don't like how the
-   image goes all the way to left on big screen"). It bled off the start edge of the window at
-   every desk width; the floor keeps the page's gutter on both sides now, so the photograph's
-   start edge stands on the masthead's, and the chapters' end edge on the strip's. */
+   thing on the screen that gets better the larger it is. Both columns keep the page's gutter, so
+   the photograph's start edge stands on the bar's, and the chapters' end edge on the bar's. */
 .cfg-floor {
-  padding: --spacing(6) var(--gutter) --spacing(16);
+  padding: --spacing(5) var(--gutter) --spacing(16);
   display: grid;
   grid-template-columns: minmax(0, 1fr) --spacing(176);
   gap: var(--gutter);
-  align-items: stretch;
+  align-items: start;
 }
 .cfg-rail {
-  align-self: start;
-}
-
-/* THE SIDE: THE BOAT AND WHAT IT COMES TO, ONE COLUMN THAT STAYS. At a desk the boat's
-   photograph, its facts and the tally stand together in a column that sticks under the shell's
-   pill while the chapters scroll past it; the column is as tall as the window has room for under
-   where it rests (`--cfg-side-top`, measured by the screen when the page is drawn and when the
-   window changes, never while it scrolls), so the tally at its foot is in sight from the first
-   frame, and the photograph takes what the facts and the tally leave. */
-.cfg {
-  --cfg-side-top: --spacing(64);
+  min-inline-size: 0;
 }
 .cfg-side {
   min-inline-size: 0;
 }
 .cfg-side__in {
-  position: sticky;
-  inset-block-start: var(--shell-inset);
   display: flex;
   flex-direction: column;
   gap: --spacing(4);
-  block-size: max(--spacing(96), calc(100dvh - var(--cfg-side-top) - --spacing(6)));
+}
+.cfg-scroll {
+  position: relative;
+}
+
+/* AT A DESK ONLY THE CHAPTERS SCROLL (the owner, 2026-10-30: "the only thing that should scroll
+   is the right hand bar the rest stays as is please"). The page is the window's height and does
+   not move: the bar at the top, the boat's column — its photograph taking whatever its specs and
+   the total leave it — and the search over the chapters stand still, and the chapters scroll in
+   their own column (`.cfg-scroll`), its overscroll kept to itself so a flick at its end never
+   moves anything else. Its scrollbar stands in the page's gutter at the window's edge, where a
+   page's own would, so the chapters' plate keeps the bar's end edge. Where the column scrolls to
+   is the address's chapter (`useOpenedAt`), so a reload opens it there.
+
+   Only where the boat's column has the room to stand: two columns, and 700px of window. A wide
+   short window keeps the page's own scroll, both columns at their own height. */
+@media (min-width: 1200px) and (min-height: 700px) {
+  .cfg {
+    /* nothing sticks over the column's top: a chapter brought in stands just under it */
+    --cfg-cover: 0px;
+    /* the width of the column's own scrollbar, measured and written on the column by the screen;
+       0 until it is, and wherever the browser lays its bars over the page */
+    --cfg-bar-w: 0px;
+    block-size: 100dvh;
+    min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .cfg-mast {
+    flex: none;
+  }
+  .cfg-floor {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    padding-block: --spacing(5) --spacing(6);
+  }
+  .cfg-side {
+    min-block-size: 0;
+  }
+  .cfg-side__in {
+    block-size: 100%;
+  }
+  .cfg-rail {
+    min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .cfg-find {
+    flex: none;
+    position: static;
+    padding-block-end: --spacing(3);
+    border-block-end: 0;
+  }
+  .cfg-scroll {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-strong) transparent;
+    scrollbar-gutter: stable;
+    /* the plate's shadow keeps its room inside the box that scrolls, and the box reaches the
+       window's end edge so its scrollbar stands in the gutter: the screen measures the bar's
+       width (`--cfg-bar-w`, 0 where the bars are laid over the page) and the plate's end edge
+       stays on the bar's whatever the browser draws */
+    margin-inline: calc(-1 * --spacing(4)) calc(-1 * var(--gutter));
+    padding: --spacing(1) calc(var(--gutter) - var(--cfg-bar-w)) --spacing(8) --spacing(4);
+  }
+  .cfg-scroll > .cfg-chapters {
+    margin-block-start: 0;
+  }
+  /* THE BOAT'S COLUMN NEVER RUNS PAST THE WINDOW: every specification opened takes its room from
+     the photograph, which gives way down to a band, and where even that is not enough on a short
+     desk the list scrolls inside its own plate — the photograph, the strip and the total never
+     overlap and never leave. */
+  .cfg-shot {
+    min-block-size: --spacing(30);
+  }
+  .cfg-stage__say {
+    flex: 0 1 auto;
+    min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .cfg-specs {
+    flex: 0 1 auto;
+    min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .cfg-specs__lead,
+  .cfg-specs__more {
+    flex: none;
+  }
+  .cfg-specs__rest {
+    flex: 0 1 auto;
+    min-block-size: 0;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .cfg-find > .cfg-find__said {
+    margin-block-start: --spacing(1.5);
+  }
 }
 
 /* ---- the tally: what the quote comes to, at the bottom left ----------------------- */
@@ -533,6 +739,18 @@
   flex: var(--share) 1 0;
   min-inline-size: --spacing(1.5);
   background: var(--ink);
+}
+/* WHEN A LINE CHANGES, THE LENGTHS MOVE AND THE FIGURE DOES NOT (the owner's "the clicks and the
+   animations", 2026-10-30): each part's length travels to its new share on the travel spring, and
+   a part new to the quote grows out of nothing. The figure above is set, never counted. Under
+   reduced motion, or a caret in a field, the lengths are simply where they are. */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-still]) .cfg:not([data-given]) .cfg-tally__len {
+    transition: flex-grow var(--duration-travel) var(--ease-spring);
+    @starting-style {
+      flex-grow: 0;
+    }
+  }
 }
 .cfg-tally__key {
   display: flex;
@@ -727,35 +945,6 @@
   color: var(--color-blue-100);
 }
 
-/* THE CAPTION UNDER THE PHOTOGRAPH: what the picture shows, then what THIS quote carries.
-   The second line is blue because blue means the file on every screen of this app — it is
-   read off the document's own lines — and because it is the line a customer who has just
-   seen a Mercury on the transom needs to find without looking for it. */
-.cfg-caption {
-  flex: none;
-  margin: --spacing(3) 0 0;
-  display: grid;
-  gap: --spacing(1);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  text-wrap: pretty;
-}
-.cfg-caption__shows {
-  color: var(--color-ink-2);
-}
-.cfg-caption__ours {
-  color: var(--color-ink-file);
-}
-
-.cfg-stage__over {
-  margin: --spacing(4) 0 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
-}
 /* THE BOAT'S NAME IS THE HEAD'S, at every width: the head sticks and says it, so the stage does
    not say it a second time a screen below (docs/WORDS.md, one fact once). It stays in the
    document for a reader, who meets the stage as its own region. */
@@ -778,31 +967,42 @@
   color: var(--color-ink-2);
 }
 
-/* THE STRIP IS RULED, NOT GRIDDED WITH A SHOWING GROUND. Measured on
-   the built screen at 1440x900: five specification columns in a
-   two-up grid leave one cell empty, and a grid whose own background
-   is the rule colour paints that empty cell as a solid grey block —
-   the largest object on the stage, meaning nothing. Each cell carries
-   its own rule instead, so an odd number of columns ends the strip
-   where the last fact ends. */
-/* THREE ACROSS ON A DESK, not two. The stage sticks under the masthead and is taller than a
-   900px window can show under it, so every row this strip spends is a row of the rungs below
-   pushed out of reach until the rail runs out: the SP560's five facts were three rows two
-   across and are two rows three across, 60px nearer the top. "INT LENGTH" is the longest
-   label the registers put here and it keeps one line at 180px. */
+/* THE BOAT'S SPECIFICATION (`Specs`; the owner, 2026-10-30: "for specs, ability to open more of
+   them and design that a bit nicer"). The few the paper prints lead as tiles on the kit's white
+   plate, ruled between: the figure large and bold, its label under it in small caps led by the
+   glyph of what it measures. Under them, a quiet full-width press opens every measure the price
+   file holds for this boat, growing out of the strip on the travel spring while its caret turns
+   over; they stand in two columns of label and figure, ruled, so a long specification stays short
+   enough to keep the photograph its room. */
 .cfg-specs {
-  margin: --spacing(4) 0 0;
+  margin: 0;
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+  overflow: hidden;
+}
+.cfg-specs__lead {
+  margin: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: --spacing(4);
-  border-block-end: 1px solid var(--color-rule);
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(24), 1fr));
 }
 .cfg-spec {
-  padding: --spacing(2) 0 --spacing(3);
-  border-block-start: 1px solid var(--color-rule);
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: --spacing(1);
+  padding: --spacing(3) --spacing(4);
+  border-inline-start: 1px solid var(--color-rule);
+  /* the first of each row is the plate's own edge: a rule there would draw a second one */
+  margin-inline-start: -1px;
 }
 .cfg-spec__lab {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: --spacing(1);
+  min-inline-size: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
@@ -812,20 +1012,106 @@
 }
 /* WHAT THE SPECIFICATION MEASURES, as a glyph before its label in the file's ink (`specGlyphs`) */
 .cfg-spec__glyph {
+  flex: none;
   display: inline-flex;
-  vertical-align: -0.2em;
-  margin-inline-end: --spacing(1.5);
   color: var(--color-ink-file);
 }
 /* a figure in the kit's voice: bold and tabular */
 .cfg-spec__val {
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
   font-weight: 700;
   color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* THE PRESS THAT OPENS THEM ALL: the plate's own foot, ruled off, its words and a caret in the
+   plate's well that turns over as the rest grows */
+.cfg-specs__more {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3);
+  min-block-size: --spacing(10);
+  padding: --spacing(1.5) --spacing(3) --spacing(1.5) --spacing(4);
+  border: 0;
+  border-block-start: 1px solid var(--color-rule);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-file);
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-hover) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cfg-specs__more:hover {
+    background: var(--color-wash);
+  }
+}
+.cfg-specs__more:active {
+  background: var(--color-wash);
+}
+.cfg-specs__more:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-inset);
+}
+.cfg-specs__chev {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(7);
+  block-size: --spacing(7);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  transition: transform var(--duration-travel) var(--ease-spring);
+}
+.cfg-specs__more[aria-expanded='true'] .cfg-specs__chev {
+  transform: rotate(180deg);
+}
+.cfg-specs__rest {
+  overflow: hidden;
+}
+.cfg-specs__all {
+  margin: 0;
+  padding: 0 --spacing(4) --spacing(2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(--spacing(56), 1fr));
+  column-gap: --spacing(6);
+}
+.cfg-specs__row {
+  min-inline-size: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(3);
+  padding-block: --spacing(1.5);
+  border-block-end: 1px solid var(--color-rule);
+}
+.cfg-specs__lab {
+  min-inline-size: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.cfg-specs__val {
+  margin: 0;
+  flex: none;
+  max-inline-size: 60%;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+  text-align: end;
 }
 
+/* WHERE NO PHOTOGRAPH IS HELD, the one sentence that says why the maker's mark stands there */
 .cfg-prov {
   margin: --spacing(3) 0 0;
   font-size: var(--text-2xs);
@@ -2292,14 +2578,10 @@
    THE REFLOW LADDER. At 1440x900 exactly, not one of these fires.
    ===================================================================== */
 
-/* AT A DESK THE BOAT'S NAME IS THE MASTHEAD'S, and its facts stand on one ruled line under the
-   photograph so the photograph keeps the height they would take. */
+/* AT A DESK THE BOAT'S NAME IS THE BAR'S, a few centimetres above its photograph. */
 @media (min-width: 1200px) {
   .cfg-stage__name {
     display: none;
-  }
-  .cfg-specs {
-    grid-template-columns: repeat(auto-fit, minmax(--spacing(20), 1fr));
   }
 }
 
@@ -2314,9 +2596,13 @@
   .cfg-floor {
     grid-template-columns: minmax(0, 1fr) --spacing(160);
   }
-  .cfg-mast__name {
-    font-size: var(--text-5xl);
-    line-height: var(--text-5xl--line-height);
+  /* the bar's five facts keep one line each at 1280: the boat's words wrap first */
+  .cfg-mast__what {
+    max-inline-size: 38%;
+    padding-inline-end: --spacing(5);
+  }
+  .cfg-mast__fact {
+    padding-inline: --spacing(4);
   }
 }
 
@@ -2423,20 +2709,6 @@
   .cfg-shot[data-art='word'] {
     block-size: --spacing(28);
   }
-  .cfg-stage__over {
-    margin-block-start: 0;
-  }
-  /* THE CAPTION STANDS UNDER THE PICTURE IN A BAND TOO (2026-09-28): it
-     opened the words beside the picture, where the maker's name sat 4px
-     under it and read as one paragraph (measured at 834 x 1112 on
-     2026-09-24); under the picture it is the picture's, as on a desk. */
-  .cfg-caption {
-    padding-inline-start: 0;
-    max-inline-size: none;
-  }
-  .cfg-specs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
   .cfg-find {
     position: static;
   }
@@ -2484,10 +2756,6 @@
        Only where the window is tall enough to give the head that room: a phone turned over
        keeps the stage under the rail (below). ------------------------------------------- */
 @media (min-width: 640px) and (max-width: 1199.98px) and (min-height: 701px) {
-  .cfg-mast__name {
-    font-size: var(--text-5xl);
-    line-height: var(--text-5xl--line-height);
-  }
   /* THE STAGE ON ARRIVAL, A BAND THE CHAPTERS START UNDER IN THE FIRST WINDOW (the flow walk,
      2026-10-30: at 834 the first chapter row stood at y 1,180, under the fold, the first screen a
      photograph and five facts). The photograph takes the larger half, 3 : 2, with its caption;
@@ -2505,20 +2773,24 @@
   .cfg-shot[data-art='word'] {
     aspect-ratio: auto;
   }
-  .cfg-specs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-block-start: 0;
-  }
-  .cfg-stage__over,
-  .cfg-stage__detail,
   .cfg-stage__name {
     display: none;
   }
 }
 
-/* --- BELOW A DESK THE QUOTE'S FACTS ARE THREE ACROSS: the number, where it stands and its day
-       over who it is for and who prepared it, ruled between and never an empty cell. --- */
+/* --- BELOW A DESK THE BAR STACKS: the boat over the quote's facts, ruled off; the facts three
+       across, the number, where it stands and its day over the customer and who prepared it,
+       ruled between and never an empty cell. --- */
 @media (max-width: 1199.98px) {
+  .cfg-mast__bar {
+    flex-direction: column;
+  }
+  .cfg-mast__what {
+    max-inline-size: none;
+    padding: --spacing(4) --spacing(5);
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--color-rule);
+  }
   .cfg-mast__facts {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2533,7 +2805,7 @@
   .cfg-mast__fact:nth-child(n + 4) {
     border-block-start: 1px solid var(--color-rule);
   }
-  .cfg-mast__fact--by {
+  .cfg-mast__fact--who {
     grid-column: span 2;
   }
 }
@@ -2572,22 +2844,19 @@
   .cfg {
     --gutter: --spacing(4);
   }
-  /* A HAND'S HEAD: the mark, the name a step down the ramp, and the facts two across */
-  .cfg-mast {
-    gap: --spacing(4);
+  /* A HAND'S BAR: the mark over the name and its finish, and the facts two across */
+  .cfg-mast__what {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: --spacing(2);
+    padding: --spacing(4);
   }
-  .cfg-mast__maker {
-    margin-block-end: --spacing(2);
+  .cfg-mast__mark {
+    block-size: --spacing(6);
   }
   .cfg-mast__name {
-    font-size: var(--text-3xl);
-    line-height: var(--text-4xl--line-height);
-    font-weight: 400;
-  }
-  .cfg-mast__detail {
-    margin-block-start: --spacing(1);
-    font-size: var(--text-sm);
-    line-height: var(--text-sm--line-height);
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
   }
   .cfg-mast__facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2655,9 +2924,6 @@
   }
   .cfg-shot {
     block-size: --spacing(50);
-  }
-  .cfg-specs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   /* A HEAD CANNOT HOLD A NUMBER, A NAME, AN ANSWER, A FIGURE AND A
      CHEVRON ON ONE LINE AT 358px, so the figure drops to its own row
@@ -2787,20 +3053,19 @@
 
 /* --- A PHONE TURNED OVER: the name a hand's size, so the work starts nearer the top. --- */
 @media (max-width: 1199.98px) and (max-height: 700px) {
-  .cfg-mast__name {
-    font-size: var(--text-2xl);
-    line-height: var(--text-2xl--line-height);
-    font-weight: 400;
+  .cfg-mast__what {
+    padding-block: --spacing(2.5);
   }
-  .cfg-mast__maker {
-    display: none;
+  .cfg-mast__mark {
+    block-size: --spacing(5);
+  }
+  .cfg-mast__name {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
   }
   /* A SHORT WINDOW'S HEAD IS ONE STRIP OF THREE: the number, where it stands, whom it is for; the
      day and who prepared it are the Quotes list's, so the work and the total are in the first
      window */
-  .cfg-mast {
-    gap: --spacing(3);
-  }
   .cfg-mast__facts {
     grid-template-columns: auto auto minmax(0, 1fr);
   }
@@ -3062,4 +3327,96 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   overflow-wrap: anywhere;
+}
+
+/* ---- the whole range of a list, over the page ---------------------------------------- */
+
+/* THE SHEET'S OWN HEAD, under its title (`RangeSheet`, `ChandlerySheet`): a find field for the
+   list, and the quote's total at its end, standing in the dialog's bar over the body while the
+   tiles scroll under it — never inside the box that scrolls, so a part carried onto the total is
+   let go where the total is drawn. */
+.cfg-sheet {
+  display: grid;
+  gap: --spacing(4);
+  /* the build's room for the tiles, its own ink for a list's lines */
+  --ink: var(--accent-graphite);
+}
+.cfg-sheet__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: --spacing(3) --spacing(6);
+}
+.cfg-sheet__bar--end {
+  justify-content: flex-end;
+}
+/* the step a press in the sheet took, and its way back, beside the total it changed */
+.cfg-sheet__step {
+  flex: 1 1 100%;
+  order: 9;
+  min-inline-size: 0;
+}
+.cfg-sheet__find {
+  flex: 1 1 --spacing(40);
+  min-inline-size: 0;
+  max-inline-size: --spacing(120);
+  display: grid;
+  gap: --spacing(2);
+}
+.cfg-sheet__label {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+/* THE QUOTE'S TOTAL, ON THE SHEET: its word over its figure, the kit's bold tabular voice; while
+   a part is carried it is where it is let go, the accent's dashed edge round its words */
+.cfg-sheet__total {
+  position: relative;
+  flex: none;
+  display: grid;
+  justify-items: end;
+  gap: --spacing(0.5);
+  padding: --spacing(2) --spacing(4);
+  border-radius: var(--radius-field);
+  background: var(--color-plate-tint);
+}
+.cfg-sheet__lab {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-on-tint);
+}
+.cfg-sheet__fig {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cfg-sheet__drop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: --spacing(2);
+  border: 1px dashed var(--color-accent);
+  border-radius: var(--radius-field);
+  background: var(--color-plate-tint);
+  color: var(--color-ink-on-tint);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  text-align: center;
+}
+.cfg-sheet__total[data-over] {
+  box-shadow: var(--ring-chosen);
+}
+/* the tiles take the sheet's width: three across at a desk, two on a tablet, one in a hand */
+.cfg-sheet .cfg-tiles {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(72)), 1fr));
 }
