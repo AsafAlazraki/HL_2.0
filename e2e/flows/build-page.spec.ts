@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { cameToRest, pickAndStart } from '../mint'
+import { cameToRest, openChapter, pickAndStart } from '../mint'
 
 /* ============================================================
    THE BUILD PAGE AS THE OWNER ASKED FOR IT (2026-10-30, two rounds the
@@ -235,7 +235,7 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   expect((await page.locator('.cfg-shot').boundingBox())!.height).toBe(shotBefore.height)
 
   /* 8. AT A DESK ONLY THE CHAPTERS SCROLL */
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await openChapter(page, /^02 Motor/)
   await cameToRest(page)
   await shot('05-motor')
   const column = page.locator('.cfg-scroll')
@@ -263,22 +263,14 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
     expect(await column.evaluate((el) => el.scrollTop)).toBe(at)
     await shot('06-scrolled')
   } else {
-    /* below a desk the page scrolls, and a total stays in sight: the floating one while the build
-       is worked, and the summary's own once the page has gone on past the build into it (the
-       critic, 2026-10-31, P-1: the summary is the page's end, a short build a wheel away) */
+    /* below a desk the page scrolls, and the floating total stays in sight while the build is
+       worked (rewritten 2026-10-31: the summary at the page's end, which said it there too, is
+       replaced by the final package over the window) */
     await page.mouse.wheel(0, 900)
     await cameToRest(page)
     const after = (await tally.boundingBox())!
     expect(after.y + after.height).toBeLessThanOrEqual(size.height)
-    const floating = after.y >= 0
-    const summed = await page
-      .getByTestId('summary')
-      .locator('.cfg-hand__fig')
-      .evaluate((el) => {
-        const figure = el.getBoundingClientRect()
-        return figure.top >= 0 && figure.bottom <= innerHeight
-      })
-    expect(floating || summed, 'no total in sight').toBe(true)
+    expect(after.y, 'no total in sight').toBeGreaterThanOrEqual(0)
     await shot('06-scrolled')
   }
 
@@ -376,22 +368,27 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
 })
 
 /* ============================================================
-   THE BOAT, CHOSEN IN ITS OWN CHAPTER, AND THE SUMMARY THAT FILLS THE
-   SCREEN (the owner, 2026-10-30: "the picking model color and all of
-   that nonsense to be done in hull section … so they can see differences
-   in real time", and "the finale section should actually take the whole
-   page summary when you scroll to that … with print and send").
+   THE BOAT, CHOSEN IN ITS OWN CHAPTER, AND THE FINAL PACKAGE (the
+   owner, 2026-10-30: "the picking model color and all of that nonsense
+   to be done in hull section … so they can see differences in real
+   time"; and 2026-10-31, rewritten from the summary that filled the
+   screen: "the animation to go to summary is BAD. and that summary page
+   SUCKS … let's go view final package and pretend loading screen and we
+   can see the pdf quote preview and things … and then go back to
+   editing if we need").
 
      1. the hull chapter offers the Sport series' models, its two
         materials and its colours, each with what it does to the total;
      2. a press changes the bar, the total and the photograph at once;
-     3. scrolling on past the last chapter (a desk) or the door at the
-        rail's foot (below one) brings the summary in, a window tall,
-        every line on it with its figure, and the give in it;
+     3. "View final package" at the rail's foot plays the preparing
+        moment and opens the package over the whole window, at its own
+        address: the boat, every line with its figure, the card and its
+        give, and the printed quote itself; a reload reopens it;
      4. given, it offers the printed quote and email from the dealer's
-        own mail; and the way back lands on the build.
+        own mail; and "Back to editing" lands exactly where the person
+        was.
    ============================================================ */
-test('the boat chosen in its chapter, and the summary that fills the screen', async ({
+test('the boat chosen in its chapter, and the final package over the window', async ({
   page,
 }, info) => {
   test.setTimeout(180_000)
@@ -444,7 +441,7 @@ test('the boat chosen in its chapter, and the summary that fills the screen', as
   await expect(head).toContainText('Jordan Avery')
 
   /* and a motor, so the summary has more than the boat on it */
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await openChapter(page, /^02 Motor/)
   await cameToRest(page)
   await page
     .getByRole('region', { name: /^02 Motor/ })
@@ -454,79 +451,109 @@ test('the boat chosen in its chapter, and the summary that fills the screen', as
   await expect(tally).not.toContainText('Not chosen yet: motor')
   await cameToRest(page)
 
-  /* 3. THE SUMMARY: past the last chapter at a desk, the door below one */
-  const summary = page.getByTestId('summary')
-  if (desk) {
-    const column = page.locator('.cfg-scroll')
-    const over = (await column.boundingBox())!
-    await page.mouse.move(over.x + over.width / 2, over.y + over.height / 2)
-    for (let i = 0; i < 12 && !(await summary.isVisible()); i += 1) {
-      await page.mouse.wheel(0, 400)
-      await page.waitForTimeout(120)
-    }
-  } else {
-    /* BELOW A DESK SCROLLING ON REACHES IT, with no press (the critic, P-1): it is the page's end */
-    for (let i = 0; i < 40; i += 1) await page.mouse.wheel(0, 800)
-    await cameToRest(page)
-    const reached = (await summary.boundingBox())!
-    expect(reached.y).toBeLessThan(size.height / 2)
-    await page.evaluate(() => scrollTo(0, 0))
-    await cameToRest(page)
-    const door = page.getByRole('button', { name: /^The summary/ })
-    await door.scrollIntoViewIfNeeded()
-    await door.click()
-  }
-  await expect(summary).toBeVisible()
-  await expect(page).toHaveURL(/at=finale/)
+  /* 3. THE FINAL PACKAGE, by its act at the rail's foot: where the person was is read first */
+  const column = page.locator('.cfg-scroll')
+  const door = page.locator('.cfg-door').getByRole('button', { name: 'View final package' })
+  await door.scrollIntoViewIfNeeded()
   await cameToRest(page)
-  await page.waitForTimeout(700)
-  const box = (await summary.boundingBox())!
-  if (desk) {
-    /* ONE SCREEN, EXACTLY: the window's height, nothing in it past its foot */
-    expect(Math.round(box.y)).toBe(0)
-    expect(Math.round(box.height)).toBe(size.height)
-    expect(await summary.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1)
-  } else {
-    /* the page's last screen, brought to the window's top and at least a window tall */
-    expect(Math.abs(box.y)).toBeLessThanOrEqual(2)
-    expect(box.height).toBeGreaterThanOrEqual(size.height - 1)
-  }
-  await expect(summary.getByRole('heading', { level: 2 })).toHaveText(/Highfield Sport 520/)
-  await expect(summary.locator('.cfg-sum__item')).toHaveCount(2)
-  await expect(summary.locator('.cfg-hand')).toContainText('For Jordan Avery')
+  const where = async () => ({
+    window: await page.evaluate(() => Math.round(scrollY)),
+    column: desk ? await column.evaluate((el) => Math.round(el.scrollTop)) : 0,
+  })
+  await door.click()
+  const pkg = page.getByTestId('final-package')
+  /* THE PREPARING MOMENT, honest in what it says: the quote's own lines and the paper */
+  await expect(pkg).toHaveAttribute('data-preparing', '')
+  const prep = pkg.locator('.cfg-pkg__prep')
+  await expect(prep).toContainText('Putting the final package together')
+  await expect(prep).toContainText('Highfield Sport 520')
+  await expect(prep).toContainText('The printed quote, page by page')
+  await shot('11-preparing')
+  /* and it lifts by itself, in about 1.2 s */
+  await expect(pkg).not.toHaveAttribute('data-preparing', '', { timeout: 3_000 })
+  await expect(page).toHaveURL(/at=finale/)
+  await page.waitForTimeout(500)
+  /* THE WHOLE WINDOW, over the shell's pill */
+  const box = (await pkg.boundingBox())!
+  expect(Math.round(box.x)).toBe(0)
+  expect(Math.round(box.y)).toBe(0)
+  expect(Math.round(box.width)).toBe(size.width)
+  expect(Math.round(box.height)).toBeGreaterThanOrEqual(size.height)
+  expect(
+    await page.evaluate(() => {
+      const pill = document.querySelector('[data-testid="shell-pill"]')?.getBoundingClientRect()
+      if (!pill) return true
+      const hit = document.elementFromPoint(pill.left + pill.width / 2, pill.top + pill.height / 2)
+      return hit?.closest('.cfg-pkg') !== null
+    }),
+    'the shell’s pill stands over the package',
+  ).toBe(true)
+  await expect(pkg.locator('.cfg-pkg__name')).toHaveText(/Highfield Sport 520/)
+  await expect(pkg.locator('.cfg-pkg__item')).toHaveCount(2)
+  await expect(pkg.locator('.cfg-hand')).toContainText('For Jordan Avery')
   /* THE BOAT'S NAME AS THE TITLE AND ON THE LINE THAT PRICES IT, never on the card (the critic,
-     P-10; the paper-quote critique, 2026-10-31: the hull's line said its finish alone), AND THE
-     CONTACT LINE ON THE CARD */
-  expect((await summary.innerText()).match(/Highfield Sport 520/g)?.length).toBe(2)
-  await expect(summary.locator('.cfg-sum__item-name').first()).toContainText('Highfield Sport 520')
-  await expect(summary.locator('.cfg-hand')).not.toContainText('Highfield Sport 520')
-  await expect(summary.locator('.cfg-hand')).toContainText('jordan.avery@example.com')
-  await shot('11-summary')
+     P-10), AND THE CONTACT LINE ON THE CARD */
+  const own = await pkg.evaluate((el) =>
+    [...el.querySelectorAll('.cfg-pkg__title, .cfg-pkg__side, .cfg-pkg__lines')]
+      .map((part) => (part as HTMLElement).innerText)
+      .join('\n'),
+  )
+  expect(own.match(/Highfield Sport 520/g)?.length).toBe(2)
+  await expect(pkg.locator('.cfg-pkg__item-name').first()).toContainText('Highfield Sport 520')
+  await expect(pkg.locator('.cfg-hand')).not.toContainText('Highfield Sport 520')
+  await expect(pkg.locator('.cfg-hand')).toContainText('jordan.avery@example.com')
+  /* THE PRINTED QUOTE ITSELF, the document's own component, paged */
+  const paper = pkg.getByTestId('document')
+  await expect(paper).toBeVisible()
+  await expect(paper.locator('.doc-page').first()).toBeVisible()
+  await expect(paper.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+  await expect(paper.locator('.doc-page').first()).toContainText('Jordan Avery')
+  /* never wider than its column: nothing of the page is cut */
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
+  ).toBeLessThanOrEqual(0)
+  await shot('12-package')
+
+  /* A RELOAD REOPENS IT, at its own address, with no preparing moment */
+  await page.reload()
+  await expect(pkg).toBeVisible()
+  await expect(pkg).not.toHaveAttribute('data-preparing', '')
 
   /* 4. GIVEN: the printed quote, and email from the dealer's own mail */
-  await summary.getByRole('button', { name: 'Give it to the customer' }).click()
-  await expect(summary.getByTestId('given-seal')).toContainText('Given to Jordan Avery')
-  await expect(summary.getByRole('button', { name: 'Open the printed quote' })).toBeVisible()
+  const give = pkg.getByRole('button', { name: 'Give it to the customer' })
+  await give.scrollIntoViewIfNeeded()
+  await give.click()
+  await expect(pkg.getByTestId('given-seal')).toContainText('Given to Jordan Avery')
+  await expect(pkg.getByRole('button', { name: 'Open the printed quote' })).toBeVisible()
   await expect(
-    summary.getByRole('link', { name: 'Email it to jordan.avery@example.com' }),
+    pkg.getByRole('link', { name: 'Email it to jordan.avery@example.com' }),
   ).toHaveAttribute('href', /^mailto:jordan\.avery@example\.com\?subject=Quote%20/)
   await page.waitForTimeout(1200)
-  await shot('12-summary-given')
+  await shot('13-package-given')
 
-  /* and the way back lands on the build */
-  if (desk) {
-    const over = (await summary.boundingBox())!
-    await page.mouse.move(over.x + 40, over.y + over.height / 2)
-    for (let i = 0; i < 8 && (await summary.isVisible()); i += 1) {
-      await page.mouse.wheel(0, -400)
-      await page.waitForTimeout(120)
-    }
-    await expect(summary).toBeHidden()
-  } else {
-    /* below a desk the summary stays the page's end, and the page goes back up to the build */
-    await summary.getByRole('button', { name: 'Back to the build' }).click()
-    await expect(page).not.toHaveURL(/at=finale/)
-    await cameToRest(page)
-  }
-  await expect(page.getByRole('button', { name: /^02 Motor/ })).toBeInViewport()
+  /* and "Back to editing" leaves it, the build where it stood when it was opened. The reload
+     above began the build anew, so its place is read again before the package is opened again */
+  await pkg.getByRole('button', { name: 'Back to editing' }).click()
+  await expect(pkg).toBeHidden()
+  await expect(page).not.toHaveURL(/at=finale/)
+  await cameToRest(page)
+  const again = page.locator('.cfg-door').getByRole('button', { name: 'View final package' })
+  await again.scrollIntoViewIfNeeded()
+  await cameToRest(page)
+  const left = await where()
+  expect(left.window + left.column, 'the build was not scrolled').toBeGreaterThan(0)
+  await again.click()
+  await expect(pkg).toBeVisible()
+  await pkg.getByRole('button', { name: 'Back to editing' }).click()
+  await expect(pkg).toBeHidden()
+  await cameToRest(page)
+  const back = await where()
+  expect(
+    Math.abs(back.window - left.window),
+    'the window moved on the way back',
+  ).toBeLessThanOrEqual(2)
+  expect(
+    Math.abs(back.column - left.column),
+    'the column moved on the way back',
+  ).toBeLessThanOrEqual(2)
 })

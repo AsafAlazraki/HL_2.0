@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { idOnScreen, issueIt, openTheDocument, startAQuote, written } from '../mint'
+import { HOME_READY } from '../routes'
 
 /* ============================================================
    SETTINGS â€” what the rulers cannot see. Milestone 4's exit criterion,
@@ -149,7 +150,7 @@ test('a section hidden on /manage is gone from Home and back in one press; Homeâ
   await expect(makers.getByRole('switch', { name: 'Hidden' })).toBeVisible()
   await written(page)
   await page.goto('/')
-  await expect(page.locator('[data-testid="pack-counts"]')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
   await expect(page.locator('.home-makers')).toHaveCount(0)
 
   await toSettings(page)

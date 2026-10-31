@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { HOME_READY, homeFrom } from '../routes'
 
 /* ============================================================
    THE ONE THING NO UNIT TEST CAN SHOW: that the price file survives
@@ -21,10 +22,11 @@ test('the browser reads the whole Master Price File', async ({ page }) => {
   page.on('pageerror', (e) => errors.push(e.message))
 
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
 
   /* THE FILE IS COUNTED WHERE ITS ANATOMY LIVES (2026-10-20, the critique of the built Home,
-     major 5): Home names the file and its day; its lists and its lines are Data's head */
+     major 5): its lists and its lines are Data's head, and since 2026-10-31 Home does not name
+     the file at all */
   await page.getByTestId('shell-pill').getByRole('link', { name: /^Data/ }).first().click()
   const counts = page.getByTestId('data-counts')
   await expect(counts).toBeVisible({ timeout: 30_000 })
@@ -60,14 +62,14 @@ test('the second visit reads the sheet out of this browser, not out of the file'
   })
 
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
-  await expect(page.locator('[data-testid="pack-counts"] [data-from="pack"]')).toBeVisible()
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(homeFrom('pack'))).toBeVisible()
   expect(packRequests).toBeGreaterThan(0)
 
   const onFirstVisit = packRequests
   await page.reload()
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
-  await expect(page.locator('[data-testid="pack-counts"] [data-from="repository"]')).toBeVisible()
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(homeFrom('repository'))).toBeVisible()
 
   /* the same sheet, out of the database this time, counted on Data */
   await page.getByTestId('shell-pill').getByRole('link', { name: /^Data/ }).first().click()

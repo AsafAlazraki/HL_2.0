@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { EntityDef, ModuleDef, QuoteDef, RowData } from '@/domain/model'
@@ -6,6 +6,7 @@ import { makeCtx, rowLabel } from '@/domain/model'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
+import { prefs } from '@/state/prefs'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { mintQuote } from '@/domain/quote'
@@ -13,9 +14,12 @@ import { Configurator } from './Configurator'
 import { readRail } from './chapters'
 
 /* ============================================================
-   THE BUILD OPENS ON THE HULL AND MOVES ONLY WHEN THE DEALER MOVES IT
-   (the owner, 2026-10-30). Until that day it moved on to what was left
-   and never back to the hull:
+   EVERY CHAPTER OF THE BUILD STANDS OPEN, AND NOTHING MOVES BY ITSELF
+   (the owner, 2026-10-31: "all cards on the right should be open by
+   default"). Rewritten that day: these tests asserted the hull open and
+   every other chapter shut on arrival, which the owner has now changed.
+   Before 2026-10-30 the build moved on to what was left and never back
+   to the hull:
 
    m2-last-critique.md, major 3: "Arriving from the picker (no ?at=),
    the motor chapter is open. After the F250XCB is pressed, the default
@@ -69,7 +73,6 @@ function railFor(quote: QuoteDef) {
 const head = (name: RegExp): HTMLElement => screen.getByRole('button', { name })
 const HULL = /^01 The hull/
 const MOTOR = /^02 Motor/
-const FINALE = /^The summary/
 
 /** The motor the critic pressed, where the file pairs it with this hull;
  *  otherwise the first motor it does pair. */
@@ -92,46 +95,74 @@ beforeAll(async () => {
   session.getState().signIn('Asaf')
 })
 
+beforeEach(() => {
+  prefs.getState().forgetAll()
+})
+
 describe('arriving from the picker, with no position in the address', () => {
-  /* THE OWNER, 2026-10-30: "always hull expanded first". The build opens on the boat, and moves
-     on only when the dealer presses another chapter — never by itself (the flow walk: the first
-     part pressed closed Dealer fit and jumped to Who it is for, and the behaviour changed under
-     the finger). */
-  it('opens on 01 The hull, whatever band is still empty', () => {
+  /* THE OWNER, 2026-10-31: "all cards on the right should be open by default". Every chapter
+     stands open on arrival, whatever band is still empty */
+  it('opens every chapter, whatever band is still empty', () => {
     const quote = theAdv7()
     const rail = railFor(quote)
     expect(rail.chapters.some((c) => c.kind === 'band' && c.lines === 0)).toBe(true)
     render(<Configurator quoteId={quote.id} />)
-    expect(head(HULL)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'false')
+    for (const chapter of rail.chapters.filter((c) => c.kind === 'band')) {
+      expect(head(new RegExp(`^${chapter.num} ${chapter.name}`))).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      )
+    }
+    /* and the build's way on is an act, never a chapter to open */
+    expect(screen.getAllByRole('button', { name: 'View final package' }).length).toBeGreaterThan(0)
   })
 
-  it('stays on the hull when a write answers the empty band, and moves on only by a press', async () => {
+  it('keeps every chapter open when a write answers the empty band, and moves nothing', async () => {
     const quote = theAdv7()
-    const goTo = (at: string): void => {
-      view.rerender(<Configurator quoteId={quote.id} at={at} />)
-    }
-    const view = render(<Configurator quoteId={quote.id} goTo={goTo} />)
-    await userEvent.click(head(MOTOR))
-    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
+    const goTo: string[] = []
+    render(<Configurator quoteId={quote.id} goTo={(at) => goTo.push(at)} />)
     await userEvent.click(aMotor())
-    /* the motor went on, and the chapter the dealer opened stays open under the press */
     expect(railFor(quote).chapters.find((c) => c.id === 'motor')!.lines).toBe(1)
+    expect(head(HULL)).toHaveAttribute('aria-expanded', 'true')
     expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(FINALE)).toHaveAttribute('aria-expanded', 'false')
+    /* the press wrote no position: nothing opens on by itself */
+    expect(goTo).toEqual([])
   })
 })
 
-describe('a chapter the dealer opened himself', () => {
-  it('stays open under the press, with the motor now on it', async () => {
+describe('a chapter the dealer folds', () => {
+  it('folds where it stands, writes no position, and stays folded on the next build', async () => {
+    const quote = theAdv7()
+    const goTo: string[] = []
+    const view = render(<Configurator quoteId={quote.id} goTo={(at) => goTo.push(at)} />)
+    await userEvent.click(head(MOTOR))
+    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'false')
+    expect(head(HULL)).toHaveAttribute('aria-expanded', 'true')
+    expect(goTo).toEqual([])
+    /* remembered by this browser, as a collapsed band is (`src/state/prefs.ts`) */
+    view.unmount()
+    render(<Configurator quoteId={quote.id} />)
+    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'false')
+    /* and opened again by its head */
+    await userEvent.click(head(MOTOR))
+    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('opens again where the finder takes the reader to it', () => {
+    const quote = theAdv7()
+    const view = render(<Configurator quoteId={quote.id} />)
+    prefs.getState().set('build.folded', ['motor'])
+    view.rerender(<Configurator quoteId={quote.id} at="motor" />)
+    expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('stays open under a press, with the motor now lit where it was pressed', async () => {
     const quote = theAdv7()
     render(<Configurator quoteId={quote.id} at="motor" />)
     const chapter = screen.getByRole('region', { name: /02 Motor/ })
     expect(within(chapter).queryAllByRole('button', { pressed: true })).toEqual([])
     await userEvent.click(aMotor())
     expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
-    expect(head(FINALE)).toHaveAttribute('aria-expanded', 'false')
-    /* the motor it took is lit where it was pressed */
     expect(within(chapter).getAllByRole('button', { pressed: true })).toHaveLength(1)
   })
 })

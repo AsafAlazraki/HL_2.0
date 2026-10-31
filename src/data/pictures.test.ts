@@ -145,6 +145,23 @@ describe('the one picture reader, on the real pack', () => {
     expect(pictureOfQuote(own)?.src).toMatch(/589-ocean-ranger-cc-lifestyle-2/)
   })
 
+  /* 2026-10-31: the price file gives the F150's studio picture to four F200 rows as well, and
+     its held copy shows cowls that read "150". An F200's cover never prints it; the F150's does. */
+  it('never prints the F150’s picture on an F200’s cover, and keeps it for the F150', () => {
+    const f150 = /yamaha-f150-profile-800-x-600px-grey/
+    const f200 = quoteOn(pack.byKey('mot_yamaha').id, rowNamed('mot_yamaha', 'Yamaha - F200XC'))
+    expect(f200.subjectImage?.src).toMatch(f150)
+    const refused = coverOfQuote(f200)
+    expect(refused).toEqual(pictures().forCover(itemOfQuote(f200)))
+    expect(refused.held ? refused.picture.src : '').not.toMatch(f150)
+    expect(!refused.held && refused.because).toMatch(/refused: not that exact model \(a sister model\)/)
+    expect(pictureOfQuote(f200)?.src ?? '').not.toMatch(f150)
+    const own = quoteOn(pack.byKey('mot_yamaha').id, rowNamed('mot_yamaha', 'Yamaha - F150LC'))
+    const kept = pictures().forCover(itemOfQuote(own))
+    expect(kept.held && kept.picture.src).toMatch(/yamaha-f150-profile-800-x-600px-grey-9d6ec17d\.webp$/)
+    expect(coverOfQuote(own)).toEqual(kept)
+  })
+
   it('never puts the REDCO and TINKA logos beside a trailer, on a screen, a line or a cover', () => {
     const rows = rowsOf('trailer').filter(({ tableId, row }) =>
       /redco-tinka-logos-01\.png$/.test(addressOf(tableId, row) ?? ''),

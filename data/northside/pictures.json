@@ -13621,6 +13621,23 @@
     {
       "address": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/high-horsepower-four-stroke-115---425hp/inline-4-cylinder/2023/f150xsa/profile/yamaha-f150-profile-800-x-600px-grey.ashx",
       "table": "mot_yamaha",
+      "rows": [
+        "mot_yamaha:81",
+        "mot_yamaha:82",
+        "mot_yamaha:83",
+        "mot_yamaha:84"
+      ],
+      "decision": "refuse",
+      "rule": "not that exact model (a sister model)",
+      "shows": "Yamaha’s F150 studio picture: its file name names the F150, and the file gives it to four F200 rows as well",
+      "differs": [],
+      "verification": "looked at by Claude, 2026-10-31: the held copy (yamaha-f150-profile-800-x-600px-grey-9d6ec17d.webp) shows three grey outboards whose cowls read \"150\"",
+      "person": false,
+      "source": "tools/seed/fetch-images.ts RULINGS (2026-10-31)"
+    },
+    {
+      "address": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/high-horsepower-four-stroke-115---425hp/inline-4-cylinder/2023/f150xsa/profile/yamaha-f150-profile-800-x-600px-grey.ashx",
+      "table": "mot_yamaha",
       "rows": [],
       "decision": "note",
       "rule": "shows more outboards than one",

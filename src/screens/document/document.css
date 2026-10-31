@@ -119,27 +119,30 @@
      834 x 1112 (tablet)       True size, 20px of floor either side — the paper all but
                                fills the tablet, which is what a tablet is for here. Crop
                                marks and the page rail stay off: there is no floor to draw
-                               them on.
-     1280 x 800 (laptop)       True size, 243px of floor either side. The crop marks come
-                               on, the page number moves out into the left gutter as a rail
-                               beside each sheet — pagedjs' own furniture — and the desk
-                               note takes the right gutter beside the cover, capped at the
-                               column it stands in.
-     1440 x 900 (desk)         The same, wider. This is the width the direction was drawn
-                               at: one sheet of A4 standing in a dark room, the dealer's
-                               note in the margin at 256px.
-     1920 x 1080 (showroom)    Unchanged in shape. The chrome caps at 112rem and centres so
-                               its sentence does not run to 1,100px of line length; the
-                               sheet is the same 210 mm it is everywhere, because a
-                               millimetre does not get bigger on a bigger monitor.
+                               them on. The section picker stands over the paper and the
+                               desk note under it, each at the paper's width and each set
+                               in two columns (what is always printed and why beside the
+                               switches; the note's facts two abreast), so neither card is
+                               a 64ch column with 300px of white beside it.
+     1280 x 800 (laptop)       True size. The crop marks come on, the page number moves out
+                               into the left gutter as a rail beside each sheet — pagedjs'
+                               own furniture — and the picker and the note take a 15–16rem
+                               margin beside the cover; the paper and its margin stand
+                               centred as one, inside the chrome's 24px gutter.
+     1440 x 900 (desk)         The same, wider: the margin at 256px, the floor either side
+                               of paper-and-margin equal.
+     1920 x 1080 (showroom)    Unchanged in shape. The chrome and the floor keep a 40px
+                               gutter; the sheet is the same 210 mm it is everywhere,
+                               because a millimetre does not get bigger on a bigger
+                               monitor, and the paper with its margin stays centred.
 
-   THE DESK NOTE'S OWN STEP IS AT 1200, and it is the only thing in
+   THE DESK NOTE'S OWN STEP IS AT 1240, and it is the only thing in
    this file that moves at that width: under it the floor either side
    of the paper is 115px, which is not a column anybody can read, so
    the note is a card under the last sheet at the paper's own width.
-   Over it the floor is a three-column grid and the note is in the
-   margin. The paper is in the middle column at both, and its x does
-   not move when the note arrives.
+   Over it the floor is a four-column grid and the note is in the
+   margin; its column is a fixed width, so the paper's x does not
+   move with what the note says.
 
    ------------------------------------------------------------------------------------
    THE KIT'S LANGUAGE, ON SCREEN ONLY (2026-09-28; src/ui, tokens.css
@@ -1529,6 +1532,50 @@
   font-weight: 600;
 }
 
+/* AT THE PAPER'S WIDTH, TWO COLUMNS (the polish round, 2026-10-31). Under the margin's step the
+   picker and the note are cards as wide as the paper, and their sentences stop at 64ch: measured
+   at 834, the picker's words ended at x 410 of a card running to 814, a white half beside them.
+   So the picker sets what is always printed, and why nothing reaches Northside, beside the
+   switches; and the note sets its facts two abreast. Under 640 they are one column again. */
+@media screen and (min-width: 640px) and (max-width: 1239.98px) {
+  .doc-pick__in {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      'lab lab'
+      'say list'
+      'reach list'
+      'after list';
+    column-gap: --spacing(8);
+  }
+  .doc-pick__in > .doc-desk__lab {
+    grid-area: lab;
+  }
+  .doc-pick__in > .doc-desk__say:nth-child(2) {
+    grid-area: say;
+  }
+  .doc-pick__reach {
+    grid-area: reach;
+  }
+  .doc-pick__list {
+    grid-area: list;
+    align-content: start;
+  }
+  .doc-pick__in > .doc-desk__say:last-child {
+    grid-area: after;
+  }
+  .doc-desk__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: --spacing(8);
+    align-items: start;
+  }
+  /* the second fact opens its column as the first opens its own: no rule over it */
+  .doc-desk__row:nth-child(2) {
+    padding-block-start: 0;
+    border-block-start: 0;
+  }
+}
+
 /* the one fact of the old record block a buyer needs */
 .doc-replaces {
   margin: 0;
@@ -1593,29 +1640,36 @@
 }
 
 /* THE NOTE GOES INTO THE MARGIN WHERE THERE IS A MARGIN TO GO INTO.
-   1200 and not 1024: at 1024 the floor either side of a 210 mm sheet
+   1240 and not 1024: at 1024 the floor either side of a 210 mm sheet
    is 115px, which is a column of three-letter lines, so under this
    width the note stays where it is in the document — a card under the
    last sheet, at the paper's own width.
 
-   THE SHEET DOES NOT MOVE WHEN THE NOTE ARRIVES. `1fr auto 1fr` keeps
-   the paper in the middle of the window whatever the note does, and
-   the note is capped at the column it is in, so it can never push the
-   document off centre. Measured at 1440: the sheet's own x is 323 with
-   the note drawn and 323 without it.
+   THE PAPER AND ITS MARGIN STAND CENTRED AS ONE (the polish round, 2026-10-31). Until then the
+   paper alone was centred and the note took what was left of the right-hand floor: measured at
+   1280, a 187px column whose card ended 15px from the window's edge while the chrome above it
+   kept 24, so "Pictures beside the items: none to print" broke over two lines and the card stood
+   jammed against the glass; at 1440 the floor left of the paper was 300px of nothing but the
+   page rail. Now the floor is four columns — the rail's gutter (at least 64px, which with the
+   32px gap holds the 92px the rail hangs out by), the paper, the margin (14 to 16rem) and the
+   rest — and the floor keeps the chrome's own gutter, so the note's edge and Print's edge are
+   one line. 1240 is the narrowest window those four columns fit without scrolling sideways
+   (64 + 794 + 224 + 3 x 32 + 48 = 1,226).
 
-   AND THE PAGE RAIL STILL HAS ITS GUTTER: `.doc-page::before` hangs
-   outside the middle column into the empty one, which is 307px at 1440
-   and 243 at 1280 — it needs 32. */
-@media screen and (min-width: 1200px) {
+   THE SHEET DOES NOT MOVE WHEN THE NOTE ARRIVES: the margin's column is the same width whatever
+   the note holds, so the paper's x never depends on the note's words. */
+@media screen and (min-width: 1240px) {
   .doc:not([data-gauging]) .doc-floor {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns:
+      minmax(--spacing(16), 1fr) auto minmax(--spacing(56), --spacing(64))
+      minmax(0, 1fr);
     /* THE PICKER OVER THE NOTE, IN THE MARGIN: the sheaf spans both rows, and the second takes
        what is left, so the note stands directly under the picker however tall the paper is */
     grid-template-rows: auto 1fr;
     align-items: start;
     column-gap: --spacing(8);
+    padding-inline: --spacing(6);
   }
   .doc:not([data-gauging]) .doc-sheaf,
   .doc:not([data-gauging]) .doc-gauge {
@@ -1625,21 +1679,20 @@
   .doc:not([data-gauging]) .doc-pick {
     grid-column: 3;
     grid-row: 1;
-    justify-self: start;
     margin-block-end: --spacing(4);
-    inline-size: min(100%, --spacing(64));
+    inline-size: 100%;
   }
   .doc:not([data-gauging]) .doc-desk {
     grid-column: 3;
     grid-row: 2;
-    justify-self: start;
     margin-block-start: 0;
-    inline-size: min(100%, --spacing(64));
+    inline-size: 100%;
   }
 }
 
 @media screen and (min-width: 1441px) {
-  .doc-chrome {
+  .doc-chrome,
+  .doc:not([data-gauging]) .doc-floor {
     padding-inline: --spacing(10);
   }
   .doc-chrome__say {

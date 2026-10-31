@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { cardName } from '../mint'
+import { cardName, openChapter } from '../mint'
 import { openingOnASeparator, setNames, startInANamedColour } from '../lines'
 
 /* ============================================================
@@ -217,7 +217,7 @@ test('declining leaves the quote exactly as it was, and lands on the chapter it 
 }) => {
   await startAQuote(page)
   const before = await totalOnTheBuild(page)
-  await page.getByRole('button', { name: /^01 The hull/ }).click()
+  await openChapter(page, /^01 The hull/)
   await raiseTheRung(page)
 
   await page.getByRole('button', { name: 'Leave it as it is' }).click()
@@ -326,7 +326,7 @@ test('a choice of boat that moves the total is put on in place, with its way bac
 }) => {
   await startAQuote(page)
   const choices = page.getByTestId('boat-choices')
-  if (!(await choices.isVisible())) await page.getByRole('button', { name: /^01 The hull/ }).click()
+  if (!(await choices.isVisible())) await openChapter(page, /^01 The hull/)
   await expect(choices).toBeVisible()
 
   const costs = choices.getByRole('button', { name: /, [+−-]\$[\d,]+$/, pressed: false }).first()
@@ -355,7 +355,7 @@ test('a line the price file does not price reads here exactly as it reads on the
   await startAQuote(page)
   /* THE QUOTE STARTS WITH THE BOAT ALONE (the owner, 2026-10-30): the recommended motor is put on
      by its own press, so a level has something to move */
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await openChapter(page, /^02 Motor/)
   await page
     .locator('[data-chapter="motor"]')
     .getByRole('button', { name: /, recommended, not on the quote$/ })
@@ -364,13 +364,15 @@ test('a line the price file does not price reads here exactly as it reads on the
   await expect(page.getByTestId('last-step')).toContainText('put on the quote')
   /* and the Tube Covers the file pairs with the boat, whose list names no price, so no level
      moves it (the rigging kit the file once put on with the motor is no longer put on with it) */
-  await page.getByRole('button', { name: /^04 Dealer fit/ }).click()
+  await openChapter(page, /^04 Dealer fit/)
   await page
     .locator('[data-chapter="fit"]')
     .getByRole('button', { name: /^Tube Covers.*, not on the quote$/ })
     .first()
     .click()
-  await expect(page.getByTestId('last-step')).toContainText('Tube Covers')
+  /* the step that put the motor on may still be leaving its toast as this one is said in the
+     total's card (a step too long for the band), so the step is read by its words */
+  await expect(page.getByTestId('last-step').filter({ hasText: 'Tube Covers' })).toBeVisible()
   const build = page.url().replace(/\?.*$/, '')
   await raiseTheRung(page)
 

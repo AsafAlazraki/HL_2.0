@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { cameToRest, pickAndStart } from '../mint'
+import { cameToRest, openChapter, pickAndStart } from '../mint'
 
 /* ============================================================
    THE CHANDLERY, WALKED — direction B of docs/directions/choosing.md.
@@ -36,7 +36,7 @@ async function openTheAisle(page: Page): Promise<void> {
   await throughTheDoor(page)
   await pickAndStart(page, 'boat_stacer', '519 Sea Ranger SDF')
   await cameToRest(page)
-  await page.getByRole('button', { name: /^04 / }).click()
+  await openChapter(page, /^04 /)
   await cameToRest(page)
   await page.getByRole('button', { name: /^Browse all [\d,]+ in the chandlery$/ }).click()
   await expect(page.getByRole('dialog', { name: 'The chandlery' })).toBeVisible()

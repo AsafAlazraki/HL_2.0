@@ -229,6 +229,20 @@ export async function raiseTheRung(page: Page): Promise<string> {
  * then says the name.
  */
 export async function nameTheCustomer(page: Page, who: string = CUSTOMER): Promise<void> {
+  /* WHERE THE FINAL PACKAGE STANDS OVER THE BAR (2026-10-31), a draft nobody is named on carries
+     the name's own fields at the head of its card, and the name is put on there */
+  const pkg = page.getByTestId('final-package')
+  if (await pkg.isVisible()) {
+    const field = pkg.getByLabel(/Who the quote is for/)
+    if ((await field.count()) > 0) {
+      await field.fill(who)
+      await pkg.getByRole('button', { name: 'Put their name on it' }).click()
+      await expect(pkg.locator('.cfg-hand')).toContainText(who)
+      return
+    }
+    await pkg.getByRole('button', { name: 'Back to editing' }).click()
+    await expect(pkg).toBeHidden()
+  }
   const bar = page.locator('.cfg-mast')
   await bar.getByRole('button', { name: /^Name the customer$|, change the customer$/ }).click()
   const panel = page.getByRole('dialog', { name: 'The customer' })
@@ -238,15 +252,41 @@ export async function nameTheCustomer(page: Page, who: string = CUSTOMER): Promi
   await expect(bar).toContainText(who)
 }
 
+/**
+ * A CHAPTER OF THE BUILD, OPEN (the owner, 2026-10-31: "all cards on the right should be open by
+ * default"). Every chapter stands open and a press on its head folds it, so a walk that wants one
+ * open presses its head only where a person folded it.
+ */
+export async function openChapter(page: Page, name: RegExp): Promise<void> {
+  const head = page.getByRole('button', { name }).first()
+  if ((await head.getAttribute('aria-expanded')) === 'false') await head.click()
+  await expect(head).toHaveAttribute('aria-expanded', 'true')
+}
+
+/**
+ * THE FINAL PACKAGE (the owner, 2026-10-31, in place of the summary): the rail's last act, "View
+ * final package", and the package over the window once its preparing moment has lifted.
+ */
+export async function openThePackage(page: Page): Promise<void> {
+  const pkg = page.getByTestId('final-package')
+  /* already standing over the window, as after a name put on in its own card */
+  if (!(await pkg.isVisible())) {
+    const door = page.locator('.cfg-door').getByRole('button', { name: 'View final package' })
+    await door.scrollIntoViewIfNeeded()
+    await door.click()
+  }
+  await expect(pkg).toBeVisible()
+  await expect(pkg).not.toHaveAttribute('data-preparing')
+}
+
 /** Address the draft and give it to the customer, on the build. */
 export async function issueIt(page: Page, who: string = CUSTOMER): Promise<void> {
   /* the name is the bar's: named there, the bar says it (the step may be a toast that has gone).
-     It is named before the summary is opened, since at a desk the summary stands over the bar */
+     It is named before the package is opened, since the package stands over the bar */
   await nameTheCustomer(page, who)
   await cameToRest(page)
-  /* then the summary, where what waits for a price is priced before the give */
-  await page.getByRole('button', { name: /^The summary/ }).click()
-  await expect(page.getByTestId('summary')).toBeVisible()
+  /* then the final package, where what waits for a price is priced before the give */
+  await openThePackage(page)
   await priceWhatWaits(page)
   await cameToRest(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()

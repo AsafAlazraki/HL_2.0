@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR } from '../door'
-import { cameToRest, issueIt, startAQuote, written } from '../mint'
+import { cameToRest, issueIt, openThePackage, startAQuote, written } from '../mint'
 import { FIXED_TIME, settle } from '../shots/recipe'
 import { expectClean, readContrast, wearTheme, type Reading } from './measure/read'
 import { plantRefusals, specimens } from './measure/refusals'
@@ -96,7 +96,7 @@ test('the sale’s refusals — the finale addressed to nobody, and a given quot
   await startAQuote(page)
 
   /* THE FINALE OF A QUOTE WITH NO NAME ON IT — the critic's first figure. */
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
   const give = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(give).toHaveAttribute('aria-disabled', 'true')
   /* THE BUILD BRINGS THE PRESSED CHAPTER INTO VIEW a beat after the press (useBroughtIn, once

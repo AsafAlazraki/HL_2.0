@@ -9,7 +9,6 @@ import { cellsFor, registerShape } from '@/domain/people/book'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { localDayOf } from '@/domain/quote/day'
 import { dayWritten, localTimeOf } from '@/domain/quote/diary/days'
-import { todayOf } from '@/domain/quote/diary/today'
 import { boatOfQuote } from '@/domain/quote/spoken'
 import { createMemoryDatabase } from '@/data/memory/database'
 import { memoryQuotes } from '@/data/memory/repositories'
@@ -18,22 +17,18 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { ScopeSeat, useLendFinder } from '@/screens/shell/scope'
-import { priceAsksOf, priceAsksSay } from './asks'
 import { holdingsOf } from './holdings'
 import { boatsForHome, heldPictures, rowPictured, saidOfPicture } from './ledgers'
 import { heroOfQuote } from '@/data/pictures'
 import {
   Home,
   NO_FINDER,
-  NO_QUOTE_STARTED,
   NO_WAY_IN,
   NO_WAY_TO_A_FILED_QUOTE,
   NO_WAY_TO_THE_PICKER,
-  NOTHING_YET,
   foldedSaid,
   greetingFor,
   soldOnTheBoat,
-  todaySaid,
 } from './Home'
 
 /* ============================================================
@@ -142,23 +137,31 @@ describe('day one, with the Master Price File open', () => {
     expect(sea.querySelectorAll('.home-letter')).toHaveLength(0)
   })
 
-  /* THE CRITIQUE OF THE BUILT HOME, MAJOR 5: the file's lists and lines are Data's, and the
-     pill already counts them at Data's door. The refinement round (2026-10-21, docs/WORDS.md):
-     Home names the price list by its date, and not where it was packed or kept */
-  it('says the price list once, by its date, and not its size or where it is kept', () => {
+  /* THE OWNER, 2026-10-31: "Let's remove the price list of 16 september on home page and the
+     text below it and the text on the right and remove the answer them on prices". A file that
+     is in and well is said to a test on the screen's root, and to nobody in words; the sea has
+     no foot. Until that day this asserted "Price list of <day>" on the stamp. */
+  it('names no price list, no price question and no today line, and has no foot', () => {
     const facts = held()
     render(<Home business="Northside Marine" from="pack" />)
-    const stamp = screen.getByTestId('pack-counts')
-    expect(within(stamp).getByText(/^Price list of /)).toHaveAttribute('data-from', 'pack')
-    expect(stamp).toHaveTextContent(/^Price list of \d{1,2} [A-Z][a-z]+ \d{4}$/)
-    expect(stamp).not.toHaveTextContent(/packed|browser|kept/)
-    expect(stamp).not.toHaveTextContent(facts.rows.toLocaleString('en-AU'))
-    expect(stamp).not.toHaveTextContent(/lists|lines|fits what|pairings|\bms\b|\b(tables?|rows?)\b/)
+    const home = screen.getByTestId('home')
+    expect(home).toHaveAttribute('data-file', 'open')
+    expect(home).toHaveAttribute('data-from', 'pack')
+    expect(home).not.toHaveAttribute('data-foot')
+    expect(home.querySelector('.home-sea-foot')).toBeNull()
+    expect(screen.queryByTestId('pack-counts')).toBeNull()
+    expect(screen.queryByTestId('price-asks')).toBeNull()
+    expect(home).not.toHaveTextContent(/Price list of|Master Price File/)
+    expect(home).not.toHaveTextContent(/price questions? waits?|Answer (it|them) on Prices/)
+    expect(home).not.toHaveTextContent(/Nothing has moved today|The last thing kept was on/)
+    expect(home).not.toHaveTextContent(facts.rows.toLocaleString('en-AU'))
+    expect(screen.queryByRole('button', { name: /on Prices/ })).toBeNull()
   })
 
-  it('says in one sentence that nothing has moved, and draws nothing for the empty jobs', () => {
+  /* the day-one sentence on the right went with the rest of the sea's foot (2026-10-31) */
+  it('draws nothing for the empty jobs, and says no day-one sentence on the right', () => {
     render(<Home business="Northside Marine" />)
-    expect(screen.getByText(NOTHING_YET)).toBeInTheDocument()
+    expect(screen.queryByText('No quotes and no customers yet.')).toBeNull()
     expect(screen.queryByRole('region', { name: 'Work in hand' })).toBeNull()
     expect(screen.getByTestId('home')).toHaveAttribute('data-state', 'day-one')
   })
@@ -308,14 +311,8 @@ describe('day one, with the Master Price File open', () => {
       for (const m of `${boat.said.model}`.matchAll(/\d[\d,]*/g)) allowed.add(Number(m[0]))
     render(<Home business="Northside Marine" from="pack" />)
     const home = screen.getByTestId('home')
-    const stamp = screen.getByTestId('pack-counts').textContent ?? ''
-    const date = /Price list of (.+)$/.exec(stamp)?.[1] ?? ''
-    for (const m of date.matchAll(/\d+/g)) allowed.add(Number(m[0]))
     const today = localDayOf(new Date())
     for (const m of dayWritten(today, today).matchAll(/\d+/g)) allowed.add(Number(m[0]))
-    /* the price questions are Prices' own count, read by Prices' own reader (./asks.ts) */
-    const asks = priceAsksOf(catalogue.getState())
-    if (asks) allowed.add(asks.count)
     const walker = document.createTreeWalker(home, NodeFilter.SHOW_TEXT)
     const parts: string[] = []
     for (let node = walker.nextNode(); node; node = walker.nextNode())
@@ -327,16 +324,13 @@ describe('day one, with the Master Price File open', () => {
     expect(home).not.toHaveTextContent(/\$|%|margin|cost|revenue|target/i)
   })
 
-  /* BEFORE THE SALE (built-critique-m3-2.md, major 5): the first quote on a fresh link carried a
-     line whose price Northside had not chosen, and the finale was the first to say so */
-  it('says the price questions once, under the file, with the one door to Prices', () => {
-    const asks = priceAsksOf(catalogue.getState())
-    expect(asks).not.toBeNull()
+  /* THE OWNER REMOVED THE QUESTIONS AND THEIR DOOR (2026-10-31): a door to Prices handed to
+     Home opens nothing and is drawn nowhere. Until that day this pressed "Answer them on Prices" */
+  it('draws no door to Prices, even when handed one', () => {
     const openPrices = vi.fn<() => void>()
     render(<Home business="Northside Marine" from="pack" openPrices={openPrices} />)
-    expect(screen.getAllByText(priceAsksSay(asks!))).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Answer them on Prices' }))
-    expect(openPrices).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('button', { name: /Prices/ })).toBeNull()
+    expect(openPrices).not.toHaveBeenCalled()
   })
 })
 
@@ -383,7 +377,8 @@ describe('home after a customer is filed', () => {
     expect(screen.getByRole('region', { name: 'Northside Marine' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Start from the boat' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'What Northside Marine sells' })).toBeInTheDocument()
-    expect(screen.getByText(NO_QUOTE_STARTED)).toBeInTheDocument()
+    /* no "No quotes yet." on the right since 2026-10-31: the sea's foot is gone */
+    expect(screen.queryByText('No quotes yet.')).toBeNull()
   })
 })
 
@@ -400,7 +395,9 @@ describe('home in a browser that holds no copy of the file', () => {
       screen.getByText('The Master Price File is not on this computer yet.'),
     ).toBeInTheDocument()
     expect(screen.getByText(/No price list is open/)).toBeInTheDocument()
-    expect(screen.queryByTestId('pack-counts')).toBeNull()
+    /* the state the sea's foot still speaks in; the root says no file is open */
+    expect(screen.getByTestId('home')).toHaveAttribute('data-foot')
+    expect(screen.getByTestId('home')).not.toHaveAttribute('data-file')
     expect(screen.queryByRole('region', { name: 'Start from the boat' })).toBeNull()
     expect(screen.queryByRole('region', { name: /sells$/ })).toBeNull()
     expect(screen.queryByText(/not been named|blank sheet/i)).toBeNull()
@@ -637,27 +634,16 @@ describe('a week in', () => {
     expect(openQuote).toHaveBeenCalledWith(given.id, 'issued')
   })
 
-  it('says today in one line at the sea’s foot, read off the diary', () => {
+  /* THE OWNER, 2026-10-31, "remove ... the text on the right": today's line at the sea's foot is
+     gone, and the cards on the row are what says the day. Until that day this read the line off
+     the diary ("2 quotes started today.", "Nothing has moved today. The last thing kept was on …") */
+  it('says no today line at the sea’s foot, a week in', () => {
     fileIt(doc())
     render(<Home business="Northside Marine" now={clock} />)
-    const said = todaySaid(todayOf(quotes.getState().quotes, localDayOf(NOW)))
-    expect(said).not.toBeNull()
-    expect(screen.getByText(said!)).toBeInTheDocument()
-    expect(screen.queryByText(NOTHING_YET)).toBeNull()
-  })
-
-  /* THE REFINEMENT ROUND (2026-10-21): "Given today at 22:06" on the card and "Today: 1 quote
-     started and 1 given." under it said one giving twice. Every quote given today is on the row,
-     so today's line counts only what no card counts */
-  it('says a giving once, on its card, and today’s line counts only the quotes started', () => {
-    const day = { touched: 2, lastAt: '10:00', lastDay: '2026-10-20' }
-    const both = { ...day, started: 2, given: 1, said: 'Today: 2 quotes started and 1 given.' }
-    expect(todaySaid(both)).toBe('2 quotes started today.')
-    expect(todaySaid({ ...both, started: 1 })).toBe('1 quote started today.')
-    expect(todaySaid({ ...both, started: 0, said: 'Today: 1 quote given.' })).toBeNull()
-    const still = 'Nothing has moved today. The last thing kept was on Friday 16 October.'
-    expect(todaySaid({ ...day, started: 0, given: 0, touched: 0, said: still })).toBe(still)
-    expect(todaySaid(null)).toBeNull()
+    const home = screen.getByTestId('home')
+    expect(home).toHaveAttribute('data-state', 'week')
+    expect(home.querySelector('.home-sea-foot')).toBeNull()
+    expect(home).not.toHaveTextContent(/started today|Nothing has moved today|last thing kept/)
   })
 
   /* THE SECOND CRITIQUE, BLOCKER 1: the row is one row in every state, and what does not fit

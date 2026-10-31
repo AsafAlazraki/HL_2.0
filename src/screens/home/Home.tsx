@@ -1,6 +1,5 @@
 import {
   ArrowRightIcon,
-  CoinsIcon,
   DatabaseIcon,
   FilePlusIcon,
   MagnifyingGlassIcon,
@@ -18,15 +17,11 @@ import { owedACall, type OwedACall } from '@/domain/people/owed'
 import { localDayOf } from '@/domain/quote/day'
 import { dayWritten } from '@/domain/quote/diary/days'
 import { indexQuotes } from '@/domain/quote/diary/history'
-import { todayOf, type TodayLine } from '@/domain/quote/diary/today'
 import type { RegisterStateId } from '@/domain/quote/register'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { Button, Icon, Input, Picture, StatusDot, Tile, Water, isField, useStill } from '@/ui'
-import { provenanceOfSheet } from '@/screens/data/file'
-import { auDate } from '@/screens/entry/facts'
 import { boatTravel } from '@/screens/picker/travel'
 import { useFinder } from '@/screens/shell/scope'
-import { priceAsksOf, priceAsksSay, type PriceAsks } from './asks'
 import { deskOf, type FiledCard } from './filed'
 import { holdingsOf } from './holdings'
 import {
@@ -62,17 +57,25 @@ import './home.css'
        to what it holds: the drafts being written, the quotes given
        today, and the people owed a call this week, each one card, each
        one press. Nothing is drawn for a job with nothing in it.
-     · THE FOOT OF THE SEA says which file, and today in one line.
+     · THE FOOT OF THE SEA speaks only when something is wrong with the
+       file: it could not be read, or it is not on this computer (with
+       the door to it), or it was read and could not be kept. On a day
+       when the file is in and well, the sea has no foot.
      · THE BOATS THE LEDGER PHOTOGRAPHS, each a door to quoting it, and
        THE MAKERS as ten still doors, at their day-one size in every state.
 
    THE SUBJECT IS THE SALESPERSON'S DAY, NOT THE PRICE FILE
-   (docs/research/refs/home2/why.md). The file is named once, with the
-   day it was packed; its lists and its lines are Data's.
+   (docs/research/refs/home2/why.md). The owner, 2026-10-31: "Let's
+   remove the price list of 16 september on home page and the text below
+   it and the text on the right and remove the answer them on prices".
+   The file's date, the price questions with their door to Prices, and
+   today's line were the dealer's daily noise; the file's date is Data's,
+   and the questions are Prices' own. That the file is in is said to a
+   test by `data-file` on the screen's root, never in words.
 
    NOTHING IS INVENTED, AND NO TOTAL IS SET HERE. Every figure comes from
    `src/domain`: the doors from `catalogue/makers`, the people from
-   `people/owed`, today's line from `diary/today`, the documents from
+   `people/owed`, the documents from
    `quote/register`. No revenue, target, rate or trend; no cost and no
    margin; and no customer's total, because a customer may be sitting
    beside the screen — a document is drawn by its boat, its state and
@@ -83,7 +86,7 @@ export interface HomeProps {
   /** WHOSE FILE THIS IS, read off what was opened (the catalogue store's
    *  `business`). Null is honest: nothing has said the name yet. */
   business?: string | null
-  /** where the sheet came from on this open: rides on the stamp as data */
+  /** where the sheet came from on this open: rides on the screen's root as data */
   from?: 'pack' | 'repository' | null
   /** the sentence when the file was read but could not be kept here */
   unkept?: string | null
@@ -109,7 +112,9 @@ export interface HomeProps {
   openQuotes?: () => void
   /** every person, in Customers: where the desk's folded people are */
   openCustomers?: () => void
-  /** Prices, at `/levels`: where the price questions only Northside can answer wait */
+  /** NOT READ SINCE 2026-10-31: Home no longer asks the price questions (the owner removed them
+   *  with their door). Kept on the props only so the router's call still types until the route
+   *  stops passing it (src/routes/index.tsx). */
   openPrices?: () => void
   /** the clock, injected so a test can say which instant it asks about */
   now?: () => Date
@@ -136,32 +141,6 @@ export const NO_WAY_IN = 'This screen was handed no way to the picker, so these 
 /** Said under the field, in a render with no finder above it. */
 export const NO_FINDER =
   'This screen was handed no finder, so what is typed here opens nothing. The finder is on the bar.'
-
-/** Said under the door to Prices, in a render with no router. */
-export const NO_WAY_TO_PRICES =
-  'This screen was handed no way to Prices, so nothing was opened. The questions are under Data, on Prices.'
-
-/** The day-one sentence, in a dealer's words: nothing has been quoted or filed yet. */
-export const NOTHING_YET = 'No quotes and no customers yet.'
-
-/** Said where people are kept and no quote has been started. */
-export const NO_QUOTE_STARTED = 'No quotes yet.'
-
-/**
- * TODAY, SAID ONLY WHERE NO CARD SAYS IT (the refinement round, 2026-10-21: "Given today at
- * 22:06" on the card and "Today: 1 quote started and 1 given." under it said one quote's giving
- * twice). Every quote given today is on the row, drawn or counted in its last card, so the line
- * under the row counts what no card counts: the quotes started today. A day with nothing started
- * and nothing given says the diary's own sentence; a day whose only news is a giving says
- * nothing here, because the card already does.
- */
-export function todaySaid(line: TodayLine | null): string | null {
-  if (!line) return null
-  if (line.started > 0)
-    return `${line.started.toLocaleString('en-AU')} ${line.started === 1 ? 'quote' : 'quotes'} started today.`
-  if (line.given > 0) return null
-  return line.said
-}
 
 /**
  * THE MOTORS AND THE TRAILERS, SAID ONCE AND NOT AS DOORS (2026-10-20, the second cold critique,
@@ -236,7 +215,6 @@ export function Home({
   openCustomer,
   openQuotes,
   openCustomers,
-  openPrices,
   now,
   mark,
   arrange,
@@ -245,9 +223,7 @@ export function Home({
   const refused = useCatalogue((s) => s.problem)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
-  const priceLevels = useCatalogue((s) => s.priceLevels)
   const modules = useCatalogue((s) => s.modules)
-  const version = useCatalogue((s) => s.version)
   const who = useSession((s) => s.name)
   const quotes = useQuotes((s) => s.quotes)
   const quotesRead = useQuotes((s) => s.loaded)
@@ -279,13 +255,6 @@ export function Home({
     [open, tables, modules, rows],
   )
 
-  /* THE PRICE QUESTIONS ONLY NORTHSIDE CAN ANSWER, said once, before the sale
-     (built-critique-m3-2.md, major 5): Prices' own count, read the way Prices reads it */
-  const asks = useMemo(
-    () => (open ? priceAsksOf({ tables, rows, priceLevels }) : null),
-    [open, tables, rows, priceLevels],
-  )
-
   /* WHO IS OWED A CALL THIS WEEK: everyone the Customers screen counts,
      kept in the book or named on a quote, read by the same function */
   const index = indexQuotes(quotes)
@@ -296,7 +265,6 @@ export function Home({
     index,
   )
   const owed = owedACall(everyone.rows, index, today)
-  const line = todayOf(quotes, today)
   /* A WEEK IN is anything at all kept here: a quote, or a person */
   const week = quotesRead && (filed.held > 0 || everyone.rows.length > 0)
 
@@ -337,21 +305,21 @@ export function Home({
     ),
   )
 
-  const said = quotesProblem
-    ? null
-    : !quotesRead
-      ? null
-      : !week
-        ? NOTHING_YET
-        : line
-          ? todaySaid(line)
-          : NO_QUOTE_STARTED
+  /* THE FOOT, ONLY WHEN THE FILE HAS SOMETHING WRONG TO SAY (the owner, 2026-10-31): a file
+     that is in and well draws no foot at all, and the centre stands in the middle of the sea */
+  const failed = status === 'failed' || (problem ?? refused) !== null
+  const foot = !open || failed || unkept !== null
 
   return (
     <main
       className="home"
       data-testid="home"
       data-state={week ? 'week' : 'day-one'}
+      /* THE FILE IS IN, said to a test and never to the eye: the ready signal every walk to Home
+         waits on since the price list's stamp left the sea (2026-10-31) */
+      data-file={open ? 'open' : undefined}
+      data-from={open ? (from ?? undefined) : undefined}
+      data-foot={foot ? '' : undefined}
       data-arrive={arrive ? '' : undefined}
       /* THE SHELL'S BAR STANDS AT THE HEAD OF THIS SCREEN IN A HAND, never at its foot over
          Home's own words (the critique of the built Home, blocker 2; src/screens/shell/shell.css) */
@@ -397,21 +365,17 @@ export function Home({
             openCustomers={openCustomers}
           />
         ) : null}
-        <div className="home-sea-foot">
-          <div className="home-sea-file">
+        {foot ? (
+          <div className="home-sea-foot">
             <Stamp
               open={open}
               status={status}
               problem={problem ?? refused}
-              from={from}
               unkept={unkept}
-              version={version}
               openTheFile={openTheFile}
             />
-            {asks ? <Asks asks={asks} openPrices={openPrices} /> : null}
           </div>
-          {said ? <p className="home-today">{said}</p> : null}
-        </div>
+        ) : null}
       </section>
 
       {quotesProblem ? (
@@ -637,40 +601,34 @@ function Ask({
 }
 
 /* ---------------------------------------------------------- */
-/* Which file, said once                                      */
+/* The file, said only when something is wrong with it        */
 /* ---------------------------------------------------------- */
 
 /**
- * THE PRICE LIST, SAID ONCE, QUIETLY, in white on the water, by its date:
- * "Price list of 16 September 2026" (docs/WORDS.md). Where it was packed
- * and where the work is kept are the app's plumbing, and a dealer is not
- * told them (the refinement round, 2026-10-21). Its lists and its lines
- * are Data's (why.md §3 job 7 and §4), and the pill already counts them
- * at Data's door. White on the water is 5.8 : 1 or better by the water's
- * construction (src/ui/water.ts). Home never says it is reading the
- * file, because it is not: Entry's door is the one place the file is read.
+ * THE FILE IS SAID ONLY WHEN SOMETHING IS WRONG WITH IT, in white on the water. Until
+ * 2026-10-31 a file that was in and well was named here too, "Price list of 16 September 2026",
+ * with the price questions and their door to Prices under it; the owner: "Let's remove the price
+ * list of 16 september on home page and the text below it". What stays is what a dealer must act
+ * on: the file could not be read; it is not on this computer, with the door to it; it was read
+ * and could not be kept. White on the water is 5.8 : 1 or better by the water's construction
+ * (src/ui/water.ts). Home never says it is reading the file, because it is not: Entry's door is
+ * the one place the file is read.
  */
 function Stamp({
   open,
   status,
   problem,
-  from,
   unkept,
-  version,
   openTheFile,
 }: {
   open: boolean
   status: string
   problem: string | null
-  from: 'pack' | 'repository' | null
   unkept: string | null
-  version: string | null
   openTheFile?: () => void
 }) {
-  const provenance = provenanceOfSheet(version)
-  const packed = provenance.known ? auDate(provenance.file.packedAt) : null
   return (
-    <>
+    <div className="home-sea-file">
       {(status === 'empty' || status === 'loading') && problem === null ? (
         <p className="home-stamp">Looking for the price list…</p>
       ) : null}
@@ -689,47 +647,12 @@ function Stamp({
           ) : null}
         </div>
       ) : null}
-      {open ? (
-        <p className="home-stamp" data-testid="pack-counts">
-          {/* THE DAY IS WRITTEN AS THE DOOR WRITES IT, "16 September 2026" (the second cold
-              critique, minor 8): one fact, one spelling, a screen apart */}
-          <span className="home-stamp-file" data-from={from ?? undefined}>
-            <Icon glyph={DatabaseIcon} />
-            {packed ? `Price list of ${packed}` : 'Master Price File'}
-          </span>
-        </p>
-      ) : null}
       {unkept !== null ? (
         <output className="home-stamp">
           The price list was read but could not be saved on this computer, so the next visit reads
           it again. {unkept}
         </output>
       ) : null}
-    </>
-  )
-}
-
-/**
- * THE PRICE QUESTIONS, ONCE, UNDER THE FILE THEY ARE ABOUT (built-critique-m3-2.md, major 5).
- * The first quote on a fresh link carried a line whose price Northside had not chosen, and the
- * finale was the first place that said so — with a buyer at the desk. The owner sets up here,
- * so the questions are said here, in the sea's foot under the price list's own stamp, with the
- * one door to where they are answered. Gone once every one is answered: Prices then says
- * "Nothing is left for you to choose", and Home says nothing.
- */
-function Asks({ asks, openPrices }: { asks: PriceAsks; openPrices?: () => void }) {
-  return (
-    <div className="home-asks" data-testid="price-asks">
-      <p className="home-asks-say">{priceAsksSay(asks)}</p>
-      <Button
-        intent="veiled"
-        size="sm"
-        icon={CoinsIcon}
-        onClick={openPrices}
-        refusedBecause={openPrices ? undefined : NO_WAY_TO_PRICES}
-      >
-        {asks.count === 1 ? 'Answer it on Prices' : 'Answer them on Prices'}
-      </Button>
     </div>
   )
 }

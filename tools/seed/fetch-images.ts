@@ -793,6 +793,21 @@ const RULINGS: {
       'automatic: the person’s PA600SB ruling, applied to the same maker’s PA660SB, PA760SB and PA860SB renders; seen on the picker by Claude (gate round), 2026-10-20',
     source: 'tools/seed/fetch-images.ts RULINGS (gate round, 2026-10-20)',
   },
+  /* The price file gives the F150's studio picture to four F200 rows as well, so an F200
+     quote's cover and build stage drew F150s. The F150 rows keep it. */
+  {
+    table: 'mot_yamaha',
+    models: ['Yamaha - F200XC', 'Yamaha - F200LD', 'Yamaha - F200XD', 'Yamaha - LF200XD'],
+    only: /yamaha-f150-profile/,
+    person: false,
+    decision: 'refuse',
+    rule: 'not that exact model (a sister model)',
+    shows:
+      'Yamaha’s F150 studio picture: its file name names the F150, and the file gives it to four F200 rows as well',
+    verification:
+      'looked at by Claude, 2026-10-31: the held copy (yamaha-f150-profile-800-x-600px-grey-9d6ec17d.webp) shows three grey outboards whose cowls read "150"',
+    source: 'tools/seed/fetch-images.ts RULINGS (2026-10-31)',
+  },
   /* THE PRINTED QUOTE'S CRITIC (2026-10-31, blocker 1): a repower's cover printed Yamaha's studio
      shot of a white F115 beside a grey one for one grey F115LB, and the F150's is a triple rig.
      Each picture below shows more outboards than a line sells; it is drawn, and a cover captions

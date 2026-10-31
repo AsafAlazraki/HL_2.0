@@ -1,6 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { escapeRe, nameTheCustomer, pickAndStart, priceWhatWaits } from '../mint'
+import {
+  escapeRe,
+  nameTheCustomer,
+  openChapter,
+  openThePackage,
+  pickAndStart,
+  priceWhatWaits,
+} from '../mint'
 
 /* ============================================================
    A RULE THAT WARNS, WHERE THE CHOICE IS MADE (built-critique-m3-2.md, major 3).
@@ -58,7 +65,7 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
   await throughTheDoor(page)
   await writeTheWarning(page)
   await pickAndStart(page, STACER, PROLINE)
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await openChapter(page, /^02 Motor/)
 
   /* WHERE THE CHOICE IS MADE: the tile wears the mark, and its name says it to a reader */
   const warned = tile('F9.9LMHB')
@@ -84,7 +91,7 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
   /* WHERE IT IS HANDED OVER: said over the give, and the give stays live */
   await nameTheCustomer(page, 'R. Kelleher')
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
   await priceWhatWaits(page)
   const over = page.getByTestId('warned-on-quote')
   await expect(over).toHaveText(
@@ -103,13 +110,13 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
     })
     .toBeGreaterThanOrEqual(0)
 
-  /* changed for a motor it does not warn about, the finale has nothing to say: back to the build
-     from the summary, which at a desk stands over it */
-  await page.getByRole('button', { name: 'Back to the build' }).click()
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  /* changed for a motor it does not warn about, the finale has nothing to say: back to editing
+     from the final package, which stands over the build */
+  await page.getByRole('button', { name: 'Back to editing' }).click()
+  await openChapter(page, /^02 Motor/)
   await clear.click()
   await expect(tile('F20LMHB')).toHaveAccessibleName(/on the quote/)
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
   await priceWhatWaits(page)
   await expect(give).toBeVisible()
   await expect(page.getByTestId('warned-on-quote')).toHaveCount(0)

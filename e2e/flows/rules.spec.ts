@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { pickAndStart, written } from '../mint'
+import { openChapter, pickAndStart, written } from '../mint'
 
 /* ============================================================
    RULES — what the rulers cannot see, and Milestone 3's exit
@@ -50,8 +50,9 @@ async function writeTheTillerRule(page: Page): Promise<void> {
 }
 
 async function motorChapter(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
-  await expect(page).toHaveURL(/at=motor/)
+  /* every chapter stands open (2026-10-31): the motor's is opened only where it was folded, and a
+     head no longer writes the address */
+  await openChapter(page, /^02 Motor/)
 }
 
 test('on the first day the page is the house rules, measured, and nothing is Northside’s yet', async ({

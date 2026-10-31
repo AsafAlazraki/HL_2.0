@@ -52,7 +52,7 @@ describe('the chapters are the engine’s bands, and two more', () => {
        three the dealer fits — and they are four chapters and the finale; whom it is for is the
        bar's (the owner, 2026-10-30) */
     expect(sp560.sections.length).toBe(7)
-    expect(names).toEqual(['The hull', 'Motor', 'Trailer', 'Dealer fit', 'The summary'])
+    expect(names).toEqual(['The hull', 'Motor', 'Trailer', 'Dealer fit', 'The final package'])
   })
 
   it('keeps the engine’s numbers and gives the finale none', () => {

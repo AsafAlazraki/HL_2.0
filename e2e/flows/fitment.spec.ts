@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { pickAndStart, written } from '../mint'
+import { openChapter, pickAndStart, written } from '../mint'
 
 /* ============================================================
    FITMENT, IN A REAL BROWSER, AT EVERY SIZE — what the five rulers
@@ -264,8 +264,9 @@ test('a motor the dealer’s rule refuses is said with the rule’s because, and
 
   /* the build on the same boat: the list past the narrowing, and the way back says the same 2 */
   await pickAndStart(page, 'boat_highfield', 'CL340')
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
-  await expect(page).toHaveURL(/at=motor/)
+  /* every chapter stands open (2026-10-31): the motor's is opened only where it was folded, and a
+     head no longer writes the address */
+  await openChapter(page, /^02 Motor/)
   const motors = page.locator('[data-chapter="motor"]')
   await motors
     .getByRole('button', { name: /^Show all [\d,]+ in / })

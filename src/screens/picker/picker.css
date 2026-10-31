@@ -1654,6 +1654,10 @@
   (min-width: 1200px) and (max-height: 699.98px) {
   .picker-stage {
     position: sticky;
+    /* OVER THE SERIES HEADS' FLOOR (2, and later in the page): a stuck head carries its floor
+       16px into the gap, and under the plate it painted a pale strip over the plate's own shadow
+       (measured at 834, x 395–410 beside "ROLL-UP", rgb 231 241 253 on a shadow of 224 234 246) */
+    z-index: 2;
     inset-block-start: calc(var(--shell-inset) + --spacing(2));
     max-block-size: calc(100dvh - var(--shell-inset) - var(--shell-foot) - --spacing(4));
     display: grid;

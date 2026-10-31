@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { DEEPEST } from '../mint'
+import { DEEPEST, openChapter, openThePackage } from '../mint'
 import { routes } from '../routes'
 import { open } from '../shots/recipe'
 import { walkFocus, type FocusWalk } from './measure/focus'
@@ -41,7 +41,8 @@ function expectRings(name: string, r: FocusWalk): void {
 
 /** Press a chapter's head open by its name, and walk the page again. */
 async function openAndWalk(page: Page, head: RegExp, name: string): Promise<FocusWalk> {
-  await page.getByRole('button', { name: head }).first().click()
+  /* every chapter stands open (the owner, 2026-10-31): opened only where it was folded */
+  await openChapter(page, head)
   const r = await walkFocus(page)
   expectRings(name, r)
   return r
@@ -72,7 +73,7 @@ test.describe('focus', () => {
     ).toBeGreaterThan(1)
     await openAndWalk(page, /^0\d Trailer/, 'the build, trailer')
     await openAndWalk(page, /^0\d Dealer fit/, 'the build, dealer fit')
-    await page.getByRole('button', { name: /The summary/ }).click()
+    await openThePackage(page)
     const give = page.getByRole('button', { name: 'Give it to the customer' })
     await expect(give).toHaveAttribute('aria-disabled', 'true')
     const r = await walkFocus(page)

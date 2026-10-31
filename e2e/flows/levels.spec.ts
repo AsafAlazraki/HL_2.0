@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { nameTheCustomer, pickAndStart, written } from '../mint'
+import { nameTheCustomer, openChapter, openThePackage, pickAndStart, written } from '../mint'
 
 /* ============================================================
    PRICES — what the rulers cannot see. The rulers measure the page
@@ -231,7 +231,7 @@ test('the build says a price not chosen, opens it here, and the line takes the c
   await pickAndStart(page, 'boat_highfield', 'CL340')
   /* THE QUOTE STARTS WITH THE BOAT ALONE (the owner, 2026-10-30): the Tube Covers the file pairs
      with it, whose list names no price, are put on in Dealer fit by their own press */
-  await page.getByRole('button', { name: /^04 Dealer fit/ }).click()
+  await openChapter(page, /^04 Dealer fit/)
   await page
     .locator('[data-chapter="fit"]')
     .getByRole('button', { name: /^Tube Covers.*, not on the quote$/ })
@@ -246,7 +246,7 @@ test('the build says a price not chosen, opens it here, and the line takes the c
   await expect(page.getByTestId('configurator')).not.toContainText('no price on the price list')
 
   await nameTheCustomer(page, 'R. Kelleher')
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
 
   const give = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(give).toHaveAttribute('aria-disabled', 'true')

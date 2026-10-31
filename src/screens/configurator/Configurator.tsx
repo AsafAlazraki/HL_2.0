@@ -19,8 +19,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
-  ArrowDownIcon,
-  ArrowUpIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
   ArrowsLeftRightIcon,
   ArrowsOutSimpleIcon,
   CaretDownIcon,
@@ -38,6 +38,7 @@ import {
   MinusIcon,
   PaperPlaneTiltIcon,
   PencilSimpleIcon,
+  PrinterIcon,
   PlusIcon,
   ProhibitIcon,
   ScalesIcon,
@@ -64,14 +65,12 @@ import {
   Picture,
   Popover,
   PriceFigure,
-  RESPONSE,
   Refusal,
   Swatches,
   Tile,
   caretInField,
   isField,
   reducedMotion,
-  settlesIn,
   transition,
   undo,
   unsay,
@@ -86,7 +85,12 @@ import type { TableKind } from '@/domain/model'
 import { boatOfQuote, measured } from '@/domain/quote/spoken'
 import { allSpecsOf } from '@/domain/quote/freeze'
 import { chapterToOpen } from '@/domain/quote/opening'
-import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
+import { useCatalogue, usePrefs, useQuotes, useSession } from '@/app/useStores'
+import { prefs } from '@/state/prefs'
+import { foldToggled, foldedOf, unfolded as unfold } from '@/domain/quote/folded'
+/* THE FINAL PACKAGE RENDERS THE PRINTED QUOTE ITSELF, the document screen's own component, never
+   a copy of it (`FinalPackage`) */
+import { Document, PRINT_IS_THE_PAGE } from '@/screens/document/Document'
 import { NO_WAYS, type Way } from '@/app/ways'
 import { useSetScope } from '@/screens/shell/scope'
 import { quotes as quotesStore } from '@/state/quotes'
@@ -122,6 +126,7 @@ import {
 } from '@/domain/quote/nought'
 import type { ShownFact } from '@/domain/quote/distinguish'
 import { swapLines } from '@/domain/quote/swap'
+import { axisOnePrice } from '@/domain/quote/axisPrice'
 import { SUBJECT_BLOCK } from '@/domain/quote'
 import { emailIn, summaryItems } from './summary'
 /* A CHAPTER WITH NOTHING ON IT HAS NO SUBTOTAL, and says so in the register's words, "Nothing on
@@ -298,6 +303,9 @@ export const CASCADE_SAY = LEVEL_SAY
 /** WHERE THE KIT'S TOAST STANDS OVER NOTHING: the band beside the pill, from 1440px — the same
  *  query `src/ui/Toaster.tsx` places it by. Narrower, the step is the masthead's own line. */
 const TOAST_STANDS = '(min-width: 1440px)'
+
+/** Where this browser keeps the build's folded chapters, by id (`folded.ts`). */
+export const FOLDED_PREF = 'build.folded'
 
 /**
  * A STEP THE BAND CAN HOLD IN TWO LINES (the build page round, 2026-10-31: at 1440 a dealer-fit
@@ -705,7 +713,14 @@ function Build({
      said. OPENING ANOTHER CHAPTER ENDS IT (`endStep`): the step belongs to the chapter it was
      made in, and a toast that outlived it lay over the next two. Leaving the build takes it
      away too, since its Undo writes to this document and nowhere else. */
-  const toasts = useToastStands()
+  /* THE FINAL PACKAGE IS ASKED FOR where the address names it, or on a given quote the address
+     names no chapter of (`packageOpen`, below, reads it whole): while it stands over the window the
+     step is said in its own card, never in a toast laid over its bar */
+  const packageAsked =
+    quote !== undefined &&
+    query.trim() === '' &&
+    (at === 'finale' || (quote.state !== 'draft' && at === ''))
+  const toasts = useToastStands() && !packageAsked
   const stepToast = `step:${quoteId}`
   const back = step && quote ? wayBack(step, quote) : null
   /* the step stands in the band only where the band holds it (`bandHolds`) */
@@ -834,28 +849,32 @@ function Build({
       })
     : ''
   const chaptersRef = useRef<HTMLDivElement>(null)
-  useOnward(chaptersRef, here, at, quote?.events.length ?? 0, rail?.searching === true)
   useBroughtIn(chaptersRef, here, at, rail?.searching === true)
   useOpenedAt(scroller, here, at)
-  /* THE CHAPTER THE SUMMARY WAS OPENED FROM, so leaving it lands back where the work was */
-  const lastHere = useRef('')
+
+  /* EVERY CHAPTER STANDS OPEN, AND A PERSON MAY FOLD ONE (the owner, 2026-10-31: "all cards on
+     the right should be open by default"). What is folded is this browser's, kept by chapter id in
+     prefs (`folded.ts`), so a chapter folded on one quote is folded on the next. A press on a
+     head folds or opens that chapter where it stands and moves nothing else: nothing opens on by
+     itself any more, so nothing moves the page under the hand. */
+  const keptFolds = usePrefs((s) => s.values[FOLDED_PREF])
+  const folded = useMemo(() => foldedOf(keptFolds), [keptFolds])
+  const fold = useCallback((id: string): void => {
+    prefs.getState().set(FOLDED_PREF, foldToggled(foldedOf(prefs.getState().get(FOLDED_PREF)), id))
+  }, [])
+  /* a chapter the reader is taken to (the finder's "Go to it") opens if it was folded */
   useEffect(() => {
-    if (here !== 'finale' && here !== '') lastHere.current = here
-  }, [here])
-  /* AT A DESK, SCROLLING ON PAST THE LAST CHAPTER BRINGS THE SUMMARY IN (`useOnPast`) */
-  const onPast = useEffectEvent(() => {
-    endStep()
-    goTo?.('finale')
-  })
-  useEffect(() => {
-    if (!desk || !scroller) return
-    return listenPast(
-      scroller,
-      'down',
-      () => scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2,
-      () => onPast(),
-    )
-  }, [desk, scroller])
+    if (at === '' || at === 'finale') return
+    const folds = foldedOf(prefs.getState().get(FOLDED_PREF))
+    if (folds.includes(at)) prefs.getState().set(FOLDED_PREF, unfold(folds, at))
+  }, [at])
+
+  /* WHERE THE PERSON WAS WHEN THE FINAL PACKAGE OPENED: the address they were at, the window's
+     scroll and the chapters' column's, so "Back to editing" returns to exactly there (the router
+     puts a new address at the window's top, and the package's own address is a new address) */
+  const before = useRef<{ at: string; y: number; column: number } | null>(null)
+  /* THE PREPARING MOMENT plays for a press, never for a reload that lands on the package */
+  const [preparing, setPreparing] = useState(false)
 
   /* THE BOAT'S PICTURE, read once for the two places that draw it: the stage, and the finale
      where the stage is not beside it (below 1200px, where the finale hands the photograph to the
@@ -919,9 +938,35 @@ function Build({
     [ctx, quote, open, goTo, endStep],
   )
   useSetScope(scope)
-  /* below a desk, the summary is at the page's end and scrolled to as often as opened: while it
-     holds the window's upper half its card says the total, and the tally steps aside (`Tally`) */
-  const [summarySeen, setSummarySeen] = useState(false)
+
+  /* THE FINAL PACKAGE STANDS OVER THE WHOLE WINDOW where the address names it, `at=finale` (the
+     old summary's address, so a reload, Back and the way back from Prices all land on it), and on
+     a given quote opened with no address, which opens on it. While a search narrows the rail it
+     does not open. */
+  const packageOpen =
+    quote !== undefined &&
+    here === 'finale' &&
+    rail?.searching !== true &&
+    (at === 'finale' || quote.state !== 'draft')
+  /* "BACK TO EDITING" RETURNS TO EXACTLY WHERE THE PERSON WAS: once the package has gone, the
+     window and the column are put back where they stood when it was opened */
+  const wasOpen = useRef(packageOpen)
+  useLayoutEffect(() => {
+    const had = wasOpen.current
+    wasOpen.current = packageOpen
+    if (!had || packageOpen) return
+    const where = before.current
+    before.current = null
+    if (!where) return
+    const put = (): void => {
+      window.scrollTo({ top: where.y, behavior: 'instant' })
+      scroller?.scrollTo({ top: where.column, behavior: 'instant' })
+    }
+    put()
+    /* and once more after the router has settled the new address at the window's top */
+    const frame = requestAnimationFrame(() => requestAnimationFrame(put))
+    return () => cancelAnimationFrame(frame)
+  }, [packageOpen, scroller])
 
   if (!quote) {
     return (
@@ -963,28 +1008,26 @@ function Build({
   const level = rail?.rungs.find((rung) => rung.key === quote.levelKey)?.label ?? null
   /* WHILE THE FINALE IS OPEN ITS CARD SAYS THE TOTAL, and the masthead says no figure
      (docs/WORDS.md: "the quote's total … on the finale card once the finale is open") */
-  /* THE SUMMARY STANDS OVER THE BUILD AT A DESK, AND AT THE PAGE'S END BELOW ONE (`Summary`). It
-     is open where the address names it, and on a given quote, which opens on it: its address is
-     the old finale's, `at=finale`, so a link, Back and a reload all land on it. A draft whose
-     every part is answered is not taken there by itself: the door at the rail's foot says it is
-     ready, and the dealer goes when the customer is. */
-  const summaryOpen = here === 'finale' && rail?.searching !== true && (at === 'finale' || issued)
+  /* "VIEW FINAL PACKAGE": where the person is is kept, the preparing moment is asked for (it plays
+     only where motion is welcome), and the address names the package */
   const firstBand = chapters.find((c) => c.kind === 'band')?.id ?? ''
-  const seeSummary = (): void => {
+  const viewPackage = (): void => {
     endStep()
-    /* below a desk the summary is always the page's end: where the address already names it, the
-       door takes the page there itself */
-    if (!desk && summaryOpen) {
-      document
-        .getElementById('cfg-summary')
-        ?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'instant' : 'smooth' })
-      return
+    before.current = {
+      at: at === 'finale' || at === '' ? (here === 'finale' ? firstBand : here) : at,
+      y: window.scrollY,
+      column: scroller?.scrollTop ?? 0,
     }
+    setPreparing(!reducedMotion())
     goTo?.('finale')
   }
-  const backToBuild = (): void => {
+  const backToEditing = (): void => {
     endStep()
-    goTo?.(lastHere.current === '' ? firstBand : lastHere.current)
+    setPreparing(false)
+    /* the address the person was at; a quote that opened on its package (a given one opens there
+       with no address) goes to its first part */
+    const was = before.current?.at
+    goTo?.(was === undefined || (was === '' && issued) ? firstBand : was)
   }
   const note = rail
     ? totalNoteSay(rail.unpricedNames, hullHasNoPrice(quote), rail.unpricedLists, rail.unpricedWhy)
@@ -1019,16 +1062,6 @@ function Build({
       />
     ) : null
 
-  /* THE CUSTOMER IS NAMED IN THE BAR, from wherever the build asks for them (the finale's card):
-     the bar is brought into the window where the page has scrolled it away, and its cell opens */
-  const askWho = (): void => {
-    endStep()
-    document
-      .querySelector('[data-testid="configurator"] .cfg-mast')
-      ?.scrollIntoView({ block: 'nearest', behavior: 'instant' })
-    setAsking(true)
-  }
-
   /* EVERY "SHOW ALL" OPENS OVER THE PAGE (the owner, 2026-10-30: "the experience of viewing all
      of the products and things should be popup please done nicely"): a list's whole range in the
      range sheet, and the parts table's in the chandlery's aisles */
@@ -1047,41 +1080,6 @@ function Build({
   }
   const parts = chapters.flatMap((c) => c.tables).find((t) => t.tableId === PARTS_TABLE)
 
-  /* BELOW A DESK THE SUMMARY IS ALWAYS THE PAGE'S END (the critic, P-1: "scroll down and then see
-     big summary" — at 834 and 390, thirty turns of the wheel ended on the door and no summary):
-     scrolling on past the last chapter reaches it, and the door and its address bring the page to
-     it. At a desk it rises over the build only while the address names it. While a search
-     narrows the rail it steps aside, since the rail is then a list of answers. */
-  const summaryDrawn = desk ? summaryOpen : rail !== null && rail.searching !== true
-  const summary = summaryDrawn ? (
-    <Summary
-      key="summary"
-      open={summaryOpen}
-      quote={quote}
-      quoteId={quoteId}
-      ctx={ctx}
-      rail={rail}
-      art={art}
-      desk={desk}
-      onBack={backToBuild}
-      onLarge={showLarge}
-      openQuote={openQuote}
-      openDocument={openDocument}
-      now={now}
-      justGiven={justGiven}
-      onPress={press}
-      onWho={() => {
-        /* at a desk the bar is under the summary, so the summary lowers first */
-        if (desk) backToBuild()
-        askWho()
-      }}
-      go={go}
-      setStep={setStep}
-      setRefused={setRefused}
-      onSeen={setSummarySeen}
-    />
-  ) : null
-
   return (
     <main
       ref={watchFloor}
@@ -1093,12 +1091,12 @@ function Build({
       /* GIVEN: the boat's photograph wears the given leaf as its frame (configurator.css) */
       data-given={issued ? '' : undefined}
     >
-      {/* THE BUILD: the bar, the boat and the chapters. At a desk the summary rises over it, and
-          while it stands there the build is out of reach of the keyboard and a reader */}
+      {/* THE BUILD: the bar, the boat and the chapters. The final package stands over the whole
+          window, a modal of its own, and the build waits under it exactly as it was left */}
       <div
         className="cfg-edit"
-        inert={desk && summaryOpen ? true : undefined}
-        data-away={desk && summaryOpen ? '' : undefined}
+        inert={packageOpen ? true : undefined}
+        aria-hidden={packageOpen ? true : undefined}
       >
         <Mast
           quote={quote}
@@ -1126,10 +1124,9 @@ function Build({
                   rail={rail}
                   open={open}
                   art={art}
-                  note={summaryOpen ? '' : note}
-                  said={said}
-                  elsewhere={summaryOpen}
-                  aside={!desk && summarySeen}
+                  note={packageOpen ? '' : note}
+                  said={packageOpen ? null : said}
+                  onPackage={rail === null ? undefined : viewPackage}
                   raise={raise}
                   refusal={refusal}
                   onLarge={showLarge}
@@ -1172,7 +1169,9 @@ function Build({
                   <Reading
                     scroller={desk ? scroller : null}
                     chapters={chapterRefs}
-                    open={rail?.searching === true ? -1 : chapters.findIndex((c) => c.id === here)}
+                    /* EVERY CHAPTER STANDS OPEN (2026-10-31), so the dashes say the chapter the
+                       window is reading, never one "open" chapter */
+                    open={-1}
                     names={chapters.map((c) =>
                       c.num === '' ? { name: c.name } : { name: c.name, number: c.num },
                     )}
@@ -1202,13 +1201,12 @@ function Build({
                 >
                   {chapters.map((chapter, i) =>
                     chapter.kind === 'finale' ? (
-                      <SummaryDoor
+                      <PackageDoor
                         key={chapter.id}
                         at={chapterRefs[i]}
                         index={i}
                         chapter={chapter}
-                        open={summaryOpen}
-                        onSee={seeSummary}
+                        onSee={viewPackage}
                       />
                     ) : (
                       <ChapterCard
@@ -1218,15 +1216,12 @@ function Build({
                         chapter={chapter}
                         quote={quote}
                         rail={rail!}
-                        open={chapter.id === here}
+                        open={!folded.includes(chapter.id)}
                         here={here}
                         searching={rail?.searching === true}
                         query={query}
                         level={level}
-                        onOpen={() => {
-                          endStep()
-                          goTo?.(chapter.id)
-                        }}
+                        onOpen={() => fold(chapter.id)}
                         onPress={press}
                         onLarge={showLarge}
                         ctx={ctx}
@@ -1288,9 +1283,28 @@ function Build({
           ) : null}
         </PartDrag>
       </div>
-      {/* THE WHOLE QUOTE AT A GLANCE, ONE SCREEN (`Summary`): at a desk it rises over the build and
-          lowers again, so it stays while it leaves; below one it is the page's end, there or not */}
-      {desk ? <AnimatePresence>{summary}</AnimatePresence> : summary}
+      {/* THE FINAL PACKAGE, OVER THE WHOLE WINDOW (`FinalPackage`) */}
+      {packageOpen && rail ? (
+        <FinalPackage
+          quote={quote}
+          quoteId={quoteId}
+          ctx={ctx}
+          rail={rail}
+          art={art}
+          preparing={preparing}
+          onPrepared={() => setPreparing(false)}
+          onBack={backToEditing}
+          openQuote={openQuote}
+          openDocument={openDocument}
+          now={now}
+          justGiven={justGiven}
+          onPress={press}
+          go={go}
+          step={said}
+          setStep={setStep}
+          setRefused={setRefused}
+        />
+      ) : null}
       <Lightbox
         pictures={large?.set ?? []}
         at={large?.at ?? null}
@@ -1658,121 +1672,6 @@ function ChandlerySheet({
   )
 }
 
-/* ---------------------------------------------------------- */
-/* Moving on                                                   */
-/* ---------------------------------------------------------- */
-
-/**
- * A WRITE THAT MOVES THE OPEN CHAPTER ON BRINGS THE NEXT ONE TO THE HAND.
- *
- * With no `?at=`, the open chapter is `chapterToOpen`'s reading of the
- * document, so the press that answers the last empty band moves it on:
- * the motor goes on, 02 Motor folds to the answer its head now states,
- * and Who it is for opens. MEASURED 2026-09-24 on the ADV7 before this,
- * at 834 × 1112: the motor was pressed at y 1,002 of a 1,112 window and
- * whatever opened next opened below the fold — the picker's tablet
- * blocker again, "pressing does nothing" — and the pressed tile, gone
- * with its folded list, left the keyboard's focus on the page's body at
- * every size.
- *
- * So, only when a write (the diary grew) moved the open chapter while
- * the address names none and no search is running:
- *  · the chapter now open is brought into the window by the least move
- *    that shows it, its head clear of whatever sticks over the top
- *    (measured where it sticks and written as `--cfg-cover`) and its
- *    foot clear of the phone's tab bar (`configurator.css`) — smoothly,
- *    and at once under reduced motion. A chapter taller than that room
- *    is brought in by its HEAD: the least move alone lined the finale's
- *    foot up with the window at 844 × 390 and left its head under the
- *    masthead (measured 2026-09-24), and the head is what says where the
- *    reader now is;
- *  · and where the press left the focus nowhere, it goes to that
- *    chapter's head, which names the chapter and says it is open.
- * A press inside a chapter the dealer opened himself moves nothing: the
- * address names it, so it stays open under every press.
- */
-function useOnward(
-  rail: RefObject<HTMLDivElement | null>,
-  here: string,
-  at: string,
-  written: number,
-  searching: boolean,
-): void {
-  const was = useRef({ here, written })
-  /* THE MOVE WAITING FOR ITS CHAPTER TO OPEN. It is kept outside the effect
-     below and cancelled only by the next move or by leaving the screen: the
-     same press re-renders the build again before the chapter has opened (the
-     quote is written, then filed), and an effect that cancelled its own move
-     on every re-render never moved at all — measured at 390 × 844, the
-     window stood at 0 with Who it is for at 881. */
-  const pending = useRef<number | null>(null)
-  useEffect(
-    () => () => {
-      if (pending.current !== null) window.clearTimeout(pending.current)
-    },
-    [],
-  )
-  useEffect(() => {
-    const before = was.current
-    was.current = { here, written }
-    /* the summary brings itself in (`Summary`), and a move here would race it */
-    if (at !== '' || searching || here === '' || here === 'finale') return
-    if (before.here === '' || before.here === here || before.written === written) return
-    const chapter = rail.current?.querySelector<HTMLElement>(`[data-chapter="${here}"]`)
-    if (!chapter) return
-    const head = chapter.querySelector<HTMLElement>('.cfg-head__press')
-    const focus = document.activeElement
-    /* THE PRESSED CONTROL IS FOLDING AWAY WITH ITS CHAPTER. Since the kit, a
-       chapter's body closes on a spring rather than in one frame, so for a
-       moment the control that was pressed is still in the page, inside a
-       chapter that is no longer the open one — and it would take the focus
-       down with it to the page's body when it goes. Focus inside another
-       chapter is focus that is leaving. */
-    const leaving = focus?.closest('[data-chapter]')
-    if (
-      head &&
-      (focus === null || focus === document.body || (leaving != null && leaving !== chapter))
-    )
-      head.focus({ preventScroll: true })
-    chapter.style.setProperty('--cfg-cover', `${coverOf(chapter)}px`)
-    if (typeof chapter.scrollIntoView !== 'function') return
-    const bring = (): void => {
-      const margins = getComputedStyle(chapter)
-      const view = viewOf(chapter)
-      const room =
-        (view.box ? view.bottom - view.top : window.innerHeight) -
-        (Number.parseFloat(margins.scrollMarginBlockStart) || 0) -
-        (Number.parseFloat(margins.scrollMarginBlockEnd) || 0)
-      const quiet = reducedMotion()
-      chapter.scrollIntoView({
-        block: chapter.getBoundingClientRect().height > room ? 'start' : 'nearest',
-        behavior: quiet ? 'instant' : 'smooth',
-      })
-      if (quiet) uncut(chapter)
-      else (view.box ?? window).addEventListener('scrollend', () => uncut(chapter), { once: true })
-    }
-    /* THE CHAPTER IS BROUGHT IN ONCE IT HAS OPENED (the component kit,
-       2026-09-28). Its body now grows out of its head on the travel spring,
-       so measured the moment it is pressed the chapter is a head and no
-       more, and the least move would stop short of its act. Where it opens
-       at once — reduced motion, a caret in a field — it is brought in as
-       soon as the chapter it folded away has left the page (`LEAVES_MS`):
-       brought in at once, it was measured with that chapter's body still in
-       the page, and the page moved 556px under it when the body went
-       (measured at 390 × 844 under reduced motion). The move waiting from an
-       earlier press is the wrong move now, and is dropped. */
-    const quiet = reducedMotion() || caretInField()
-    if (pending.current !== null) window.clearTimeout(pending.current)
-    pending.current = window.setTimeout(
-      () => {
-        pending.current = null
-        bring()
-      },
-      quiet ? LEAVES_MS : settlesIn(RESPONSE.travel),
-    )
-  }, [rail, here, at, written, searching])
-}
-
 /** How long a folded chapter's body takes to leave the page where it folds
  *  at once: its exit is immediate, and motion takes it out a frame or two
  *  later. */
@@ -1787,8 +1686,9 @@ const FOLDS_MS = 180
  * "pressing '02 Motor' opened it where it stood, with its head at the foot under the pill and its
  * tiles below the fold. Nothing brought it into view").
  *
- * `useOnward` moves the window for a write that moved the open chapter on; a press on a head
- * writes the address instead, and nothing moved at all. Now, when the address names a new
+ * Since 2026-10-31 every chapter stands open and a head folds its own, so the address is written
+ * by the finder's "Go to it" alone (`useOnward`, which moved the window for a write, is gone with
+ * the one-open-chapter rail). When the address names a new
  * chapter — its head pressed, or the finder's "Go to it" — and its head stands low in the room
  * under the bars that stick (below two fifths of it), or under them, the chapter is brought in by
  * its head once the one it replaced has folded away: the head just under the bars, its body
@@ -1814,7 +1714,16 @@ function useBroughtIn(
     const before = was.current
     was.current = at
     /* the summary brings itself in (`Summary`), and a move here would race it */
-    if (at === '' || at === before || searching || here !== at || here === 'finale') return
+    /* and nothing moves on the way back from the final package: the build is where it was left */
+    if (
+      at === '' ||
+      at === before ||
+      before === 'finale' ||
+      searching ||
+      here !== at ||
+      here === 'finale'
+    )
+      return
     const chapter = rail.current?.querySelector<HTMLElement>(`[data-chapter="${here}"]`)
     if (!chapter || typeof chapter.scrollIntoView !== 'function') return
     pending.current?.()
@@ -1893,42 +1802,6 @@ function useBroughtIn(
     }
     timer = window.setTimeout(once, reducedMotion() || caretInField() ? LEAVES_MS : FOLDS_MS)
   }, [rail, here, at, searching])
-}
-
-/**
- * THE PRESSED HEAD STAYS UNDER THE POINTER WHILE THE CHAPTER IT REPLACES FOLDS (the critic, P-7:
- * 140ms after "03 Trailer" was pressed the column had moved 48px and the hull's head was half cut
- * at its top). Every frame until the fold is done (`FOLDS_MS`), whatever the fold above it moved is
- * scrolled back by exactly that much, so the head stands where it was pressed and its body grows
- * out under it; only then does `useBroughtIn` decide whether to bring it up. A wheel, a touch, a key
- * or a press ends it at once.
- */
-function holdStill(head: HTMLElement): void {
-  const box = scrollerOf(head)
-  const from = head.getBoundingClientRect().top
-  const began = performance.now()
-  let stopped = false
-  const stop = (): void => {
-    stopped = true
-  }
-  for (const kind of TAKES_OVER) window.addEventListener(kind, stop, { passive: true })
-  const step = (): void => {
-    /* until the chapter it replaces has folded away, and never longer than a fold can take */
-    const now = performance.now()
-    const going =
-      !stopped &&
-      head.isConnected &&
-      now - began < FOLD_WAIT_MS &&
-      (now - began < FOLDS_MS || folding(head))
-    if (going) {
-      const drift = head.getBoundingClientRect().top - from
-      if (Math.abs(drift) >= 0.5) (box ?? window).scrollBy({ top: drift, behavior: 'instant' })
-      requestAnimationFrame(step)
-      return
-    }
-    for (const kind of TAKES_OVER) window.removeEventListener(kind, stop)
-  }
-  requestAnimationFrame(step)
 }
 
 /** The longest a fold is waited for before a chapter is held or brought in regardless. */
@@ -2355,6 +2228,10 @@ function Mast({
               <span className="cfg-mast__word">{register}</span>
             )}
           </p>
+          {/* A HAIRLINE BETWEEN THE MAKER AND THE BOAT (the owner, 2026-10-31: "a line between
+              highfield logo and the boat in the top and lets separate them"), the same air either
+              side of it */}
+          <span className="cfg-mast__rule" aria-hidden="true" />
           <div className="cfg-mast__words">
             <h1 className="cfg-mast__name">{boat.name}</h1>
             {boat.detail === '' ? null : (
@@ -2608,12 +2485,11 @@ function Tally({
   art,
   note,
   said,
-  elsewhere,
+  onPackage,
   raise,
   refusal,
   onLarge,
   over = false,
-  aside = false,
 }: {
   /** a desk, where the tally stands open in the boat's column and never folds */
   desk: boolean
@@ -2627,12 +2503,8 @@ function Tally({
   note: string
   /** the last step and its way back, or the refusal of the last press, below 1440 */
   said: ReactNode
-  /** the finale is open and its card says the total */
-  elsewhere: boolean
-  /** BELOW A DESK THE SUMMARY HAS SCROLLED INTO THE WINDOW, and its card says the total: the
-   *  tally steps out of sight in place, so nothing under it moves (the paper-quote critique,
-   *  2026-10-31: at 390 the total stood four times in one screen) */
-  aside?: boolean
+  /** opens the final package (`FinalPackage`), the build's one way on */
+  onPackage?: () => void
   raise: (fix: string) => void
   refusal: string | undefined
   onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
@@ -2660,108 +2532,110 @@ function Tally({
       className="cfg-tally"
       aria-label="What the quote comes to"
       data-testid="running-total"
-      data-elsewhere={elsewhere ? '' : undefined}
-      data-aside={aside ? '' : undefined}
     >
       {carrying ? (
         <output className="cfg-tally__drop">Drop it here to put it on the quote</output>
       ) : null}
-      {/* WHILE THE FINALE IS OPEN ONLY THE STEP STAYS HERE, where there is one: the finale's card
-          says the total, at the level it is given at, and what it is made of is on the paper */}
-      {elsewhere ? null : (
-        <>
-          {/* THE BOAT, BESIDE ITS PRICE, WHERE THE STAGE HAS SCROLLED AWAY (below a desk): its own
-          photograph, small, and a press that opens it large */}
-          {photo ? (
-            <button
-              type="button"
-              className="cfg-tally__boat"
-              aria-label="The boat, larger"
-              onClick={() => onLarge([largeOf(photo, boat.name, boat.say)], 0, 'The boat')}
-            >
-              <img
-                className="cfg-tally__img"
-                src={photo.src}
-                alt=""
-                width={photo.width}
-                height={photo.height}
-                loading="lazy"
-                decoding="async"
-                {...(photo.widths.length > 1 ? { srcSet: srcSetOf(photo), sizes: '96px' } : {})}
+      {/* THE BOAT, BESIDE ITS PRICE, WHERE THE STAGE HAS SCROLLED AWAY (below a desk): its own
+      photograph, small, and a press that opens it large */}
+      {photo ? (
+        <button
+          type="button"
+          className="cfg-tally__boat"
+          aria-label="The boat, larger"
+          onClick={() => onLarge([largeOf(photo, boat.name, boat.say)], 0, 'The boat')}
+        >
+          <img
+            className="cfg-tally__img"
+            src={photo.src}
+            alt=""
+            width={photo.width}
+            height={photo.height}
+            loading="lazy"
+            decoding="async"
+            {...(photo.widths.length > 1 ? { srcSet: srcSetOf(photo), sizes: '96px' } : {})}
+          />
+        </button>
+      ) : null}
+
+      <div className="cfg-tally__sum">
+        <p className="cfg-tally__lab">Total</p>
+        {rail === null || !open ? (
+          <p className="cfg-tally__fig cfg-tally__fig--none">—</p>
+        ) : (
+          <p className="cfg-tally__fig">
+            {/* folded below a desk, the figure is the line's own size */}
+            <PriceFigure amount={rail.total} size={desk || unfolded ? 'display' : 'lg'} />
+          </p>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className="cfg-tally__fold"
+        aria-expanded={unfolded}
+        aria-label={unfolded ? 'Fold the total' : 'What the total is made of'}
+        onClick={() => setUnfolded((was) => !was)}
+      >
+        <Icon glyph={CaretDownIcon} />
+      </button>
+
+      {open ? (
+        <div className="cfg-tally__level">
+          <Rungs quote={quote} rail={rail} raise={raise} refusal={refusal} />
+        </div>
+      ) : null}
+
+      {made.shares.length > 0 ? (
+        <div className="cfg-tally__made">
+          {/* the bar is a picture of the key under it, which says each part and its figure */}
+          <span className="cfg-tally__heard">{`Made of: ${heard}`}</span>
+          <p className="cfg-tally__bar" aria-hidden="true">
+            {made.shares.map((share) => (
+              <span
+                key={share.id}
+                className="cfg-tally__len"
+                data-ink={kindInk(share.kind)}
+                style={{ '--share': share.share } as CSSProperties}
               />
-            </button>
-          ) : null}
+            ))}
+          </p>
+          <ul className="cfg-tally__key">
+            {made.shares.map((share) => (
+              <li key={share.id} className="cfg-tally__part" data-ink={kindInk(share.kind)}>
+                <span className="cfg-tally__dot" aria-hidden="true" />
+                <span className="cfg-tally__name">{share.name}</span>
+                <span className="cfg-tally__amt">{money(share.amount)}</span>
+              </li>
+            ))}
+            {made.unpriced.map((name) => (
+              <li key={name} className="cfg-tally__part" data-unpriced="">
+                <span className="cfg-tally__dot" aria-hidden="true" />
+                <span className="cfg-tally__name">{name}</span>
+                <span className="cfg-tally__amt">no price yet</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
-          <div className="cfg-tally__sum">
-            <p className="cfg-tally__lab">Total</p>
-            {rail === null || !open ? (
-              <p className="cfg-tally__fig cfg-tally__fig--none">—</p>
-            ) : (
-              <p className="cfg-tally__fig">
-                {/* folded below a desk, the figure is the line's own size */}
-                <PriceFigure amount={rail.total} size={desk || unfolded ? 'display' : 'lg'} />
-              </p>
-            )}
-          </div>
-
-          <button
-            type="button"
-            className="cfg-tally__fold"
-            aria-expanded={unfolded}
-            aria-label={unfolded ? 'Fold the total' : 'What the total is made of'}
-            onClick={() => setUnfolded((was) => !was)}
-          >
-            <Icon glyph={CaretDownIcon} />
-          </button>
-
-          {open ? (
-            <div className="cfg-tally__level">
-              <Rungs quote={quote} rail={rail} raise={raise} refusal={refusal} />
-            </div>
-          ) : null}
-
-          {made.shares.length > 0 ? (
-            <div className="cfg-tally__made">
-              {/* the bar is a picture of the key under it, which says each part and its figure */}
-              <span className="cfg-tally__heard">{`Made of: ${heard}`}</span>
-              <p className="cfg-tally__bar" aria-hidden="true">
-                {made.shares.map((share) => (
-                  <span
-                    key={share.id}
-                    className="cfg-tally__len"
-                    data-ink={kindInk(share.kind)}
-                    style={{ '--share': share.share } as CSSProperties}
-                  />
-                ))}
-              </p>
-              <ul className="cfg-tally__key">
-                {made.shares.map((share) => (
-                  <li key={share.id} className="cfg-tally__part" data-ink={kindInk(share.kind)}>
-                    <span className="cfg-tally__dot" aria-hidden="true" />
-                    <span className="cfg-tally__name">{share.name}</span>
-                    <span className="cfg-tally__amt">{money(share.amount)}</span>
-                  </li>
-                ))}
-                {made.unpriced.map((name) => (
-                  <li key={name} className="cfg-tally__part" data-unpriced="">
-                    <span className="cfg-tally__dot" aria-hidden="true" />
-                    <span className="cfg-tally__name">{name}</span>
-                    <span className="cfg-tally__amt">no price yet</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          {notYet === '' && note === '' ? null : (
-            <p className="cfg-tally__note">
-              {notYet === '' ? null : <span className="cfg-tally__open">{`${notYet}.`}</span>}
-              {notYet !== '' && note !== '' ? ' ' : null}
-              {note === '' ? null : <span data-testid="total-note">{note}</span>}
-            </p>
-          )}
-        </>
+      {notYet === '' && note === '' ? null : (
+        <p className="cfg-tally__note">
+          {notYet === '' ? null : <span className="cfg-tally__open">{`${notYet}.`}</span>}
+          {notYet !== '' && note !== '' ? ' ' : null}
+          {note === '' ? null : <span data-testid="total-note">{note}</span>}
+        </p>
       )}
+
+      {/* THE BUILD'S ONE WAY ON, WHEREVER THE TOTAL IS (the owner, 2026-10-31: "let's go view final
+          package"): the whole quote, its paper and the acts that finish it, over the window */}
+      {onPackage ? (
+        <div className="cfg-tally__go">
+          <Button intent="primary" size="sm" icon={ArrowRightIcon} onClick={onPackage}>
+            View final package
+          </Button>
+        </div>
+      ) : null}
 
       {said ? <div className="cfg-tally__step">{said}</div> : null}
     </aside>
@@ -3533,15 +3407,7 @@ function ChapterCard({
           an outline; and a search opens every chapter with an answer at once,
           which a head that toggles itself cannot. */}
       <h2 className="cfg-head">
-        <button
-          type="button"
-          className="cfg-head__press"
-          aria-expanded={showing}
-          onClick={(event) => {
-            if (!showing) holdStill(event.currentTarget)
-            onOpen()
-          }}
-        >
+        <button type="button" className="cfg-head__press" aria-expanded={showing} onClick={onOpen}>
           <ChapterMark chapter={chapter} />
           {/* THE TWO CLOSING CHAPTERS CARRY NO NUMBER AND NO MARK IN ITS
               PLACE. The numbers are the engine's fixed reading order —
@@ -3906,6 +3772,12 @@ function BoatChooser({
     <div className="cfg-boat" data-testid="boat-choices">
       {boat.axes.map((axis) => {
         const now = axis.options.find((o) => o.current)
+        /* EVERY CHOICE ONE PRICE IS SAID ONCE, at the axis's head (`axisOnePrice`) */
+        const onePrice = axisOnePrice(axis.options)
+        /* A COLOUR IS A SWATCH, NOT A CARD (the owner, 2026-10-31: "make it really easy to use"):
+           fifteen colourways are one strip of swatches with their names, a model or a version a
+           compact card, a material a chip */
+        const shape = axis.id === 'material' ? 'chips' : axis.id === 'colour' ? 'swatches' : 'cards'
         return (
           <fieldset
             key={axis.id}
@@ -3913,25 +3785,28 @@ function BoatChooser({
             data-axis={axis.id}
             aria-labelledby={`${headId}-${axis.id}`}
           >
+            {/* THE AXIS'S SUMMARY LINE: what it is, what is on the quote, how many the price list
+                offers. A BOAT'S AXES EACH SAY WHAT IS ON IT, so the rows read as one finish; a
+                motor's one row has its lit card for that, beside the bar's name (the paper-quote
+                critique, 2026-10-31: "F150LC" four times in the first screen) */}
             <h3 className="cfg-axis__head" id={`${headId}-${axis.id}`}>
               <span className="cfg-axis__name">{axis.title}</span>
-              {/* A BOAT'S AXES EACH SAY WHAT IS ON IT, so four rows of choices read as one finish;
-                  a motor's one row has its lit card for that, beside the bar's name (the
-                  paper-quote critique, 2026-10-31: "F150LC" four times in the first screen) */}
               {now && kind === 'boat' ? (
                 <span className="cfg-axis__now">{slashed(now.say)}</span>
               ) : null}
               <span className="cfg-axis__count">
                 {axis.count ?? `${axis.options.length.toLocaleString('en-AU')} on the price list`}
+                {onePrice ? ', all one price' : ''}
               </span>
             </h3>
-            <ul className="cfg-axis__list" data-shape={axis.id === 'material' ? 'chips' : 'cards'}>
+            <ul className="cfg-axis__list" data-shape={shape}>
               {axis.options.map((option) => (
                 <li key={option.key}>
                   <BoatPick
                     option={option}
                     axis={axis.id}
                     kind={kind}
+                    onePrice={onePrice}
                     onPress={onPress}
                     refusedBy={refusedBy}
                   />
@@ -3962,17 +3837,29 @@ function carriedSay(carried: readonly { name: string; section: string }[], noun 
   return `${upper(namesSay(carried.map((c) => c.name)))} ${one ? 'stays' : 'stay'} on this quote, though the price list does not offer ${one ? 'it' : 'them'} with this ${noun}. ${where} ${sections.length === 1 ? 'says' : 'say'} why, with the way off.`
 }
 
-/** One choice on one axis of the boat: its picture or its colours, its name, and what it does. */
+/**
+ * One choice on one axis of the boat: its picture or its colours, its name, and what it does.
+ *
+ * THREE SHAPES, ONE HEIGHT EACH (the owner, 2026-10-31: "the hull stuff has heaps in it for all
+ * brands so let's make it really easy to use"): a model or a version is a compact card — its
+ * picture in one well, its name as a person says it, and what choosing it does to the total at
+ * the card's end, the same column on every card; a colour is a swatch with its name, one strip of
+ * them; a material is a chip. Where every choice on the axis is one price the axis's head says so
+ * once and no choice repeats "no change" (`axisOnePrice`).
+ */
 function BoatPick({
   option,
   axis,
   kind = 'boat',
+  onePrice = false,
   onPress,
   refusedBy,
 }: {
   option: DrawnOption
   axis: DrawnAxis['id']
   kind?: TableKind
+  /** every choice on this axis is one price, said once at its head */
+  onePrice?: boolean
   onPress: (act: Act) => void
   refusedBy: string | undefined
 }) {
@@ -3990,7 +3877,7 @@ function BoatPick({
     <PriceFigure amount={option.delta} signed />
   )
   const also = option.also.join(' · ')
-  const label = `${option.say}${also === '' ? '' : `, in ${also}`}${option.facts === '' ? '' : `, ${option.facts}`}, ${
+  const label = `${option.say}${also === '' ? '' : `, in ${also}`}${option.facts === '' ? '' : `, ${option.facts}`}${option.coded ? ', a code its maker does not name' : ''}, ${
     option.current
       ? 'on the quote'
       : option.amount === null
@@ -4002,6 +3889,17 @@ function BoatPick({
   const press = (): void => {
     if (!option.current) onPress({ do: 'refinish', rowId: option.rowId, label: option.label })
   }
+  /* WHAT CHOOSING IT DOES, at one place on every choice: "on the quote" on the one that is, the
+     difference on the others; nothing where the axis's head has said every one is one price */
+  const delta =
+    onePrice && !option.current ? null : (
+      <span
+        className="cfg-pick__delta"
+        data-way={option.current ? 'on' : way(option.amount === null ? null : option.delta)}
+      >
+        {option.current ? 'on the quote' : figure}
+      </span>
+    )
   if (axis === 'material') {
     return (
       <Tile
@@ -4013,22 +3911,23 @@ function BoatPick({
       >
         <span className="cfg-pick__chip">
           <span>{option.say}</span>
-          <span
-            className="cfg-pick__delta"
-            data-way={option.current ? 'on' : way(option.amount === null ? null : option.delta)}
-          >
-            {option.current ? 'on the quote' : figure}
-          </span>
+          {delta}
         </span>
       </Tile>
     )
   }
+  const name =
+    axis === 'colour' && option.colour && !option.colour.read ? (
+      <span className="cfg-mono">{option.say}</span>
+    ) : (
+      slashed(option.say).replace(/ · /g, ' · ')
+    )
   return (
-    <span className="cfg-pick">
+    <span className="cfg-pick" data-shape={axis === 'colour' ? 'swatch' : 'card'}>
       {/* THE SCREEN'S OWN PRESS, AS THE KIT'S TILE IS ONE: a toggle a reader hears as pressed or
           not, never disabled — a refused one is dimmed, keeps the caret, swallows the press and
-          points at the chapter's one sentence. Its own so the chosen card says so by its ring and
-          its pill, with no disc to keep clear of in a card this small. */}
+          points at the chapter's one sentence. Its own so the chosen one says so by its ring, with
+          no disc to keep clear of in a card this small. */}
       <button
         type="button"
         className="cfg-pick__press"
@@ -4039,69 +3938,62 @@ function BoatPick({
         aria-describedby={refusedBy}
         onClick={refusedBy === undefined ? press : undefined}
       >
-        <span className="cfg-pick__in" data-axis={axis}>
-          {/* ONE WELL FOR EVERY CARD (the critic, P-8: photographs, line drawings and a glyph on a
-              blue tile made the grid look unfinished): a photograph on the water fills it; a
-              maker's drawing, or the boat's glyph where the ledger holds no picture, stands whole
-              on the same white well */}
-          <span
-            className="cfg-pick__well"
-            data-pictured={option.picture ? '' : undefined}
-            data-scene={option.scene ? '' : undefined}
-          >
-            {option.picture ? (
-              <img
-                className="cfg-pick__img"
-                src={option.picture.src}
-                alt=""
-                width={option.picture.width}
-                height={option.picture.height}
-                decoding="async"
-                {...(option.picture.srcSet
-                  ? { srcSet: option.picture.srcSet, sizes: '128px' }
-                  : {})}
-              />
-            ) : option.colour ? (
-              <Swatches colour={option.colour} />
-            ) : (
-              <KindMark kind={kind} />
-            )}
+        {axis === 'colour' ? (
+          /* A COLOUR IS ITS SWATCHES AND ITS NAME, and its difference where it has one */
+          <span className="cfg-pick__in" data-axis={axis}>
+            <span className="cfg-pick__swatch">
+              {option.colour ? <Swatches colour={option.colour} /> : <KindMark kind={kind} />}
+            </span>
+            <span className="cfg-pick__name">{name}</span>
+            {delta}
           </span>
-          <span className="cfg-pick__words">
-            <span className="cfg-pick__name">
-              {axis === 'colour' && option.colour && !option.colour.read ? (
-                <span className="cfg-mono">{option.say}</span>
+        ) : (
+          <span className="cfg-pick__in" data-axis={axis}>
+            {/* ONE WELL FOR EVERY CARD (the critic, P-8): a photograph on the water fills it; a
+                maker's drawing, or the boat's glyph where the ledger holds no picture, stands
+                whole on the same white well */}
+            <span
+              className="cfg-pick__well"
+              data-pictured={option.picture ? '' : undefined}
+              data-scene={option.scene ? '' : undefined}
+            >
+              {option.picture ? (
+                <img
+                  className="cfg-pick__img"
+                  src={option.picture.src}
+                  alt=""
+                  width={option.picture.width}
+                  height={option.picture.height}
+                  decoding="async"
+                  {...(option.picture.srcSet
+                    ? { srcSet: option.picture.srcSet, sizes: '128px' }
+                    : {})}
+                />
+              ) : option.colour ? (
+                <Swatches colour={option.colour} />
               ) : (
-                slashed(option.say).replace(/ · /g, ' · ')
+                <KindMark kind={kind} />
               )}
             </span>
-            {axis === 'colour' && option.picture && option.colour ? (
-              <Swatches colour={option.colour} size="sm" />
-            ) : null}
-            {also === '' ? null : <span className="cfg-pick__also">{`in ${also}`}</span>}
-            {/* WHAT TELLS IT FROM THE NEXT ONE: a motor's power, weight and shaft, as its row
-                states them and as the same motor says them offered on a boat's quote */}
-            {option.facts === '' ? null : (
-              <span className="cfg-pick__facts">
-                {/* each fact kept whole, "172 kg" never broken from its unit, and a line breaks after a dot */}
-                {option.facts
-                  .split(' · ')
-                  .map((fact) => fact.replaceAll(' ', '\u00a0'))
-                  .join('\u00a0· ')}
-              </span>
-            )}
-            {/* A CODE NO MAKER'S PAGE NAMES says why it is a code (names.json, `unnamed`) */}
-            {option.coded ? <span className="cfg-pick__also">Unnamed by its maker</span> : null}
-            {/* ON THE QUOTE IT SAYS SO, and its figure is the total's beside the boat: the others
-                say what choosing them does to that total */}
-            <span
-              className="cfg-pick__delta"
-              data-way={option.current ? 'on' : way(option.amount === null ? null : option.delta)}
-            >
-              {option.current ? 'on the quote' : figure}
+            <span className="cfg-pick__words">
+              <span className="cfg-pick__name">{name}</span>
+              {also === '' ? null : <span className="cfg-pick__also">{`in ${also}`}</span>}
+              {/* WHAT TELLS IT FROM THE NEXT ONE: a motor's power, weight and shaft, as its row
+                  states them and as the same motor says them offered on a boat's quote */}
+              {option.facts === '' ? null : (
+                <span className="cfg-pick__facts">
+                  {/* each fact kept whole, "172 kg" never broken from its unit, and a line breaks
+                      after a dot */}
+                  {option.facts
+                    .split(' · ')
+                    .map((fact) => fact.replaceAll(' ', ' '))
+                    .join(' · ')}
+                </span>
+              )}
             </span>
+            {delta}
           </span>
-        </span>
+        )}
       </button>
     </span>
   )
@@ -4909,11 +4801,27 @@ angeGroups): its own sentence is that
           <RowFace
             on={row.fitted}
             tick={false}
-            mark={<KindMark kind={kind} size="sm" />}
+            mark={
+              /* ITS OWN PICTURE WHERE THE LEDGER HOLDS ONE, ELSE ITS KIND'S GLYPH, in one well the
+                 same size on every line, so every name on the list starts on one vertical */
+              row.picture ? (
+                <img
+                  className="cfg-row__img"
+                  src={row.picture.src}
+                  alt=""
+                  width={row.picture.width}
+                  height={row.picture.height}
+                  loading={lazy ? 'lazy' : undefined}
+                  decoding="async"
+                />
+              ) : (
+                <KindMark kind={kind} size="sm" />
+              )
+            }
             figure={figure}
             way={row.fitted ? (row.amount === null ? 'none' : 'on') : way(row.delta)}
             figureSay={figureSay}
-            adds={!row.fitted && figure === null && figureSay === ''}
+            act={row.fitted ? 'off' : 'add'}
           >
             {name}
             {row.starred ? <span className="cfg-row__contains">Recommended</span> : null}
@@ -4953,8 +4861,18 @@ angeGroups): its own sentence is that
         refusedBy={refusedBy}
         label={label}
         recommended={row.starred && !row.fitted}
-        {...(expand ? { expand } : {})}
       />
+      {/* ITS PICTURE, LARGE, ONE PRESS UNDER THE TILE AND AT THE SAME PLACE ON EVERY TILE (the
+          owner, 2026-10-31: "its picture-open at the same place on every row"). It stood over the
+          tile's own corner, a press laid over a press, which the overlap ruler fails the moment
+          every chapter stands open; under it, it covers nothing */}
+      {expand && row.picture ? (
+        <div className="cfg-opt__look">
+          <Button intent="quiet" size="sm" icon={ArrowsOutSimpleIcon} onClick={expand.onExpand}>
+            {expand.label}
+          </Button>
+        </div>
+      ) : null}
       {row.why === '' || grouped ? null : <p className="cfg-opt__why">{row.why}</p>}
       {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}
       {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
@@ -4990,12 +4908,16 @@ function RowFace({
   figure,
   way: moves,
   figureSay,
-  adds = false,
+  act = null,
   children,
 }: {
-  /** NO FIGURE, AND A PRESS PUTS IT ON: said in the figure's place (the critic, P-3), so a list
-   *  the price list prices nothing in still reads as things to add */
-  adds?: boolean
+  /** WHAT A PRESS ON THE LINE DOES, SAID AT THE SAME PLACE ON EVERY LINE (the owner, 2026-10-31:
+   *  "a pass on the right hand side with the line items to make it perfect"): "Add" on a line off
+   *  the quote, whether or not the price list gives it a figure (the critic, P-3: a dealer-fit
+   *  list read as nothing to press), and "Take off" on one that is on it. The whole line is the
+   *  press; this is its word, under the figure, at the line's end. null where the line's tick
+   *  says it (a finish). */
+  act?: 'add' | 'off' | null
   on: boolean
   /** the tick in its disc, where the line has no words of its own for being chosen — a finish,
    *  whose figure is its price on the hull; a part says "on the quote" beside its figure */
@@ -5029,12 +4951,12 @@ function RowFace({
           </span>
         )}
         {figureSay === '' ? null : <span className="cfg-row__at">{figureSay}</span>}
-        {adds ? (
-          <span className="cfg-row__add" aria-hidden="true">
-            <Icon glyph={PlusIcon} size="sm" />
-            Add
+        {act === null ? null : (
+          <span className="cfg-row__add" data-act={act} aria-hidden="true">
+            <Icon glyph={act === 'add' ? PlusIcon : MinusIcon} size="sm" />
+            {act === 'add' ? 'Add' : 'Take off'}
           </span>
-        ) : null}
+        )}
       </span>
     </span>
   )
@@ -5199,480 +5121,319 @@ function Marked({ text, query }: { text: string; query: string }) {
 }
 
 /* ---------------------------------------------------------- */
-/* The summary: the whole quote, one screen                    */
+/* The final package                                           */
 /* ---------------------------------------------------------- */
 
-/** How far a wheel pushes on past the end before the screen turns: two notches of a mouse wheel,
- *  or a deliberate stroke of a trackpad, never the tail of a fling that only just reached it. */
-const PAST_PX = 160
-
-/** How long the column rests at its end before a push past it counts. */
-const SETTLED_MS = 300
-
 /**
- * A WHEEL PUSHED ON PAST AN END, said once per push (`onPast`). At a desk the chapters' column
- * scrolling on past its last chapter brings the summary in, and the summary pushed up past its top
- * takes it away, so the build and its summary read as two screens of one page. Nothing is moved by
- * the listener itself and nothing is held from the browser: it only notices.
+ * THE DOOR TO THE FINAL PACKAGE, AT THE RAIL'S FOOT, where the summary's door stood (the owner,
+ * 2026-10-31: "let's go view final package"): its name, where the give stands ("ready to give",
+ * "after their name", "given") and the act itself, amber, the build's one way on. The total's
+ * card carries the same act.
  */
-function listenPast(
-  box: HTMLElement,
-  way: 'down' | 'up',
-  atEnd: (event: WheelEvent) => boolean,
-  onPast: () => void,
-): () => void {
-  let pushed = 0
-  let pushes = 0
-  let idle = 0
-  /* THE PUSH STARTS ONCE THE END HAS BEEN REACHED, never in the same stroke that reached it: a
-     fling that carries the column to its last chapter stops there, and the summary comes only
-     to a second, deliberate push (two notches of a wheel, or a stroke of a trackpad) */
-  let arrived = 0
-  const onScroll = (): void => {
-    arrived = performance.now()
-  }
-  const onWheel = (event: WheelEvent): void => {
-    if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return
-    const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY
-    if (
-      (way === 'down' ? delta <= 0 : delta >= 0) ||
-      !atEnd(event) ||
-      performance.now() - arrived < SETTLED_MS
-    ) {
-      pushed = 0
-      pushes = 0
-      return
-    }
-    pushed += Math.abs(delta)
-    pushes += 1
-    window.clearTimeout(idle)
-    idle = window.setTimeout(() => {
-      pushed = 0
-      pushes = 0
-    }, 400)
-    if (pushed >= PAST_PX && pushes >= 2) {
-      pushed = 0
-      pushes = 0
-      onPast()
-    }
-  }
-  box.addEventListener('wheel', onWheel, { passive: true })
-  box.addEventListener('scroll', onScroll, { passive: true })
-  return () => {
-    box.removeEventListener('wheel', onWheel)
-    box.removeEventListener('scroll', onScroll)
-    window.clearTimeout(idle)
-  }
-}
-
-/**
- * THE DOOR TO THE SUMMARY, AT THE RAIL'S FOOT, where the finale's head stood: its name, where the
- * give stands ("ready to give", "after their name", "given"), the total, and an arrow down. A
- * press brings the summary in; at a desk scrolling on past it does the same.
- */
-function SummaryDoor({
+function PackageDoor({
   at,
   index,
   chapter,
-  open,
   onSee,
 }: {
   at: RefObject<HTMLElement | null> | undefined
   index: number
   chapter: Chapter
-  open: boolean
   onSee: () => void
 }) {
+  const headId = useId()
   return (
     <section
       ref={at}
       className="cfg-chapter cfg-door"
       data-chapter={chapter.id}
       data-kind={chapter.kind}
-      aria-label={chapter.name}
+      aria-labelledby={headId}
       style={{ '--i': Math.min(index, 7) } as CSSProperties}
     >
-      <h2 className="cfg-head">
-        <button
-          type="button"
-          className="cfg-head__press cfg-door__press"
-          aria-expanded={open}
-          aria-controls="cfg-summary"
-          onClick={onSee}
-        >
-          <ChapterMark chapter={chapter} />
-          <span className="cfg-head__num" aria-hidden="true" />
-          <span className="cfg-head__body">
-            <span className="cfg-head__name">{chapter.name}</span>
-            {/* where the give stands, while the summary is not the thing in view: the tally says
-                the total, and the summary, once open, says the rest (docs/WORDS.md, one fact once) */}
-            {open ? null : (
-              <span className="cfg-head__fact">
-                <span className="cfg-head__rest">{chapter.fact}</span>
-              </span>
-            )}
-          </span>
-          <span className="cfg-head__sum" />
-          <span className="cfg-head__chev cfg-door__chev" aria-hidden="true">
-            <Icon glyph={ArrowDownIcon} />
-          </span>
-        </button>
-      </h2>
+      <ChapterMark chapter={chapter} />
+      <div className="cfg-door__words">
+        <h2 className="cfg-door__name" id={headId}>
+          {chapter.name}
+        </h2>
+        <p className="cfg-door__fact">{chapter.fact}</p>
+      </div>
+      <div className="cfg-door__go">
+        <Button intent="act" icon={ArrowRightIcon} onClick={onSee}>
+          View final package
+        </Button>
+      </div>
     </section>
   )
 }
 
+/** HOW LONG THE PREPARING MOMENT STANDS (about 1.2 s, the owner's "pretend loading screen"): the
+ *  photograph settles, what is put together is said line by line, and it lifts. Under reduced
+ *  motion it is not played at all. */
+const PREPARING_MS = 1200
+
+/** How many of the quote's lines the preparing moment names before it says how many more. */
+const PREPARING_LINES = 4
+
+/** THE PAPER TO THE PRINTER, or to a PDF where the person chooses Save as PDF: the package steps
+ *  out of the way while it prints (`FinalPackage`). */
+function printThePaper(): void {
+  globalThis.print?.()
+}
+
+/** NOBODY NAMED: the caret to the name's own field at the head of the package's card. */
+function toTheName(): void {
+  const field = document.getElementById('cfg-customer')
+  field?.scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'instant' : 'smooth' })
+  field?.focus({ preventScroll: true })
+}
+
 /**
- * THE SUMMARY: THE WHOLE QUOTE ON ONE SCREEN (the owner, 2026-10-30: "the finale section should
- * actually take the whole page summary when you scroll to that, fits to screen size type thing
- * but big one page one filled screen summary with print and send and all of that and then you
- * scroll up and can edit and things and then scroll down and then see big summary and all of that
- * with all the photos and whatnot").
+ * THE FINAL PACKAGE (the owner, 2026-10-31: "that summary page SUCKS … let's go view final package
+ * and pretend loading screen and we can see the pdf quote preview and things and it is just a
+ * visual masterpiece and then go back to editing if we need").
  *
- * The one screen the dealer turns towards the customer. The boat's photograph, as large as the
- * screen allows; every line on the quote with its own picture and figure; and the handover card
- * the finale was — who it is for, the total at the price it is given at, and the acts that finish
- * it: name them, give it, open the printed quote to print or save it, and, once given, email it
- * from the dealer's own mail (the app sends nothing itself, and says so).
+ * THE WHOLE WINDOW, A VIEW OF ITS OWN: it stands over the shell's pill, which steps out of sight
+ * under it, and the build waits under it out of sight and out of reach of the keyboard and a reader
+ * (`inert`), exactly as it was left. Escape is "Back to editing". It is a region and not a modal
+ * dialog: a modal's top layer printed as one fixed box, and the rulers set every modal aside as a
+ * layer over a page, where this is the page.
  *
- * AT A DESK IT RISES OVER THE BUILD AND FILLS THE WINDOW, from the door at the rail's foot or by
- * scrolling on past the last chapter, and pushing up past its top, or "Back to the build", lowers
- * it again onto the chapter the dealer left. Below a desk it is the page's last screen, a window
- * tall, and the door scrolls to it. Its address is `at=finale`, so a reload lands on it.
+ * WHAT IT HOLDS, IN THE ORDER A CUSTOMER IS SHOWN IT: the boat's name and its finish; its
+ * photograph, large; the handover card the finale always was (who it is for, the total at the price
+ * it is given at, the give and everything that stops it, a price put on a line the price list gives
+ * none); every chosen line with its own picture and figure; and the printed quote itself, the
+ * document screen's own component, paged as it prints. The acts that finish it: name the customer
+ * where nobody is named, give it, print or save the PDF, and once given email it from the dealer's
+ * own mail, which is as much as this app can honestly send.
  *
- * EVERYTHING THE FINALE DID, IT DOES: the refusals under the give and their reasons, a price put
- * on a line the price list gives none, the rules' warnings, the seal's moment, the new version.
+ * PRINTED, IT IS THE PAPER AND NOTHING ELSE: every part of the package but the document is taken
+ * away, and the build with it (configurator.css).
  */
-function Summary({
-  open,
+function FinalPackage({
   quote,
   quoteId,
   ctx,
   rail,
   art,
-  desk,
+  preparing,
+  onPrepared,
   onBack,
-  onLarge,
   openQuote,
   openDocument,
   now,
   justGiven,
   onPress,
-  onWho,
   go,
+  step,
   setStep,
   setRefused,
-  onSeen,
 }: {
-  /** the address names it (or the quote is given): it is brought into the window, and the caret
-   *  comes with it */
-  open: boolean
   quote: QuoteDef
   quoteId: string
   ctx: CatalogueCtx
-  rail: Rail | null
+  rail: Rail
   art: StageArt | null
-  /** a desk, where it stands over the build rather than after it */
-  desk: boolean
+  /** the preparing moment is to play (a press, where motion is welcome) */
+  preparing: boolean
+  onPrepared: () => void
   onBack: () => void
-  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
   openQuote?: (id: string) => void
   openDocument?: (id: string) => void
   now?: () => Date
   justGiven: boolean
   onPress: (act: Act) => void
-  onWho: () => void
   go?: (href: string) => void
+  /** the last step and its way back, where the toast is not drawn */
+  step: ReactNode
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
-  /** below a desk, whether it holds the window's upper half — its card then says the total */
-  onSeen?: (seen: boolean) => void
 }) {
+  const heading = useRef<HTMLHeadingElement>(null)
+  const paper = useRef<HTMLDivElement>(null)
+  const headId = useId()
   const boat = boatOfQuote(quote)
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
   const isBoat = ctx.entities[quote.rootTableId]?.kind === 'boat'
-  const headId = useId()
-  const box = useRef<HTMLElement>(null)
-  const heading = useRef<HTMLHeadingElement>(null)
-  const list = useRef<HTMLUListElement>(null)
   const photo = art?.kind === 'photograph' ? art.held : null
-  /* THE PHOTOGRAPH HOLDS ITS HEIGHT THROUGH THE GIVE BELOW A DESK (the build page round,
-     2026-10-31). There it takes what the card and the lines leave of the window, so the given card,
-     taller than the draft's, took 115px off it at 834 and 50px at 390, and the card's total rose
-     under the press. Its height as a draft is watched, and at the give it is kept. */
-  const pic = useRef<HTMLElement>(null)
-  const [draftPic, setDraftPic] = useState(0)
   const issued = quote.state !== 'draft'
-  useEffect(() => {
-    const el = pic.current
-    if (!el || issued || desk || typeof ResizeObserver === 'undefined') return
-    const watch = new ResizeObserver(() => setDraftPic(el.getBoundingClientRect().height))
-    watch.observe(el)
-    return () => watch.disconnect()
-  }, [issued, desk])
-  const held = !desk && justGiven && draftPic > 0
-  /* A LIST LONGER THAN ITS PLATE SAYS THERE IS MORE: its last visible line fades into the plate
-     (`data-more`, configurator.css) rather than ending cut by the plate's edge, until it is
-     scrolled to its end (the build page round, 2026-10-31: six lines at 1440 × 900). AND THE CARD
-     THE SAME, at a desk, where a long quote's lines take their room first and a given card's
-     footnotes scroll in their own place. */
-  const card = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (typeof ResizeObserver === 'undefined') return
-    const stops: Array<() => void> = []
-    for (const el of [list.current, card.current]) {
-      if (!el) continue
-      const read = (): void => {
-        const more = el.scrollHeight - el.clientHeight - el.scrollTop > 2
-        el.toggleAttribute('data-more', more)
-      }
-      read()
-      const watch = new ResizeObserver(read)
-      watch.observe(el)
-      if (el.firstElementChild) watch.observe(el.firstElementChild)
-      el.addEventListener('scroll', read, { passive: true })
-      stops.push(() => {
-        watch.disconnect()
-        el.removeEventListener('scroll', read)
-      })
-    }
-    return () => {
-      for (const stop of stops) stop()
-    }
+  const named = quote.customer.name.trim() !== ''
+  const mark = markOnPaper(register)
+
+  /* THE PACKAGE OPENS AT ITS TOP, and the caret on its title the moment it is drawn, so a reader
+     is told where they are */
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    heading.current?.focus({ preventScroll: true })
   }, [])
 
-  /* BELOW A DESK IT IS THE PAGE'S END, reached by scrolling as often as by its door: while it
-     holds the window's upper half, its card says the total and the tally steps aside */
-  const seen = useEffectEvent((holds: boolean) => onSeen?.(holds))
+  /* ESCAPE IS "BACK TO EDITING", as a sheet over the page answers it */
+  const escape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || event.defaultPrevented) return
+    event.preventDefault()
+    onBack()
+  })
   useEffect(() => {
-    const node = box.current
-    if (!node || desk || typeof IntersectionObserver === 'undefined') return
-    const watch = new IntersectionObserver(([entry]) => seen(entry?.isIntersecting === true), {
-      rootMargin: '0px 0px -50% 0px',
-    })
-    watch.observe(node)
-    return () => {
-      watch.disconnect()
-      seen(false)
-    }
-  }, [desk])
+    const onKey = (event: KeyboardEvent): void => escape(event)
+    globalThis.addEventListener('keydown', onKey)
+    return () => globalThis.removeEventListener('keydown', onKey)
+  }, [])
 
-  /* WHAT THE TOTAL IS MADE OF, one length per part in its ink, the ink each line's dot wears */
-  const made = tallyOf(tallyParts(rail?.chapters ?? []))
-  /* THE BOAT'S OWN LINE LEADS: the subject's line, which no chapter's list draws */
+  /* THE PREPARING MOMENT LIFTS ON ITS OWN, once */
+  const prepared = useEffectEvent(onPrepared)
+  useEffect(() => {
+    if (!preparing) return
+    const timer = window.setTimeout(() => prepared(), PREPARING_MS)
+    return () => window.clearTimeout(timer)
+  }, [preparing])
+
+  /* THE PAPER FITS ITS COLUMN: an A4 sheet is 210 mm, and where the column is narrower the sheets
+     are drawn smaller, whole, never cut; below 826px the document sets itself as one column and
+     nothing is scaled */
+  useEffect(() => {
+    const box = paper.current
+    if (!box || typeof ResizeObserver === 'undefined') return
+    const fit = (): void => {
+      const sheet = box.querySelector<HTMLElement>('.doc-page')
+      const wide = sheet ? sheet.offsetWidth : 0
+      const room = box.clientWidth
+      const scale = wide > 0 && innerWidth >= 826 && room < wide ? room / wide : 1
+      box.style.setProperty('--pkg-zoom', scale.toFixed(3))
+    }
+    fit()
+    const watch = new ResizeObserver(fit)
+    watch.observe(box)
+    return () => watch.disconnect()
+  }, [])
+
+  /* EVERY LINE ON IT, THE BOAT'S OWN FIRST, each with its picture and figure */
   const subjectIds = new Set(quote.sections.find((s) => s.blockId === SUBJECT_BLOCK)?.lineIds ?? [])
   const subject = quote.lines.find((l) => subjectIds.has(l.id))
-  const items = rail
-    ? summaryItems(
-        rail,
-        subject
-          ? {
-              /* THE ROW THAT PRICES THE BOAT NAMES IT, with the finish it is built in: "Adventure"
-                 and "Hypalon · White / White / White/Blue" stood alone beside the hull's price,
-                 the model missing from its own line (the paper-quote critique, 2026-10-31) */
-              name: boat.say,
-              amount: lineAmount(subject).amount,
-              picture: photo
-                ? {
-                    src: photo.src,
-                    width: photo.width,
-                    height: photo.height,
-                    credit: creditOf(photo),
-                  }
-                : null,
-              chapter: isBoat
-                ? (rail.chapters.find((c) => c.id === 'hull')?.name ?? register)
-                : register,
-              kind: ctx.entities[quote.rootTableId]?.kind ?? 'boat',
-            }
-          : null,
-      )
-    : []
-
-  /* ARRIVING, THE CARET COMES WITH IT: to its heading, so a reader is told where they are, and
-     below a desk the page is brought to it */
-  useEffect(() => {
-    const node = box.current
-    if (!node || !open) return
-    heading.current?.focus({ preventScroll: true })
-    if (desk || typeof node.scrollIntoView !== 'function') return
-    /* once the address has settled: the router puts a new address at the page's top, and the
-       move to the summary comes after that, not before it */
-    /* and where the page grew or shrank above it while it travelled, it lands exactly at the end */
-    let taken = false
-    const takeOver = (): void => {
-      taken = true
-    }
-    const land = (): void => {
-      if (!taken && Math.abs(node.getBoundingClientRect().top) > 1)
-        node.scrollIntoView({ block: 'start', behavior: 'instant' })
-    }
-    let again = 0
-    /* the page above it that settles a moment later (a chapter folding, a picture arriving)
-       moves it: while the reader has not taken over, it is put back at the window's top */
-    const grows = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => land())
-    const arrived = (): void => {
-      land()
-      grows?.observe(document.body)
-      again = window.setTimeout(() => grows?.disconnect(), BRINGS_MS * 1.5)
-    }
-    const timer = window.setTimeout(() => {
-      node.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'instant' : 'smooth' })
-      window.addEventListener('scrollend', arrived, { once: true })
-      for (const kind of TAKES_OVER) window.addEventListener(kind, takeOver, { passive: true })
-    }, LEAVES_MS)
-    return () => {
-      window.clearTimeout(timer)
-      window.clearTimeout(again)
-      grows?.disconnect()
-      window.removeEventListener('scrollend', arrived)
-      for (const kind of TAKES_OVER) window.removeEventListener(kind, takeOver)
-    }
-  }, [desk, open])
-  /* AT A DESK IT RISES OVER THE BUILD AND LOWERS AGAIN on the kit's travel spring; under reduced
-     motion, or a caret in a field, it only fades. Below a desk it is simply there, at the page's end. */
-  const reduce = useReducedMotion()
-  const still = useStill()
-  const quiet = Boolean(reduce) || still
-
-  /* AT A DESK, PUSHING UP PAST ITS TOP LOWERS IT AGAIN — unless the wheel is inside the list of
-     lines, or the card, and it still has somewhere to go */
-  const onPast = useEffectEvent(() => onBack())
-  useEffect(() => {
-    const node = box.current
-    if (!node || !desk) return
-    return listenPast(
-      node,
-      'up',
-      (event) => {
-        /* the list and the card each scroll in their own place, and a wheel inside one that still
-           has somewhere to go moves it */
-        for (const el of [list.current, card.current]) {
-          if (el?.contains(event.target as Node) && el.scrollTop > 0) return false
+  const items = summaryItems(
+    rail,
+    subject
+      ? {
+          name: boat.say,
+          amount: lineAmount(subject).amount,
+          picture: photo
+            ? { src: photo.src, width: photo.width, height: photo.height, credit: creditOf(photo) }
+            : null,
+          chapter: isBoat
+            ? (rail.chapters.find((c) => c.id === 'hull')?.name ?? register)
+            : register,
+          kind: ctx.entities[quote.rootTableId]?.kind ?? 'boat',
         }
-        return true
-      },
-      () => onPast(),
-    )
-  }, [desk])
+      : null,
+  )
+  const made = tallyOf(tallyParts(rail.chapters))
+
+  /* WHAT THE PREPARING MOMENT SAYS IS PUT TOGETHER: the quote's own lines by the names they print
+     under, and the paper; nothing it does not do */
+  const first = items.slice(0, PREPARING_LINES)
+  const more = items.length - first.length
 
   return (
-    <motion.section
-      ref={box}
-      id="cfg-summary"
-      className="cfg-sum"
-      data-testid="summary"
-      data-open={open ? '' : undefined}
+    <section
+      className="cfg-pkg"
+      /* the box that scrolls is not a stop on the Tab walk: the caret goes from act to act inside
+         it, and the arrow keys scroll it from any of them */
+      tabIndex={-1}
+      data-testid="final-package"
       aria-labelledby={headId}
-      initial={desk ? (quiet ? { opacity: 0 } : { y: '100%' }) : false}
-      animate={{ y: 0, opacity: 1 }}
-      exit={
-        desk
-          ? quiet
-            ? { opacity: 0, transition: transition('exit', true) }
-            : { y: '100%', transition: transition('exit', false) }
-          : { opacity: 0, transition: { duration: 0 } }
-      }
-      transition={transition('travel', quiet)}
+      data-preparing={preparing ? '' : undefined}
+      data-given={issued ? '' : undefined}
     >
-      <div className="cfg-sum__in">
-        <header className="cfg-sum__head">
-          <div className="cfg-sum__title">
-            <p className="cfg-eyebrow">
-              {quote.state === 'draft' ? 'Summary · draft' : 'Summary · given'}
-            </p>
-            {/* THE BOAT'S NAME AS THE TITLE, and once more only on the line that prices it, with its
-                finish (the critic, P-10: it was the title, the line under the customer's name and
-                the first line of the list; the paper-quote critique: a finish alone on that line
-                named nothing) */}
-            <h2 className="cfg-sum__name" id={headId} ref={heading} tabIndex={-1}>
-              {boat.name}
-            </h2>
-          </div>
-          <Button intent="quiet" size="sm" icon={ArrowUpIcon} onClick={onBack}>
-            Back to the build
+      <div className="cfg-pkg__in">
+        <header className="cfg-pkg__bar">
+          <Button intent="secondary" size="sm" icon={ArrowLeftIcon} onClick={onBack}>
+            Back to editing
+          </Button>
+          <p className="cfg-pkg__where">
+            <span className="cfg-state" data-state={issued ? 'given' : 'draft'}>
+              <span className="cfg-state__dot" aria-hidden="true" />
+              {issued ? 'Given' : 'Draft'}
+            </span>
+            <span className="cfg-pkg__ref cfg-mono">{quote.reference}</span>
+          </p>
+          <Button intent="secondary" size="sm" icon={PrinterIcon} onClick={printThePaper}>
+            Print or save the PDF
           </Button>
         </header>
 
-        <div className="cfg-sum__body" data-pictured={photo ? '' : undefined}>
-          {/* THE BOAT, AS LARGE AS THE SCREEN ALLOWS, never past its own pixels; a thing sold on its
-              own with no picture held stands its list's name in type on the file's blue, as its
-              stage does, rather than leaving half the summary empty (2026-10-31) */}
-          {art ? (
-            <div className="cfg-sum__boat">
+        <div className="cfg-pkg__page">
+          <header className="cfg-pkg__title">
+            {mark.drawn ? (
+              <img
+                className="cfg-pkg__mark"
+                src={mark.mark.src}
+                alt={mark.mark.brand}
+                width={mark.mark.width}
+                height={mark.mark.height}
+              />
+            ) : (
+              <p className="cfg-pkg__eyebrow">{register}</p>
+            )}
+            <h2 className="cfg-pkg__name" id={headId} ref={heading} tabIndex={-1}>
+              {boat.name}
+            </h2>
+            {boat.detail === '' ? null : (
+              <p className="cfg-pkg__detail">
+                <Swatches colour={boat.colour} />
+                <span>{slashed(boat.detail)}</span>
+              </p>
+            )}
+          </header>
+
+          <div className="cfg-pkg__hero" data-pictured={art ? '' : undefined}>
+            {art ? (
               <figure
-                ref={pic}
-                style={
-                  {
-                    ...(held ? { flex: 'none', blockSize: draftPic } : {}),
-                    /* A PHOTOGRAPH'S FRAME IS NEVER TALLER THAN ITS OWN PIXELS CAN COVER: at a desk a
-                     frame of 605 stood a held 597 between two white hairlines (configurator.css) */
-                    ...(photo ? { '--sum-held': `${photo.height}px` } : {}),
-                  } as CSSProperties
-                }
-                className="cfg-sum__pic"
-                data-art={art?.kind ?? 'word'}
+                className="cfg-pkg__photo"
+                data-art={art.kind}
                 data-verdict={photo?.verdict}
+                style={(photo ? { '--pkg-held': `${photo.height}px` } : {}) as CSSProperties}
               >
                 {photo ? (
-                  <>
-                    <img
-                      className="cfg-sum__img"
-                      src={photo.src}
-                      /* never past its own pixels: the ledger's size is the ceiling on the box */
-                      style={{ maxInlineSize: photo.width, maxBlockSize: photo.height }}
-                      alt=""
-                      width={photo.width}
-                      height={photo.height}
-                      decoding="async"
-                      {...(photo.widths.length > 1
-                        ? /* THE FRAME COVERS, so the file chosen must cover its taller side too:
-                           at 1920 the photograph is cut to 967 × 890 from a 3 : 2 file, which
-                           needs 1,334 of its pixels across (the critic, P-11); and at 1440 a
-                           panorama cut to 727 × 605 needs 1,470, more than 80vw, so the widest
-                           file the window could want is asked for */
-                          { srcSet: srcSetOf(photo), sizes: '100vw' }
-                        : {})}
-                    />
-                    <span className="cfg-shot__expand">
-                      <ExpandPicture
-                        label="Open the photograph large"
-                        onExpand={() =>
-                          onLarge([largeOf(photo, boat.name, boat.say)], 0, 'The boat')
-                        }
-                      />
-                    </span>
-                  </>
-                ) : art?.kind === 'mark' ? (
                   <img
-                    className="cfg-sum__mark"
+                    className="cfg-pkg__img"
+                    src={photo.src}
+                    alt={photo.subject === '' ? boat.say : photo.subject}
+                    width={photo.width}
+                    height={photo.height}
+                    decoding="async"
+                    {...(photo.widths.length > 1
+                      ? { srcSet: srcSetOf(photo), sizes: '(min-width: 1200px) 60vw, 100vw' }
+                      : {})}
+                  />
+                ) : art.kind === 'mark' ? (
+                  <img
+                    className="cfg-pkg__markbig"
                     src={art.mark.src}
                     alt={art.mark.brand}
                     width={art.mark.width}
                     height={art.mark.height}
                   />
                 ) : (
-                  <span className="cfg-sum__word">{register}</span>
+                  <span className="cfg-pkg__word">{register}</span>
                 )}
               </figure>
-              {/* AT A DESK, ITS FACTS UNDER IT, as the build's stage stands them and the paper prints
-                them: the quote's summary is the boat's too ("full spec of the quote and the boat",
-                the owner, 2026-10-30). Below a desk the stage's own strip is a flick above. */}
-              {desk && quote.subjectSpecs.length + (subject?.facts?.length ?? 0) > 0 ? (
-                <Specs quote={quote} ctx={ctx} />
-              ) : null}
-            </div>
-          ) : null}
+            ) : null}
 
-          <div className="cfg-sum__side">
-            {/* THE HANDOVER LEADS: who it is for and the total, which stand still at the give while the
-                card below them grows its way on; then every line it is made of */}
-            <div className="cfg-sum__card" ref={card}>
-              {rail ? (
+            <div className="cfg-pkg__side">
+              <div className="cfg-pkg__card" data-asking={!issued && !named ? '' : undefined}>
+                {/* NOBODY NAMED: THE NAME IS PUT ON HERE, at the head of the card whose give waits
+                    for it, in place of the card's own "For" */}
+                {!issued && !named ? (
+                  <section className="cfg-pkg__who" aria-label="Who it is for">
+                    <CustomerForm
+                      quote={quote}
+                      quoteId={quoteId}
+                      onDone={() => {}}
+                      setStep={setStep}
+                      setRefused={setRefused}
+                    />
+                  </section>
+                ) : null}
                 <Finale
-                  /* SHUT AND OPENED AGAIN, A GIVEN QUOTE IS SIMPLY THERE: below a desk the summary
-                     stays on the page, so its card is drawn anew each time it is brought in */
-                  key={open ? 'open' : 'shut'}
                   quote={quote}
                   quoteId={quoteId}
                   rail={rail}
@@ -5682,25 +5443,28 @@ function Summary({
                   now={now}
                   arrives={justGiven}
                   onPress={onPress}
-                  onWho={onWho}
+                  onWho={toTheName}
                   go={go}
                   setStep={setStep}
                   setRefused={setRefused}
                 />
-              ) : null}
+              </div>
+              {step ? <div className="cfg-pkg__step">{step}</div> : null}
             </div>
+          </div>
 
-            <section className="cfg-sum__lines" aria-label="On this quote">
-              <h3 className="cfg-sum__count">
+          <div className="cfg-pkg__body">
+            <section className="cfg-pkg__lines" aria-labelledby={`${headId}-lines`}>
+              <h3 className="cfg-pkg__count" id={`${headId}-lines`}>
                 <span>On this quote</span>
-                <span className="cfg-sum__n">
+                <span className="cfg-pkg__n">
                   {items.length === 1 ? '1 item' : `${items.length.toLocaleString('en-AU')} items`}
                 </span>
               </h3>
-              <ul className="cfg-sum__list" ref={list}>
+              <ul className="cfg-pkg__list">
                 {items.map((item) => (
-                  <li key={item.key} className="cfg-sum__item" data-ink={kindInk(item.kind)}>
-                    <span className="cfg-sum__thumb">
+                  <li key={item.key} className="cfg-pkg__item" data-ink={kindInk(item.kind)}>
+                    <span className="cfg-pkg__thumb">
                       {item.picture ? (
                         <img
                           src={item.picture.src}
@@ -5710,23 +5474,23 @@ function Summary({
                           loading="lazy"
                           decoding="async"
                           {...(item.picture.srcSet
-                            ? { srcSet: item.picture.srcSet, sizes: '96px' }
+                            ? { srcSet: item.picture.srcSet, sizes: '112px' }
                             : {})}
                         />
                       ) : (
                         <KindMark kind={item.kind} size="sm" />
                       )}
                     </span>
-                    <span className="cfg-sum__words">
-                      <span className="cfg-sum__item-name">{slashed(item.name)}</span>
-                      <span className="cfg-sum__item-in">
-                        <span className="cfg-sum__dot" aria-hidden="true" />
+                    <span className="cfg-pkg__words">
+                      <span className="cfg-pkg__item-name">{slashed(item.name)}</span>
+                      <span className="cfg-pkg__item-in">
+                        <span className="cfg-pkg__dot" aria-hidden="true" />
                         {item.chapter}
                       </span>
                     </span>
-                    <span className="cfg-sum__amt">
+                    <span className="cfg-pkg__amt">
                       {item.amount === null ? (
-                        <span className="cfg-sum__none">no price yet</span>
+                        <span className="cfg-pkg__none">no price yet</span>
                       ) : (
                         <PriceFigure amount={item.amount} />
                       )}
@@ -5735,7 +5499,7 @@ function Summary({
                 ))}
               </ul>
               {made.shares.length > 1 ? (
-                <div className="cfg-sum__made">
+                <div className="cfg-pkg__made">
                   <span className="cfg-tally__heard">{`Made of: ${made.shares.map((x) => `${x.name} ${money(x.amount)}`).join(', ')}`}</span>
                   <p className="cfg-tally__bar" aria-hidden="true">
                     {made.shares.map((share) => (
@@ -5750,10 +5514,62 @@ function Summary({
                 </div>
               ) : null}
             </section>
+
+            <section className="cfg-pkg__paper" aria-labelledby={`${headId}-paper`}>
+              <h3 className="cfg-pkg__count" id={`${headId}-paper`}>
+                <span>The printed quote</span>
+                <span className="cfg-pkg__n">as the customer reads it</span>
+              </h3>
+              <p className="cfg-pkg__say">{PRINT_IS_THE_PAGE}</p>
+              <div className="cfg-pkg__doc" ref={paper}>
+                <Document quoteId={quoteId} />
+              </div>
+            </section>
           </div>
         </div>
       </div>
-    </motion.section>
+
+      {/* THE PREPARING MOMENT: the boat's photograph settling, and what is put together said line
+          by line, honest in every word; then it lifts on the package (configurator.css) */}
+      {preparing ? (
+        <div className="cfg-pkg__prep" aria-hidden="true">
+          {photo ? (
+            <img
+              className="cfg-pkg__prep-img"
+              src={photo.src}
+              alt=""
+              width={photo.width}
+              height={photo.height}
+              {...(photo.widths.length > 1 ? { srcSet: srcSetOf(photo), sizes: '100vw' } : {})}
+            />
+          ) : null}
+          <div className="cfg-pkg__prep-words">
+            <p className="cfg-pkg__prep-lead">Putting the final package together</p>
+            <ul className="cfg-pkg__prep-list">
+              {first.map((item, i) => (
+                <li key={item.key} style={{ '--i': i } as CSSProperties}>
+                  <Icon glyph={CheckIcon} />
+                  {slashed(item.name)}
+                </li>
+              ))}
+              {more > 0 ? (
+                <li style={{ '--i': first.length } as CSSProperties}>
+                  <Icon glyph={CheckIcon} />
+                  {more === 1
+                    ? 'and 1 more line'
+                    : `and ${more.toLocaleString('en-AU')} more lines`}
+                </li>
+              ) : null}
+              <li style={{ '--i': first.length + (more > 0 ? 1 : 0) } as CSSProperties}>
+                <Icon glyph={FileTextIcon} />
+                The printed quote, page by page
+              </li>
+            </ul>
+            <span className="cfg-pkg__prep-rule" />
+          </div>
+        </div>
+      ) : null}
+    </section>
   )
 }
 
@@ -6108,14 +5924,15 @@ function Finale({
             >
               Give it to the customer
             </Button>
-            {/* THE PAPER AS IT STANDS, before it is given: a draft prints as a draft */}
+            {/* WHAT PRINTS IS CHOSEN ON THE PRINTED QUOTE'S OWN SCREEN, beside the paper: the final
+                package shows the paper as it stands, and this is the way to its sections */}
             <Button
               intent="secondary"
               icon={FileTextIcon}
               onClick={() => openDocument?.(quoteId)}
               refusedBecause={openDocument ? undefined : NO_DOCUMENT_HERE}
             >
-              Preview the printed quote
+              Choose what prints
             </Button>
           </div>
           <GiveWaits id={waitsId} blockers={rail.blockers} waits={rail.waits} />

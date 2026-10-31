@@ -6,6 +6,7 @@ import { AT_THE_DESK, FILE_DOOR, throughTheDoor, withoutTheFile } from '../door'
 import { issueIt, openTheDocument, raiseTheRung, startAQuote } from '../mint'
 import { APP_NAME, DOORS } from '../../src/app/ways'
 import { initialsOf } from '../../src/domain/shell/crest'
+import { HOME_READY } from '../routes'
 
 /** One of the file's own tables, read off the pack as the browser reads it — never typed here. */
 const TABLE = (id: string): Array<{ id: string; values: Record<string, unknown> }> =>
@@ -93,7 +94,7 @@ test('a browser that has lost its copy of the file says so on Home, and the way 
   })
 
   await expect(page.getByText('The Master Price File is not on this computer yet.')).toBeVisible()
-  await expect(page.getByTestId('pack-counts')).toHaveCount(0)
+  await expect(page.locator(HOME_READY)).toHaveCount(0)
   await expect(page.getByText(/No price list is open/)).toBeVisible()
   /* nothing is said about a business nobody named: Northside is named by its file */
   await expect(page.getByTestId('home')).not.toContainText(/not been named|blank sheet/i)
@@ -126,7 +127,7 @@ test('a browser that has lost its copy of the file says so on Home, and the way 
 
   await page.getByRole('button', { name: FILE_DOOR }).click()
   await expect(page).toHaveURL(/\/$/, { timeout: 30_000 })
-  await expect(page.getByTestId('pack-counts')).toBeVisible()
+  await expect(page.locator(HOME_READY)).toBeVisible()
   expect(tableRequests, 'this time the file really was read').toBeGreaterThan(0)
 
   /* and the file names its business, so the business's own mark takes the medallion: Northside's

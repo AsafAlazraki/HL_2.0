@@ -22,16 +22,23 @@
    ------------------------------------------------------------------------------------
    HOW IT REFLOWS — the six windows the rulers measure:
 
-     390 × 844   THE PHONE: the head stacks (title and tally, then New quote across);
-                 a card is the picture across its top at 16:9, then the customer, the
-                 boat and the quiet line, then the total and the acts under it, each act
-                 on its own line. The pill is the foot bar and the page reserves it.
-     844 × 390   A PHONE ON ITS SIDE: the desk's card, the picture 9rem wide at the
-                 card's start, the words beside it, the total and acts under the words.
-     834 × 1112  THE TABLET: the same card as 844, with room; the head on one line.
+     390 × 844   THE PHONE: the head stacks (the title, then New quote across); a card
+                 is the picture across its top at 16:9, then the customer, the boat and
+                 the quiet line, then the total and the acts under it, side by side and
+                 wrapping where they do not fit. The pill is the foot bar and the page
+                 reserves it.
+     844 × 390   A PHONE ON ITS SIDE: the card with the picture 9rem wide at its start,
+                 the words beside it, the total and acts under the words.
+     834 × 1112  THE TABLET: the same card as 844, with room; the head on one line, the
+                 title and New quote on one middle line.
      1280 × 800  THE DESK: picture 13rem, words, then the total and acts in a column of
-     1440 × 900  their own at the card's end, every card's total at one x. The column
-     1920 × 1080 stops at 68rem and stands centred.
+     1440 × 900  their own at the card's end, every card's total at one x, the pair
+     1920 × 1080 centred on the card's middle line as the words are. The column stops at
+                 68rem and stands centred; the floor under the last card is the honest
+                 end of the desk, never filled.
+
+   ONE RHYTHM: 20px between the head and the first group, 8px from a group's head to its
+   cards, 12px between cards and 36px between one group and the next head.
    ============================================================ */
 
 .qd {
@@ -55,10 +62,12 @@
 }
 
 /* ---- the head ---- */
+/* THE TITLE AND ITS ACT ON ONE MIDDLE LINE (the polish round, 2026-10-31): set to their feet,
+   the 52px act stood 14px higher than the title's centre beside it at every desk width */
 .qd-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
   gap: --spacing(3) --spacing(5);
 }
 .qd-head__words {
@@ -116,9 +125,14 @@
 }
 
 /* ---- a group: its glyph in its state's ink, its word, its count ---- */
+/* A GROUP'S HEAD BELONGS TO ITS CARDS: 8px over them and 36px under the group before, where
+   until the polish round it stood 20px from both and read as belonging to neither */
 .qd-group {
   display: grid;
-  gap: --spacing(3);
+  gap: --spacing(2);
+}
+.qd-group + .qd-group {
+  margin-block-start: --spacing(4);
 }
 .qd-group__head {
   display: flex;
@@ -161,7 +175,10 @@
     'shot words total'
     'shot words acts'
     'said said said';
-  grid-template-rows: auto 1fr auto;
+  /* THE TOTAL AND ITS ACTS ARE ONE PAIR, CENTRED ON THE CARD AS THE WORDS ARE: the total sits on
+     the card's middle line and the acts hang from it. Until the polish round they stood at the
+     card's top over 70px of white while the words beside them were centred. */
+  grid-template-rows: 1fr 1fr auto;
   gap: --spacing(1) --spacing(5);
   padding: --spacing(3);
   padding-inline-end: --spacing(5);
@@ -257,6 +274,7 @@
   justify-content: end;
   align-items: center;
   align-self: start;
+  padding-block-start: --spacing(1);
   gap: --spacing(2);
 }
 .qd-deal__said {
@@ -337,6 +355,8 @@
   }
   .qd-deal {
     grid-template-columns: minmax(0, 1fr);
+    /* each part its own height: a shared fractional row stretched the words to the picture's */
+    grid-template-rows: none;
     grid-template-areas:
       'shot'
       'words'

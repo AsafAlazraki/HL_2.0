@@ -4,7 +4,14 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { throughTheDoor } from '../door'
-import { cardName, nameTheCustomer, priceWhatWaits, startAQuote } from '../mint'
+import {
+  cardName,
+  nameTheCustomer,
+  openChapter,
+  openThePackage,
+  priceWhatWaits,
+  startAQuote,
+} from '../mint'
 import { pageCountOf } from '../print/pdf'
 
 /* ============================================================
@@ -136,7 +143,7 @@ async function issueAQuote(
 
   await nameTheCustomer(page, CUSTOMER)
 
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
 
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
@@ -585,7 +592,7 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   expect(figure).toMatch(/^\$[\d,]+$/)
 
   await nameTheCustomer(page, CUSTOMER)
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
@@ -814,12 +821,12 @@ test('the build and the paper say the motor and the trailer as a person does', a
      on by itself — the rigging kit this walk used to read came on with the boat and no longer
      does. The build's own heads and the cascade's cards are the build's and the cascade's specs'
      to hold (build-page.spec.ts, cascade.spec.ts); this walk holds the paper. */
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await openChapter(page, /^02 Motor/)
   await page
     .getByRole('button', { name: /^Yamaha F250XCB\b/ })
     .first()
     .click()
-  await page.getByRole('button', { name: /^03 Trailer/ }).click()
+  await openChapter(page, /^03 Trailer/)
   await page
     .getByRole('button', { name: /^REDCO Custom \/ Highfield ADV7 Aluminium\b/ })
     .first()
@@ -829,7 +836,7 @@ test('the build and the paper say the motor and the trailer as a person does', a
   }
 
   await nameTheCustomer(page, CUSTOMER)
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(build.getByTestId('given-seal')).toBeVisible()
@@ -958,7 +965,7 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
 
   /* THE PAPER'S COVER: the held copy itself, whole, under the same name, with its line */
   await nameTheCustomer(page, CUSTOMER)
-  await page.getByRole('button', { name: /The summary/ }).click()
+  await openThePackage(page)
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(build.getByTestId('given-seal')).toBeVisible()

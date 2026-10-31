@@ -8,6 +8,7 @@ import { money } from '@/domain/money'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
+import { prefs } from '@/state/prefs'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import {
@@ -116,6 +117,12 @@ beforeAll(async () => {
   session.getState().signIn('Asaf')
 })
 
+/* EVERY CHAPTER STANDS OPEN UNTIL A PERSON FOLDS ONE, and a fold is kept by this browser
+   (`folded.ts`): each test starts with nothing folded */
+beforeEach(() => {
+  prefs.getState().forgetAll()
+})
+
 describe('the running price', () => {
   let quote: QuoteDef
   beforeEach(() => {
@@ -155,7 +162,7 @@ describe('the running price', () => {
   })
 })
 
-describe('a chapter head states its own answer while it is shut', () => {
+describe('a chapter head states its own answer, open or folded', () => {
   let quote: QuoteDef
   beforeEach(() => {
     quote = fileAQuote('boat_stacer', '529 Assault Pro')
@@ -165,12 +172,18 @@ describe('a chapter head states its own answer while it is shut', () => {
      M2-close critique, #20): a mark in the number column nobody could
      read. The chapter that closes the sale carries no number, and nothing
      in its place (Who it is for was the other, and is the bar's now). */
+  /* REWRITTEN 2026-10-31: the chapter that closes the sale is no head any more but the final
+     package's door, so it has no number column at all; every band's number is its own */
   it('prints no mark in the number column of the chapter that closes the sale', () => {
     render(<Configurator quoteId={quote.id} at="hull" />)
     const printed = [...document.querySelectorAll('.cfg-head__num')].map((n) => n.textContent)
-    expect(printed).toEqual(railFor(quote).chapters.map((c) => c.num))
-    expect(printed.slice(-1)).toEqual([''])
+    expect(printed).toEqual(
+      railFor(quote)
+        .chapters.filter((c) => c.kind === 'band')
+        .map((c) => c.num),
+    )
     expect(printed).not.toContain('·')
+    expect(printed).not.toContain('')
   })
 
   it('carries the number, the name, the engine’s clause and the subtotal', () => {
@@ -180,7 +193,8 @@ describe('a chapter head states its own answer while it is shut', () => {
       const head = screen.getByRole('button', {
         name: new RegExp('^' + escape(chapter.num + ' ' + chapter.name)),
       })
-      expect(head).toHaveAttribute('aria-expanded', String(chapter.id === 'hull'))
+      /* EVERY CHAPTER OPEN BY DEFAULT (the owner, 2026-10-31), rewritten from "only the hull" */
+      expect(head).toHaveAttribute('aria-expanded', 'true')
       expect(head).toHaveTextContent(chapter.num)
       if (chapter.subject && (chapter.boat?.axes.length ?? 0) > 0 && chapter.id === 'hull') {
         /* OPEN, THE BOAT'S CHAPTER LEAVES ITS NAME TO THE LIT CHOICE under it and the bar over it
@@ -192,20 +206,26 @@ describe('a chapter head states its own answer while it is shut', () => {
           screen.getByTestId('boat-choices').querySelector('[aria-pressed="true"]'),
         ).not.toBeNull()
       } else expect(head).toHaveTextContent(chapter.fact)
-      if (chapter.amount !== null) expect(head).toHaveTextContent(money(chapter.amount))
+      /* THE SUBTOTAL, ONCE: in the head, or, where the one thing on the quote in an open chapter
+         says the same figure on its tile, there (rewritten 2026-10-31: every chapter is open now,
+         so the tile under the head says it where only the hull's did) */
+      if (chapter.amount !== null)
+        expect(head.closest('.cfg-chapter')).toHaveTextContent(money(chapter.amount))
     }
   })
 
   /* WHO IT IS FOR IS THE BAR'S (the owner, 2026-10-30: "customer details i live in the top bar so
      we can remove who it for in the right hand scrolly"): five chapters, and no sixth for a name */
+  /* REWRITTEN 2026-10-31: the closing chapter is "The final package", a door with its act ("View
+     final package"), where "The summary" was a head to press */
   it('draws the five chapters of a quote raised on a hull, and none for the customer', () => {
     render(<Configurator quoteId={quote.id} />)
     const rail = railFor(quote)
-    for (const chapter of rail.chapters) {
-      /* a closing chapter is named by its name alone: no "·" before it (#20) */
-      const at = chapter.num === '' ? '' : chapter.num + ' '
+    for (const chapter of rail.chapters.filter((c) => c.kind === 'band')) {
       expect(
-        screen.getByRole('button', { name: new RegExp('^' + escape(at + chapter.name)) }),
+        screen.getByRole('button', {
+          name: new RegExp('^' + escape(`${chapter.num} ${chapter.name}`)),
+        }),
       ).toBeInTheDocument()
     }
     expect(rail.chapters.map((c) => c.name)).toEqual([
@@ -213,16 +233,23 @@ describe('a chapter head states its own answer while it is shut', () => {
       'Motor',
       'Trailer',
       'Dealer fit',
-      'The summary',
+      'The final package',
     ])
+    const door = screen.getByRole('region', { name: 'The final package' })
+    expect(within(door).getByRole('button', { name: 'View final package' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Who it is for/ })).toBeNull()
   })
 
-  it('writes the chapter into the position when a head is pressed', async () => {
+  /* REWRITTEN 2026-10-31: a head pressed folds its chapter where it stands and writes no position
+     (it wrote the chapter into `?at=` while one chapter at a time stood open) */
+  it('folds the chapter in place when its head is pressed, and writes no position', async () => {
     const goTo = vi.fn<(id: string) => void>()
     render(<Configurator quoteId={quote.id} at="hull" goTo={goTo} />)
-    await userEvent.click(screen.getByRole('button', { name: /^03 Trailer/ }))
-    expect(goTo).toHaveBeenCalledWith('trailer')
+    const trailer = screen.getByRole('button', { name: /^03 Trailer/ })
+    expect(trailer).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.click(trailer)
+    expect(trailer).toHaveAttribute('aria-expanded', 'false')
+    expect(goTo).not.toHaveBeenCalled()
   })
 })
 
@@ -237,10 +264,13 @@ describe('an option row', () => {
     const rail = railFor(quote)
     const motors = rail.chapters.find((c) => c.id === 'motor')!.tables[0].rows
     expect(motors.filter((r) => r.starred).length).toBe(1)
-    /* said on the tile it is about, in one word, and heard in its name (docs/WORDS.md) */
-    const starred = screen.getByRole('button', { name: /, recommended,/ })
+    /* said on the tile it is about, in one word, and heard in its name (docs/WORDS.md); the
+       motor's chapter is read alone, since every chapter is open (2026-10-31) and the trailer's
+       has its own recommendation */
+    const chapter = screen.getByRole('region', { name: /^02 Motor/ })
+    const starred = within(chapter).getByRole('button', { name: /, recommended,/ })
     expect(starred).toHaveTextContent('Recommended')
-    expect(screen.getAllByText('Recommended')).toHaveLength(1)
+    expect(within(chapter).getAllByText('Recommended')).toHaveLength(1)
   })
 
   it('prints the dealer’s own code beside the name', () => {
@@ -349,7 +379,7 @@ describe('a motor is the kit’s photographed tile, where the ledger holds its p
     }
     /* ONE "FOR THE WORKSHOP" FOR THE CHAPTER, never one under every tile (the refine round,
        2026-10-21), and it opens every motor's words at once */
-    const chapter = document.querySelector('.cfg-chapter[data-open]') as HTMLElement
+    const chapter = document.querySelector('.cfg-chapter[data-chapter="motor"]') as HTMLElement
     const shops = within(chapter).getAllByRole('button', { name: 'For the workshop' })
     expect(shops).toHaveLength(1)
     const shop = shops[0]!
@@ -394,7 +424,7 @@ describe('a motor is the kit’s photographed tile, where the ledger holds its p
     render(<Configurator quoteId={sp560.id} at="fit" />)
     const fit = railFor(sp560).chapters.find((c) => c.id === 'fit')!
     expect(fit.tables.every((t) => !t.pictured)).toBe(true)
-    const open = document.querySelector('.cfg-chapter[data-open]')!
+    const open = document.querySelector('.cfg-chapter[data-chapter="fit"]')!
     const lines = open.querySelectorAll('.cfg-rows li')
     expect(lines.length).toBeGreaterThan(0)
     expect(open.querySelectorAll('.cfg-tiles')).toHaveLength(0)
@@ -681,15 +711,17 @@ describe('who it is for, and the finale', () => {
     /* the moment the sale exists is stamped, with who it was given to and nothing that counts */
     const seal = screen.getByTestId('given-seal')
     expect(seal).toHaveTextContent('Given to R. Kelleher')
-    /* the quote's number is said once, over the card; the open head leaves "given" to the seal,
-       and once it is shut the head says the state in a word */
+    /* the quote's number is said in the bar, never on the seal; the final package's door at the
+       rail's foot says the state in a word (rewritten 2026-10-31: the summary's head said nothing
+       while open, and the door is no head that opens) */
     expect(document.querySelector('.cfg-mast')).toHaveTextContent(quote.reference)
     expect(seal).not.toHaveTextContent(quote.reference)
-    expect(screen.getByRole('button', { name: /The summary/ })).toHaveTextContent(/^The summary$/)
     expect(seal.querySelector('data')).toBeNull()
 
     rerender(<Configurator quoteId={quote.id} at="motor" />)
-    expect(screen.getByRole('button', { name: /The summary/ })).toHaveTextContent(/given$/)
+    expect(screen.getByRole('region', { name: 'The final package' })).toHaveTextContent(
+      /^The final packages*given/,
+    )
     expect(
       screen.getAllByText(/given to the customer, so nothing can go back on it/).length,
     ).toBeGreaterThan(0)
@@ -768,8 +800,15 @@ describe('who it is for, and the finale', () => {
 const unpricedKit = (q: QuoteDef) =>
   q.lines.find((l) => l.label !== q.subjectLabel && l.unitPrice === null)!
 
-/** The finale's head, as a reader reaches it. */
-const finaleHead = () => screen.getByRole('button', { name: /The summary/ })
+/** THE FINAL PACKAGE'S DOOR AT THE RAIL'S FOOT (2026-10-31), where the summary's head stood: its
+ *  name, where the give stands, and its act. Under the open package the build is out of a
+ *  reader's reach, so it is read off the page. */
+const finaleHead = () => document.querySelector<HTMLElement>('.cfg-door')!
+
+/** The final package, and its handover card and lines: the printed quote rendered beside them
+ *  says the boat and the total again on its own paper, so what is said once is read here. */
+const thePackage = () => screen.getByTestId('final-package')
+const theSide = () => thePackage().querySelector<HTMLElement>('.cfg-pkg__side')!
 
 describe('the finale is the handover', () => {
   it('says who it is for, the boat, the total at its level and one act — and the total once', () => {
@@ -778,25 +817,29 @@ describe('the finale is the handover', () => {
     render(<Configurator quoteId={quote.id} at="finale" />)
     const standing = quotes.getState().get(quote.id)!
     const rail = railFor(standing)
-    const finale = screen.getByTestId('summary')
+    /* REWRITTEN 2026-10-31 FOR THE FINAL PACKAGE, which replaced the summary */
+    const finale = thePackage()
     const card = finale.querySelector('.cfg-hand')!
     expect(card).toHaveTextContent('For R. Kelleher')
-    /* THE BOAT BY ITS NAME ONCE, IN THE SUMMARY'S TITLE (the critic, 2026-10-31, P-10: the card
+    /* THE BOAT BY ITS NAME ONCE, IN THE PACKAGE'S TITLE (the critic, 2026-10-31, P-10: the card
        said it under the customer's name as well); the card's second line is the customer's
        contact, and R. Kelleher was given none */
     const boat = spokenBoat(quote.rootTableId, quote.subjectLabel)
-    expect(within(finale).getByRole('heading', { level: 2 })).toHaveTextContent(
+    expect(finale.querySelector('.cfg-pkg__name')).toHaveTextContent(
       new RegExp(`^${escape(boat.name)}$`),
     )
     expect(card).not.toHaveTextContent(boat.name)
     expect(card.querySelector('.cfg-hand__boat')).toBeNull()
     /* AND THE LINE THAT PRICES THE BOAT NAMES IT, with its finish (the paper-quote critique,
        2026-10-31: "Adventure" stood alone beside the hull's price) */
-    expect(finale.querySelector('.cfg-sum__item-name')).toHaveTextContent(boat.name)
+    expect(finale.querySelector('.cfg-pkg__item-name')).toHaveTextContent(boat.name)
     const level = rail.rungs.find((r) => r.key === standing.levelKey)!.label
     expect(card).toHaveTextContent(`Total at ${level}`)
-    /* the head does not say the figure a line above the card that does */
-    expect(within(finale).getAllByText(money(rail.total))).toHaveLength(1)
+    /* the total once beside the photograph, on the card; the printed quote beside the lines
+       prints its own */
+    expect(within(theSide()).getAllByText(money(rail.total))).toHaveLength(1)
+    /* and the printed quote itself is in the package, rendered by the document's own screen */
+    expect(within(finale).getByTestId('document')).toBeInTheDocument()
     /* the chapter's head, the one act, and a quiet press per line with no price (the 519's kit) */
     expect(rail.unpriced).toBeGreaterThan(0)
     expect(within(card as HTMLElement).getAllByRole('button')).toHaveLength(2 + rail.unpriced)
@@ -873,19 +916,18 @@ describe('the finale is the handover', () => {
     const head = finaleHead
     const nobody = /nobody named yet|name before it can be given|not ready to give/
 
-    /* no name, Motor open: the bar offers to name them, and the shut finale says only where it
-       comes, never the gap again */
+    /* no name, Motor open: the bar offers to name them, and the final package's door says only
+       where it comes, never the gap again */
     const motor = render(<Configurator quoteId={quote.id} at="motor" />)
     expect(screen.getByRole('button', { name: 'Name the customer' })).toBeInTheDocument()
-    expect(head()).toHaveTextContent(/^The summary\s*after their name$/)
+    expect(head()).toHaveTextContent(/^The final package\s*after their name/)
     expect(screen.queryAllByText(nobody)).toEqual([])
     motor.unmount()
 
-    /* no name, the finale open: the give's refusal says it once, and the card's press opens the
-       customer's details in the bar */
+    /* no name, the package open: the give's refusal says it once, and the name's own fields stand
+       at the head of the card (rewritten 2026-10-31: the card's press opened the bar's panel) */
     const goTo = vi.fn<(id: string) => void>()
     const shut = render(<Configurator quoteId={quote.id} at="finale" goTo={goTo} />)
-    expect(head()).toHaveTextContent(/^The summary$/)
     expect(screen.queryAllByText(nobody)).toEqual([])
     /* said once, as one of the give's causes or as its one (built-critique-m3-2.md, major 5) */
     expect(screen.getAllByText(/No customer’s name is on (this quote|it)/)).toHaveLength(1)
@@ -897,9 +939,9 @@ describe('the finale is the handover', () => {
 
     quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
     const open = render(<Configurator quoteId={quote.id} at="finale" />)
-    /* open, the card and its act say where the give stands; the head is its name */
-    expect(head()).toHaveTextContent(/^The summary$/)
+    /* open, the card and its act say where the give stands, and nobody is asked for again */
     expect(document.querySelector('.cfg-hand')).toHaveTextContent('For R. Kelleher')
+    expect(within(thePackage()).queryByLabelText(/Who the quote is for/)).toBeNull()
     /* THE BAR IS THE QUOTE'S IDENTITY AND ALWAYS SAYS WHOM IT IS FOR, the finale's card saying
        it again where the quote is given */
     expect(document.querySelector('.cfg-mast')).toHaveTextContent('R. Kelleher')
@@ -912,7 +954,7 @@ describe('the finale is the handover', () => {
     /* THIS DRAFT STILL WAITS FOR ITS RIGGING KIT'S PRICE, which Northside has not chosen, so the
        head says the give is not ready (the build page round, 2026-10-31: it read "ready to give"
        over that line, because it was read before the unpriced lines joined the causes) */
-    expect(head()).toHaveTextContent(/not ready to give yet$/)
+    expect(head()).toHaveTextContent(/not ready to give yet/)
     expect(head()).not.toHaveTextContent(/items?\b|draft/)
   })
 
@@ -938,11 +980,15 @@ describe('the finale is the handover', () => {
     /* the give's causes, one line each under one lead that says what they stop, once
        (built-critique-m3-2.md, major 5: two refusals ran into one paragraph) */
     expect(rail.waits.length).toBeGreaterThan(1)
-    expect(screen.getAllByText(giveWaitsLead(rail.waits.length))).toHaveLength(1)
-    for (const said of rail.waits) expect(screen.getAllByText(said)).toHaveLength(1)
-    expect(screen.getAllByText(/cannot be given/)).toHaveLength(1)
-    /* the tally says no figure while the finale's card says the total */
-    expect(screen.getByTestId('running-total')).not.toHaveTextContent(/Total|\$\d/)
+    /* read on the package's card and lines (rewritten 2026-10-31): the printed quote rendered
+       beside them is the paper's, and the build under the package is out of a reader's reach */
+    const side = within(theSide())
+    expect(side.getAllByText(giveWaitsLead(rail.waits.length))).toHaveLength(1)
+    for (const said of rail.waits) expect(side.getAllByText(said)).toHaveLength(1)
+    expect(side.getAllByText(/cannot be given/)).toHaveLength(1)
+    /* the tally under the package says nothing to a reader while the package's card says the total */
+    expect(document.querySelector('.cfg-edit')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByTestId('running-total')).not.toHaveTextContent(note)
     expect(document.querySelector('.cfg-hand__notes')).not.toHaveTextContent(/not priced|paper/)
     expect(screen.getByTestId('configurator')).not.toHaveTextContent(/not priced on this quote/i)
     unmount()
@@ -1037,8 +1083,11 @@ describe('the finale is the handover', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Open the printed quote' })).toHaveFocus(),
     )
-    /* what given means is said once, under the way back to work, and with which prices */
-    expect(screen.getAllByText(/\bfinal\b/)).toHaveLength(1)
+    /* what given means is said once, under the way back to work, and with which prices (read on
+       the card: "The final package" is the door's own name, under it) */
+    expect(
+      within(document.querySelector<HTMLElement>('.cfg-hand')!).getAllByText(/\bfinal\b/),
+    ).toHaveLength(1)
     expect(
       screen.getByText(/Every price on it is final\. A new version keeps these prices/),
     ).toBeVisible()
@@ -1135,9 +1184,11 @@ describe('a given quote says what is not priced once', () => {
       /* ONCE IN WHAT IS IN VIEW: with the summary open, its card; with a chapter open, the build.
          Below a desk the summary is always the page's end (the critic, 2026-10-31, P-1), a screen
          below the build, and says it there too */
+      /* rewritten 2026-10-31: the final package's card and lines, where the summary stood; the
+         printed quote rendered in the package is the paper's own, and says it there */
       const inView =
         at === 'finale'
-          ? screen.getByTestId('summary')
+          ? theSide()
           : (document.querySelector<HTMLElement>('.cfg-edit') ?? document.body)
       expect(
         within(inView).getAllByText(
@@ -1216,11 +1267,10 @@ describe('the act of selling leads to the thing you hand over', () => {
     const { rerender } = render(<Configurator quoteId={quote.id} at="handover" />)
     await issueOne(quote, rerender)
 
+    /* rewritten 2026-10-31: the final package opens over the window, where the summary did */
     rerender(<Configurator quoteId={quote.id} />)
-    expect(screen.getByRole('button', { name: /The summary/ })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    )
+    expect(thePackage()).toBeInTheDocument()
+    expect(within(thePackage()).getByTestId('given-seal')).toBeInTheDocument()
   })
 })
 
@@ -1388,7 +1438,7 @@ describe('a change of mind puts the motor on instead, as one step', () => {
     expect(odd[0]!.actSay).toBe('Put on the kit for the F115LB instead')
 
     const { unmount } = render(<Configurator quoteId={quote.id} at="finale" />)
-    expect(screen.getByTestId('orphaned-kit')).toHaveTextContent(odd[0]!.said)
+    expect(within(thePackage()).getByTestId('orphaned-kit')).toHaveTextContent(odd[0]!.said)
     unmount()
     render(<Configurator quoteId={quote.id} at="fit" />)
     /* at the kit, in its chapter (the summary at the page's end says it too) */
@@ -1691,6 +1741,8 @@ describe('past the motor, the thing a person recognises leads', () => {
 
   it('states each shut chapter’s answer as a person says it, with its picture and no code', () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    /* every chapter stands open now (2026-10-31): the trailer's is folded, as a dealer folds it */
+    prefs.getState().set('build.folded', ['trailer'])
     render(<Configurator quoteId={quote.id} at="hull" />)
     const trailer = chapterOf(quote, 'trailer')
     const row = trailer.tables[0]!.rows.find((r) => r.fitted)!
@@ -1762,7 +1814,9 @@ describe('past the motor, the thing a person recognises leads', () => {
   it('opens the workshop’s words while a search runs, with what matched in bold', async () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
     render(<Configurator quoteId={quote.id} />)
-    expect(screen.queryAllByRole('button', { name: 'For the workshop' }).length).toBe(0)
+    /* at rest each open chapter whose options carry the workshop's words has its one press
+       (every chapter stands open since 2026-10-31) */
+    expect(screen.queryAllByRole('button', { name: 'For the workshop' }).length).toBeGreaterThan(0)
     await userEvent.type(screen.getByRole('searchbox'), 'Binnacle')
     const hits = [...document.querySelectorAll('.cfg-shop__val .cfg-hit')]
     expect(hits.length).toBeGreaterThan(0)

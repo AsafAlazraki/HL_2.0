@@ -21,6 +21,20 @@
 
 export type Register = 'foundation' | 'cockpit' | 'showroom'
 
+/**
+ * HOME HAS THE FILE IN — the signal every walk to Home waits on. Until 2026-10-31 it was the
+ * price list's stamp, "Price list of 16 September 2026" (`data-testid="pack-counts"`), and the
+ * owner removed it from Home: "Let's remove the price list of 16 september on home page". What
+ * stands now is the screen's own root, which says `data-file="open"` only once a sheet is really
+ * in the app — never in a browser with no copy of the file, so a ruler still cannot mistake the
+ * empty state for the loaded one — and `data-from`, where that sheet came from on this open.
+ */
+export const HOME_READY = '[data-testid="home"][data-file="open"]'
+
+/** Home with the file in, read from the pack (Entry's open) or out of this browser. */
+export const homeFrom = (from: 'pack' | 'repository'): string =>
+  `${HOME_READY}[data-from="${from}"]`
+
 export interface Route {
   /**
    * The address, as a person would type it — or, for the three screens
@@ -65,8 +79,11 @@ export interface Route {
    * `the sale` addresses the draft and gives it to the customer, then
    * opens the sheet from the finale, because a draft's lines are still
    * moving and the paper a customer keeps is the issued one.
+   *
+   * `the package` presses *View final package* at the build's foot (2026-10-31): the final
+   * package stands over the build at the build's own address, so it is reached by its act.
    */
-  raise?: 'a rung' | 'the sale'
+  raise?: 'a rung' | 'the sale' | 'the package'
   /**
    * ONE PRESS ON THE SCREEN ITSELF, AFTER ARRIVING, for a screen whose
    * register does not exist until somebody makes it.
@@ -106,10 +123,10 @@ export const routes: Route[] = [
     path: '/',
     name: 'home',
     register: 'showroom',
-    /* the stamp, which exists only once a sheet is really in the app:
-       a Home in a browser with no copy of the file cannot show it, so a ruler can
-       never mistake the empty state for the loaded one */
-    ready: '[data-testid="pack-counts"]',
+    /* the root's `data-file="open"`, which exists only once a sheet is really in the app:
+       a Home in a browser with no copy of the file cannot carry it, so a ruler can never
+       mistake the empty state for the loaded one (HOME_READY, above) */
+    ready: HOME_READY,
     arrive: 'through-the-door',
   },
   {
@@ -180,6 +197,19 @@ export const routes: Route[] = [
     register: 'showroom',
     ready: '[data-testid="running-total"]',
     arrive: 'with-a-document',
+  },
+  {
+    /* THE FINAL PACKAGE (the owner, 2026-10-31: "let's go view final package … and we can see the
+       pdf quote preview"), over the whole window at the build's own address, `?at=finale`: the
+       boat, its handover card, every line, and the printed quote rendered beside them. Reached by
+       its act, as a dealer reaches it, on a draft nobody is named on yet, so the refusal under the
+       give and the name's own fields are measured too. */
+    path: '/quote/$id',
+    name: 'final package',
+    register: 'showroom',
+    ready: '[data-testid="final-package"]:not([data-preparing])',
+    arrive: 'with-a-document',
+    raise: 'the package',
   },
   {
     /* THE CASCADE, REACHED BY THE PRESS THAT RAISES IT.

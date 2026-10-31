@@ -1124,13 +1124,13 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
       }
     }
   }
-  /* THE SUMMARY, AS A SALESPERSON SAYS IT (the owner, 2026-10-30: "big one page one filled screen
-     summary with print and send"). It was "The finale", a word nobody at a desk says; the id stays
-     `finale`, the address every link to it already carries. */
+  /* THE FINAL PACKAGE, AS THE OWNER NAMES IT (2026-10-31: "let's go view final package"). It was
+     "The finale", then "The summary"; the id stays `finale`, the address every link to it already
+     carries. */
   chapters.push({
     id: 'finale',
     num: '',
-    name: 'The summary',
+    name: 'The final package',
     kind: 'finale',
     fact:
       quote.state !== 'draft'

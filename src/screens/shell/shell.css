@@ -109,12 +109,22 @@
                                 and went. SINCE 2026-09-28 IT IS 701px, the same at 1280, 1440
                                 and 1920: every door carries its glyph and its words are set
                                 at 600. Still 42 tall, still ending at 50 under a 56 clearance.
+                                MEASURED 2026-10-31 BEFORE THIS ROUND: 614.5px at every width
+                                over 600 (the finder leads, its chord gone). FROM 2026-10-31
+                                (the owner: "make floating bar wider a bit on bigger screens")
+                                each door's air is 16px a side and the gaps 6px from 1200, so
+                                the bar is 674.5 at 1280 and 1440 — the same 42 tall.
 
-     1920 x 1080 (showroom)     Unchanged, and deliberately: the pill is centred on the window
-                                and does not grow, because a navigation bar 1900px wide puts
-                                History a forearm from Home. It is the same object at every
-                                width over 600px, which is Material's own rule — "always put
-                                the rail in the same place, even on different screens".
+     1920 x 1080 (showroom)     A little wider again from 1680: 20px a side and 8px gaps, 734.5
+                                in all. Still centred and still far short of the window, because
+                                a navigation bar 1900px wide puts History a forearm from Home.
+                                It is the same object at every width over 600px, which is
+                                Material's own rule — "always put the rail in the same place,
+                                even on different screens"; only its air grows.
+
+     THE MARK IN THE CREST, at every size: the clip on Northside's waves stands 1.5px clear of
+     the wordmark's first letter (the waves' note below), so no white line stands on the
+     roundel's right at 1x, 1.25x or 2x.
 
    THE FINDER'S OWN LADDER (2026-09-24). At a desk the sheet is 800px wide, hung 80px down, and
    each group is a grid its rows are subgrids of — name · what is counted · price · verb — so
@@ -163,6 +173,8 @@
      frames it was read off. */
   --pill-h: --spacing(9);
   --pill-gap: --spacing(1);
+  /* a door's air either side of its glyph and word; more of it on a bigger screen (below) */
+  --door-pad: --spacing(3);
 
   position: fixed;
   inset-block-start: --spacing(2);
@@ -200,6 +212,27 @@
 .way-pill[data-surface='cockpit'] {
   background: var(--color-panel);
   border-color: var(--color-rule);
+}
+
+/* A LITTLE WIDER ON A BIGGER SCREEN, ITS DOORS WITH MORE AIR (the owner, 2026-10-31: "let's make
+   floating bar wider a bit on bigger screens"). Only across: the bar is still 42px tall and
+   still ends at 50 under the 56 every screen keeps clear, so it covers nothing it did not cover
+   before — every screen's head keeps the clearance across the whole window, not only under the
+   bar. Each door, the finder's bubble and the gaps between them take the air; nothing new is
+   drawn. Measured on a built app (docs/directions/polish/after-*.png): 614.5px at every width
+   until that day; now 614.5 at 834 and 844, 674.5 from 1200 (the laptop and the desk), 734.5
+   from 1680 (the showroom's wide screen) — a ninth and a fifth wider. */
+@media (min-width: 1200px) {
+  .way-pill {
+    --door-pad: --spacing(4);
+    --pill-gap: --spacing(1.5);
+  }
+}
+@media (min-width: 1680px) {
+  .way-pill {
+    --door-pad: --spacing(5);
+    --pill-gap: --spacing(2);
+  }
 }
 
 /* ---- the crest: the mark, the business's initials, or the helm ---------------------- */
@@ -351,7 +384,19 @@
    roundel's height, so the waves are 0.51 of it across and clear the ring, and placed so their
    middle (x 195, y 234 of the file) is the roundel's middle; the wordmark's words to the right
    are cut away by the clip, never drawn at a size nobody can read. They are said at full
-   width on Home, on the water. */
+   width on Home, on the water.
+
+   THE CLIP STANDS IN THE MIDDLE OF THE GAP, NOT AT ITS EDGE (2026-10-31; the owner: "the nsm
+   logo in floating bar has a weird glitch in it on the right like a weird white line barely
+   noticeable"). Measured off the file's alpha, column by column: the waves end at x 383 and
+   the wordmark's first letter, the N, starts at x 438 as a full-height stroke (y 57–440, alpha
+   240 then 255). The clip kept 24% of the width, to x 431.5 — 6.5 of the file's pixels, 0.34px
+   on a 40px roundel, short of the N. A picture 18.7 times its drawn size is filtered as it is
+   drawn, and the filter reaches across a third of a pixel, so the N's first column bled
+   through the clip's edge as a faint white line on the waves' right, at x 446 of the bar at
+   1440 (docs/directions/polish/before-crest-1440-dpr1-x10.png). The clip now keeps 22.8%, to
+   x 410: 26 of the file's pixels past the waves and 28 short of the N, about 1.5px either way
+   on the 40px roundel and 1.6px on the phone's 44, which no filter reaches across. */
 .way-crest__waves {
   position: absolute;
   inset-inline-start: calc(var(--crest) * 0.2388);
@@ -359,7 +404,7 @@
   block-size: calc(var(--crest) * 0.6);
   inline-size: auto;
   max-inline-size: none;
-  clip-path: inset(0 76% 0 0);
+  clip-path: inset(0 77.2% 0 0);
   letter-spacing: normal;
   text-indent: 0;
   user-select: none;
@@ -476,7 +521,7 @@
   display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
-  padding-inline: --spacing(3);
+  padding-inline: var(--door-pad);
   block-size: calc(var(--pill-h) - --spacing(1));
   border-radius: var(--radius-pill);
   color: var(--color-ink-2);
@@ -594,7 +639,7 @@
   display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
-  padding-inline: --spacing(3);
+  padding-inline: var(--door-pad);
   block-size: calc(var(--pill-h) - --spacing(1));
   border: 0;
   border-radius: var(--radius-pill);

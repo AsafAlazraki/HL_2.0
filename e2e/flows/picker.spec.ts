@@ -999,6 +999,11 @@ test('in a hand, the makers and the first shelf are in the first window, and not
 test('a motor, a trailer and a part each start a quote of their own and reach the build', async ({
   page,
 }, testInfo) => {
+  /* THREE WALKS INTO THE BUILD, AND THE BUILD NOW OPENS WITH EVERY CHAPTER STANDING (the owner,
+     2026-10-31). Measured alone on one worker, 2026-10-31: 22.5 s at 1440, 25.1 s at 834 and
+     30.7 s at 390 — over the 30 s default at a phone, and every project ran out of it while
+     other runs shared the machine. The walk is the same; its budget is three builds' worth. */
+  test.setTimeout(90_000)
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   const touch = testInfo.project.use.hasTouch

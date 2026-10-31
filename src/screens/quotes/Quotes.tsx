@@ -225,15 +225,18 @@ export function Quotes({
           {problem}
         </p>
       ) : null}
-      {register.bare || sheetOpen ? null : (
+      {/* NOTHING IS SAID WHILE THE PRICE LIST IS BEING LOOKED FOR (the polish round, 2026-10-31).
+          The look takes a few hundred milliseconds on every open, and "Looking for the price
+          list…" stood over the cards for that long and then went, so the whole desk jumped 40px
+          up under the eye (measured at 1440: the first card at y 215, then 176). Only what is
+          known is said: no price list, once it is known there is none. */}
+      {register.bare || sheetOpen || sheetLooking ? null : (
         <p className="qd-note">
           <Icon glyph={DatabaseIcon} size="sm" />
           <span>
-            {sheetLooking
-              ? 'Looking for the price list…'
-              : 'No price list is loaded. A quote already written still opens, as it was written.'}
+            No price list is loaded. A quote already written still opens, as it was written.
           </span>
-          {sheetLooking || !openTheFile ? null : (
+          {!openTheFile ? null : (
             <Button intent="quiet" size="sm" onClick={openTheFile}>
               Load the Master Price File
             </Button>

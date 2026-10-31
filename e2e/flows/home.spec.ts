@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { DEEPEST, MODEL, boatsIn, issueIt, pickAndStart, written } from '../mint'
+import { HOME_READY, homeFrom } from '../routes'
 
 /* ============================================================
    HOME, IN A REAL BROWSER, AT EVERY SIZE THE RULERS RUN — built from
@@ -184,12 +185,20 @@ test('day one: Northside on the water, the find beside the act, the boats and th
     /^Good (morning|afternoon|evening), /,
   )
 
-  /* ---- the price list, said once by its date; its size is Data's (docs/WORDS.md) ---- */
-  const stamp = page.getByTestId('pack-counts')
-  await expect(stamp).toBeVisible({ timeout: 30_000 })
-  await expect(stamp).toHaveText(/^Price list of \d{1,2} [A-Z][a-z]+ \d{4}$/)
-  await expect(stamp).not.toContainText(au(sum(tables)))
-  await expect(page.getByText('No quotes and no customers yet.')).toBeVisible()
+  /* ---- NO PRICE LIST, NO PRICE QUESTION, NO LINE ON THE RIGHT (the owner, 2026-10-31: "Let's
+     remove the price list of 16 september on home page and the text below it and the text on
+     the right and remove the answer them on prices"). Until that day this read "Price list of
+     <day>" off the stamp and "No quotes and no customers yet." beside it. The file is in, said
+     on the root; the sea has no foot; and the file's size is still Data's alone. ---- */
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('pack-counts')).toHaveCount(0)
+  await expect(page.getByTestId('price-asks')).toHaveCount(0)
+  await expect(page.locator('.home-sea-foot')).toHaveCount(0)
+  const onHome = page.getByTestId('home')
+  await expect(onHome).not.toContainText(/Price list of|Master Price File/)
+  await expect(onHome).not.toContainText(/price questions? waits?|Answer (it|them) on Prices/)
+  await expect(onHome).not.toContainText(/No quotes and no customers yet|Nothing has moved today/)
+  await expect(onHome).not.toContainText(au(sum(tables)))
   await expect(page, 'the tab names the dealership').toHaveTitle('Northside Marine')
 
   /* ---- the eight boats the ledger photographs ---- */
@@ -299,11 +308,11 @@ test('day one: Northside on the water, the find beside the act, the boats and th
 test('every act on day one reaches the screen it names', async ({ page }) => {
   test.setTimeout(120_000)
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
   const back = async (): Promise<void> => {
     await page.goBack()
     await expect(page.getByTestId('home')).toBeVisible()
-    await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
   }
 
   /* the one act: the picker */
@@ -332,34 +341,24 @@ test('every act on day one reaches the screen it names', async ({ page }) => {
 })
 
 /* ============================================================
-   BEFORE THE SALE (built-critique-m3-2.md, major 5): a stakeholder opening the link starts on
-   an empty browser, so the first quote is everybody's first quote, and it carries a line whose
-   price Northside has not chosen. Home says the price questions once, under the file, with the
-   count Prices itself prints, and its door lands on Prices.
+   THE PRICE QUESTIONS ARE NOT HOME'S (the owner, 2026-10-31: "remove the answer them on
+   prices"). Until that day Home said "N price questions wait for you" under the file with a door
+   to Prices, and this test pressed it. Now Home says no question and draws no door to Prices,
+   at every size — and the questions are where they always were, on Prices, a press from Data.
    ============================================================ */
-test('the price questions are said once on Home, with Prices’ own count, and the door lands there', async ({
-  page,
-}) => {
+test('Home says no price question and draws no door to Prices', async ({ page }) => {
   test.setTimeout(120_000)
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
-  const asks = page.getByTestId('price-asks')
-  await expect(asks).toHaveCount(1)
-  /* under the sea's fold on a phone held sideways, so it is brought in, and then must be seen */
-  await asks.scrollIntoViewIfNeeded()
-  await expect(asks).toBeInViewport()
-  const said = (await asks.innerText()).trim()
-  const count = /^(\d+) price questions? waits? for you\./.exec(said)?.[1]
-  expect(count, `Home said "${said}"`).toBeDefined()
-  await expect(page.getByTestId('home')).toContainText(
-    /priced by hand before the quote can be given/,
-  )
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('price-asks')).toHaveCount(0)
+  const home = page.getByTestId('home')
+  await expect(home).not.toContainText(/price questions? waits? for you/)
+  await expect(home).not.toContainText(/priced by hand before the quote can be given/)
+  await expect(home.getByRole('button', { name: /on Prices/ })).toHaveCount(0)
 
-  await asks.getByRole('button', { name: /^Answer (them|it) on Prices$/ }).click()
-  await expect(page).toHaveURL(/\/levels$/)
+  await page.goto('/levels')
   await expect(page.getByTestId('levels')).toBeVisible({ timeout: 30_000 })
-  /* the same figure, read off Prices' own head */
-  await expect(page.locator('#lv-choose')).toHaveText(new RegExp(`^Yours to choose\\s*${count}$`))
+  await expect(page.locator('#lv-choose')).toHaveText(/^Yours to choose\s*\d+$/)
 })
 
 /* ============================================================
@@ -369,7 +368,7 @@ test('the price questions are said once on Home, with Prices’ own count, and t
 test('the Stacer on Home is the Stacer on the picker and on the build', async ({ page }) => {
   const hero = heroById('stacer-409-assault-pro')
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
 
   const onHome = boatsRegion(page).getByAltText(hero.subject)
   await expect(onHome).toBeVisible()
@@ -411,7 +410,7 @@ test('a week in: the work on the water, day one kept, and every card to its addr
 }) => {
   test.setTimeout(300_000)
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
   const markOnDayOne = await page
     .locator('.home-mark')
     .evaluate((el) => Math.round(el.getBoundingClientRect().height))
@@ -437,7 +436,7 @@ test('a week in: the work on the water, day one kept, and every card to its addr
   const home = async (): Promise<void> => {
     await page.getByTestId('shell-pill').getByRole('link', { name: /^Home/ }).first().click()
     await expect(page.getByTestId('home')).toHaveAttribute('data-state', 'week')
-    await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
   }
   await home()
 
@@ -449,9 +448,12 @@ test('a week in: the work on the water, day one kept, and every card to its addr
   ).toBe(markOnDayOne)
   await expect(boatsRegion(page).getByRole('listitem')).toHaveCount(heroes.length)
 
-  /* today, in one line, off the diary: what no card says, since the giving is its card's */
-  await expect(page.getByText(/^2 quotes started today\.$/)).toBeVisible()
-  await expect(page.getByText(/^Today: .* given\.$/)).toHaveCount(0)
+  /* NO LINE ON THE RIGHT A WEEK IN EITHER (the owner, 2026-10-31): until that day this read
+     "2 quotes started today." at the sea's foot; the cards are what say the day now */
+  await expect(page.locator('.home-sea-foot')).toHaveCount(0)
+  await expect(page.getByTestId('home')).not.toContainText(
+    /started today|Nothing has moved today|last thing kept|Today: /,
+  )
 
   const desk = page
     .getByRole('region', { name: manifest.name, exact: true })
@@ -537,7 +539,7 @@ test('a week in: the work on the water, day one kept, and every card to its addr
 test('a table made at this desk changes nothing home says about the file', async ({ page }) => {
   test.setTimeout(120_000)
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
   await page.goto('/data')
   await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
   await page.getByRole('button', { name: 'New list' }).click()
@@ -547,9 +549,7 @@ test('a table made at this desk changes nothing home says about the file', async
   await expect(page.getByTestId('last-step')).toContainText('Boat show leads')
 
   const theFile = async (when: string): Promise<void> => {
-    const stamp = page.getByTestId('pack-counts')
-    await expect(stamp, when).toBeVisible({ timeout: 30_000 })
-    await expect(stamp, when).toHaveText(/^Price list of /)
+    await expect(page.locator(HOME_READY), when).toBeVisible({ timeout: 30_000 })
     await expect(doorsRegion(page).getByRole('listitem'), when).toHaveCount(boats.length)
     await expect(boatsRegion(page).getByRole('listitem'), when).toHaveCount(heroes.length)
   }
@@ -557,7 +557,7 @@ test('a table made at this desk changes nothing home says about the file', async
   await theFile('on the same visit')
   await written(page)
   await page.reload()
-  await expect(page.locator('[data-testid="pack-counts"] [data-from="repository"]')).toBeVisible({
+  await expect(page.locator(homeFrom('repository'))).toBeVisible({
     timeout: 30_000,
   })
   await theFile('read back out of this browser')
@@ -571,12 +571,12 @@ test('the second visit draws the same screen without reading the file again', as
   })
 
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
-  await expect(page.locator('[data-testid="pack-counts"] [data-from="pack"]')).toBeVisible()
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(homeFrom('pack'))).toBeVisible()
   const onFirstVisit = packRequests
 
   await page.reload()
-  await expect(page.locator('[data-testid="pack-counts"] [data-from="repository"]')).toBeVisible({
+  await expect(page.locator(homeFrom('repository'))).toBeVisible({
     timeout: 30_000,
   })
   await expect(doorsRegion(page).getByRole('listitem')).toHaveCount(boats.length)
@@ -598,7 +598,7 @@ test('the second visit draws the same screen without reading the file again', as
 test('no boat name and no line on a lone draft is cut short, at any size', async ({ page }) => {
   test.setTimeout(150_000)
   await throughTheDoor(page)
-  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
   const longest = heroes.toSorted((a, b) => modelSaid(b).length - modelSaid(a).length)[0]!
   await boatsRegion(page)
     .getByRole('button', { name: boatTile(longest) })

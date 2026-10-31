@@ -90,6 +90,16 @@
      A wide window under 700px tall keeps two columns and lets the page scroll, both columns at
      their own height: the boat's column has no room to stand in it.
 
+   AT EVERY SIZE (the owner, 2026-10-31): every chapter stands open and a head folds its own,
+   kept by this browser; the hull's models and versions are compact cards two across, one height
+   each, its materials chips and its colours one strip of swatches; every line of a list ends on
+   one grid, its figure at one column and its "Add" or "Take off" at the next; the bar keeps a
+   hairline between the maker's mark and the boat, upright where they stand side by side and
+   across where a hand stacks them; the rail ends on the final package's door, its act amber, the
+   act under the words in a hand; at a desk and on a tablet the total carries the same way on, in
+   the file's blue, and in a hand it is the rail's foot alone. THE FINAL PACKAGE stands over the
+   whole window at every size, and its own ladder is written over its rules, below.
+
    ------------------------------------------------------------------------------------
    MOTION. NO FIGURE ON THIS SCREEN MOVES: a price that counts up reads as a price still being
    decided, with a customer watching. What moves is a control answering a press, a panel
@@ -115,7 +125,10 @@
        state's dot lands in the masthead, and the way to the paper arrives last — where the
        photograph is carried onto the paper's cover by the route's View Transition;
      · the chapter the middle of the window is in wears the accent's ring on its disc — GSAP's
-       ScrollTrigger through the kit's `useChapterProgress` — which is a colour, not a motion.
+       ScrollTrigger through the kit's `useChapterProgress` — which is a colour, not a motion;
+     · "View final package" plays the preparing moment, about 1.2 s: the boat's photograph
+       settling, what is put together said line by line, a rule drawn under it, and the whole
+       lifting off the package (`.cfg-pkg__prep`); a reload onto the package does not play it.
    Under reduced motion every one of these keeps its colour and opacity and loses its
    movement, and while a caret is in a field nothing travels (src/ui/MotionRoot.tsx).
 
@@ -135,7 +148,7 @@
      at a desk sticks at the pill's clearance. */
   --cfg-mast: var(--shell-inset);
   /* WHAT STICKS OVER THE TOP OF THE WINDOW, which is at least the masthead. The build writes
-     the measured figure on a chapter it moves on to (`useOnward`); this is the floor where it
+     the measured figure on a chapter it brings in (`useBroughtIn`); this is the floor where it
      has not. */
   --cfg-cover: var(--cfg-mast);
   /* THE RAIL'S PLATES ARE THE KIT'S NOW (2026-09-28). This scope used to set `--radius-sm` and
@@ -259,7 +272,8 @@
   max-inline-size: 46%;
   display: flex;
   align-items: center;
-  gap: --spacing(4);
+  /* the maker, the hairline and the boat, the same air either side of the hairline */
+  gap: --spacing(5);
   padding: --spacing(3.5) --spacing(6) --spacing(3.5) --spacing(5);
   border-inline-end: 1px solid var(--color-rule);
 }
@@ -268,6 +282,15 @@
   display: flex;
   align-items: center;
   margin: 0;
+}
+/* THE HAIRLINE BETWEEN THE MAKER'S MARK AND THE BOAT: upright where they stand side by side, the
+   height of the boat's two lines; across where a hand stacks them */
+.cfg-mast__rule {
+  flex: none;
+  align-self: center;
+  inline-size: 1px;
+  block-size: --spacing(10);
+  background: var(--color-rule-strong);
 }
 /* the maker's mark at a wordmark's height, never past its own pixels */
 .cfg-mast__mark {
@@ -573,7 +596,7 @@
     min-block-size: 0;
     overflow: hidden;
   }
-  /* the build is the window's height, and the summary rises over it (`.cfg-sum`, below) */
+  /* the build is the window's height; the final package stands over the whole window */
   .cfg-edit {
     block-size: 100%;
     display: flex;
@@ -650,7 +673,7 @@
   grid-template-areas:
     'sum level'
     'made made'
-    'note note'
+    'note go'
     'step step';
   align-items: end;
   gap: --spacing(3) --spacing(4);
@@ -659,36 +682,14 @@
   background: var(--color-panel);
   box-shadow: var(--shadow-plate);
 }
-/* WHILE THE FINALE IS OPEN its card says the total; the tally holds only the step, where there is
-   one, and is not drawn where there is none */
-.cfg-tally[data-elsewhere] {
-  grid-template-areas: 'step step';
-}
-.cfg-tally[data-elsewhere] .cfg-tally__step {
-  padding-block-start: 0;
-  border-block-start: 0;
-}
 .cfg-tally:empty {
   display: none;
 }
-/* BELOW A DESK, WITH THE SUMMARY HOLDING THE WINDOW, its card says the total and the tally steps
-   out of sight IN PLACE, so nothing under it moves; a step with its way back keeps it in sight */
-.cfg-tally[data-aside]:not(:has(.cfg-tally__step)) {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cfg-tally {
-    transition:
-      opacity var(--duration-hover) var(--ease-out),
-      visibility 0s linear;
-  }
-  .cfg-tally[data-aside]:not(:has(.cfg-tally__step)) {
-    transition:
-      opacity var(--duration-hover) var(--ease-out),
-      visibility 0s linear var(--duration-hover);
-  }
+/* THE BUILD'S ONE WAY ON, beside what the total does not hold yet: "View final package" */
+.cfg-tally__go {
+  grid-area: go;
+  justify-self: end;
+  align-self: end;
 }
 /* THE TOTAL IS WHERE A PART IS DROPPED (`PartDrag`): while a part is carried the plate says so
    across its whole face, the accent's dashed edge on the plate's pale blue, and lights the
@@ -720,28 +721,22 @@
 .cfg-tally[data-over] .cfg-tally__drop {
   background: var(--color-plate);
 }
-.cfg-tally [data-ink='blue'],
-.cfg-sum [data-ink='blue'] {
+.cfg-tally [data-ink='blue'] {
   --ink: var(--accent-blue);
 }
-.cfg-tally [data-ink='carmine'],
-.cfg-sum [data-ink='carmine'] {
+.cfg-tally [data-ink='carmine'] {
   --ink: var(--accent-carmine);
 }
-.cfg-tally [data-ink='viridian'],
-.cfg-sum [data-ink='viridian'] {
+.cfg-tally [data-ink='viridian'] {
   --ink: var(--accent-viridian);
 }
-.cfg-tally [data-ink='ochre'],
-.cfg-sum [data-ink='ochre'] {
+.cfg-tally [data-ink='ochre'] {
   --ink: var(--accent-ochre);
 }
-.cfg-tally [data-ink='violet'],
-.cfg-sum [data-ink='violet'] {
+.cfg-tally [data-ink='violet'] {
   --ink: var(--accent-violet);
 }
-.cfg-tally [data-ink='teal'],
-.cfg-sum [data-ink='teal'] {
+.cfg-tally [data-ink='teal'] {
   --ink: var(--accent-teal);
 }
 /* the boat beside its price: only below a desk, where the stage has scrolled away; and the caret
@@ -1470,7 +1465,8 @@
   background: none;
   border: 0;
   border-radius: var(--radius-plate);
-  padding: --spacing(4) --spacing(4) --spacing(4) --spacing(5);
+  /* the same 20px either side as the body under it, so the caret ends where the lists end */
+  padding: --spacing(4) --spacing(5);
   display: grid;
   grid-template-columns: auto --spacing(6) minmax(0, 1fr) auto auto;
   align-items: center;
@@ -1888,11 +1884,15 @@
 
 /* ---- the boat, chosen in its own chapter (`BoatChooser`) ---------------------------- */
 
-/* ONE ROW OF CHOICES PER AXIS the file distinguishes the boat's series by — Model, Version,
-   Material, Colour — each headed by its name and the value on the quote, then the choices as
-   compact cards (a picture or the colours in a small well, the name, what it does to the total)
-   or, for a material, as chips. A press answers on the card at once, and the photograph, the bar
-   and the total answer with it. Four across at a desk, three on a tablet, two in a hand. */
+/* ONE ROW OF CHOICES PER AXIS the file distinguishes the boat's series by, in the order a buyer
+   thinks — Model (or Version), then Material, then Colour — each headed by one summary line: its
+   name, the value on the quote, and how many the price list offers (and, where every one is the
+   same price, that it is, once). A model or a version is a compact card, one height for every
+   card on the axis: its picture in one well, its name, and what choosing it does to the total at
+   the card's end. A material is a chip. A colour is a swatch with its name, one strip of them,
+   never a wall of cards (the owner, 2026-10-31: "make it really easy to use"). A press answers on
+   the choice at once, and the photograph, the bar and the total answer with it. Cards two across
+   in the rail at every size, so sixteen models are eight short rows. */
 .cfg-boat {
   display: grid;
   gap: --spacing(6);
@@ -1940,17 +1940,13 @@
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(44)), 1fr));
-  gap: --spacing(2.5);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(64)), 1fr));
+  /* EVERY CARD OF AN AXIS THE SAME HEIGHT (the critic, P-8: 68 to 105px down one grid) */
+  grid-auto-rows: 1fr;
+  gap: --spacing(2);
 }
-/* EVERY CARD OF AN AXIS THE SAME HEIGHT (the critic, P-8: 68 to 105px down one grid); in a hand,
-   two across, each pair is one row's height */
-@media (min-width: 640px) {
-  .cfg-axis__list[data-shape='cards'] {
-    grid-auto-rows: 1fr;
-  }
-}
-.cfg-axis__list[data-shape='chips'] {
+.cfg-axis__list[data-shape='chips'],
+.cfg-axis__list[data-shape='swatches'] {
   display: flex;
   flex-wrap: wrap;
 }
@@ -1962,18 +1958,45 @@
   position: relative;
   display: grid;
 }
+/* A CARD: its well, its words, and what it does at its end, the same column on every card */
 .cfg-pick__in {
   display: grid;
-  grid-template-columns: --spacing(14) minmax(0, 1fr);
+  grid-template-columns: --spacing(16) minmax(0, 1fr) auto;
   align-items: center;
   gap: --spacing(3);
+}
+.cfg-pick__in > .cfg-pick__delta {
+  justify-self: end;
+  margin: 0;
+}
+/* A SWATCH: the colourway's swatches, its name, and its difference where it has one, as a pill
+   in a strip; a row of the strip is one height, its tallest */
+.cfg-axis__list[data-shape='swatches'] > li {
+  display: flex;
+}
+.cfg-pick[data-shape='swatch'] {
+  display: flex;
+}
+.cfg-pick[data-shape='swatch'] .cfg-pick__press {
+  padding: --spacing(2) --spacing(4) --spacing(2) --spacing(2.5);
+  border-radius: var(--radius-pill);
+}
+.cfg-pick__in[data-axis='colour'] {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2.5);
+}
+.cfg-pick__swatch {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
 }
 /* ONE WELL FOR EVERY CARD: white, on a hairline, the same size — a photograph on the water fills
    it to its edges, and a maker's drawing or the boat's glyph stands whole on it */
 .cfg-pick__well {
   display: grid;
   place-items: center;
-  inline-size: --spacing(14);
+  inline-size: --spacing(16);
   block-size: --spacing(11);
   padding: --spacing(0.5);
   box-sizing: border-box;
@@ -2112,11 +2135,25 @@
   .cfg-axis__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  /* in a hand two across, each still a line: a small well beside its name, so sixteen models
-     are eight short rows and not a page of photographs */
-  .cfg-pick__in {
+  /* in a hand two across, each still a line: a small well beside its name and what it does under
+     the name, so sixteen models are eight short rows and not a page of photographs */
+  .cfg-pick__in:not([data-axis='colour']) {
     grid-template-columns: --spacing(11) minmax(0, 1fr);
-    gap: --spacing(2);
+    grid-template-areas:
+      'well words'
+      'well delta';
+    column-gap: --spacing(2);
+    row-gap: --spacing(1);
+  }
+  .cfg-pick__in > .cfg-pick__well {
+    grid-area: well;
+  }
+  .cfg-pick__in > .cfg-pick__words {
+    grid-area: words;
+  }
+  .cfg-pick__in > .cfg-pick__delta {
+    grid-area: delta;
+    justify-self: start;
   }
   .cfg-pick__well {
     inline-size: --spacing(11);
@@ -2292,10 +2329,33 @@
   font-weight: 600;
   color: var(--color-act-ink);
 }
+/* THE LINE'S END, ONE GRID ON EVERY LINE (the owner, 2026-10-31: the line items "to make it
+   perfect"): the figure at one column, right-aligned, with what it is beside it under it ("on the
+   quote", "No Cash price"), and what a press does at the same place on every line, in a column
+   of its own width, so every figure on a list stands on one vertical and every "Add" and "Take
+   off" on another */
 .cfg-row__money {
-  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: auto --spacing(24);
+  align-items: center;
+  justify-items: end;
+  column-gap: --spacing(3);
+  row-gap: --spacing(0.5);
   text-align: end;
   white-space: nowrap;
+}
+.cfg-row__money > .cfg-row__delta {
+  grid-column: 1;
+  grid-row: 1;
+}
+.cfg-row__money > .cfg-row__at {
+  grid-column: 1;
+  margin: 0;
+}
+.cfg-row__money > .cfg-row__add {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: start;
 }
 /* WHAT THE PRESS MOVES THE TOTAL BY, in the kit's figure pill: the plate's pale well with the
    tint's own blue ink, bold and tabular (the option tile's figure). A press that takes a line
@@ -2335,18 +2395,39 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
 }
-/* NO FIGURE, AND A PRESS PUTS IT ON: the word in the figure's own pill, with its plus */
+/* WHAT THE PRESS DOES: "Add", with its plus, on the tint's own blue; "Take off", with its minus,
+   quieter, on a hairline */
 .cfg-row__add {
   display: inline-flex;
   align-items: center;
   gap: --spacing(1);
   padding: --spacing(0.5) --spacing(2.5) --spacing(0.5) --spacing(2);
   border-radius: var(--radius-pill);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
   color: var(--color-ink-on-tint);
   background: var(--color-plate-tint);
+}
+.cfg-row__add[data-act='off'] {
+  font-weight: 600;
+  color: var(--color-ink-2);
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--color-rule-strong);
+}
+/* A LINE'S PICTURE OR ITS KIND'S GLYPH, in one well the same size on every line */
+.cfg-row[data-untick] .cfg-row__mark {
+  inline-size: --spacing(10);
+  block-size: --spacing(10);
+  align-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-plate-tint);
+}
+.cfg-row__img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
 }
 
 /* A ROW THE NARROWING LEFT OUT IS AN ORDINARY ROW WITH A SENTENCE.
@@ -3037,6 +3118,7 @@
       'boat sum level fold'
       'boat made made made'
       'note note note note'
+      'go go go go'
       'step step step step';
     align-items: center;
     gap: --spacing(2) --spacing(4);
@@ -3047,10 +3129,10 @@
      narrow as they are, at the bottom left over nothing but a line of the page */
   .cfg-tally:not([data-unfolded]) {
     inline-size: auto;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto auto auto;
     grid-template-areas:
-      'sum fold'
-      'step step';
+      'sum go fold'
+      'step step step';
     column-gap: --spacing(4);
     padding: --spacing(2) --spacing(2) --spacing(2) --spacing(5);
   }
@@ -3286,8 +3368,13 @@
   .cfg-mast__what {
     flex-direction: column;
     align-items: flex-start;
-    gap: --spacing(2);
+    gap: --spacing(3);
     padding: --spacing(4);
+  }
+  .cfg-mast__rule {
+    align-self: stretch;
+    inline-size: auto;
+    block-size: 1px;
   }
   .cfg-mast__mark {
     block-size: --spacing(6);
@@ -3337,6 +3424,14 @@
   .cfg-tally:not([data-unfolded]) {
     inline-size: 100%;
     grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'sum fold'
+      'step step';
+  }
+  /* in a hand the way on is the rail's last row, a thumb's reach under the work; the bar over the
+     tab bar keeps the figure and its caret */
+  .cfg-tally__go {
+    display: none;
   }
   /* and it rests on the tab bar's own top edge, so no sliver of the page shows between the two */
   .cfg-tally {
@@ -3398,7 +3493,8 @@
     grid-template-areas: 'disc num body chev' '. . sum .';
     column-gap: --spacing(2.5);
     row-gap: --spacing(2);
-    padding-inline: --spacing(4) --spacing(3);
+    /* the body's own 16px either side, so the caret ends where the lists end */
+    padding-inline: --spacing(4);
   }
   .cfg-head__disc {
     grid-area: disc;
@@ -3436,6 +3532,10 @@
   }
   .cfg-row__money {
     margin-block-start: --spacing(2);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: --spacing(2);
     text-align: start;
   }
   .cfg-row__at {
@@ -3552,10 +3652,10 @@
   /* AND THE TALLY IS ONE ROW: the figure and the price it is at, its parts said in the bar's
      name to a reader; the window is 390px tall and the work needs it */
   .cfg-tally {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     grid-template-areas:
-      'sum level fold'
-      'step step step';
+      'sum level go fold'
+      'step step step step';
     padding-block: --spacing(2);
   }
   .cfg-tally__bar,
@@ -3899,291 +3999,74 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(72)), 1fr));
 }
 
-/* ---- the summary: the whole quote, one screen (`Summary`) --------------------------- */
+/* ---- the door to the final package, at the rail's foot (`PackageDoor`) --------------- */
 
-/* THE DOOR, AT THE RAIL'S FOOT, where the finale's head stood: the same head, its arrow pointing
-   down to the summary in the accent's own fill, so it reads as the way on and not as one more
-   chapter to open. */
-.cfg-door__chev,
-.cfg-door__press[aria-expanded='true'] .cfg-door__chev {
-  color: var(--color-ink-on-accent);
-  background: var(--color-accent);
-  transform: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  :root:not([data-still]) .cfg-door__press:hover .cfg-door__chev {
-    transform: translateY(--spacing(0.5));
-  }
-}
-
-/* THE SUMMARY. One screen, the window's height at every size it can be (`100dvh`), the boat's
-   photograph on the larger side and the quote beside it: every line with its picture and figure
-   in a plate that scrolls only where a long quote outgrows it, and the handover card under it.
-
-   AT A DESK it stands over the build, laid in the build's own box, and rises into the window on
-   the kit's travel spring (motion, `Summary`); the build behind it settles back a step and dims, so the two read as
-   one page turned. Pushed up past its top, or "Back to the build", it lowers again. BELOW A DESK it
-   is the page's last screen, after the build, and the page scrolls to it. */
-.cfg-sum {
-  --sum-gap: --spacing(5);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  min-block-size: 100dvh;
-  padding: max(--spacing(5), var(--shell-inset)) var(--gutter)
-    calc(var(--shell-foot) + --spacing(6));
-  background: var(--color-ground);
-}
-.cfg-sum__in {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sum-gap);
-  min-block-size: 0;
-}
-.cfg-sum__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: --spacing(3) --spacing(6);
-}
-.cfg-sum__title {
+/* THE RAIL'S LAST ROW IS THE WAY ON (the owner, 2026-10-31: "let's go view final package"): the
+   finale's disc, its name and where the give stands, and the one amber act, on the same row as a
+   chapter's head so the rail ends on the grid it began on. In a hand the act takes the row's
+   width under the words. */
+.cfg-door {
   display: grid;
-  gap: --spacing(1);
-  min-inline-size: 0;
-}
-.cfg-sum__name {
-  margin: 0;
-  font-size: var(--text-4xl);
-  line-height: var(--text-4xl--line-height);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--color-ink);
-  text-wrap: balance;
-}
-.cfg-sum__name:focus-visible {
-  outline: none;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-focus);
-}
-.cfg-sum__detail {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 500;
-  color: var(--color-ink-2);
-}
-.cfg-sum__body {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sum-gap);
-  min-block-size: 0;
-}
-/* THE BOAT, round on every corner, covering its frame */
-.cfg-sum__pic {
-  /* the held photograph's height, written on the element by the screen (`Summary`) */
-  --sum-held: none;
-  position: relative;
-  margin: 0;
-  min-block-size: 0;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border-radius: var(--radius-plate);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-plate);
-}
-/* laid over its frame, so a frame whose height the window decides is covered to its edges and the
-   picture is never a box taller than the frame it is cut to (measured below a desk: a 514px picture
-   in a 371px frame) */
-.cfg-sum__img {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
-}
-/* a maker's render on white stands whole on the plate; only a photograph fills the frame */
-.cfg-sum__pic[data-verdict]:not([data-verdict='scene']) .cfg-sum__img {
-  object-fit: contain;
-  padding: --spacing(6);
-  box-sizing: border-box;
-}
-.cfg-sum__made {
-  margin-block-start: auto;
-  padding-block-start: --spacing(3);
-}
-.cfg-sum__mark {
-  inline-size: min(60%, --spacing(80));
-  block-size: auto;
-}
-/* THE MARK IS THE WHITE VARIANT (the stage's, see `.cfg-shot[data-art='mark']`), so it stands on
-   the same deep blue: on the plate it was not drawn at all, and the summary of a boat with no
-   photograph opened on an empty white half (verify, 2026-10-31, the Stacer 519 at 1440 × 900) */
-.cfg-sum__pic[data-art='mark'] {
-  background: var(--grain), var(--color-blue-900);
-}
-.cfg-sum__word {
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
-  font-weight: 700;
-  color: var(--color-ink-file);
-}
-/* A LIST'S NAME IN TYPE, ON THE FILE'S BLUE, as the stage draws it (`.cfg-shot[data-art='word']`) */
-.cfg-sum__pic[data-art='word'] {
-  background: var(--grain), var(--color-blue-900);
-}
-.cfg-sum__pic[data-art='word'] .cfg-sum__word {
-  padding: --spacing(6);
-  text-align: center;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  color: var(--color-blue-100);
-}
-/* the boat's column is the photograph alone below a desk, laid in the summary's own flow */
-.cfg-sum__boat {
-  display: contents;
-}
-.cfg-sum__side {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sum-gap);
-  min-block-size: 0;
-  min-inline-size: 0;
-}
-/* EVERY LINE ON THE QUOTE, its picture in a small well, its name and the chapter it is in, its
-   figure at the end; ruled between, in one white plate */
-.cfg-sum__lines {
-  display: flex;
-  flex-direction: column;
-  min-block-size: 0;
-  padding: --spacing(4) --spacing(5);
-  border-radius: var(--radius-plate);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-plate);
-}
-.cfg-sum__count {
-  margin: 0 0 --spacing(1);
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
-}
-.cfg-sum__n {
-  color: var(--color-ink-2);
-}
-.cfg-sum__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  min-block-size: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-}
-.cfg-sum__item {
-  --ink: var(--accent-graphite);
-  display: grid;
-  grid-template-columns: --spacing(16) minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'disc words go';
   align-items: center;
   gap: --spacing(3) --spacing(4);
-  padding-block: --spacing(2.5);
+  padding: --spacing(4) --spacing(5);
+  /* the room's wash, in both themes: the plate's pale blue stood under the night's white ink */
+  background: var(--color-wash);
 }
-.cfg-sum__item + .cfg-sum__item {
-  border-block-start: 1px solid var(--color-rule);
+.cfg-door > .cfg-head__disc {
+  grid-area: disc;
 }
-.cfg-sum__thumb {
-  display: grid;
-  place-items: center;
-  inline-size: --spacing(16);
-  block-size: --spacing(11);
-  border-radius: var(--radius-md);
-  background: var(--color-plate-tint);
-  overflow: hidden;
-}
-/* a part's picture stands whole in its well and never past its own pixels: the element's held width
-   and height are its size, and the well only caps them */
-.cfg-sum__thumb > img {
-  inline-size: auto;
-  block-size: auto;
-  max-inline-size: 100%;
-  max-block-size: 100%;
-  object-fit: contain;
-}
-.cfg-sum__item:first-child .cfg-sum__thumb > img {
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
-}
-.cfg-sum__words {
+.cfg-door__words {
+  grid-area: words;
   display: grid;
   gap: --spacing(0.5);
   min-inline-size: 0;
 }
-.cfg-sum__item-name {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 650;
+.cfg-door__name {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
   color: var(--color-ink);
-  overflow-wrap: anywhere;
 }
-.cfg-sum__item-in {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(1.5);
+.cfg-door__fact {
+  margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   font-weight: 600;
   color: var(--color-ink-2);
 }
-.cfg-sum__dot {
-  flex: none;
-  inline-size: --spacing(2);
-  block-size: --spacing(2);
-  border-radius: var(--radius-pill);
-  background: var(--ink);
+.cfg-door__go {
+  grid-area: go;
+  display: flex;
+  justify-content: flex-end;
 }
-.cfg-sum__amt {
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-  white-space: nowrap;
+@media (max-width: 639.98px) {
+  .cfg-door {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'disc words'
+      'go go';
+  }
+  .cfg-door > .cfg-head__disc {
+    align-self: center;
+  }
+  /* in a hand the act fills the row, as the kit's act does */
+  .cfg-door__go {
+    display: grid;
+    justify-content: stretch;
+  }
 }
-.cfg-sum__none {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-ink-2);
-}
-/* THE HANDOVER, the finale's card, on its own white plate */
-.cfg-sum__card {
-  flex: none;
-  padding: --spacing(5);
-  border-radius: var(--radius-plate);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-plate);
-}
+
+/* the email act is a link to the dealer's own mail, drawn as the kit's secondary act */
 .cfg-hand__acts {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: --spacing(3);
 }
-/* the email act is a link to the dealer's own mail, drawn as the kit's secondary act */
 .cfg-hand__mail {
   display: inline-flex;
   align-items: center;
@@ -4213,223 +4096,685 @@
   box-shadow: var(--shadow-focus);
 }
 
-/* AT A DESK: over the build, the window's height exactly, the photograph on the larger side */
-@media (min-width: 1200px) and (min-height: 700px) {
-  .cfg-sum {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    block-size: 100%;
-    min-block-size: 0;
-    overflow: hidden;
-    padding-block-end: --spacing(6);
-    box-shadow: var(--shadow-lg);
-  }
-  /* THE BOAT TAKES THE START COLUMN WHOLE, AND THE QUOTE IS ONE PLATE BESIDE IT, the window's
-     height (the paper-quote critique, 2026-10-31: the card ended at y 431 beside a photograph
-     running to 602 and lines to 876, half a column of bare ground on the one full-screen page).
-     The handover leads at the plate's top and every line on the quote stands at its foot, so the
-     two ends of the plate are the photograph's two ends whatever the quote holds; the air between
-     them is the plate's own, between what to do and what is on it. A long list scrolls inside the
-     plate's foot and never takes the handover's room (the build page round, 2026-10-31: given, with
-     six lines, the list showed one line and a half). */
-  .cfg-sum__body {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr);
-    grid-template-areas: 'pic side';
-    column-gap: var(--sum-gap);
-  }
-  /* THE BOAT'S COLUMN: the photograph, and under it the boat's facts as the build's stage stands
-     them, so the photograph is the height its own pixels can cover more often than not */
-  .cfg-sum__boat {
-    grid-area: pic;
-    display: flex;
-    flex-direction: column;
-    gap: var(--sum-gap);
-    min-block-size: 0;
-    min-inline-size: 0;
-  }
-  .cfg-sum__pic {
-    flex: 1 1 0;
-    min-block-size: 0;
-  }
-  /* a photograph is cut to cover its frame, so the frame is never taller than its held pixels
-     (`--sum-held`, the ledger's height); what that leaves goes above the facts, whose plate keeps
-     the column's foot on the quote's plate's foot */
-  .cfg-sum__pic[data-verdict='scene'] {
-    max-block-size: var(--sum-held, none);
-  }
-  .cfg-sum__boat > .cfg-specs {
-    flex: none;
-    margin-block-start: auto;
-  }
-  .cfg-sum__side {
-    grid-area: side;
-    gap: 0;
-    overflow: hidden;
-    border-radius: var(--radius-plate);
-    background: var(--color-panel);
-    box-shadow: var(--shadow-plate);
-  }
-  .cfg-sum__side > .cfg-sum__card,
-  .cfg-sum__side > .cfg-sum__lines {
-    border-radius: 0;
-    box-shadow: none;
-    background: none;
-  }
-  /* A LONG QUOTE'S LINES TAKE THEIR ROOM FIRST, up to a little over half the plate, so six of them
-     never stand one and a half in sight (the build page round, 2026-10-31); the handover keeps the
-     rest, its acts at its top, and a given card's footnotes scroll in their own place, fading at its
-     foot while there is more (`data-more`) */
-  .cfg-sum__card {
-    flex: 0 1 auto;
-    min-block-size: 45%;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-  }
-  .cfg-sum__card[data-more] {
-    mask-image: linear-gradient(to bottom, currentcolor calc(100% - --spacing(10)), transparent);
-  }
-  .cfg-sum__lines {
-    flex: none;
-    margin-block-start: auto;
-    min-block-size: 0;
-    max-block-size: 55%;
-    padding-block-start: --spacing(4);
-    border-block-start: 1px solid var(--color-rule);
-  }
-  /* A SUMMARY WITH NO PHOTOGRAPH (a part sold on its own) is its lines and its card, side by side */
-  .cfg-sum__body:not(:has(.cfg-sum__pic)) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'side';
-  }
-  .cfg-sum__body:not(:has(.cfg-sum__pic)) .cfg-sum__side {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-    grid-template-areas: 'lines card';
-    align-items: start;
-  }
-  .cfg-sum__body:not(:has(.cfg-sum__pic)) .cfg-sum__lines {
-    grid-area: lines;
-    margin-block-start: 0;
-    max-block-size: 100%;
-    border-block-start: 0;
-    border-inline-end: 1px solid var(--color-rule);
-  }
-  .cfg-sum__body:not(:has(.cfg-sum__pic)) .cfg-sum__card {
-    grid-area: card;
-  }
-  .cfg-sum__item {
-    padding-block: --spacing(2);
-  }
+/* ---- the final package (`FinalPackage`) -------------------------------------------------
+
+   THE WHOLE WINDOW, AND THE PAGE WHILE IT STANDS: the shell's pill steps out of sight, the build
+   steps out of the page's flow (inert, and put back exactly where it was), and the window
+   scrolls the package as a document, its bar standing at the top.
+   One page in the order a customer is shown it: the boat's name, its photograph large beside the
+   handover card, every line with its picture beside the printed quote itself.
+
+   ITS REFLOW, at the six sizes the rulers run:
+     390 x 844     One column, 16px gutter: the bar (back, and the print act as its glyph and one
+                   word), the name, the photograph 3 : 2 the column's width, the card (the name's
+                   fields first where nobody is named), the lines, and the paper as the document
+                   sets itself in a hand, one column with each page's edge said.
+     844 x 390     The same column; the photograph is never taller than three fifths of the
+                   window, so the card begins in the second window and not the fourth. The paper is
+                   A4, drawn at the column's width where 210 mm is wider than it.
+     834 x 1112    The same column at 24px: the photograph 3 : 2, the paper's A4 sheets at their own
+                   size where they fit and a little smaller where they do not, never cut.
+     1280 x 800    Two columns: the photograph on the larger side and the card beside it, then the
+                   lines in a column that stands still beside the paper as it scrolls.
+     1440 x 900    The same at the page's 56px gutter.
+     1920 x 1080   The same, the page held to 1680px and centred, so the photograph is never drawn
+                   past what its file holds and the paper's sheets stand at their own size.
+
+   MOTION: it arrives on the preparing moment (below), which lifts on the package; the paper's
+   sheets are fed out by the document's own motion. Under reduced motion neither plays and it is
+   simply there.
+   ============================================================ */
+.cfg-pkg {
+  --pkg-gutter: var(--gutter);
+  --pkg-gap: --spacing(6);
+  box-sizing: border-box;
+  position: relative;
+  min-block-size: 100dvh;
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
 }
-/* MORE LINES THAN THE PLATE HOLDS: the last one shown fades into the plate (`data-more`) */
-.cfg-sum__list[data-more] {
-  mask-image: linear-gradient(to bottom, currentcolor calc(100% - --spacing(10)), transparent);
+/* THE PACKAGE IS THE PAGE WHILE IT STANDS: the build steps out of the page's flow under it (it
+   keeps nothing a reload would lose, and "Back to editing" puts its window and its column back
+   where they stood), and at a desk the page, which is otherwise the window's height and still,
+   scrolls as the package's own document */
+.cfg-edit[aria-hidden='true'] {
+  display: none;
 }
 @media (min-width: 1200px) and (min-height: 700px) {
-  .cfg-edit {
-    transition:
-      transform calc(var(--duration-sheet) * 1.6) var(--ease-drawer),
-      opacity calc(var(--duration-sheet) * 1.6) var(--ease-drawer);
-    transform-origin: 50% 0;
-  }
-  .cfg-edit[data-away] {
-    transform: scale(0.97);
-    opacity: 0.4;
+  .cfg:has(> .cfg-pkg) {
+    block-size: auto;
+    min-block-size: 100dvh;
+    overflow: visible;
   }
 }
-@media (min-width: 1200px) and (min-height: 700px) and (prefers-reduced-motion: reduce) {
-  .cfg-edit,
-  .cfg-edit[data-away] {
-    transform: none;
-  }
+.cfg-pkg:focus {
+  outline: none;
 }
-:root[data-still] .cfg-edit {
-  transition: none;
+/* the package itself never takes the caret by Tab (its tab index is -1); where it is handed it,
+   its edge says so */
+.cfg-pkg:focus-visible {
+  box-shadow: inset 0 0 0 --spacing(0.75) var(--color-accent);
+}
+/* THE SHELL'S PILL STEPS OUT OF SIGHT UNDER THE PACKAGE, which stands over the whole window: the
+   pill is out of a person's reach there already (the top layer makes the rest of the page inert),
+   and its words were read through the package's ground by the contrast ruler */
+:root:has(.cfg-pkg) .way-pill,
+:root:has(.cfg-pkg) .way-edge {
+  visibility: hidden;
+}
+.cfg-pkg__in {
+  min-block-size: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-/* A TABLET STANDS THE BOAT ABOVE THE QUOTE, a third of the screen, so the lines and the card fit
-   under it; a hand does the same, smaller. The page scrolls to the summary and, on a touch screen,
-   settles on it. */
-@media (max-width: 1199.98px), (max-height: 699.98px) {
-  .cfg-sum {
-    scroll-snap-align: start;
-  }
-  /* ONE SCREEN HERE TOO (the critic, P-1: at 834 the list began at y 950 of 1112): the photograph
-     takes what the card and the lines leave of the window, and a long list scrolls inside its
-     plate, so the summary is the window's height wherever its quote allows */
-  .cfg-sum__pic {
-    flex: 1 1 0;
-    min-block-size: --spacing(36);
-  }
-  .cfg-sum__list {
-    max-block-size: 32dvh;
-  }
-  .cfg-sum__name {
-    font-size: var(--text-3xl);
-    line-height: var(--text-3xl--line-height);
+/* THE BAR: the way back at the start, where the quote stands in the middle, and the paper's act at
+   the end, standing while the package scrolls under it */
+.cfg-pkg__bar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: --spacing(4);
+  /* its ends on the page's own measure, whatever the window's width */
+  padding: --spacing(3)
+    max(var(--pkg-gutter), calc((100% - --spacing(420)) / 2 + var(--pkg-gutter)));
+  background: --alpha(var(--color-ground) / 92%);
+  backdrop-filter: blur(--spacing(3));
+  border-block-end: 1px solid var(--color-rule);
+}
+.cfg-pkg__bar > :first-child {
+  justify-self: start;
+}
+.cfg-pkg__bar > :last-child {
+  justify-self: end;
+}
+.cfg-pkg__where {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(3);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.cfg-pkg__ref {
+  color: var(--color-ink);
+}
+
+.cfg-pkg__page {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: --spacing(420);
+  margin-inline: auto;
+  padding: --spacing(8) var(--pkg-gutter) --spacing(16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pkg-gap);
+}
+
+/* THE NAME, AS THE PAPER'S COVER SAYS IT: the maker's mark, the boat in the page's largest type,
+   and its finish with its swatches */
+.cfg-pkg__title {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(2);
+}
+.cfg-pkg__mark {
+  block-size: --spacing(7);
+  inline-size: auto;
+  max-inline-size: --spacing(48);
+  object-fit: contain;
+}
+.cfg-pkg__eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.cfg-pkg__name {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+.cfg-pkg__name:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-focus);
+}
+.cfg-pkg__detail {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+/* THE HERO: the photograph and the handover card beside it */
+.cfg-pkg__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--pkg-gap);
+  align-items: start;
+}
+.cfg-pkg__photo {
+  --pkg-held: none;
+  position: relative;
+  margin: 0;
+  aspect-ratio: 3 / 2;
+  max-block-size: min(var(--pkg-held), 70dvh);
+  inline-size: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-lg);
+}
+.cfg-pkg__img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+/* a maker's render on white stands whole on the plate; only a photograph fills its frame */
+.cfg-pkg__photo[data-verdict]:not([data-verdict='scene']) .cfg-pkg__img {
+  object-fit: contain;
+  padding: --spacing(6);
+  box-sizing: border-box;
+}
+/* no photograph held: the maker's white mark, or the list's name, on the file's deep blue, as the
+   build's stage draws them */
+.cfg-pkg__photo[data-art='mark'],
+.cfg-pkg__photo[data-art='word'] {
+  display: grid;
+  place-items: center;
+  background: var(--grain), var(--color-blue-900);
+}
+.cfg-pkg__markbig {
+  inline-size: min(60%, --spacing(80));
+  block-size: auto;
+}
+.cfg-pkg__word {
+  padding: --spacing(6);
+  text-align: center;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-100);
+}
+.cfg-pkg__side {
+  display: grid;
+  gap: --spacing(4);
+  min-inline-size: 0;
+}
+.cfg-pkg__card,
+.cfg-pkg__lines {
+  padding: --spacing(6);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+}
+/* NOBODY NAMED: the name's fields lead the card, ruled off from the total and the give, and the
+   card's own "For" (which only offered the way to these fields) steps aside */
+.cfg-pkg__who {
+  display: grid;
+  gap: --spacing(3);
+  padding: 0 0 --spacing(6);
+  margin-block-end: --spacing(6);
+  border-block-end: 1px solid var(--color-rule);
+  box-shadow: none;
+  border-radius: 0;
+  background: none;
+}
+.cfg-pkg__card[data-asking] .cfg-hand__who {
+  display: none;
+}
+.cfg-pkg__step {
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+}
+
+/* THE LINES AND THE PAPER */
+.cfg-pkg__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--pkg-gap);
+  align-items: start;
+}
+.cfg-pkg__count {
+  margin: 0 0 --spacing(2);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(4);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.cfg-pkg__n {
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.cfg-pkg__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* EVERY LINE ON ONE GRID: its picture in one well, its name and its chapter, its figure at one
+   column; ruled between */
+.cfg-pkg__item {
+  --ink: var(--accent-graphite);
+  display: grid;
+  grid-template-columns: --spacing(20) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(4);
+  padding-block: --spacing(3);
+}
+.cfg-pkg__item + .cfg-pkg__item {
+  border-block-start: 1px solid var(--color-rule);
+}
+.cfg-pkg__thumb {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(20);
+  block-size: --spacing(14);
+  border-radius: var(--radius-md);
+  background: var(--color-plate-tint);
+  overflow: hidden;
+}
+.cfg-pkg__thumb > img {
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+.cfg-pkg__item:first-child .cfg-pkg__thumb > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.cfg-pkg__words {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.cfg-pkg__item-name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+.cfg-pkg__item-in {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.cfg-pkg__dot {
+  flex: none;
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+}
+.cfg-pkg__amt {
+  justify-self: end;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+.cfg-pkg__none {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.cfg-pkg__made {
+  padding-block-start: --spacing(4);
+}
+.cfg-pkg [data-ink='blue'] {
+  --ink: var(--accent-blue);
+}
+.cfg-pkg [data-ink='carmine'] {
+  --ink: var(--accent-carmine);
+}
+.cfg-pkg [data-ink='viridian'] {
+  --ink: var(--accent-viridian);
+}
+.cfg-pkg [data-ink='ochre'] {
+  --ink: var(--accent-ochre);
+}
+.cfg-pkg [data-ink='violet'] {
+  --ink: var(--accent-violet);
+}
+.cfg-pkg [data-ink='teal'] {
+  --ink: var(--accent-teal);
+}
+.cfg-pkg__paper {
+  min-inline-size: 0;
+}
+.cfg-pkg__say {
+  margin: 0 0 --spacing(4);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* THE PRINTED QUOTE ITSELF, the document screen's component, laid in this column: the paper and
+   nothing of its own room (its chrome, its sections and its desk note are the printed quote
+   screen's, one press away under "Choose what prints"), drawn at the column's width where an A4
+   sheet is wider than it (`--pkg-zoom`, written by the screen) */
+.cfg-pkg__doc {
+  --pkg-zoom: 1;
+  min-inline-size: 0;
+}
+.cfg-pkg__doc > .doc {
+  min-block-size: 0;
+  background: none;
+  zoom: var(--pkg-zoom);
+}
+.cfg-pkg__doc .doc-chrome,
+.cfg-pkg__doc .doc-pick,
+.cfg-pkg__doc .doc-desk {
+  display: none;
+}
+/* the page's number stands in the floor beside its sheet on the printed quote's own screen; here
+   the sheets are their own count, and the number stood over the lines' column (1440 × 900) */
+.cfg-pkg__doc .doc-page::before {
+  display: none;
+}
+.cfg-pkg__doc .doc:not([data-gauging]) .doc-floor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 --spacing(4);
+}
+@media screen and (max-width: 825.98px) {
+  .cfg-pkg__doc .doc:not([data-gauging]) .doc-floor {
+    align-items: stretch;
   }
 }
-@media (max-width: 1199.98px) and (pointer: coarse), (max-height: 699.98px) and (pointer: coarse) {
-  /* only while the address names it: below a desk the summary is always the page's end, and a
-     snap standing all the time pulled a chapter brought back in down onto it (844 × 390) */
-  :root:has(.cfg-sum[data-open]) {
-    scroll-snap-type: y proximity;
+
+/* AT A DESK: the photograph on the larger side and the card beside it, then the lines standing
+   still beside the paper while it scrolls */
+@media (min-width: 1200px) {
+  .cfg-pkg__hero {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+  .cfg-pkg__hero:not([data-pictured]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cfg-pkg__body {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .cfg-pkg__lines {
+    position: sticky;
+    inset-block-start: --spacing(20);
+  }
+  /* the photograph stands beside the card while a long card is read down */
+  .cfg-pkg__photo {
+    position: sticky;
+    inset-block-start: --spacing(20);
+  }
+  .cfg-pkg__paper {
+    inline-size: calc(210mm + --spacing(8));
+  }
+}
+@media (min-width: 1441px) {
+  .cfg-pkg {
+    --pkg-gutter: --spacing(14);
+  }
+}
+@media (max-width: 1199.98px) {
+  .cfg-pkg {
+    --pkg-gutter: --spacing(6);
+  }
+  .cfg-pkg__name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
   }
 }
 @media (max-width: 639.98px) {
-  .cfg-sum {
-    --sum-gap: --spacing(4);
-    padding-inline: --spacing(4);
+  .cfg-pkg {
+    --pkg-gutter: --spacing(4);
+    --pkg-gap: --spacing(4);
   }
-  .cfg-sum {
-    --sum-gap: --spacing(3);
-    padding-block-end: calc(var(--shell-foot) + --spacing(2));
+  .cfg-pkg__page {
+    padding-block: --spacing(5) --spacing(10);
   }
-  .cfg-sum__pic {
-    min-block-size: --spacing(36);
-  }
-  /* THE CARD A HAND'S SIZE, so the boat, the card and its lines are one window (the critic, P-1:
-     at 390 the give stood at y 630 and the summary ran two screens): the person's disc and the
-     seal smaller, the name and the total a step down, the card's rows closer */
-  .cfg-sum .cfg-hand {
-    --seal: --spacing(16);
+  .cfg-pkg__bar {
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: --spacing(3);
   }
-  .cfg-sum .cfg-hand__name {
-    font-size: var(--text-2xl);
-    line-height: var(--text-2xl--line-height);
+  .cfg-pkg__where {
+    display: none;
   }
-  .cfg-sum .cfg-hand__notes {
-    gap: --spacing(1.5);
+  .cfg-pkg__name {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
   }
-  /* IN A HAND THE LINES COME BEFORE THE CARD: the boat, what is on it, then the total and the give,
-     so the first window is the whole quote and the card's fine print is what a thumb scrolls to */
-  .cfg-sum__lines {
-    order: -1;
-  }
-  .cfg-sum__name {
-    font-size: var(--text-2xl);
-    line-height: var(--text-2xl--line-height);
-  }
-  .cfg-sum__lines,
-  .cfg-sum__card {
+  .cfg-pkg__card,
+  .cfg-pkg__lines {
     padding: --spacing(4);
   }
-  .cfg-sum__item {
-    grid-template-columns: --spacing(12) minmax(0, 1fr) auto;
+  .cfg-pkg__who {
+    padding-block-end: --spacing(4);
+    margin-block-end: --spacing(4);
+  }
+  .cfg-pkg__item {
+    grid-template-columns: --spacing(14) minmax(0, 1fr) auto;
     gap: --spacing(3);
   }
-  .cfg-sum__thumb {
-    inline-size: --spacing(12);
-    block-size: --spacing(9);
+  .cfg-pkg__thumb {
+    inline-size: --spacing(14);
+    block-size: --spacing(10);
   }
-  /* and the summary's render takes its frame's whole height, as the stage's does */
-  .cfg-sum__pic[data-verdict]:not([data-verdict='scene']) .cfg-sum__img {
-    padding: --spacing(1);
+}
+/* A PHONE TURNED OVER: the width is there and the height is not, so the photograph stands beside
+   the card as at a desk, a window's height at most */
+@media (min-width: 640px) and (max-height: 520px) {
+  .cfg-pkg__hero {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+  .cfg-pkg__photo {
+    max-block-size: none;
+  }
+  .cfg-pkg__page {
+    padding-block-start: --spacing(5);
+  }
+}
+
+/* THE PREPARING MOMENT (about 1.2 s): the boat's photograph settling out of a soft scale, the words
+   of what is being put together arriving one by one, a rule drawn under them, and the whole lifting
+   off the package in its last 200ms. Played only for a press and only where motion is welcome; the
+   screen does not draw it otherwise (`FinalPackage`). */
+.cfg-pkg__prep {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: end start;
+  overflow: hidden;
+  background: var(--color-blue-950);
+  animation: cfg-prep-lift var(--duration-enter) var(--ease-out)
+    calc(var(--duration-morph) + var(--duration-reveal)) both;
+}
+.cfg-pkg__prep-img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  opacity: 0.55;
+  animation: cfg-prep-settle calc(var(--duration-morph) * 2) var(--ease-out) both;
+}
+/* a ground under the words, darkest where they stand, so every line reads on any photograph */
+.cfg-pkg__prep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    --alpha(var(--color-blue-950) / 88%),
+    --alpha(var(--color-blue-950) / 0%) 65%
+  );
+}
+.cfg-pkg__prep-words {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: --spacing(4);
+  margin: 0 var(--gutter) --spacing(16);
+  max-inline-size: --spacing(160);
+  color: var(--color-white);
+}
+.cfg-pkg__prep-lead {
+  margin: 0;
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  animation: cfg-prep-word var(--duration-reveal) var(--ease-out) both;
+}
+.cfg-pkg__prep-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(2);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+}
+.cfg-pkg__prep-list > li {
+  --i: 0;
+  display: flex;
+  align-items: center;
+  gap: --spacing(2.5);
+  animation: cfg-prep-word var(--duration-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--duration-hover) + var(--i) * var(--duration-press));
+}
+.cfg-pkg__prep-rule {
+  display: block;
+  block-size: --spacing(0.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  transform-origin: 0 50%;
+  animation: cfg-prep-rule calc(var(--duration-morph) + var(--duration-reveal)) var(--ease-out) both;
+}
+@keyframes cfg-prep-settle {
+  from {
+    transform: scale(1.08);
+  }
+}
+@keyframes cfg-prep-word {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(2));
+  }
+}
+@keyframes cfg-prep-rule {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes cfg-prep-lift {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (max-width: 639.98px) {
+  .cfg-pkg__prep-words {
+    margin: 0 --spacing(4) --spacing(10);
+  }
+  .cfg-pkg__prep-lead {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+  .cfg-pkg__prep-list {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cfg-pkg__prep {
+    display: none;
+  }
+}
+
+/* PRINTED, THE PACKAGE IS THE PAPER: it is laid in the page's flow, and everything but the
+   document is taken away, the build under it too */
+@media print {
+  body:has(.cfg-pkg) .cfg-edit {
+    display: none;
+  }
+  .cfg-pkg {
+    position: static;
+    display: block;
+    overflow: visible;
+    inline-size: auto;
+    block-size: auto;
+    background: none;
+  }
+  .cfg-pkg__bar,
+  .cfg-pkg__title,
+  .cfg-pkg__hero,
+  .cfg-pkg__lines,
+  .cfg-pkg__count,
+  .cfg-pkg__say,
+  .cfg-pkg__prep {
+    display: none;
+  }
+  .cfg-pkg__page,
+  .cfg-pkg__body {
+    display: block;
+    padding: 0;
+    max-inline-size: none;
+  }
+  .cfg-pkg__paper {
+    inline-size: auto;
+  }
+  .cfg-pkg__doc > .doc {
+    zoom: 1;
+  }
+  body:has(.cfg-pkg) .cfg {
+    min-block-size: 0;
+    padding: 0;
+    block-size: auto;
+    overflow: visible;
   }
 }
 
@@ -4458,23 +4803,17 @@
   }
 }
 
-/* A PHONE TURNED OVER STANDS THE BOAT BESIDE THE CARD (the build page round, 2026-10-31: at
-   844 × 390 the summary brought in by its door stood the photograph over the card, and the give
-   began below the window). The width is there and the height is not, so the boat takes the start
-   column and the card and its lines the end one, the give in the first window. */
-@media (max-height: 520px) and (min-width: 640px) and (max-width: 1199.98px) {
-  .cfg-sum__body {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    align-items: start;
-  }
-  /* stuck BELOW THE PILL, whose clearance is the shell's own token: at --spacing(4) the
-     photograph and its expand press stood under the pill once the summary was scrolled to its
-     end (the overlap ruler at 844 × 390, 2026-10-31: 221 × 34px and 36 × 22px) */
-  .cfg-sum__pic {
-    position: sticky;
-    inset-block-start: max(--spacing(4), var(--shell-inset));
-    block-size: calc(100dvh - --spacing(4) - max(--spacing(4), var(--shell-inset)));
-    min-block-size: 0;
-  }
+/* A LINE'S PRICE, PUT ON IN THE PACKAGE'S CARD, stacks its field over its acts: the card is a
+   column beside the photograph, and side by side the field's own label stood four lines tall at
+   1280 × 800 */
+.cfg-pkg .cfg-hand__line-price {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+}
+
+/* A TILE'S PICTURE, LARGE: the quiet press under the tile, at its start, the same place on every
+   tile of a list (`OptionCard`) */
+.cfg-opt__look {
+  display: flex;
+  padding-block-start: --spacing(1);
 }

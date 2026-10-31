@@ -2,7 +2,14 @@
 import type { Page, PageScreenshotOptions } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { issueIt, openTheDocument, raiseTheRung, startAQuote, written } from '../mint'
+import {
+  issueIt,
+  openThePackage,
+  openTheDocument,
+  raiseTheRung,
+  startAQuote,
+  written,
+} from '../mint'
 import type { Route } from '../routes'
 
 /* ============================================================
@@ -94,6 +101,7 @@ export async function open(page: Page, route: Route): Promise<void> {
     test.setTimeout(120_000)
     const id = await startAQuote(page)
     if (route.raise === 'a rung') await raiseTheRung(page)
+    else if (route.raise === 'the package') await openThePackage(page)
     else if (route.raise === 'the sale') {
       await issueIt(page)
       /* A SCREEN THAT IS NOT THE DOCUMENT STILL WANTS THE SALE MADE.

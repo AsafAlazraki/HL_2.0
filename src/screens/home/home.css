@@ -10,8 +10,7 @@
 
    ONE COMPOSITION IN EVERY STATE. Northside's mark on a sea of live
    water, the date and the greeting under it, the one find beside the
-   one act; the file and today at the sea's foot; then the boats the
-   ledger photographs and the ten doors. A week in, the work joins it as
+   one act; then the boats the ledger photographs and the ten doors. A week in, the work joins it as
    ONE ROW ON THE WATER under the find, each card a card's width and
    never stretched to fill a panel. The mark, the photographs and the
    doors keep their day-one size: the sea gives up air, never its mark.
@@ -25,6 +24,9 @@
        a week in. Eight boats to a row, the seven boat makers one row of seven.
      · 640 TO 1199 — one column that scrolls: the sea, four boats to a
        row, four doors to a row; the work two cards to a row.
+       A row's head is its title with Arrange Home on the same line at
+       the right, and its sentence under both (2026-10-31; it had stood
+       mid-row under the sentence).
      · UNDER 640, IN A HAND — the sea holds the mark large, the date and
        the greeting; the field and the act stand full width under them,
        New quote on the first screen; the work one card to a row; two
@@ -32,11 +34,22 @@
        of this screen and scrolls away with it, never at its foot and
        never over these words (src/screens/shell/shell.css, `data-pill`).
 
-   THE PRICE QUESTIONS (built-critique-m3-2.md, major 5) stand under the
-   file's stamp at the sea's foot while Prices has any: at 1200 and up
-   the sentence runs two lines with the door beside it, and the page
-   still fits the window; under 1200 the door wraps under the sentence;
-   in a hand both are centred with the rest of the foot.
+   THE SEA HAS NO FOOT ON A GOOD DAY (the owner, 2026-10-31: "remove the
+   price list of 16 september on home page and the text below it and the
+   text on the right and remove the answer them on prices"). The file's
+   date, the price questions with their door, and today's line are gone,
+   and with them the foot they stood in: the sea's padding is the same
+   above and below (`--sea-top` read for `--sea-end`), so the mark, the
+   greeting and the ask stand in its middle at every size — on a desk,
+   where the sea takes what the rows leave, the room they took is the
+   sea's air; under 1200, where the sea is its content's height, it is
+   about 50px shorter. The foot is drawn only when the file has something
+   wrong to say (`data-foot` on the root): it could not be read, it is not
+   on this computer (with its door), or it could not be kept — and then
+   it stands at the sea's foot as before, on the left, centred in a hand.
+
+   MEASURED 2026-10-31 on a built app, the foot gone, at all six sizes:
+   docs/directions/polish/after-home-*.png.
 
    NOTHING IS DRAWN OVER ANYTHING ELSE. No word stands on a photograph:
    every caption is beside or under its picture, on paper. The words on
@@ -89,10 +102,17 @@
   isolation: isolate;
   overflow: hidden;
   flex: 1 0 auto;
+  /* THE SEA'S PADDING ABOVE AND BELOW, set per size below; with no foot the end is the top */
+  --sea-top: --spacing(8);
+  --sea-end: --spacing(5);
+
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  /* one row that takes the air, then the work and the foot only where they are drawn: an empty
+     track would keep its gap and lift the centre off the sea's middle */
+  grid-template-rows: minmax(0, 1fr);
+  grid-auto-rows: auto;
   gap: --spacing(5);
-  padding: --spacing(8) var(--sea-pad) --spacing(5);
+  padding: var(--sea-top) var(--sea-pad) var(--sea-end);
   border-radius: var(--radius-plate);
   color: var(--color-white);
   background: var(--grain), var(--band);
@@ -139,6 +159,10 @@
   gap: --spacing(5);
   min-width: 0;
   text-align: center;
+}
+/* A GOOD DAY HAS NO FOOT, so the sea is as deep below its centre as above it */
+.home:not([data-foot]) .home-sea {
+  --sea-end: var(--sea-top);
 }
 .home-sea-foot {
   display: flex;
@@ -218,7 +242,7 @@
   line-height: var(--text-xs--line-height);
 }
 
-/* ---- the file and today, at the sea's foot ------------------ */
+/* ---- the file, at the sea's foot, only when it is wrong ----- */
 .home-sea-file {
   display: grid;
   justify-items: start;
@@ -232,45 +256,11 @@
   font-weight: 600;
   color: var(--color-white);
 }
-.home-stamp-file {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(1.5);
-  vertical-align: bottom;
-}
 .home-stamp-door {
   display: grid;
   justify-items: start;
   gap: --spacing(2);
 }
-/* THE PRICE QUESTIONS, under the file they are about (built-critique-m3-2.md, major 5): the
-   stamp's own size and white, at a reading measure, with the door to Prices beside it on a
-   desk and under it in a hand */
-.home-asks {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: --spacing(2) --spacing(4);
-  max-inline-size: 104ch;
-}
-.home-asks-say {
-  flex: 1 1 52ch;
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 500;
-  color: var(--color-white);
-  text-wrap: pretty;
-}
-.home-today {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 600;
-  color: var(--color-white);
-  text-align: end;
-}
-
 /* =====================================================================
    THE ONE FIND AND THE ONE ACT
    ===================================================================== */
@@ -788,8 +778,10 @@
     padding-block-end: --spacing(5);
   }
   .home-sea {
+    --sea-top: --spacing(5);
+    --sea-end: --spacing(3.5);
+
     gap: --spacing(3);
-    padding: --spacing(5) var(--sea-pad) --spacing(3.5);
   }
   .home-sea-centre {
     gap: --spacing(3.5);
@@ -816,8 +808,10 @@
   }
   .home-sea {
     --mark-size: calc(var(--text-mark) * 0.75);
+    --sea-top: --spacing(2.5);
+    --sea-end: --spacing(2.5);
+
     gap: --spacing(2);
-    padding: --spacing(2.5) var(--sea-pad) --spacing(2.5);
   }
   .home-sea-centre {
     gap: --spacing(2);
@@ -876,8 +870,10 @@
   }
   .home-sea {
     --sea-pad: --spacing(6);
+    --sea-top: --spacing(10);
+    --sea-end: --spacing(5);
+
     flex: 0 0 auto;
-    padding-block: --spacing(10) --spacing(5);
   }
   .home-boat-list {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -891,9 +887,22 @@
   }
   /* A ROW'S SENTENCE ON ITS OWN LINE UNDER ITS HEAD: at 834 "What Northside Marine sells" and
      the motors-and-trailers sentence ran together on one line, 16px apart */
+  /* THE WAY TO ARRANGE HOME STANDS ON ITS HEAD'S LINE, at the right (2026-10-31): in one column
+     it stood under the sentence at that sentence's right end, adrift mid-row (at x 186–294 of
+     834 and 178–286 of 390), aligned with nothing */
   .home-row-head {
     display: grid;
-    gap: --spacing(1);
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: --spacing(1) --spacing(4);
+  }
+  .home-row-say {
+    grid-column: 1 / -1;
+  }
+  .home-arrange {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    margin-inline-start: 0;
   }
 }
 /* A TABLET'S COLUMN (834): four doors to a row, each mark at a door's full width */
@@ -915,7 +924,8 @@
   }
   .home-sea {
     --sea-pad: --spacing(4);
-    padding-block: --spacing(7) --spacing(4);
+    --sea-top: --spacing(7);
+    --sea-end: --spacing(4);
   }
   .home-name {
     font-size: var(--text-6xl);
@@ -936,12 +946,6 @@
   }
   .home-sea-file {
     justify-items: center;
-  }
-  .home-asks {
-    justify-content: center;
-  }
-  .home-today {
-    text-align: center;
   }
   .home-ask {
     flex-direction: column;

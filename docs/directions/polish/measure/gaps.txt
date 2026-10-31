@@ -1,0 +1,90 @@
+844x390 .cfg-mast__bar -> .cfg-shot: 3159px
+844x390 .cfg-mast__bar -> .cfg-find: 20px
+844x390 .cfg-shot -> .cfg-specs: -208px
+844x390 .cfg-specs -> .cfg-tally: -3218px
+844x390 .cfg-find -> .cfg-chapters: 16px
+844x390 .cfg-side -> .cfg-rail: 32px
+844x390 edges: bar 32..812, photo start 32, chapters end 812
+844x390 mast: mark->rule 20px, rule->name 20px, rule 1x40
+844x390 chapter hull: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+844x390 chapter motor: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+844x390 chapter trailer: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+844x390 chapter fit: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+844x390 chapter finale: head 43px, body pad -, body start - end -
+844x390 body gap cfg-shopall -> cfg-table: 8px
+844x390 body gap cfg-table -> cfg-table: 24px
+390x844 .cfg-mast__bar -> .cfg-shot: 16px
+390x844 .cfg-mast__bar -> .cfg-find: 450px
+390x844 .cfg-shot -> .cfg-specs: 28px
+390x844 .cfg-specs -> .cfg-tally: 27px
+390x844 .cfg-find -> .cfg-chapters: 16px
+390x844 .cfg-side -> .cfg-rail: 16px
+390x844 edges: bar 16..374, photo start 16, chapters end 374
+390x844 mast: mark->rule 12px, rule->name 12px, rule 326x1
+390x844 chapter hull: head 83px, body pad 0px 16px 20px 16px, body start 0 end 0
+390x844 chapter motor: head 98px, body pad 0px 16px 20px 16px, body start 0 end 0
+390x844 chapter trailer: head 98px, body pad 0px 16px 20px 16px, body start 0 end 0
+390x844 chapter fit: head 98px, body pad 0px 16px 20px 16px, body start 0 end 0
+390x844 chapter finale: head 43px, body pad -, body start - end -
+390x844 body gap cfg-shopall -> cfg-table: 8px
+390x844 body gap cfg-table -> cfg-table: 24px
+1280x800 .cfg-mast__bar -> .cfg-shot: 20px
+1280x800 .cfg-mast__bar -> .cfg-find: 20px
+1280x800 .cfg-shot -> .cfg-specs: 0px
+1280x800 .cfg-specs -> .cfg-tally: 16px
+1280x800 .cfg-find -> .cfg-chapters: 4px
+1280x800 .cfg-side -> .cfg-rail: 40px
+1280x800 edges: bar 40..1240, photo start 40, chapters end 1240
+1280x800 mast: mark->rule 20px, rule->name 20px, rule 1x40
+1280x800 chapter hull: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1280x800 chapter motor: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1280x800 chapter trailer: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1280x800 chapter fit: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1280x800 chapter finale: head 43px, body pad -, body start - end -
+1280x800 body gap cfg-shopall -> cfg-table: 8px
+1280x800 body gap cfg-table -> cfg-table: 24px
+834x1112 .cfg-mast__bar -> .cfg-shot: 20px
+834x1112 .cfg-mast__bar -> .cfg-find: 343px
+834x1112 .cfg-shot -> .cfg-specs: -266px
+834x1112 .cfg-specs -> .cfg-tally: 541px
+834x1112 .cfg-find -> .cfg-chapters: 16px
+834x1112 .cfg-side -> .cfg-rail: 32px
+834x1112 edges: bar 32..802, photo start 32, chapters end 802
+834x1112 mast: mark->rule 20px, rule->name 20px, rule 1x40
+834x1112 chapter hull: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+834x1112 chapter motor: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+834x1112 chapter trailer: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+834x1112 chapter fit: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+834x1112 chapter finale: head 43px, body pad -, body start - end -
+834x1112 body gap cfg-shopall -> cfg-table: 8px
+834x1112 body gap cfg-table -> cfg-table: 24px
+1920x1080 .cfg-mast__bar -> .cfg-shot: 20px
+1920x1080 .cfg-mast__bar -> .cfg-find: 20px
+1920x1080 .cfg-shot -> .cfg-specs: 0px
+1920x1080 .cfg-specs -> .cfg-tally: 16px
+1920x1080 .cfg-find -> .cfg-chapters: 4px
+1920x1080 .cfg-side -> .cfg-rail: 80px
+1920x1080 edges: bar 80..1840, photo start 80, chapters end 1840
+1920x1080 mast: mark->rule 20px, rule->name 20px, rule 1x40
+1920x1080 chapter hull: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1920x1080 chapter motor: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1920x1080 chapter trailer: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1920x1080 chapter fit: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1920x1080 chapter finale: head 43px, body pad -, body start - end -
+1920x1080 body gap cfg-shopall -> cfg-table: 8px
+1920x1080 body gap cfg-table -> cfg-table: 24px
+1440x900 .cfg-mast__bar -> .cfg-shot: 20px
+1440x900 .cfg-mast__bar -> .cfg-find: 20px
+1440x900 .cfg-shot -> .cfg-specs: 0px
+1440x900 .cfg-specs -> .cfg-tally: 16px
+1440x900 .cfg-find -> .cfg-chapters: 4px
+1440x900 .cfg-side -> .cfg-rail: 56px
+1440x900 edges: bar 56..1384, photo start 56, chapters end 1384
+1440x900 mast: mark->rule 20px, rule->name 20px, rule 1x40
+1440x900 chapter hull: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1440x900 chapter motor: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1440x900 chapter trailer: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1440x900 chapter fit: head 75px, body pad 0px 20px 20px 20px, body start 0 end 0
+1440x900 chapter finale: head 43px, body pad -, body start - end -
+1440x900 body gap cfg-shopall -> cfg-table: 8px
+1440x900 body gap cfg-table -> cfg-table: 24px
