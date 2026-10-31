@@ -1,0 +1,20 @@
+G strip: POWER 150 hp WEIGHT 228 kg SHAFT 20 in ENGINE L4 / 2670cc
+G tiles: F130LA 130 hp · 172 kg · 20″ shaft −$4,435 || F130LA · Tiller 130 hp · 172 kg · 20″ shaft −$3,428 || F130XA 130 hp · 178 kg · 25″ shaft −$4,224 || LF130XA 130 hp · 178 kg · 25″ shaft −$4,022 || F150LC 150 hp · 228 kg · 20″ shaft on the quote || F150XC 150 hp · 228 kg · 25″ shaft +$228 || LF150XC 150 hp · 228 kg · 25″ shaft +$17 || F150LD 150 hp · 228 kg · 20″ shaft no change || F150XD 150 hp · 228 kg · 25″ shaft +$237
+G tally: TOTAL $22,233 PRICED AT Cash See what Trade does Made of: Motor $22,233 Motor $22,233
+G heads: 01 The motor $22,233 || 02 Dealer fit nothing goes with this motor || 03 Add a boat 5 offered Optional || The summary after their name
+G strip tile heights: 67, 67, 67, 67
+G summary 1440: card 143-551 pic 143-748 lines 764-876
+G give refused: oklch(0.928 0.0187 243) on oklch(0.448 0.041 238.7) aria-disabled=true
+G 390 stage img: 295x221 in 358x229
+G 390 s1: the total visible 2 times
+G 390 s2: the total visible 2 times
+G 390 s3: the total visible 2 times
+E draft: card 143-473 pic 143-740 lines 620-876
+E photo: img 143-740 x 727 in fig 143-740; file 1-12-dabc9bb1.webp 894x597; style max-inline-size: 894px; max-block-size: 597px;
+E lines: Stabicraft 1850 Fisher · Adventure The hull $42,100 || Striker Vivid 4cv w GT20-TM Transducer Dealer fit $345 || Garmin NMEA Backbone/Drop Cable · 2mtr Dealer fit $59
+E given: card 143-594 pic 143-740 lines 620-876
+E sentences: Print it or save it as a PDF f: oklch(0.38 0.049 239.9) op 1 | Every price on it is final. A : oklch(0.38 0.049 239.9) op 1
+A draft: card 143-473 pic 143-748 lines 620-876
+A lines: Highfield Sport 560 · PVC · White / White / White/Blue The hull $41,340 || Striker Vivid 4cv w GT20-TM Transducer Dealer fit $345 || Garmin NMEA Backbone/Drop Cable · 2mtr Dealer fit $59
+A given: card 143-594 pic 143-748 lines 620-876
+D given: card 143-473 pic 143-748 lines 473-876 items 6

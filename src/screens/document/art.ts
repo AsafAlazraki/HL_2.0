@@ -92,6 +92,9 @@ export function coverArt(quote: QuoteDef, register: string): CoverArt {
     : { kind: 'word', because: `${missing} ${mark.because}` }
 }
 
+/** A ledger note that counts the outboards in a picture: "two outboards in one picture…". */
+const MANY = /^(two|three|four|five|six) outboards\b/i
+
 const REFUSED_PLAIN = 'The price list’s photograph is of another model, so it is left off.'
 
 /** The engine's words a person's reason may carry (docs/WORDS.md): with any of them the reason
@@ -135,15 +138,27 @@ export function refusedSay(rule: string): string {
  * optional equipment" does. The row's own copy is the exact boat on the
  * quote and needs no line.
  */
-export function pictured(held: HeldPicture): string | null {
+export function pictured(held: HeldPicture, title = '', boat = true): string | null {
   if (held.tier === 'hero' && held.subject !== '') {
     return `Pictured: the ${held.subject}, in its maker’s own finish and rig.`
+  }
+  /* A PICTURE OF MORE THAN ONE OUTBOARD (the printed quote's critic, 2026-10-31, blocker 1): a
+     repower's cover drew Yamaha's white F115 beside a grey one for one grey F115LB, with nothing
+     said. The ledger counts them (`differs`, "two outboards in one picture…"), and the line under
+     the picture says the count and what is quoted. */
+  const count = held.differs.map((d) => MANY.exec(d)?.[1]).find((n): n is string => n !== undefined)
+  if (count !== undefined) {
+    return title === ''
+      ? `Pictured: ${count.toLowerCase()} outboards, as the maker’s own picture shows them. Yours is as quoted below.`
+      : `Pictured: ${count.toLowerCase()} outboards, as the maker’s own picture shows them. Yours is the ${title} quoted below.`
   }
   /* A PERSON SAW SOMETHING IN IT THE QUOTE MAY NOT SAY — the 529's Evinrude, a bimini, a
      trailer under a render — recorded as `differs` in pictures.json. The customer is told
      only that the picture may differ; the dealer's note names what. */
   if (held.differs.length > 0) {
-    return 'Pictured with equipment that may differ from this quote. Your boat is as quoted below.'
+    return boat || title === ''
+      ? 'Pictured with equipment that may differ from this quote. Your boat is as quoted below.'
+      : `Pictured as its maker shows it, which may differ from this quote. Yours is the ${title} quoted below.`
   }
   return null
 }

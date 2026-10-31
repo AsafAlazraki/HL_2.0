@@ -392,14 +392,23 @@ test('your price adds up where the reader can see it', async ({ page }) => {
     .map((said) => said.trim())
     .filter((said) => said.startsWith('$'))
     .map((said) => Number(said.replace(/[$,]/g, '')))
-  /* A QUOTE NOW STARTS WITH THE BOAT ALONE (the owner, 2026-10-30), so a quote given straight
-     from the picker has one section and one row here; this read "more than one" while the
-     file's picks came on with the boat */
-  expect(figures.length).toBeGreaterThan(0)
   const total = Number(
     await page.getByTestId('document-total').locator('data.ui-price').getAttribute('value'),
   )
-  expect(Math.round(figures.reduce((n, x) => n + x, 0))).toBe(Math.round(total))
+  /* A QUOTE NOW STARTS WITH THE BOAT ALONE (the owner, 2026-10-30), so a quote given straight
+     from the picker has one section — and A PRICE OF ONE ROW IS ITS TOTAL (the printed quote's
+     critic, 2026-10-31: a one-item quote printed its figure four times), so "Your price" prints
+     the total alone there. Either way the paper adds up where the reader can see it: the rows
+     sum to the total, or, with none, the lines above do. */
+  const lines = (
+    await page.locator('.doc-page .doc-row:not(.doc-row--cols) .doc-row__fig').allInnerTexts()
+  )
+    .map((said) => said.trim())
+    .filter((said) => said.startsWith('$'))
+    .map((said) => Number(said.replace(/[$,]/g, '')))
+  const summed = figures.length > 0 ? figures : lines
+  expect(summed.length).toBeGreaterThan(0)
+  expect(Math.round(summed.reduce((n, x) => n + x, 0))).toBe(Math.round(total))
 })
 
 test('no terms are typed, so none print, and the dealer is told beside the sheet', async ({
@@ -594,7 +603,9 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   expect(cells).not.toContain('$0')
   await expect(page.locator('.doc-page').filter({ hasText: 'Price agreed' })).toHaveCount(0)
   const price = page.getByRole('region', { name: 'Your price' })
-  await expect(price.locator('.doc-sum', { hasText: 'The hull' }).locator('dd')).toHaveText(figure)
+  /* the boat is the quote's one section, so "Your price" is its total alone (a price of one row
+     is its total, the printed quote's critic, 2026-10-31), and that total is the boat's figure */
+  await expect(price.locator('.doc-sum--total dd')).toHaveText(figure)
   const note = page.getByRole('complementary', { name: 'What is not printed' })
   await expect(note).toContainText(`priced by hand at ${figure}`)
 })
@@ -638,7 +649,9 @@ test.describe('print', () => {
        word of the app anywhere */
     const pages = await pdfPages(file)
     expect(pages.length, 'PDF.js and the page tree disagree on the count').toBe(onFloor)
-    const reference = (await page.locator('.doc-page__foot .doc-mono').first().innerText()).trim()
+    /* the reference is set in the paper's own face, not a third, mono one (the printed quote's
+       critic, 2026-10-31, minor 24) */
+    const reference = (await page.locator('.doc-page__foot .doc-ref').first().innerText()).trim()
     expect(reference).toMatch(/^\d{8}-\d{2}$/)
     /* THE DEALERSHIP ON PAGE 1 is its own mark once one is held (2026-10-20): a picture, so it
        is read off the floor and off the PDF's image objects, and the name in type is the
@@ -922,11 +935,13 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
   await expect(stage).toHaveAttribute('src', new RegExp(escapeRe(stem)))
   const staged = await stage.evaluate((el) => getComputedStyle(el).viewTransitionName)
 
-  /* THE CASCADE'S CARD: the same photograph under the same name, and no word of it missing */
-  await page
-    .getByRole('button', { name: /^See what .* does$/ })
-    .first()
-    .click()
+  /* THE CASCADE'S CARD: the same photograph under the same name, and no word of it missing.
+     Below a desk the build folds its total to one line, and the other prices are under the fold
+     (configurator.css, `.cfg-tally:not([data-unfolded])`), so a person opens it first */
+  const seeWhat = page.getByRole('button', { name: /^See what .* does$/ }).first()
+  if (!(await seeWhat.isVisible()))
+    await page.getByRole('button', { name: 'What the total is made of' }).click()
+  await seeWhat.click()
   const cascade = page.getByTestId('cascade')
   await expect(cascade).toBeVisible()
   const card = page.locator('.csc-plate__img')

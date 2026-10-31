@@ -153,11 +153,23 @@ export interface QuoteAdjustment {
  *  written nowhere, so both gates that depend on it never fire. */
 export type QuoteState = 'draft' | 'issued'
 
-/** An optional section of the printed quote (quote-spec §7a): the boat's full specification, and
- *  the pictures beside its lines. The cover, the lines, the price and the last page are always in. */
-export type PaperSection = 'specs' | 'pictures'
+/** An optional section of the printed quote (quote-spec §7a; the owner, 2026-10-30: "ability to
+ *  add/remove sections"): the full specification of what is sold, the pictures beside its lines,
+ *  the motor's and the trailer's own facts under their lines, Northside's terms, its deposit
+ *  wording and its details (address, phone, email, ABN). The cover, every charged line, the price
+ *  and the signatures are always in: an item the customer pays for is never left off the paper. */
+export type PaperSection =
+  'specs' | 'pictures' | 'motor' | 'trailer' | 'terms' | 'deposit' | 'details'
 
-export const PAPER_SECTIONS: readonly PaperSection[] = ['specs', 'pictures']
+export const PAPER_SECTIONS: readonly PaperSection[] = [
+  'specs',
+  'pictures',
+  'motor',
+  'trailer',
+  'terms',
+  'deposit',
+  'details',
+]
 
 export interface QuoteSection {
   blockId: string

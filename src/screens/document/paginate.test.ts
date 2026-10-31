@@ -106,3 +106,24 @@ describe('a browser that has laid nothing out', () => {
     }
   })
 })
+
+describe('a band that runs over a page break (the printed quote’s critic, 2026-10-31)', () => {
+  it('starts the next page as full as the head it repeats there', () => {
+    const atoms: Atom[] = [
+      { id: 'head', height: 40, keepWithNext: 1 },
+      { id: 'a', height: 50, carry: 30 },
+      { id: 'b', height: 50, carry: 30 },
+      { id: 'c', height: 50, carry: 30 },
+    ]
+    /* 40 + 50 + 50 = 140 fits a room of 150; c opens page 2 under its 30 px continued head */
+    expect(paginate(atoms, 150)).toEqual([['head', 'a', 'b'], ['c']])
+    /* page 2 holds c and d under the head (30 + 50 + 50 = 130); in a room of 120 the carry
+       leaves room for one line a page (30 + 50 + 50 > 120) */
+    const more: Atom[] = [...atoms, { id: 'd', height: 50, carry: 30 }]
+    expect(paginate(more, 150)).toEqual([
+      ['head', 'a', 'b'],
+      ['c', 'd'],
+    ])
+    expect(paginate(more, 120)).toEqual([['head', 'a'], ['b'], ['c'], ['d']])
+  })
+})

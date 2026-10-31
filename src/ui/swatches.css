@@ -47,6 +47,35 @@
   outline: 0;
 }
 
+/* THE CHIPS: the parts as round paint chips laid one over the next, each shaded as if lit from its
+   upper left, for the printed quote's cover (the printed quote's critic, 2026-10-31: three White
+   squares on the sheet read as empty checkboxes). A white chip is a white dot, never a hollow ring. */
+.ui-swatches[data-shape='chips'] {
+  gap: 0;
+}
+.ui-swatches[data-shape='chips'] .ui-swatch {
+  position: relative;
+  inline-size: --spacing(4);
+  block-size: --spacing(4);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 --spacing(0.5) var(--color-white);
+}
+.ui-swatches[data-shape='chips'] .ui-swatch + .ui-swatch {
+  margin-inline-start: calc(-1 * --spacing(1.5));
+}
+.ui-swatches[data-shape='chips'] .ui-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at 32% 28%,
+    transparent 30%,
+    color-mix(in oklch, var(--color-neutral-900) 22%, transparent) 100%
+  );
+  print-color-adjust: exact;
+}
+
 .ui-swatch-fill {
   flex: 1 1 0;
   /* a swatch on the customer's paper is the colour, so the printer keeps it */

@@ -370,6 +370,11 @@ export interface Chapter {
   /** A CHAPTER NOTHING ON THE QUOTE WAITS FOR (a boat, on a quote for a motor sold on its own):
    *  the sentence that says so over its list. Absent on every chapter the build expects. */
   optional?: string
+  /** NOTHING ON IT AND NOTHING THE PRICE LIST OFFERS FOR WHAT THE QUOTE IS FOR: its head says so
+   *  ("nothing goes with this motor"), so nothing waits for it — not the tally's "Not chosen yet"
+   *  and not the head's "Nothing on it yet" (the paper-quote critique, 2026-10-31: a motor's
+   *  dealer fit said both, against each other). Absent on every chapter with something to choose. */
+  bare?: true
   /** what it holds, for its ink and its glyph: the hull is the boat, the subject is its own kind */
   goods: TableKind
   /** THE BOAT ITSELF, CHOSEN HERE (the owner, 2026-10-30): its model, version, material and
@@ -537,7 +542,8 @@ export function bareSay(title: string, sells: Pick<Sells, 'boat' | 'noun'>): str
 
 /** THE PARTS OF THE BUILD THE TOTAL WAITS FOR: every chapter of the price file but one nothing
  *  on the quote waits for (a boat on a motor's own quote, `Chapter.optional`) while nothing is
- *  on it — "Not chosen yet: hull" stood under a repower (2026-10-31). Each by its chapter's name
+ *  on it — "Not chosen yet: hull" stood under a repower (2026-10-31) — and one the price list
+ *  offers nothing for (`Chapter.bare`). Each by its chapter's name
  *  and in the ink of what it holds (`Chapter.goods`). */
 export function tallyParts(chapters: readonly Chapter[]): {
   id: string
@@ -549,6 +555,7 @@ export function tallyParts(chapters: readonly Chapter[]): {
   return chapters
     .filter((chapter) => chapter.kind === 'band')
     .filter((chapter) => chapter.optional === undefined || chapter.lines > 0)
+    .filter((chapter) => chapter.bare === undefined)
     .map((chapter) => ({
       id: chapter.id,
       name: chapter.name,
@@ -1053,6 +1060,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
         band.id === 'hull' ? 'boat' : holdsSubject ? sells.kind : (tables[0]?.kind ?? band.kind),
     }
     if (finishes) chapter.finishes = finishes
+    if (answer.bare && chapter.lines === 0) chapter.bare = true
     if (holdsSubject) {
       chapter.subject = true
       chapter.name = headingOf(sells)
@@ -1506,7 +1514,7 @@ function answerOf(
   quote: QuoteDef,
   tables: readonly ChapterTable[],
   sells: Pick<Sells, 'boat' | 'noun'> = { boat: true, noun: 'boat' },
-): { said: string; rest: string; picture: OptionRow['picture'] } {
+): { said: string; rest: string; picture: OptionRow['picture']; bare?: true } {
   const drawn = new Map<string, OptionRow>()
   for (const table of tables) {
     for (const row of [...table.rows, ...table.also]) {
@@ -1581,7 +1589,9 @@ function answerOf(
             : sells.boat
               ? 'nothing made for this boat yet'
               : `nothing goes with this ${sells.noun}`
-  return { said: '', rest, picture: null }
+  /* NOTHING ON IT AND NOTHING THE PRICE LIST OFFERS FOR IT: a list with nothing to wait for */
+  const bare = offered === 0 && ruledOut === 0 && held === 0 && unknown === 0
+  return bare ? { said: '', rest, picture: null, bare: true } : { said: '', rest, picture: null }
 }
 
 /** Every typed word somewhere in a finish's own label — the same

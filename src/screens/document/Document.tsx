@@ -8,18 +8,35 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { ArrowLeftIcon, FilePdfIcon, FileXIcon, PrinterIcon } from '@phosphor-icons/react'
-import { Button, Icon, Plate, PriceFigure, StatusDot, Swatches, Toggle, type Glyph } from '@/ui'
+import {
+  ArrowLeftIcon,
+  FilePdfIcon,
+  FileXIcon,
+  GearSixIcon,
+  PrinterIcon,
+} from '@phosphor-icons/react'
+import {
+  Button,
+  Icon,
+  Plate,
+  PriceFigure,
+  Refusal,
+  StatusDot,
+  Swatches,
+  Toggle,
+  type Glyph,
+} from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { letterheadNow, preparerNow } from '@/app/northside'
 import { contactLine } from '@/domain/northside/letterhead'
-import type { FrozenLetterhead, OrgProfile, PaperSection } from '@/domain/model'
+import type { FrozenLetterhead, OrgProfile, PaperSection, TableKind } from '@/domain/model'
 import { money } from '@/domain/money'
 import { setPaperSection, signedMoney } from '@/domain/quote'
 import { localDay } from '@/domain/quote/day'
 import {
   INCLUDED,
   readDocument,
+  unreachableSay,
   type DocumentLine,
   type DocumentTable,
   type PrintedQuote,
@@ -54,6 +71,8 @@ import {
   rowFigure,
   totalLabel,
   unitlessOf,
+  unsaidOf,
+  subjectNoun,
   workshopOf,
 } from './paper'
 import './document.css'
@@ -346,8 +365,11 @@ function Missing({
 
 /** One thing a reader reads as one, and the unit a page break may
  *  fall between but never through. */
-interface Block extends Omit<Atom, 'height'> {
+interface Block extends Omit<Atom, 'height' | 'carry'> {
   node: ReactNode
+  /** THE HEAD THIS ATOM IS PRINTED UNDER WHERE IT OPENS A PAGE: the block whose height it carries
+   *  (its band's head), and the "continued" head drawn over it there */
+  under?: { head: string; node: ReactNode }
 }
 
 function Sheaf({
@@ -445,9 +467,11 @@ function Sheaf({
     if (!element || !box) return
     element.dataset.gauging = ''
     const room = box.clientHeight
-    const atoms: Atom[] = blocks.map((block) => ({
+    const atoms: Atom[] = blocks.map(({ under, ...block }) => ({
       ...block,
       height: held.current.get(block.id)?.offsetHeight ?? 0,
+      /* a continued head stands the height of the head it repeats */
+      ...(under ? { carry: held.current.get(under.head)?.offsetHeight ?? 0 } : {}),
     }))
     /* the cover picture's box on paper, which is the whole picture: it
        is fitted and never cropped (`.doc-shot__img`) */
@@ -580,12 +604,19 @@ function Sheaf({
                       <span />
                     )}
                     <span>
-                      Quotation · <span className="doc-mono doc-ref">{doc.reference}</span>
+                      Quotation · <span className="doc-ref">{doc.reference}</span>
                     </span>
                   </>
                 )}
               </header>
               <div className="doc-page__flow">
+                {/* A BAND THAT RUNS OVER A PAGE BREAK SAYS SO AT THE TOP OF THE NEXT SHEET, so the
+                    line that opens it belongs to something on its own page */}
+                {i > 0 && byId.get(ids[0] ?? '')?.under ? (
+                  <div className="doc-atom" data-atom="cont">
+                    {byId.get(ids[0] ?? '')?.under?.node}
+                  </div>
+                ) : null}
                 {ids.map((id) => {
                   const block = byId.get(id)
                   if (!block) return null
@@ -602,7 +633,7 @@ function Sheaf({
                 })}
               </div>
               <footer className="doc-page__foot">
-                <span className="doc-mono doc-ref">{doc.reference}</span>
+                <span className="doc-ref">{doc.reference}</span>
                 <span>
                   Page {i + 1}
                   {settled ? ` of ${sheets.length}` : ''}
@@ -746,9 +777,9 @@ function Chrome({
 /* What goes on the paper                                      */
 /* ---------------------------------------------------------- */
 
-/** Said where the salesperson chooses, of the parts that are never optional. */
+/** Said where the salesperson chooses, of the parts that are never optional, and why. */
 export const ALWAYS_IN =
-  'The cover, your quote, your price and the acceptance page are always printed.'
+  'The cover, every item the customer pays for, the price and the signatures are always printed: nothing charged is ever left off the printed quote.'
 
 /** Said on a given quote's choice: it is the quote's, as it was given. */
 export const CHOSEN_AT_THE_GIVE =
@@ -770,6 +801,136 @@ export const NO_SPECS =
 export const NO_LINE_PICTURES =
   'No item on this quote has a picture marked as that exact item, so there is none to print beside it.'
 
+/** Why Northside's terms cannot be printed. */
+export const NO_TERMS_SET = 'No terms are written on Settings yet.'
+
+/** Why no deposit wording can be printed. */
+export const NO_DEPOSIT_SET = 'No deposit wording is written on Settings yet.'
+
+/** Why Northside's details cannot be printed. */
+export const NO_DETAILS_SET = 'No address, phone, email or ABN is set on Settings yet.'
+
+/** One section the salesperson may print or leave off, or the sentence why it cannot print. */
+export interface PaperChoice {
+  /** the section it switches; null for one this quote can never print (it is refused) */
+  section: PaperSection | null
+  label: string
+  /** what it holds, where a count says it: "8 facts", "3" */
+  holds: string
+  on: boolean
+  refused?: string
+}
+
+/** "8 facts", "1 picture", or '' for none. */
+const count = (n: number, one: string, many: string): string =>
+  n === 0 ? '' : `${n.toLocaleString('en-AU')} ${n === 1 ? one : many}`
+
+/** A switch's words: the section, and what it holds where a count says it. */
+const choiceSaid = (choice: PaperChoice): string =>
+  choice.holds === '' ? choice.label : `${choice.label} · ${choice.holds}`
+
+/** Northside's details the paper would print, where any is set. */
+const hasDetails = (lh: FrozenLetterhead | null): boolean =>
+  lh !== null &&
+  [lh.legalName, lh.abn, lh.address, lh.phone, lh.email, lh.website].some(
+    (v) => v !== undefined && v.trim() !== '',
+  )
+
+/** The lines on the paper of one kind that carry their own facts. */
+const withFacts = (doc: PrintedQuote, kinds: readonly TableKind[]): number =>
+  bandsOnPaper(doc)
+    .flatMap((band) => band.tables.filter((t) => !t.subject && kinds.includes(t.kind)))
+    .flatMap((table) => table.lines)
+    .filter((line) => line.own.length > 0).length
+
+/**
+ * EVERY SECTION THE PANEL OFFERS, in the order the paper prints them: the specification, the
+ * pictures beside the items, the motor's and the trailer's own facts (only where the quote carries
+ * such a line), Northside's terms, its deposit wording and its details — and the two it cannot
+ * print, each with its reason. A section with nothing to print is refused where it is, with why.
+ */
+export function choicesOf(doc: PrintedQuote): PaperChoice[] {
+  const facts = doc.subject.sheet.reduce((n, g) => n + g.rows.length, 0)
+  const withPictures = bandsOnPaper(doc)
+    .flatMap((band) => band.tables.filter((table) => !table.subject))
+    .flatMap((table) => table.lines)
+    .filter((line) => heldFor(line) !== null).length
+  const motors = withFacts(doc, ['motor', 'package'])
+  const trailers = withFacts(doc, ['trailer'])
+  const out: PaperChoice[] = [
+    {
+      section: 'specs',
+      label: 'Specifications',
+      holds:
+        facts === 0
+          ? ''
+          : `${count(facts, 'fact', 'facts')}${facts <= COVER_FACTS ? ', on the cover' : ''}`,
+      on: doc.chosen.specs && facts > 0,
+      ...(facts === 0 ? { refused: NO_SPECS } : {}),
+    },
+    {
+      section: 'pictures',
+      label: 'Pictures beside the items',
+      holds: count(withPictures, 'picture', 'pictures'),
+      on: doc.chosen.pictures && withPictures > 0,
+      ...(withPictures === 0 ? { refused: NO_LINE_PICTURES } : {}),
+    },
+  ]
+  if (motors > 0)
+    out.push({
+      section: 'motor',
+      label: 'The motor’s specification',
+      holds: motors > 1 ? count(motors, 'motor', 'motors') : '',
+      on: doc.chosen.motor,
+    })
+  if (trailers > 0)
+    out.push({
+      section: 'trailer',
+      label: 'The trailer’s specification',
+      holds: trailers > 1 ? count(trailers, 'trailer', 'trailers') : '',
+      on: doc.chosen.trailer,
+    })
+  out.push(
+    {
+      section: 'terms',
+      label: 'Northside’s terms',
+      holds: '',
+      on: doc.chosen.terms && doc.terms !== null,
+      ...(doc.terms === null ? { refused: NO_TERMS_SET } : {}),
+    },
+    {
+      section: 'deposit',
+      label: 'The deposit wording',
+      holds: '',
+      on: doc.chosen.deposit && Boolean(doc.letterhead?.deposit),
+      ...(doc.letterhead?.deposit ? {} : { refused: NO_DEPOSIT_SET }),
+    },
+    {
+      section: 'details',
+      label: 'Northside’s details',
+      holds: '',
+      on: doc.chosen.details && hasDetails(doc.letterhead),
+      ...(hasDetails(doc.letterhead) ? {} : { refused: NO_DETAILS_SET }),
+    },
+  )
+  if (doc.subject.kind === 'boat' || doc.subject.kind === null)
+    out.push({
+      section: null,
+      label: 'What comes with your boat',
+      holds: '',
+      on: false,
+      refused: NO_INCLUSIONS,
+    })
+  out.push({
+    section: null,
+    label: 'Pages in Northside’s words',
+    holds: '',
+    on: false,
+    refused: NO_WRITTEN_PAGES,
+  })
+  return out
+}
+
 /**
  * THE SECTION PICKER (quote-spec §7a; the owner, 2026-10-30: "ability to add/remove sections that
  * appear there"). Porsche's "Select PDF content", beside the paper rather than in a dialogue, so
@@ -778,10 +939,11 @@ export const NO_LINE_PICTURES =
  * away with the rest of the room.
  *
  * EACH SWITCH SAYS WHAT IT HOLDS, AND ONE THAT CANNOT BE PRESSED SAYS WHY, where it is (CLAUDE.md:
- * "a refusal is a sentence with its reason, where it is refused"): a boat the file holds no
- * specification for, a quote with no pictured item, the inclusions list Northside's file does not
- * carry, the written pages nobody has written — and, on a given quote, the choice it was given
- * with, which no switch can change.
+ * "a refusal is a sentence with its reason, where it is refused"): a specification the file does
+ * not hold, a quote with no pictured item, terms, deposit wording or details nobody set, the
+ * inclusions list Northside's file does not carry, the written pages nobody has written — and, on
+ * a given quote, the choice it was given with, which no switch can change. What is never optional
+ * is said once, with why: an item the customer pays for is never left off the paper.
  */
 function SectionsPanel({
   doc,
@@ -792,13 +954,8 @@ function SectionsPanel({
   apply: (quoteId: string, command: ReturnType<typeof setPaperSection>) => unknown
   quoteId: string
 }) {
-  /* the items that would carry a picture: every line but the subject's, which is the cover's */
-  const withPicture = bandsOnPaper(doc)
-    .flatMap((band) => band.tables.filter((table) => !table.subject))
-    .flatMap((table) => table.lines)
-    .filter((line) => heldFor(line) !== null).length
-  const facts = doc.subject.sheet.reduce((n, g) => n + g.rows.length, 0)
-  const boat = doc.subject.kind === 'boat' || doc.subject.kind === null
+  const choices = choicesOf(doc)
+  const unreachable = unreachableSay(doc.letterhead, doc.preparer, doc.chosen.details)
   const set = (section: PaperSection) => (on: boolean) => {
     apply(quoteId, setPaperSection(section, on))
   }
@@ -808,54 +965,48 @@ function SectionsPanel({
         <div className="doc-pick__in">
           <p className="doc-desk__lab">On the printed quote</p>
           <p className="doc-desk__say">{ALWAYS_IN}</p>
+          {/* NOTHING ON THIS PAPER REACHES NORTHSIDE, said where the paper is chosen and given
+              (quote-spec §0, rule 5), with the way to put it right on a draft; the customer's
+              copy says nothing of it */}
+          {unreachable === '' ? null : (
+            <div className="doc-pick__reach" data-testid="document-unreachable">
+              <Refusal on="room">{unreachable}</Refusal>
+              {doc.issued ? null : (
+                <Button intent="veiled" size="sm" href="/manage" icon={GearSixIcon}>
+                  Open Settings
+                </Button>
+              )}
+            </div>
+          )}
           {doc.issued ? (
             /* A GIVEN QUOTE'S CHOICE IS ITS OWN: said, not offered as switches that cannot move */
             <>
               <ul className="doc-pick__list doc-pick__list--given">
-                <li data-on={doc.chosen.specs && facts > 0 ? '' : undefined}>
-                  Specifications: {doc.chosen.specs && facts > 0 ? 'printed' : 'left off'}
-                </li>
-                <li data-on={doc.chosen.pictures && withPicture > 0 ? '' : undefined}>
-                  Pictures beside the items:{' '}
-                  {withPicture === 0 ? 'none held' : doc.chosen.pictures ? 'printed' : 'left off'}
-                </li>
+                {choices
+                  .filter((choice) => choice.section !== null)
+                  .map((choice) => (
+                    <li key={choice.label} data-on={choice.on ? '' : undefined}>
+                      {choice.label}:{' '}
+                      {choice.refused ? 'none to print' : choice.on ? 'printed' : 'left off'}
+                    </li>
+                  ))}
               </ul>
               <p className="doc-desk__say">{CHOSEN_AT_THE_GIVE}</p>
             </>
           ) : (
             <ul className="doc-pick__list">
-              <li>
-                <Toggle
-                  label={`Specifications${facts > 0 ? ` · ${facts.toLocaleString('en-AU')} facts` : ''}`}
-                  checked={doc.chosen.specs && facts > 0}
-                  onCheckedChange={set('specs')}
-                  refusedBecause={facts === 0 ? NO_SPECS : undefined}
-                />
-              </li>
-              <li>
-                <Toggle
-                  label={`Pictures beside the items${withPicture > 0 ? ` · ${withPicture.toLocaleString('en-AU')}` : ''}`}
-                  checked={doc.chosen.pictures && withPicture > 0}
-                  onCheckedChange={set('pictures')}
-                  refusedBecause={withPicture === 0 ? NO_LINE_PICTURES : undefined}
-                />
-              </li>
-              {boat ? (
-                <li>
+              {choices.map((choice) => (
+                <li key={choice.label}>
                   <Toggle
-                    label="What comes with your boat"
-                    checked={false}
-                    refusedBecause={NO_INCLUSIONS}
+                    label={choiceSaid(choice)}
+                    checked={choice.on}
+                    {...(choice.section !== null && !choice.refused
+                      ? { onCheckedChange: set(choice.section) }
+                      : {})}
+                    refusedBecause={choice.refused}
                   />
                 </li>
-              ) : null}
-              <li>
-                <Toggle
-                  label="Pages in Northside’s words"
-                  checked={false}
-                  refusedBecause={NO_WRITTEN_PAGES}
-                />
-              </li>
+              ))}
             </ul>
           )}
         </div>
@@ -913,6 +1064,8 @@ function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
   const codes = codesOf(doc)
 
   const unitless = unitlessOf(doc)
+  const unsaid = unsaidOf(doc)
+  const noun = subjectNoun(doc)
   /* WHAT THE PICTURE SHOWS AND WHOSE IT IS, and not how it is drawn (the refine critique, 18;
      docs/WORDS.md rule 1): it led with "1,917 × 845 pixels, printed whole at 658 × 290, never
      enlarged", the screen's measurement of its own drawing, told to a dealer. */
@@ -943,19 +1096,22 @@ function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
                 line blank.
               </DeskRow>
             ) : null}
-            {leftOff.length + unitless.length > 0 ? (
+            {leftOff.length + unitless.length + unsaid.length > 0 ? (
               <DeskRow word="Left off the printed quote" glyph={DESK_GLYPH.leftOff}>
                 <DeskItems
                   items={[
-                    ...leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`)),
+                    ...leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o, noun)}`)),
                     ...unitless.map(asLine),
+                    ...unsaid.map(asLine),
                   ]}
                 />
               </DeskRow>
             ) : null}
             {alsoOffered.length > 0 ? (
               <DeskRow word="Also offered, not taken" glyph={DESK_GLYPH.alsoOffered}>
-                <DeskItems items={alsoOffered.map((o) => asLine(`${o.title}: ${offeredSay(o)}`))} />
+                <DeskItems
+                  items={alsoOffered.map((o) => asLine(`${o.title}: ${offeredSay(o, noun)}`))}
+                />
               </DeskRow>
             ) : null}
             {reasons.length > 0 ? (
@@ -1089,18 +1245,23 @@ function DeskItems({ items }: { items: readonly string[] }) {
  */
 function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number | null): Block[] {
   const out: Block[] = []
+  /* A SHORT SPECIFICATION IS THE COVER'S (the printed quote's critic, 2026-10-31: a repower's
+     Specifications page repeated the cover's four facts and added four, on a sheet of its own).
+     Where every fact fits the cover's strip, the strip carries them all and no page repeats them;
+     a longer one has its own page after the cover, and the strip sets its four key facts. */
+  const onCover = coverCarriesSpecs(doc)
   out.push({
     id: 'cover',
     breakBefore: true,
-    node: <Cover doc={doc} art={art} travel={travel} fit={fit} />,
+    node: <Cover doc={doc} art={art} travel={travel} fit={fit} facts={coverFacts(doc)} />,
   })
 
-  /* THE SPECIFICATION, WHERE IT IS CHOSEN AND THE FILE HOLDS ONE (quote-spec §5 and §7a; the
-     owner, 2026-10-30: "full spec of the quote and the boat"). Every fact the price list carries
-     for what is sold, grouped as a brochure groups it — the boat's measures, or a repower's
-     motor's own facts. It opens the pages after the cover, so the customer reads what the thing
-     is before what it costs. */
-  if (doc.chosen.specs && doc.subject.sheet.length > 0) {
+  /* THE SPECIFICATION, WHERE IT IS CHOSEN AND THE FILE HOLDS MORE THAN THE COVER CAN SET (quote-spec
+     §5 and §7a; the owner, 2026-10-30: "full spec of the quote and the boat"). Every fact the price
+     list carries for what is sold, grouped as a brochure groups it. It opens the pages after the
+     cover, so the customer reads what the thing is before what it costs. */
+  const specPage = doc.chosen.specs && !onCover && doc.subject.sheet.length > 0
+  if (specPage) {
     out.push({
       id: 'specs',
       breakBefore: true,
@@ -1112,35 +1273,48 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
      register that put nothing on the quote is off the paper, and a band left with no register is
      off it whole (`bandsOnPaper`); what was offered and not taken is the dealer's, on the note. */
   const bands = bandsOnPaper(doc)
+  /* A NUMBER ONLY WHERE THERE IS A SECOND: "01" over a quote's only band numbers nothing */
+  const numbered = bands.length + (doc.typed.length > 0 ? 1 : 0) > 1
   out.push({
     id: 'quote-head',
     keepWithNext: 1,
+    ...(specPage ? {} : { breakBefore: true }),
     node: <PartHead word="Your quote" sub={quoteSub(doc)} />,
   })
   for (const band of bands) {
     const { section } = band
     const from = out.length
+    const num = numbered ? band.num : ''
     /* ONE QUANTITY DECISION PER BAND, so the figures in a band stand in
        one column whichever register they came from. */
     const qty = hasQuantity(band.tables.flatMap((t) => t.lines))
-    out.push({
-      id: `sec:${section.id}`,
-      node: <SectionHead num={band.num} name={section.name} />,
-    })
+    const head = `sec:${section.id}`
+    const under = {
+      head,
+      node: <SectionHead num={num} name={section.name} continued />,
+    }
+    out.push({ id: head, node: <SectionHead num={num} name={section.name} /> })
     if (qty) out.push({ id: `cols:${section.id}`, keepWithNext: 1, node: <Columns /> })
     for (const table of band.tables) {
       if (band.named) {
-        out.push({ id: `tab:${table.id}`, keepWithNext: 1, node: <TableHead table={table} /> })
+        out.push({
+          id: `tab:${table.id}`,
+          keepWithNext: 1,
+          under,
+          node: <TableHead table={table} />,
+        })
       }
       for (const line of table.lines) {
         out.push({
           id: `line:${line.id}`,
+          under,
           node: (
             <Line
               line={line}
               qty={qty}
-              /* the subject's own facts are the specification page's and the cover's */
-              facts={!table.subject}
+              /* the subject's own facts are the specification's and the cover's; a motor's and a
+                 trailer's print where their sections are chosen */
+              facts={!table.subject && factsChosen(doc, table.kind)}
               pictures={doc.chosen.pictures && !table.subject}
             />
           ),
@@ -1157,15 +1331,18 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
 
   if (doc.typed.length > 0) {
     const qty = hasQuantity(doc.typed)
+    const num = numbered ? String(bands.length + 1).padStart(2, '0') : ''
+    const under = { head: 'typed', node: <SectionHead num={num} name={OTHER_ITEMS} continued /> }
     out.push({
       id: 'typed',
       keepWithNext: Math.min(2, doc.typed.length + 1),
-      node: <SectionHead num={String(bands.length + 1).padStart(2, '0')} name={OTHER_ITEMS} />,
+      node: <SectionHead num={num} name={OTHER_ITEMS} />,
     })
     if (qty) out.push({ id: 'typed-cols', keepWithNext: 1, node: <Columns /> })
     for (const line of doc.typed) {
       out.push({
         id: `line:${line.id}`,
+        under,
         node: <Line line={line} qty={qty} facts={false} pictures={false} />,
       })
     }
@@ -1196,10 +1373,12 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
   /* YOUR PRICE STANDS WITH WHAT IS SIGNED FOR: it keeps the next part on its page, so the
      last page is the figure and the signatures under it, never a signature page on its own */
   out.push({ id: 'price', keepWithNext: 1, node: <YourPrice doc={doc} /> })
-  /* THE TERMS PRINT ONLY WHERE THE DEALERSHIP WROTE THEM. A section
-     whose whole content was a sentence saying it had none was the app
-     explaining itself to the buyer; the dealer is told on the note. */
-  if (doc.terms !== null) out.push({ id: 'terms', node: <Terms terms={doc.terms} /> })
+  /* THE TERMS PRINT ONLY WHERE THE DEALERSHIP WROTE THEM AND THEY ARE KEPT ON. A section whose
+     whole content was a sentence saying it had none was the app explaining itself to the buyer;
+     the dealer is told on the note. */
+  if (doc.terms !== null && doc.chosen.terms) {
+    out.push({ id: 'terms', node: <Terms terms={doc.terms} /> })
+  }
   /* the one fact from the old record block a buyer needs: that this
      paper replaces one they may already hold */
   if (doc.supersedesId !== null) {
@@ -1212,6 +1391,31 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
      signature blocks, kept together as one atom so the blocks never part across a page */
   out.push({ id: 'accept', node: <Acceptance doc={doc} /> })
   return out
+}
+
+/** The most facts the cover's strip sets: two rows of four. */
+export const COVER_FACTS = 8
+
+/** Every fact of what is sold, in the sheet's order. */
+const allFacts = (doc: PrintedQuote): ReadonlyArray<{ label: string; value: string }> =>
+  doc.subject.sheet.flatMap((group) => group.rows)
+
+/** True where the whole specification is chosen and fits the cover's strip, so no page repeats it. */
+export function coverCarriesSpecs(doc: PrintedQuote): boolean {
+  const n = allFacts(doc).length
+  return doc.chosen.specs && n > 0 && n <= COVER_FACTS
+}
+
+/** The facts the cover's strip sets: all of them where they fit and are chosen, else its key four. */
+export function coverFacts(doc: PrintedQuote): ReadonlyArray<{ label: string; value: string }> {
+  return coverCarriesSpecs(doc) ? allFacts(doc) : doc.subject.key
+}
+
+/** Whether an item's own facts print under its line: a motor's and a trailer's where chosen. */
+export function factsChosen(doc: PrintedQuote, kind: TableKind): boolean {
+  if (kind === 'motor' || kind === 'package') return doc.chosen.motor
+  if (kind === 'trailer') return doc.chosen.trailer
+  return true
 }
 
 /** What "Your quote" is a quote for, said under its head: the item and who it is for. */
@@ -1251,21 +1455,27 @@ function Cover({
   art,
   travel,
   fit,
+  facts,
 }: {
   doc: PrintedQuote
   art: CoverArt
   travel: string
   /** the picture's height in px where the cover would not fit its page at `--shot-max` */
   fit: number | null
+  /** the facts the strip sets: all of them where they fit, else the four key ones */
+  facts: ReadonlyArray<{ label: string; value: string }>
 }) {
   const register = registerOf(doc)
   const total = doc.totals.total
-  const over = eyebrowOf(doc, register)
+  const over = eyebrowOf(doc)
   const includes = includesSay(doc)
   const gst = gstSay(doc)
+  const boat = doc.subject.kind === 'boat' || doc.subject.kind === null
+  const caption = art.kind === 'photograph' ? pictured(art.held, doc.subject.title, boat) : null
+  const by = doc.preparedBy ? (doc.preparer?.name ?? doc.preparedBy) : null
 
   return (
-    <div className="doc-cover">
+    <div className="doc-cover" data-kind={doc.subject.kind ?? 'boat'}>
       <Letterhead
         business={doc.business}
         letterhead={doc.letterhead}
@@ -1274,87 +1484,91 @@ function Cover({
         when={
           doc.issued ? (doc.issuedAt ? `Issued ${day(doc.issuedAt)}` : 'Issued') : 'Not issued yet'
         }
+        details={doc.chosen.details}
       />
 
-      {/* THE PICTURE OF WHAT IS SOLD, AS LARGE AS ITS OWN PIXELS ALLOW (the owner, 2026-10-30: "a
-          cover page … using boats photo"). The held size, the measure and `--shot-max` are three
-          ceilings and the picture is drawn at the smallest, whole — never wider in CSS px than
-          the pixels held, never cut (2026-09-25), and never a bleed: no held picture is 3,508 px
-          tall, so a full A4 page would be an enlargement (art.ts). It is the cover's subject
-          now: the band it stands in is the page's widest thing and its tallest. The held size
-          rides on the element as numbers, so the box is the picture's before a byte has loaded
-          and the page's height does not move when it lands. */}
+      {/* THE PICTURE OF WHAT IS SOLD, ON ONE PLATE ACROSS THE WHOLE MEASURE (the owner, 2026-10-30:
+          "a cover page … using boats photo"; the printed quote's critic, 2026-10-31: three frame
+          treatments, and edges that missed the 68–726 the title and rules stand on). Every cover
+          draws the same plate: the measure's full width, a pale studio ground, the picture on it
+          as large as its own pixels and `--shot-max` allow — whole, never cut, never enlarged,
+          never a bleed (no held picture is 3,508 px tall, art.ts). A photograph on the water fills
+          the plate's width; a cut-out on white sits on the ground as if photographed on it. The
+          held size rides on the element as numbers, so the box is the picture's before a byte has
+          loaded and the page's height does not move when it lands. */}
       <figure
         className="doc-shot"
         data-art={art.kind}
         data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
       >
-        {art.kind === 'photograph' ? (
-          <img
-            className="doc-shot__img"
-            src={art.held.src}
-            alt={
-              doc.subject.finish === ''
-                ? doc.subject.title
-                : `${doc.subject.title}, ${doc.subject.finish}`
-            }
-            width={art.held.width}
-            height={art.held.height}
-            style={
-              {
-                '--held-w': art.held.width,
-                '--held-h': art.held.height,
-                /* THE BUILD'S PHOTOGRAPH LANDS HERE (the component kit, 2026-09-28): the
-                   build's stage names this row's picture the same way, so the route's View
-                   Transition carries it from the finale onto the cover. A name is a thing of
-                   the screen and never of the paper: print draws no transition. */
-                '--doc-travel': travel,
-                ...(fit === null ? {} : { '--shot-fit': `${fit}px` }),
-              } as CSSProperties
-            }
-            decoding="async"
-            fetchPriority="high"
-          />
-        ) : art.kind === 'mark' ? (
-          <img
-            className="doc-shot__mark"
-            src={art.mark.src}
-            alt={art.mark.brand}
-            width={art.mark.width}
-            height={art.mark.height}
-          />
-        ) : (
-          <span className="doc-shot__word">{register}</span>
-        )}
-        {/* A PHOTOGRAPH OF THE MODEL SAYS SO, in a line a brochure would print ("shown with
-            optional equipment"); the row's own copy is the exact boat and needs no line */}
-        {art.kind === 'photograph' && pictured(art.held) ? (
-          <figcaption className="doc-shot__say">{pictured(art.held)}</figcaption>
-        ) : null}
+        <div className="doc-shot__plate">
+          {art.kind === 'photograph' ? (
+            <img
+              className="doc-shot__img"
+              src={art.held.src}
+              alt={
+                doc.subject.finish === ''
+                  ? doc.subject.title
+                  : `${doc.subject.title}, ${doc.subject.finish}`
+              }
+              width={art.held.width}
+              height={art.held.height}
+              style={
+                {
+                  '--held-w': art.held.width,
+                  '--held-h': art.held.height,
+                  /* THE BUILD'S PHOTOGRAPH LANDS HERE (the component kit, 2026-09-28): the
+                     build's stage names this row's picture the same way, so the route's View
+                     Transition carries it from the finale onto the cover. A name is a thing of
+                     the screen and never of the paper: print draws no transition. */
+                  '--doc-travel': travel,
+                  ...(fit === null ? {} : { '--shot-fit': `${fit}px` }),
+                } as CSSProperties
+              }
+              decoding="async"
+              fetchPriority="high"
+            />
+          ) : art.kind === 'mark' ? (
+            <img
+              className="doc-shot__mark"
+              src={art.mark.src}
+              alt={art.mark.brand}
+              width={art.mark.width}
+              height={art.mark.height}
+            />
+          ) : (
+            <span className="doc-shot__word">{register}</span>
+          )}
+        </div>
+        {/* WHAT THE PICTURE SHOWS THAT THE QUOTE DOES NOT SELL, in a line a brochure would print
+            ("shown with optional equipment"): the model in its maker's finish, a different
+            outboard, or more outboards than the line sells. The exact item needs no line. */}
+        {caption ? <figcaption className="doc-shot__say">{caption}</figcaption> : null}
       </figure>
 
-      {/* WHAT IS SOLD, AS A PERSON SAYS IT: the maker and the series where the name does not say
-          them ("Stacer · Sea Ranger (Centre Consoles)", in a name's case and never the file's
-          shouting capitals), the exact model whole — "(Tournament)" kept — and its finish with a
-          swatch of each colour the decode names. For a quote that is not a boat this is the
-          motor, the trailer or the part itself (`subject` is whatever the quote is written on). */}
+      {/* WHAT IS SOLD, AS A PERSON SAYS IT: what kind of thing it is over its name — "Your boat",
+          "Your motor", the same on every cover and never the file's heading — the exact model
+          whole, "(Tournament)" kept, and its finish with a swatch of each colour the decode names */}
       <div className="doc-cover__title">
-        {over === '' ? null : <p className="doc-cover__over">{over}</p>}
-        <h1 className="doc-cover__name">{doc.subject.title}</h1>
+        <p className="doc-cover__over">{over}</p>
+        <h1 className="doc-cover__name">
+          <TitleSaid title={doc.subject.title} />
+        </h1>
         {doc.subject.finish === '' ? null : (
           <p className="doc-cover__detail">
-            <Swatches colour={doc.subject.colour} />
+            {/* round, shaded chips: a white one is a white dot and never a box to tick */}
+            <Swatches colour={doc.subject.colour} shape="chips" />
             {doc.subject.finish}
           </p>
         )}
       </div>
 
-      {/* THE FOUR FACTS A BROCHURE SETS UNDER THE NAME, large: its length and beam, its power and
-          its weight, each only where the file holds it (`keyFacts`). The whole specification is
-          the next page's, where it is chosen. */}
-      {doc.subject.key.length > 0 ? (
-        <dl className="doc-keys" data-count={doc.subject.key.length}>
-          {doc.subject.key.map((fact) => (
+      {/* THE FACTS A BROCHURE SETS UNDER THE NAME, large: the whole specification where it fits
+          two rows of four, else its length and beam, its power and its weight (`keyFacts`), each
+          only where the file holds it */}
+      {facts.length > 0 ? (
+        <dl className="doc-keys" data-count={facts.length}>
+          {facts.map((fact) => (
             <div className="doc-key" key={fact.label}>
               <dd className="doc-key__val">{fact.value}</dd>
               <dt className="doc-key__lab">{fact.label}</dt>
@@ -1363,9 +1577,10 @@ function Cover({
         </dl>
       ) : null}
 
-      {/* THE PRICE BESIDE WHO IT IS FOR — a quote belongs to a person, and a total that is not
-          next to the name it is addressed to is a price list. The total is the largest figure on
-          the paper (ACL s48 asks only that it be at least as prominent as any other price). */}
+      {/* THE PRICE BESIDE WHO IT IS FOR, at the foot of the cover — a quote belongs to a person,
+          and a total that is not next to the name it is addressed to is a price list. The total is
+          the largest figure on the paper (ACL s48 asks only that it be at least as prominent as
+          any other price). */}
       <div className="doc-money">
         <div className="doc-money__who">
           <p className="doc-lab">Prepared for</p>
@@ -1381,24 +1596,22 @@ function Cover({
               {line}
             </p>
           ))}
-          {doc.preparedBy ? (
-            <div className="doc-money__by">
-              <p className="doc-lab">Prepared by</p>
-              <p className="doc-money__line doc-money__who-by">
-                {doc.preparer?.name ?? doc.preparedBy}
-              </p>
-              {/* HOW TO REACH THEM, as Northside set them on Settings: the title, the phone and
-                  the email, each only where it was given */}
-              {[doc.preparer?.title, doc.preparer?.phone, doc.preparer?.email]
-                .filter((line): line is string => line !== undefined && line !== '')
-                .map((line) => (
-                  <p className="doc-money__line" key={line}>
-                    {line}
-                  </p>
-                ))}
-            </div>
-          ) : null}
         </div>
+        {by ? (
+          <div className="doc-money__by">
+            <p className="doc-lab">Prepared by</p>
+            <p className="doc-money__who-by">{by}</p>
+            {/* HOW TO REACH THEM, as Northside set them on Settings: the title, the phone and
+                the email, each only where it was given */}
+            {[doc.preparer?.title, doc.preparer?.phone, doc.preparer?.email]
+              .filter((line): line is string => line !== undefined && line !== '')
+              .map((line) => (
+                <p className="doc-money__line" key={line}>
+                  {line}
+                </p>
+              ))}
+          </div>
+        ) : null}
 
         <div className="doc-money__sum">
           <p className="doc-lab">{totalLabel(doc)}</p>
@@ -1410,8 +1623,8 @@ function Cover({
           {includes === '' ? null : <p className="doc-money__line">{includes}</p>}
           {gst === '' ? null : <p className="doc-money__line">{gst}.</p>}
           {/* NORTHSIDE'S OWN DEPOSIT WORDING, under the figure it is about, where it was set on
-              Settings. Never written for Northside: absent, nothing is said. */}
-          {doc.letterhead?.deposit ? (
+              Settings and kept on. Never written for Northside: absent, nothing is said. */}
+          {doc.letterhead?.deposit && doc.chosen.deposit ? (
             <p className="doc-money__line doc-money__deposit">{doc.letterhead.deposit}</p>
           ) : null}
         </div>
@@ -1420,17 +1633,34 @@ function Cover({
   )
 }
 
+/** A model's name with its closing bracket as one piece, so a line breaks before the bracket and
+ *  never inside the name: "Stacer 499 Sea Ranger SDF" over "(Centre Console)". */
+function TitleSaid({ title }: { title: string }) {
+  const m = /^(.+?)\s(\([^()]+\))$/.exec(title)
+  if (!m) return <>{title}</>
+  return (
+    <>
+      {m[1]} <span className="doc-cover__bracket">{m[2]}</span>
+    </>
+  )
+}
+
+/** What a cover says it is over the name, by the kind of thing sold. */
+const KIND_SAID: Partial<Record<TableKind, string>> = {
+  boat: 'Your boat',
+  motor: 'Your motor',
+  package: 'Your motor',
+  trailer: 'Your trailer',
+}
+
 /**
- * THE LINE OVER THE NAME: the maker and the series, each only where the name does not already
- * say it. "Highfield Inflatables" over "Highfield Sport 560" said the maker twice (2026-10-21);
- * "Sport" over it says the series twice.
+ * THE LINE OVER THE NAME: what is sold, in the customer's words, the same on every cover of its
+ * kind (the printed quote's critic, 2026-10-31: it came and went, and where it printed it was the
+ * file's heading, "SEA MASTERS" over "Stacer 481 SeaMaster" and "FOUR STROKE MODELS" over a Yamaha).
+ * The maker and the model are the name's own; the series a file files it under is the dealer's.
  */
-export function eyebrowOf(doc: Pick<PrintedQuote, 'subject'>, register: string): string {
-  const over: string[] = []
-  if (!saysMaker(doc.subject.title, register)) over.push(register)
-  const series = doc.subject.series
-  if (series !== '' && !saysMaker(doc.subject.title, series)) over.push(series)
-  return over.join(' · ')
+export function eyebrowOf(doc: Pick<PrintedQuote, 'subject'>): string {
+  return KIND_SAID[doc.subject.kind ?? 'boat'] ?? 'Your quote'
 }
 
 /* ---------------------------------------------------------- */
@@ -1450,8 +1680,13 @@ function SpecPage({ doc }: { doc: PrintedQuote }) {
       <PartHead word="Specifications" sub={doc.subject.title} />
       <div className="doc-sheet__groups">
         {doc.subject.sheet.map((group) => (
-          <div className="doc-sheet__group" key={group.id}>
-            <p className="doc-sheet__name">{group.name}</p>
+          <div
+            className="doc-sheet__group"
+            key={group.id}
+            /* ONE LIST, NO HEADING: a sheet whose groups would each hold one fact (`sheetOnPaper`) */
+            data-flat={group.name === '' ? '' : undefined}
+          >
+            {group.name === '' ? null : <p className="doc-sheet__name">{group.name}</p>}
             <dl className="doc-specs">
               {group.rows.map((spec) => (
                 <div className="doc-spec" key={spec.label}>
@@ -1503,6 +1738,9 @@ export interface LetterheadProps {
   kind: string
   /** "Issued 29 October 2026" */
   when: string
+  /** NORTHSIDE'S DETAILS UNDER THE MARK (address, phone, email, ABN): printed unless the
+   *  salesperson took them off this quote (quote-spec §7a). Settings always shows them. */
+  details?: boolean
   /**
    * WHERE A LINE IS SET RATHER THAN PRINTED (/manage, Milestone 4): handed each line of the
    * letterhead in order — the mark first — with what it prints, and returns what stands there.
@@ -1527,6 +1765,7 @@ export function Letterhead({
   reference,
   kind,
   when,
+  details = true,
   renderLine: setting,
 }: LetterheadProps) {
   const held = letterheadOf(business)
@@ -1547,7 +1786,7 @@ export function Letterhead({
       {name ?? ''}
     </p>
   )
-  const lines = letterhead ? contactParts(letterhead) : {}
+  const lines = letterhead && details ? contactParts(letterhead) : {}
   const valid = letterhead?.validUntil
     ? `Valid until ${day(letterhead.validUntil)}`
     : letterhead?.validDays !== undefined
@@ -1577,7 +1816,7 @@ export function Letterhead({
           {reference !== '' ? (
             <>
               {' · '}
-              <span className="doc-mono doc-ref">{reference}</span>
+              <span className="doc-ref">{reference}</span>
             </>
           ) : null}
         </p>
@@ -1646,12 +1885,23 @@ export function withToday(
  * business ever writes, and a quote with no trailer on it simply has
  * no 03.
  */
-function SectionHead({ num, name }: { num: string; name: string }) {
+function SectionHead({
+  num,
+  name,
+  continued = false,
+}: {
+  /** '' on a quote with one band: a number with no second numbers nothing */
+  num: string
+  name: string
+  /** the head said again over the lines it runs on to, at the top of the next sheet */
+  continued?: boolean
+}) {
   return (
-    <div className="doc-band">
+    <div className="doc-band" data-continued={continued ? '' : undefined}>
       <p className="doc-band__name">
-        <span className="doc-band__num">{num}</span>
+        {num === '' ? null : <span className="doc-band__num">{num}</span>}
         {name}
+        {continued ? <span className="doc-band__cont">, continued</span> : null}
       </p>
     </div>
   )
@@ -1826,7 +2076,11 @@ function AdjustmentHead() {
  */
 function YourPrice({ doc }: { doc: PrintedQuote }) {
   const t = doc.totals
-  const rows = priceRows(doc)
+  /* A PRICE OF ONE ROW IS ITS TOTAL (the printed quote's critic, 2026-10-31: a one-motor quote
+     printed $16,667 four times): the row that would say the motor's figure over the total that is
+     the same figure is left out, and the total stands alone under its head */
+  const all = priceRows(doc)
+  const rows = all.length === 1 && !all[0]!.signed && all[0]!.amount === t.total ? [] : all
   const includes = includesSay(doc)
   return (
     <section className="doc-sums" aria-label="Your price">
@@ -1894,6 +2148,7 @@ function Acceptance({ doc }: { doc: PrintedQuote }) {
     : lh?.validDays !== undefined
       ? `This quotation is valid for ${lh.validDays} ${lh.validDays === 1 ? 'day' : 'days'} from the day it is given.`
       : ''
+  /* NORTHSIDE'S DETAILS, unless the salesperson took them off this quote (quote-spec §7a) */
   const dealer = [
     lh?.legalName && lh.legalName !== house ? lh.legalName : undefined,
     lh?.address,
@@ -1901,7 +2156,7 @@ function Acceptance({ doc }: { doc: PrintedQuote }) {
     lh?.email,
     lh?.website,
     lh?.abn ? `ABN ${lh.abn}` : undefined,
-  ].filter((line): line is string => line !== undefined && line.trim() !== '')
+  ].filter((line): line is string => doc.chosen.details && line !== undefined && line.trim() !== '')
   const person = doc.preparer ?? (doc.preparedBy ? { name: doc.preparedBy } : null)
   const reach = person
     ? [person.title, person.phone, person.email].filter(
@@ -1966,18 +2221,6 @@ function SignBlock({ title, who }: { title: string; who: string }) {
         </p>
       ))}
     </div>
-  )
-}
-
-/** Whether a boat's printed name already names its maker: its first word is the maker's. */
-function saysMaker(title: string, maker: string): boolean {
-  const first = maker.trim().split(/\s+/)[0]?.toLowerCase() ?? ''
-  return (
-    first !== '' &&
-    title
-      .toLowerCase()
-      .split(/[\s·/()-]+/)
-      .includes(first)
   )
 }
 

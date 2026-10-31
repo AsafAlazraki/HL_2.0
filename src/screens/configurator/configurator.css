@@ -671,6 +671,25 @@
 .cfg-tally:empty {
   display: none;
 }
+/* BELOW A DESK, WITH THE SUMMARY HOLDING THE WINDOW, its card says the total and the tally steps
+   out of sight IN PLACE, so nothing under it moves; a step with its way back keeps it in sight */
+.cfg-tally[data-aside]:not(:has(.cfg-tally__step)) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cfg-tally {
+    transition:
+      opacity var(--duration-hover) var(--ease-out),
+      visibility 0s linear;
+  }
+  .cfg-tally[data-aside]:not(:has(.cfg-tally__step)) {
+    transition:
+      opacity var(--duration-hover) var(--ease-out),
+      visibility 0s linear var(--duration-hover);
+  }
+}
 /* THE TOTAL IS WHERE A PART IS DROPPED (`PartDrag`): while a part is carried the plate says so
    across its whole face, the accent's dashed edge on the plate's pale blue, and lights the
    accent's ring while the part is over it. The ghost is carried beside the pointer, never over
@@ -2038,10 +2057,17 @@
   overflow-wrap: break-word;
   text-wrap: pretty;
 }
-.cfg-pick__also {
+.cfg-pick__also,
+.cfg-pick__facts {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+}
+/* A MOTOR'S POWER, WEIGHT AND SHAFT under its name, kept whole: the figure and its unit never
+   part ("150 hp · 228 kg · 20″ shaft") */
+.cfg-pick__facts {
+  word-spacing: 0.02em;
+  text-wrap: balance;
 }
 .cfg-pick__delta {
   display: inline-flex;
@@ -3652,6 +3678,12 @@
   .cfg-stage[data-fit] .cfg-shot {
     block-size: var(--cfg-shot-hand);
   }
+  /* A MAKER'S RENDER ON WHITE, IN A HAND, TAKES THE WELL'S WHOLE HEIGHT: its own white ground is
+     the air round it, and the well's 16px of padding more shrank the motors to about 210 of 358px
+     (the paper-quote critique, 2026-10-31). Still never past its own pixels. */
+  .cfg-shot[data-verdict]:not([data-verdict='scene']) {
+    padding: --spacing(1);
+  }
 }
 
 /* --- in an office, 1920x1080: the stage takes the extra width and the
@@ -3954,6 +3986,8 @@
 }
 /* THE BOAT, round on every corner, covering its frame */
 .cfg-sum__pic {
+  /* the held photograph's height, written on the element by the screen (`Summary`) */
+  --sum-held: none;
   position: relative;
   margin: 0;
   min-block-size: 0;
@@ -4014,6 +4048,10 @@
   line-height: var(--text-xl--line-height);
   font-weight: 600;
   color: var(--color-blue-100);
+}
+/* the boat's column is the photograph alone below a desk, laid in the summary's own flow */
+.cfg-sum__boat {
+  display: contents;
 }
 .cfg-sum__side {
   display: flex;
@@ -4077,12 +4115,18 @@
   background: var(--color-plate-tint);
   overflow: hidden;
 }
+/* a part's picture stands whole in its well and never past its own pixels: the element's held width
+   and height are its size, and the well only caps them */
 .cfg-sum__thumb > img {
-  inline-size: 100%;
-  block-size: 100%;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
   object-fit: contain;
 }
 .cfg-sum__item:first-child .cfg-sum__thumb > img {
+  inline-size: 100%;
+  block-size: 100%;
   object-fit: cover;
 }
 .cfg-sum__words {
@@ -4181,51 +4225,101 @@
     padding-block-end: --spacing(6);
     box-shadow: var(--shadow-lg);
   }
-  /* THE LINES STAND UNDER THE PHOTOGRAPH AND THE CARD BESIDE THEM BOTH (the build page round,
-     2026-10-31: given, with six lines, the card took 535 of the side's 733px at 1440 × 900 and the
-     list under it showed one line and a half, the second cut by its own bar). The photograph gives
-     the lines what they need, up to two fifths of the window, and keeps the rest; the card has the
-     whole height beside them. */
+  /* THE BOAT TAKES THE START COLUMN WHOLE, AND THE QUOTE IS ONE PLATE BESIDE IT, the window's
+     height (the paper-quote critique, 2026-10-31: the card ended at y 431 beside a photograph
+     running to 602 and lines to 876, half a column of bare ground on the one full-screen page).
+     The handover leads at the plate's top and every line on the quote stands at its foot, so the
+     two ends of the plate are the photograph's two ends whatever the quote holds; the air between
+     them is the plate's own, between what to do and what is on it. A long list scrolls inside the
+     plate's foot and never takes the handover's room (the build page round, 2026-10-31: given, with
+     six lines, the list showed one line and a half). */
   .cfg-sum__body {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'pic card'
-      'lines card';
-    column-gap: var(--sum-gap);
-    row-gap: var(--sum-gap);
-  }
-  /* a summary with no photograph (a part sold on its own) is its lines and its card */
-  .cfg-sum__body:not(:has(.cfg-sum__pic)) {
     grid-template-rows: minmax(0, 1fr);
-    grid-template-areas: 'lines card';
+    grid-template-areas: 'pic side';
+    column-gap: var(--sum-gap);
   }
-  .cfg-sum__side {
-    display: contents;
+  /* THE BOAT'S COLUMN: the photograph, and under it the boat's facts as the build's stage stands
+     them, so the photograph is the height its own pixels can cover more often than not */
+  .cfg-sum__boat {
+    grid-area: pic;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sum-gap);
+    min-block-size: 0;
+    min-inline-size: 0;
   }
   .cfg-sum__pic {
-    grid-area: pic;
-    block-size: 100%;
-  }
-  .cfg-sum__card {
-    grid-area: card;
-    align-self: start;
-    max-block-size: 100%;
+    flex: 1 1 0;
     min-block-size: 0;
+  }
+  /* a photograph is cut to cover its frame, so the frame is never taller than its held pixels
+     (`--sum-held`, the ledger's height); what that leaves goes above the facts, whose plate keeps
+     the column's foot on the quote's plate's foot */
+  .cfg-sum__pic[data-verdict='scene'] {
+    max-block-size: var(--sum-held, none);
+  }
+  .cfg-sum__boat > .cfg-specs {
+    flex: none;
+    margin-block-start: auto;
+  }
+  .cfg-sum__side {
+    grid-area: side;
+    gap: 0;
+    overflow: hidden;
+    border-radius: var(--radius-plate);
+    background: var(--color-panel);
+    box-shadow: var(--shadow-plate);
+  }
+  .cfg-sum__side > .cfg-sum__card,
+  .cfg-sum__side > .cfg-sum__lines {
+    border-radius: 0;
+    box-shadow: none;
+    background: none;
+  }
+  /* A LONG QUOTE'S LINES TAKE THEIR ROOM FIRST, up to a little over half the plate, so six of them
+     never stand one and a half in sight (the build page round, 2026-10-31); the handover keeps the
+     rest, its acts at its top, and a given card's footnotes scroll in their own place, fading at its
+     foot while there is more (`data-more`) */
+  .cfg-sum__card {
+    flex: 0 1 auto;
+    min-block-size: 45%;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
   }
-  /* THE LIST IS AS TALL AS ITS LINES (the critic, P-10: one line left 270px of empty white in its
-     plate), and a long one scrolls inside its plate past two fifths of the window */
+  .cfg-sum__card[data-more] {
+    mask-image: linear-gradient(to bottom, currentcolor calc(100% - --spacing(10)), transparent);
+  }
   .cfg-sum__lines {
-    grid-area: lines;
-    align-self: start;
-    max-block-size: 40dvh;
+    flex: none;
+    margin-block-start: auto;
+    min-block-size: 0;
+    max-block-size: 55%;
+    padding-block-start: --spacing(4);
+    border-block-start: 1px solid var(--color-rule);
+  }
+  /* A SUMMARY WITH NO PHOTOGRAPH (a part sold on its own) is its lines and its card, side by side */
+  .cfg-sum__body:not(:has(.cfg-sum__pic)) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'side';
+  }
+  .cfg-sum__body:not(:has(.cfg-sum__pic)) .cfg-sum__side {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-areas: 'lines card';
+    align-items: start;
   }
   .cfg-sum__body:not(:has(.cfg-sum__pic)) .cfg-sum__lines {
+    grid-area: lines;
+    margin-block-start: 0;
     max-block-size: 100%;
+    border-block-start: 0;
+    border-inline-end: 1px solid var(--color-rule);
+  }
+  .cfg-sum__body:not(:has(.cfg-sum__pic)) .cfg-sum__card {
+    grid-area: card;
   }
   .cfg-sum__item {
     padding-block: --spacing(2);
@@ -4236,9 +4330,6 @@
   mask-image: linear-gradient(to bottom, currentcolor calc(100% - --spacing(10)), transparent);
 }
 @media (min-width: 1200px) and (min-height: 700px) {
-  .cfg-sum__lines {
-    max-block-size: 44dvh;
-  }
   .cfg-edit {
     transition:
       transform calc(var(--duration-sheet) * 1.6) var(--ease-drawer),
@@ -4336,6 +4427,10 @@
     inline-size: --spacing(12);
     block-size: --spacing(9);
   }
+  /* and the summary's render takes its frame's whole height, as the stage's does */
+  .cfg-sum__pic[data-verdict]:not([data-verdict='scene']) .cfg-sum__img {
+    padding: --spacing(1);
+  }
 }
 
 /* THE PHOTOGRAPH ANSWERS A NEW BOAT: where the hull chapter re-roots the quote on another model,
@@ -4373,10 +4468,13 @@
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     align-items: start;
   }
+  /* stuck BELOW THE PILL, whose clearance is the shell's own token: at --spacing(4) the
+     photograph and its expand press stood under the pill once the summary was scrolled to its
+     end (the overlap ruler at 844 × 390, 2026-10-31: 221 × 34px and 36 × 22px) */
   .cfg-sum__pic {
     position: sticky;
-    inset-block-start: --spacing(4);
-    block-size: calc(100dvh - --spacing(24));
+    inset-block-start: max(--spacing(4), var(--shell-inset));
+    block-size: calc(100dvh - --spacing(4) - max(--spacing(4), var(--shell-inset)));
     min-block-size: 0;
   }
 }

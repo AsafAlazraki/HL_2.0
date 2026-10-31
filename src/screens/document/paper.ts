@@ -361,9 +361,14 @@ export interface Offered {
  */
 export function offeredOf(doc: PrintedQuote): Offered[] {
   const out: Offered[] = []
+  /* A QUOTE THAT IS NOT FOR A BOAT OFFERS NO HULL: the boat registers its build lists beside a
+     repower's motor are the way to a boat quote, not something this quote offered and nobody
+     took (the printed quote's critic, 2026-10-31: 49 Highfield hulls "left off" a motor's paper) */
+  const boatless = doc.subject.kind !== null && doc.subject.kind !== 'boat'
   for (const section of doc.sections) {
     for (const table of section.tables) {
       if (table.subject) continue
+      if (boatless && table.kind === 'boat') continue
       const took = table.lines.length
       if (took > 0 && table.optional === 0 && table.held === 0) continue
       out.push({
@@ -385,7 +390,7 @@ export function offeredOf(doc: PrintedQuote): Offered[] {
 
 /** One register's census as a phrase: "6 more offered", "4 offered,
  *  none taken", and the engine's own sentence where it wrote one. */
-export function offeredSay(o: Offered): string {
+export function offeredSay(o: Offered, noun = 'boat'): string {
   /* `phrase` and not a name for its pieces: the cost guard reads that
      word followed by a dot as a field of the Parts table, which carries
      cost columns, and a false alarm there is cheaper to avoid than to
@@ -396,7 +401,7 @@ export function offeredSay(o: Offered): string {
        twice and in its own word (docs/WORDS.md: paired → made for this boat); matched exactly,
        so the day the engine changes its sentence this falls back to it */
     if (o.say === `Nothing from ${o.title} is paired with this one yet.`)
-      phrase.push('none is listed for this boat yet')
+      phrase.push(`none is listed for this ${noun} yet`)
     else if (o.say !== '') phrase.push(o.say)
     else if (o.more === null) phrase.push('none taken, and how many it offered cannot be said')
     else if (o.more > 0) phrase.push(`${o.more.toLocaleString('en-AU')} offered, none taken`)
@@ -699,6 +704,36 @@ export function unitlessOf(doc: PrintedQuote): string[] {
   return doc.subject.unitless.map(
     (spec) => `${spec.label} ${spec.value}: neither the price list nor the maker states its unit`,
   )
+}
+
+/**
+ * THE FACTS THE PAPER LEAVES OFF BECAUSE THE FILE WRITES NO FACT THERE, said for the dealer: a
+ * "Fuel capacity" the file fills with "Opt", a control it writes as a note
+ * (`paperWords.ts`). The customer's copy prints neither half of it.
+ */
+const unsaidSay = (label: string, value: string): string =>
+  `${label}: the price list writes “${value}”, which is not printed`
+
+export function unsaidOf(doc: PrintedQuote): string[] {
+  const said = unsaidSay
+  return [
+    ...doc.subject.unsaid.map((fact) => said(fact.label, fact.value)),
+    ...linesOf(doc).flatMap((line) =>
+      line.unsaid.map((fact) => said(`${line.said}, ${fact.label.toLowerCase()}`, fact.value)),
+    ),
+  ]
+}
+
+/** What a quote is written on, as the note names it: "boat", "motor", "trailer". */
+export function subjectNoun(doc: Pick<PrintedQuote, 'subject'>): string {
+  const kind = doc.subject.kind
+  return kind === 'motor' || kind === 'package'
+    ? 'motor'
+    : kind === 'trailer'
+      ? 'trailer'
+      : kind === null || kind === 'boat'
+        ? 'boat'
+        : 'item'
 }
 
 /**

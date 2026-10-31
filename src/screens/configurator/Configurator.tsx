@@ -92,6 +92,7 @@ import { useSetScope } from '@/screens/shell/scope'
 import { quotes as quotesStore } from '@/state/quotes'
 import { catalogue as catalogueStore, ctxFrom } from '@/state/catalogue'
 import { issueStampNow, preparerNow } from '@/app/northside'
+import { unreachableSay } from '@/domain/quote/document'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx, type CatalogueCtx, type FrozenPreparer, type QuoteDef } from '@/domain/model'
 import { daySaid } from '@/domain/model/ownPictures'
@@ -271,7 +272,7 @@ import './configurator.css'
  *  `/quote/$id/document`, so the refusal is retired the way the
  *  picker's and the cascade's were: by having built the thing. */
 export const DOCUMENT_SAY =
-  'Once given, every price on it is final, and it can be printed or emailed from your own mail.'
+  'Choose which sections print in the preview. Once given, those sections and every price are final, and it can be printed or emailed from your own mail.'
 
 /** WHAT SENDING IS HERE, said under the act: the app has no mail of its own. */
 export const SEND_SAY =
@@ -918,6 +919,9 @@ function Build({
     [ctx, quote, open, goTo, endStep],
   )
   useSetScope(scope)
+  /* below a desk, the summary is at the page's end and scrolled to as often as opened: while it
+     holds the window's upper half its card says the total, and the tally steps aside (`Tally`) */
+  const [summarySeen, setSummarySeen] = useState(false)
 
   if (!quote) {
     return (
@@ -1074,6 +1078,7 @@ function Build({
       go={go}
       setStep={setStep}
       setRefused={setRefused}
+      onSeen={setSummarySeen}
     />
   ) : null
 
@@ -1124,6 +1129,7 @@ function Build({
                   note={summaryOpen ? '' : note}
                   said={said}
                   elsewhere={summaryOpen}
+                  aside={!desk && summarySeen}
                   raise={raise}
                   refusal={refusal}
                   onLarge={showLarge}
@@ -2607,6 +2613,7 @@ function Tally({
   refusal,
   onLarge,
   over = false,
+  aside = false,
 }: {
   /** a desk, where the tally stands open in the boat's column and never folds */
   desk: boolean
@@ -2622,6 +2629,10 @@ function Tally({
   said: ReactNode
   /** the finale is open and its card says the total */
   elsewhere: boolean
+  /** BELOW A DESK THE SUMMARY HAS SCROLLED INTO THE WINDOW, and its card says the total: the
+   *  tally steps out of sight in place, so nothing under it moves (the paper-quote critique,
+   *  2026-10-31: at 390 the total stood four times in one screen) */
+  aside?: boolean
   raise: (fix: string) => void
   refusal: string | undefined
   onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
@@ -2650,6 +2661,7 @@ function Tally({
       aria-label="What the quote comes to"
       data-testid="running-total"
       data-elsewhere={elsewhere ? '' : undefined}
+      data-aside={aside ? '' : undefined}
     >
       {carrying ? (
         <output className="cfg-tally__drop">Drop it here to put it on the quote</output>
@@ -3039,7 +3051,20 @@ function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
   const frozen = specsSaid(
     ownSpecs(ctx, quote, quote.subjectSpecs).map((spec) => measured(quote.rootTableId, spec)),
   )
-  const every = [...frozen, ...all.filter((s) => !frozen.some((f) => f.label === s.label))]
+  /* A MOTOR OR A TRAILER SOLD ON ITS OWN IS SAID IN THE PAPER'S WORDS: the facts frozen on its own
+     line (`lineFactsOf`), which the printed quote's cover and specification print — "Power 150
+     hp", "Shaft 20 in", "Engine L4 / 2670cc". The strip read the file's columns instead, "150 HP
+     RATING", '20" SHAFT LENGTH' and "CYLINDERS / DISPLACEMENT" over two lines, so the build and
+     the paper named one motor's facts two ways (the paper-quote critique, 2026-10-31). */
+  const own = quoteSells(ctx, quote).boat
+    ? []
+    : (quote.lines.find(
+        (l) => l.id === quote.sections.find((s) => s.blockId === SUBJECT_BLOCK)?.lineIds[0],
+      )?.facts ?? [])
+  const every =
+    own.length > 0
+      ? own
+      : [...frozen, ...all.filter((s) => !frozen.some((f) => f.label === s.label))]
   const lead = every.slice(0, SPECS_LEAD)
   /* A PART WHOSE FILE HOLDS NOTHING BUT ITS RECORD HAS NO SPECIFICATION, and says so in a
      sentence where the strip would stand empty */
@@ -3309,8 +3334,14 @@ function ChapterCard({
     chapter.kind === 'band' &&
     onFigures.length === 1 &&
     onFigures[0] === chapter.amount
-  /* the head's answer: what is on the quote, then what is still open */
-  const said = chapter.said ?? ''
+  /* the head's answer: what is on the quote, then what is still open. OPEN, THE CHAPTER OF WHAT THE
+     QUOTE IS FOR DRAWS ITS CHOICES, and the lit one names it under the bar that names it too: the
+     head saying it as well made "Yamaha F150LC" four times in one window (the paper-quote
+     critique, 2026-10-31). Shut, the head is the outline and says it. */
+  const said =
+    showing && !searching && chapter.subject === true && (chapter.boat?.axes.length ?? 0) > 0
+      ? ''
+      : (chapter.said ?? '')
   const rest = chapter.rest ?? headFact(chapter, showing, searching ? '' : here, quote)
   /* WHAT FOLLOWS THE ANSWER, quietly, as one run: what is still open, then (only while a search
      narrows the rail) whether the search reached this chapter. A CHAPTER THE SEARCH DID NOT REACH
@@ -3586,7 +3617,10 @@ function ChapterCard({
                 nothing here: the line under the total says what is not in it, once. */}
             {chapter.kind === 'handover' || chapter.kind === 'finale' ? null : chapter.amount ===
               null ? (
-              chapter.lines === 0 ? (
+              /* and a chapter the price list offers nothing for says so in its answer, and no
+                 more: "Nothing on it yet" beside "nothing goes with this motor" read as a gap
+                 that could be filled */
+              chapter.lines === 0 && chapter.bare === undefined ? (
                 <span className="cfg-head__nosum">
                   {/* a chapter nothing waits for is a choice, not a gap */}
                   {chapter.optional === undefined ? NOTHING_ON_IT : 'Optional'}
@@ -3881,7 +3915,12 @@ function BoatChooser({
           >
             <h3 className="cfg-axis__head" id={`${headId}-${axis.id}`}>
               <span className="cfg-axis__name">{axis.title}</span>
-              {now ? <span className="cfg-axis__now">{slashed(now.say)}</span> : null}
+              {/* A BOAT'S AXES EACH SAY WHAT IS ON IT, so four rows of choices read as one finish;
+                  a motor's one row has its lit card for that, beside the bar's name (the
+                  paper-quote critique, 2026-10-31: "F150LC" four times in the first screen) */}
+              {now && kind === 'boat' ? (
+                <span className="cfg-axis__now">{slashed(now.say)}</span>
+              ) : null}
               <span className="cfg-axis__count">
                 {axis.count ?? `${axis.options.length.toLocaleString('en-AU')} on the price list`}
               </span>
@@ -3951,7 +3990,7 @@ function BoatPick({
     <PriceFigure amount={option.delta} signed />
   )
   const also = option.also.join(' · ')
-  const label = `${option.say}${also === '' ? '' : `, in ${also}`}, ${
+  const label = `${option.say}${also === '' ? '' : `, in ${also}`}${option.facts === '' ? '' : `, ${option.facts}`}, ${
     option.current
       ? 'on the quote'
       : option.amount === null
@@ -4040,6 +4079,17 @@ function BoatPick({
               <Swatches colour={option.colour} size="sm" />
             ) : null}
             {also === '' ? null : <span className="cfg-pick__also">{`in ${also}`}</span>}
+            {/* WHAT TELLS IT FROM THE NEXT ONE: a motor's power, weight and shaft, as its row
+                states them and as the same motor says them offered on a boat's quote */}
+            {option.facts === '' ? null : (
+              <span className="cfg-pick__facts">
+                {/* each fact kept whole, "172 kg" never broken from its unit, and a line breaks after a dot */}
+                {option.facts
+                  .split(' · ')
+                  .map((fact) => fact.replaceAll(' ', '\u00a0'))
+                  .join('\u00a0· ')}
+              </span>
+            )}
             {/* A CODE NO MAKER'S PAGE NAMES says why it is a code (names.json, `unnamed`) */}
             {option.coded ? <span className="cfg-pick__also">Unnamed by its maker</span> : null}
             {/* ON THE QUOTE IT SAYS SO, and its figure is the total's beside the boat: the others
@@ -5312,6 +5362,7 @@ function Summary({
   go,
   setStep,
   setRefused,
+  onSeen,
 }: {
   /** the address names it (or the quote is given): it is brought into the window, and the caret
    *  comes with it */
@@ -5334,6 +5385,8 @@ function Summary({
   go?: (href: string) => void
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
+  /** below a desk, whether it holds the window's upper half — its card then says the total */
+  onSeen?: (seen: boolean) => void
 }) {
   const boat = boatOfQuote(quote)
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
@@ -5360,23 +5413,49 @@ function Summary({
   const held = !desk && justGiven && draftPic > 0
   /* A LIST LONGER THAN ITS PLATE SAYS THERE IS MORE: its last visible line fades into the plate
      (`data-more`, configurator.css) rather than ending cut by the plate's edge, until it is
-     scrolled to its end (the build page round, 2026-10-31: six lines at 1440 × 900) */
+     scrolled to its end (the build page round, 2026-10-31: six lines at 1440 × 900). AND THE CARD
+     THE SAME, at a desk, where a long quote's lines take their room first and a given card's
+     footnotes scroll in their own place. */
+  const card = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    const el = list.current
-    if (!el || typeof ResizeObserver === 'undefined') return
-    const read = (): void => {
-      const more = el.scrollHeight - el.clientHeight - el.scrollTop > 2
-      el.toggleAttribute('data-more', more)
+    if (typeof ResizeObserver === 'undefined') return
+    const stops: Array<() => void> = []
+    for (const el of [list.current, card.current]) {
+      if (!el) continue
+      const read = (): void => {
+        const more = el.scrollHeight - el.clientHeight - el.scrollTop > 2
+        el.toggleAttribute('data-more', more)
+      }
+      read()
+      const watch = new ResizeObserver(read)
+      watch.observe(el)
+      if (el.firstElementChild) watch.observe(el.firstElementChild)
+      el.addEventListener('scroll', read, { passive: true })
+      stops.push(() => {
+        watch.disconnect()
+        el.removeEventListener('scroll', read)
+      })
     }
-    read()
-    const watch = new ResizeObserver(read)
-    watch.observe(el)
-    el.addEventListener('scroll', read, { passive: true })
     return () => {
-      watch.disconnect()
-      el.removeEventListener('scroll', read)
+      for (const stop of stops) stop()
     }
   }, [])
+
+  /* BELOW A DESK IT IS THE PAGE'S END, reached by scrolling as often as by its door: while it
+     holds the window's upper half, its card says the total and the tally steps aside */
+  const seen = useEffectEvent((holds: boolean) => onSeen?.(holds))
+  useEffect(() => {
+    const node = box.current
+    if (!node || desk || typeof IntersectionObserver === 'undefined') return
+    const watch = new IntersectionObserver(([entry]) => seen(entry?.isIntersecting === true), {
+      rootMargin: '0px 0px -50% 0px',
+    })
+    watch.observe(node)
+    return () => {
+      watch.disconnect()
+      seen(false)
+    }
+  }, [desk])
 
   /* WHAT THE TOTAL IS MADE OF, one length per part in its ink, the ink each line's dot wears */
   const made = tallyOf(tallyParts(rail?.chapters ?? []))
@@ -5388,8 +5467,10 @@ function Summary({
         rail,
         subject
           ? {
-              /* the boat is the title's; its line says the finish it is built in */
-              name: isBoat && boat.detail !== '' ? boat.detail : boat.say,
+              /* THE ROW THAT PRICES THE BOAT NAMES IT, with the finish it is built in: "Adventure"
+                 and "Hypalon · White / White / White/Blue" stood alone beside the hull's price,
+                 the model missing from its own line (the paper-quote critique, 2026-10-31) */
+              name: boat.say,
               amount: lineAmount(subject).amount,
               picture: photo
                 ? {
@@ -5455,7 +5536,7 @@ function Summary({
   const quiet = Boolean(reduce) || still
 
   /* AT A DESK, PUSHING UP PAST ITS TOP LOWERS IT AGAIN — unless the wheel is inside the list of
-     lines and that list still has somewhere to go */
+     lines, or the card, and it still has somewhere to go */
   const onPast = useEffectEvent(() => onBack())
   useEffect(() => {
     const node = box.current
@@ -5464,8 +5545,12 @@ function Summary({
       node,
       'up',
       (event) => {
-        const inList = list.current?.contains(event.target as Node) ?? false
-        return !inList || (list.current?.scrollTop ?? 0) <= 0
+        /* the list and the card each scroll in their own place, and a wheel inside one that still
+           has somewhere to go moves it */
+        for (const el of [list.current, card.current]) {
+          if (el?.contains(event.target as Node) && el.scrollTop > 0) return false
+        }
+        return true
       },
       () => onPast(),
     )
@@ -5496,9 +5581,10 @@ function Summary({
             <p className="cfg-eyebrow">
               {quote.state === 'draft' ? 'Summary · draft' : 'Summary · given'}
             </p>
-            {/* THE BOAT'S NAME ONCE ON THIS SCREEN (the critic, P-10: it was the title, the line
-                under the customer's name and the first line of the list): its finish is the hull's
-                line, below */}
+            {/* THE BOAT'S NAME AS THE TITLE, and once more only on the line that prices it, with its
+                finish (the critic, P-10: it was the title, the line under the customer's name and
+                the first line of the list; the paper-quote critique: a finish alone on that line
+                named nothing) */}
             <h2 className="cfg-sum__name" id={headId} ref={heading} tabIndex={-1}>
               {boat.name}
             </h2>
@@ -5513,56 +5599,75 @@ function Summary({
               own with no picture held stands its list's name in type on the file's blue, as its
               stage does, rather than leaving half the summary empty (2026-10-31) */}
           {art ? (
-            <figure
-              ref={pic}
-              style={held ? { flex: 'none', blockSize: draftPic } : undefined}
-              className="cfg-sum__pic"
-              data-art={art?.kind ?? 'word'}
-              data-verdict={photo?.verdict}
-            >
-              {photo ? (
-                <>
-                  <img
-                    className="cfg-sum__img"
-                    src={photo.src}
-                    /* never past its own pixels: the ledger's size is the ceiling on the box */
-                    style={{ maxInlineSize: photo.width, maxBlockSize: photo.height }}
-                    alt=""
-                    width={photo.width}
-                    height={photo.height}
-                    decoding="async"
-                    {...(photo.widths.length > 1
-                      ? /* THE FRAME COVERS, so the file chosen must cover its taller side too:
+            <div className="cfg-sum__boat">
+              <figure
+                ref={pic}
+                style={
+                  {
+                    ...(held ? { flex: 'none', blockSize: draftPic } : {}),
+                    /* A PHOTOGRAPH'S FRAME IS NEVER TALLER THAN ITS OWN PIXELS CAN COVER: at a desk a
+                     frame of 605 stood a held 597 between two white hairlines (configurator.css) */
+                    ...(photo ? { '--sum-held': `${photo.height}px` } : {}),
+                  } as CSSProperties
+                }
+                className="cfg-sum__pic"
+                data-art={art?.kind ?? 'word'}
+                data-verdict={photo?.verdict}
+              >
+                {photo ? (
+                  <>
+                    <img
+                      className="cfg-sum__img"
+                      src={photo.src}
+                      /* never past its own pixels: the ledger's size is the ceiling on the box */
+                      style={{ maxInlineSize: photo.width, maxBlockSize: photo.height }}
+                      alt=""
+                      width={photo.width}
+                      height={photo.height}
+                      decoding="async"
+                      {...(photo.widths.length > 1
+                        ? /* THE FRAME COVERS, so the file chosen must cover its taller side too:
                            at 1920 the photograph is cut to 967 × 890 from a 3 : 2 file, which
-                           needs 1,334 of its pixels across (the critic, P-11) */
-                        { srcSet: srcSetOf(photo), sizes: '(max-width: 1199px) 100vw, 80vw' }
-                      : {})}
-                  />
-                  <span className="cfg-shot__expand">
-                    <ExpandPicture
-                      label="Open the photograph large"
-                      onExpand={() => onLarge([largeOf(photo, boat.name, boat.say)], 0, 'The boat')}
+                           needs 1,334 of its pixels across (the critic, P-11); and at 1440 a
+                           panorama cut to 727 × 605 needs 1,470, more than 80vw, so the widest
+                           file the window could want is asked for */
+                          { srcSet: srcSetOf(photo), sizes: '100vw' }
+                        : {})}
                     />
-                  </span>
-                </>
-              ) : art?.kind === 'mark' ? (
-                <img
-                  className="cfg-sum__mark"
-                  src={art.mark.src}
-                  alt={art.mark.brand}
-                  width={art.mark.width}
-                  height={art.mark.height}
-                />
-              ) : (
-                <span className="cfg-sum__word">{register}</span>
-              )}
-            </figure>
+                    <span className="cfg-shot__expand">
+                      <ExpandPicture
+                        label="Open the photograph large"
+                        onExpand={() =>
+                          onLarge([largeOf(photo, boat.name, boat.say)], 0, 'The boat')
+                        }
+                      />
+                    </span>
+                  </>
+                ) : art?.kind === 'mark' ? (
+                  <img
+                    className="cfg-sum__mark"
+                    src={art.mark.src}
+                    alt={art.mark.brand}
+                    width={art.mark.width}
+                    height={art.mark.height}
+                  />
+                ) : (
+                  <span className="cfg-sum__word">{register}</span>
+                )}
+              </figure>
+              {/* AT A DESK, ITS FACTS UNDER IT, as the build's stage stands them and the paper prints
+                them: the quote's summary is the boat's too ("full spec of the quote and the boat",
+                the owner, 2026-10-30). Below a desk the stage's own strip is a flick above. */}
+              {desk && quote.subjectSpecs.length + (subject?.facts?.length ?? 0) > 0 ? (
+                <Specs quote={quote} ctx={ctx} />
+              ) : null}
+            </div>
           ) : null}
 
           <div className="cfg-sum__side">
             {/* THE HANDOVER LEADS: who it is for and the total, which stand still at the give while the
                 card below them grows its way on; then every line it is made of */}
-            <div className="cfg-sum__card">
+            <div className="cfg-sum__card" ref={card}>
               {rail ? (
                 <Finale
                   /* SHUT AND OPENED AGAIN, A GIVEN QUOTE IS SIMPLY THERE: below a desk the summary
@@ -5991,8 +6096,12 @@ function Finale({
       ) : (
         <div className="cfg-act">
           <div className="cfg-hand__acts">
+            {/* REFUSED, THE GIVE DOES NOT WEAR THE ACT'S AMBER (the paper-quote critique,
+                2026-10-31: lit gold over "No customer's name is on this quote yet", it looked
+                pressable, the sentence under it notwithstanding). Until it can act it is the kit's
+                quiet press, refused as every quiet press is; the moment nothing waits it is the act. */}
             <Button
-              intent="act"
+              intent={rail.blockers.length > 0 ? 'secondary' : 'act'}
               icon={PaperPlaneTiltIcon}
               onClick={doGive}
               refusedBy={rail.blockers.length > 0 ? waitsId : undefined}
@@ -6011,6 +6120,7 @@ function Finale({
           </div>
           <GiveWaits id={waitsId} blockers={rail.blockers} waits={rail.waits} />
           <p className="cfg-act__say">{DOCUMENT_SAY}</p>
+          <GiveReach quote={quote} />
         </div>
       )}
 
@@ -6036,6 +6146,29 @@ function Finale({
         ) : null}
       </div>
     </div>
+  )
+}
+
+/**
+ * NOTHING ON THE PAPER REACHES NORTHSIDE, said at the moment of the give (quote-spec §0, rule 5;
+ * the printed quote's critic, 2026-10-31: no address, phone or email on any paper, and nothing
+ * said here). Read off Northside's details as the give would copy them on (`issueStampNow`) and
+ * the quote's own choice of sections; it never stops the give, it says what the customer's copy
+ * will lack. The sentence is the paper's own (`unreachableSay`).
+ */
+function GiveReach({ quote }: { quote: QuoteDef }) {
+  const org = useCatalogue((s) => s.org)
+  const business = useCatalogue((s) => s.business)
+  const stamp = issueStampNow({ org, business }, quote.preparedBy)
+  const say = unreachableSay(
+    stamp.letterhead ?? null,
+    stamp.preparer ?? null,
+    !(quote.paperOff ?? []).includes('details'),
+  )
+  return say === '' ? null : (
+    <p className="cfg-act__say" data-testid="give-unreachable">
+      {say}
+    </p>
   )
 }
 

@@ -18,6 +18,7 @@
 
 import type { CatalogueCtx, QuoteDef } from '@/domain/model'
 import { boatChoices, goodsChoices, type AxisId, type BoatOption } from '@/domain/quote/choices'
+import { goodsFacts } from '@/domain/quote/goodsFacts'
 import { copyOf, creditOf, itemOf, pictureOf, srcSetOf, type HeldPicture } from '@/data/pictures'
 import type { OptionRow } from './chapters'
 
@@ -26,6 +27,12 @@ export interface DrawnOption extends BoatOption {
   /** the picture is a photograph on the water, which fills its well; a maker's drawing or render
    *  stands whole in it */
   scene: boolean
+  /** WHAT TELLS ONE MOTOR FROM THE NEXT, as its own row states it — "150 hp · 228 kg · 20″
+   *  shaft" (`goodsFacts`, the words the same motor wears offered on a boat's quote). A motor-only
+   *  quote's tiles read "F130LA", "LF150XC +$17", "F150LD no change" and nothing else, so a person
+   *  could not tell what differs (the paper-quote critique, 2026-10-31, gap 10). '' on a boat's
+   *  axes and on any row whose register carries none of the three. */
+  facts: string
 }
 
 export interface DrawnAxis {
@@ -61,8 +68,10 @@ function drawn(held: HeldPicture | null): OptionRow['picture'] {
  *  for a motor, a trailer or a part, its own chapter's, the ones beside it on the price list
  *  (`goodsChoices`), each with its own row's picture. */
 export function readBoatChoices(ctx: CatalogueCtx, quote: QuoteDef): DrawnChoices {
-  const boat = ctx.entities[quote.rootTableId]?.kind === 'boat'
+  const root = ctx.entities[quote.rootTableId]
+  const boat = root?.kind === 'boat'
   const choices = boat ? boatChoices(ctx, quote) : goodsChoices(ctx, quote)
+  const rows = boat ? [] : (ctx.rowsByEntity[quote.rootTableId] ?? [])
   return {
     series: choices.series,
     siblings: choices.siblings,
@@ -72,7 +81,13 @@ export function readBoatChoices(ctx: CatalogueCtx, quote: QuoteDef): DrawnChoice
         const item = itemOf(quote.rootTableId, option.rowId, option.address)
         const held =
           axis.id === 'material' ? null : axis.id === 'colour' ? copyOf(item) : pictureOf(item)
-        return { ...option, picture: drawn(held), scene: held?.verdict === 'scene' }
+        const facts = boat
+          ? ''
+          : goodsFacts(
+              root,
+              rows.find((r) => r.id === option.rowId),
+            )
+        return { ...option, picture: drawn(held), scene: held?.verdict === 'scene', facts }
       })
       return {
         id: axis.id,

@@ -211,6 +211,10 @@ export async function startAQuote(page: Page): Promise<string> {
 /** Raise the rung decision from the build, and arrive on the sheet. Returns the rung's own label. */
 export async function raiseTheRung(page: Page): Promise<string> {
   const other = page.getByRole('button', { name: /^See what .* does$/ }).first()
+  /* below a desk the build folds its total to one line, and the other prices wait under the fold
+     (configurator.css, `.cfg-tally:not([data-unfolded])`), so a person opens it first */
+  const fold = page.getByRole('button', { name: 'What the total is made of' })
+  if (!(await other.isVisible()) && (await fold.isVisible())) await fold.click()
   await expect(other).toBeVisible()
   const label = (await other.innerText()).replace(/^See what /, '').replace(/ does$/, '')
   await other.click()

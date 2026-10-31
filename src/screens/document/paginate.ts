@@ -61,6 +61,14 @@ export interface Atom {
   keepWithNext?: number
   /** this atom opens a page of its own */
   breakBefore?: boolean
+  /**
+   * THE HEAD IT IS PRINTED UNDER WHERE IT OPENS A PAGE: the height of its band's head, said again
+   * as "continued" at the top of the next sheet, so a line that runs over a page break is never a
+   * line belonging to nothing on its page (the printed quote's critic, 2026-10-31: "Garmin NMEA
+   * Backbone/Drop Cable" opened page 3 under the running head with no band over it). The page that
+   * it opens starts that much fuller.
+   */
+  carry?: number
 }
 
 /**
@@ -98,7 +106,11 @@ export function paginate(atoms: readonly Atom[], room: number): string[][] {
     }
     const need = run > room ? atom.height : run
 
-    if (page.length > 0 && (atom.breakBefore === true || used + need > room)) start()
+    const carry = atom.carry ?? 0
+    if (page.length > 0 && (atom.breakBefore === true || used + need > room)) {
+      start()
+      used = carry
+    }
     pages[pages.length - 1].push(atom.id)
     used += atom.height
   })

@@ -196,8 +196,9 @@
   );
   /* how far a crop mark stands off the trim, and how long it is */
   --crop: 4mm;
-  /* the tallest the cover picture is drawn — see `.doc-shot` */
-  --shot-max: 118mm;
+  /* the tallest the cover picture is drawn — see `.doc-shot`: a 4:3 picture at the full 174 mm
+     measure is 130.5 mm tall, so every landscape picture spans the measure */
+  --shot-max: 131mm;
 
   /* THE SHEET IS SQUARE, and nothing on it reads a radius. This scope set `--radius-sm` and
      `--radius-xs` to 0 as well, which squared the chrome's buttons through the cascade
@@ -659,8 +660,19 @@
    the date moved to the mast, the name to the summary, and the rest to
    the dealer's note, so the white is now simply white. */
 .doc-cover {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
+}
+/* the air between the cover's last line and the foot's rule, the foot's own (`COVER_AIR`) */
+.doc:not([data-gauging]) .doc-cover {
+  padding-block-end: --spacing(2);
+}
+/* THE PRICE BESIDE WHO IT IS FOR STANDS AT THE FOOT OF THE COVER, so the white on a cover is
+   between the boat and its price and never a random gap under the price (the printed quote's
+   critic, 2026-10-31: "a letterhead with a framed picture"). The measuring pass reads the
+   cover's natural height, so it sets the price at its own margin there. */
+.doc:not([data-gauging]) .doc-cover > .doc-money {
+  margin-block-start: auto;
 }
 
 /* THE LETTERHEAD STRIP. The dealership's name, the kind of document and
@@ -709,7 +721,7 @@
    proportion, and never wider than the column or the pixels held */
 .doc-cover__mark {
   display: block;
-  block-size: 20mm;
+  block-size: 16mm;
   inline-size: auto;
   max-inline-size: 100%;
   object-fit: contain;
@@ -719,9 +731,7 @@
    with the name set in one line of type, and the CL420's cover then had 0 px to spare; the
    20 mm mark stands about 10 mm taller than that line, so a cover that carries it gives the
    photograph 90 mm and its foot stays where it was (measured 2026-10-20 at 1440) */
-.doc-cover:has(.doc-cover__mark) {
-  --shot-max: 110mm;
-}
+
 /* NORTHSIDE'S CONTACT LINE (Milestone 4), under the mark and over the rule: who is writing and
    how to reach them, each part only where /manage was given it, parted by a middle dot. Small and
    quiet, because the mark is the letterhead and this is its small print. */
@@ -820,13 +830,24 @@
   display: flex;
   /* a column, so a photograph of the model carries its line under it (`.doc-shot__say`) */
   flex-direction: column;
+}
+/* ONE PLATE ON EVERY COVER (the printed quote's critic, 2026-10-31: three frame treatments, and
+   picture edges at 68–725, 85–708 and 120–673 against the 68–726 the title and the rules stand
+   on). The plate is the measure's full width on a pale studio ground, so its edges are the
+   page's edges whatever it holds: a photograph on the water fills its width, a cut-out on white
+   stands on the ground as if photographed there, and a mark or a name in type sits in its
+   middle. Never a bleed and never a crop. */
+.doc-shot__plate {
+  display: flex;
   align-items: center;
   justify-content: center;
+  inline-size: 100%;
+  background: var(--color-neutral-50);
+  print-color-adjust: exact;
 }
-.doc-shot:not([data-art='photograph']) {
+.doc-shot:not([data-art='photograph']) .doc-shot__plate {
   block-size: 72mm;
   overflow: hidden;
-  background: var(--color-neutral-100);
 }
 .doc-shot__img {
   /* the held size, in pixels, as numbers: set on the element by the cover
@@ -850,24 +871,23 @@
   aspect-ratio: var(--held-w) / var(--held-h);
   object-fit: contain;
 }
-/* a render cut out on white has no edge of its own against the sheet,
-   so it is given one — on the picture itself, which is the picture's
-   own size; a scene on the water already has four */
+/* A RENDER CUT OUT ON WHITE TAKES THE PLATE'S GROUND: its white is multiplied into the ground, so
+   the item stands on the plate and no white box stands inside it. A scene on the water is drawn
+   as it is. */
 .doc-shot[data-verdict='studio'] .doc-shot__img,
 .doc-shot[data-verdict='unknown'] .doc-shot__img {
-  outline: 1px solid var(--color-neutral-200);
-  outline-offset: -1px;
+  mix-blend-mode: multiply;
 }
 /* THE LINE UNDER A PHOTOGRAPH OF THE MODEL, in the paper's quiet ink, the size of the issue
    date: read by a buyer who looks for it, never competing with the boat's name under it */
 .doc-shot__say {
   margin: 0;
   padding-block-start: --spacing(2);
+  text-align: start;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-500);
-  text-align: center;
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 .doc-shot__mark {
   max-inline-size: 60%;
@@ -885,7 +905,7 @@
 /* WHAT IS SOLD, UNDER ITS PICTURE: the maker and series in the accent's small capitals, the
    exact model set large and light, its finish with a swatch of each colour */
 .doc-cover__title {
-  padding-block-start: --spacing(6);
+  padding-block-start: --spacing(5);
 }
 .doc-cover__over {
   margin: 0;
@@ -896,6 +916,10 @@
   text-transform: uppercase;
   color: var(--color-accent);
 }
+/* "(Centre Console)" breaks onto its own line whole, never "Sea Ranger" over "SDF (Centre…" */
+.doc-cover__bracket {
+  display: inline-block;
+}
 .doc-cover__name {
   margin: 0;
   padding-block-start: --spacing(1);
@@ -904,7 +928,7 @@
   font-weight: 300;
   letter-spacing: var(--tracking-display);
   color: var(--color-neutral-900);
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
 /* THE BOAT'S MATERIAL AND COLOUR under its name, in words, with a swatch of each colour the
@@ -940,6 +964,46 @@
   padding-inline-start: 0;
   border-inline-start: 0;
 }
+.doc-keys[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.doc-keys[data-count='2'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.doc-keys[data-count='3'],
+.doc-keys[data-count='6'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* TWO ROWS THAT BOTH SPAN THE MEASURE: five facts are three over two, seven are four over three,
+   each row's cells widened to fill it, so no row ends on an empty cell */
+.doc-keys[data-count='5'] {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.doc-keys[data-count='5'] .doc-key {
+  grid-column: span 2;
+}
+.doc-keys[data-count='5'] .doc-key:nth-child(n + 4) {
+  grid-column: span 3;
+}
+.doc-keys[data-count='7'] {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.doc-keys[data-count='7'] .doc-key {
+  grid-column: span 3;
+}
+.doc-keys[data-count='7'] .doc-key:nth-child(n + 5) {
+  grid-column: span 4;
+}
+/* the second row starts at the measure's left edge, under a hairline */
+.doc-keys:is([data-count='5'], [data-count='6']) .doc-key:nth-child(4),
+.doc-keys:is([data-count='7'], [data-count='8']) .doc-key:nth-child(5) {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+.doc-keys:is([data-count='5'], [data-count='6']) .doc-key:nth-child(n + 4),
+.doc-keys:is([data-count='7'], [data-count='8']) .doc-key:nth-child(n + 5) {
+  border-block-start: 1px solid var(--color-neutral-200);
+}
 .doc-key__val {
   margin: 0;
   font-size: var(--text-xl);
@@ -961,8 +1025,7 @@
    configuration belongs to a code, a quote belongs to a person. It opens
    under a rule in the dealership's own colour, the cover's one stroke of it. */
 .doc-money {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   gap: --spacing(6);
   align-items: start;
   margin-block-start: --spacing(8);
@@ -999,16 +1062,23 @@
   block-size: var(--text-2xl--line-height);
   border-block-end: 1px solid var(--color-neutral-400);
 }
-/* who prepared it sits under who it is for, a step down: the buyer's
-   name is the subject of the column and the salesperson's is its credit */
+/* who it is for and who prepared it, side by side, and the total at the right: one row across the
+   foot of the cover */
+.doc-money__who,
 .doc-money__by {
-  padding-block-start: --spacing(4);
+  flex: 1 1 0;
+  min-inline-size: 0;
 }
 .doc-money__who-by {
+  margin: 0;
   padding-block-start: --spacing(1);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   color: var(--color-neutral-900);
 }
 .doc-money__sum {
+  flex: none;
+  margin-inline-start: auto;
   text-align: end;
   max-inline-size: --spacing(88);
 }
@@ -1087,6 +1157,19 @@
 .doc-specs {
   margin: 0;
 }
+/* A SHEET SET AS ONE LIST runs across both columns of the measure, its rows down the first and
+   then the second, under one rule: eleven facts are six rows, not a column of eleven */
+.doc-sheet__group[data-flat] {
+  column-span: all;
+  border-block-start: var(--mark) solid var(--color-neutral-900);
+}
+.doc-sheet__group[data-flat] .doc-specs {
+  column-count: 2;
+  column-gap: --spacing(10);
+}
+.doc-sheet__group[data-flat] .doc-spec {
+  break-inside: avoid;
+}
 .doc-spec {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1129,8 +1212,16 @@
 .doc-band__num {
   display: inline-block;
   min-inline-size: 3ch;
-  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
   color: var(--color-accent);
+}
+/* A BAND THAT RUNS OVER A PAGE BREAK, said again at the top of the next sheet: the same head,
+   with "continued" in the paper's quiet ink, and no air above it under the running head */
+.doc-band[data-continued] {
+  padding-block-start: 0;
+}
+.doc-band__cont {
+  color: var(--color-neutral-500);
 }
 
 .doc-shelf {
@@ -1411,6 +1502,11 @@
   max-inline-size: var(--page-w);
   margin-block-end: --spacing(8);
 }
+.doc-pick__reach {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(2);
+}
 .doc-pick__in {
   display: grid;
   gap: --spacing(3);
@@ -1631,6 +1727,13 @@
   .doc:not([data-gauging]) .doc-sheet__groups {
     column-count: 1;
   }
+  .doc:not([data-gauging]) .doc-sheet__group[data-flat] .doc-specs {
+    column-count: 1;
+  }
+  /* the cover is as tall as what it holds here, so its price keeps its own air above it */
+  .doc:not([data-gauging]) .doc-cover > .doc-money {
+    margin-block-start: --spacing(8);
+  }
   .doc:not([data-gauging]) .doc-accept__contact,
   .doc:not([data-gauging]) .doc-sign {
     grid-template-columns: minmax(0, 1fr);
@@ -1660,11 +1763,14 @@
   }
   /* a mark or a name in type keeps a short band; a photograph is already
      no wider than the column and no taller than its own proportion */
-  .doc:not([data-gauging]) .doc-shot:not([data-art='photograph']) {
+  .doc:not([data-gauging]) .doc-shot:not([data-art='photograph']) .doc-shot__plate {
     block-size: 200px;
   }
   .doc:not([data-gauging]) .doc-money {
-    grid-template-columns: minmax(0, 1fr);
+    flex-direction: column;
+  }
+  .doc:not([data-gauging]) .doc-money__sum {
+    margin-inline-start: 0;
   }
   .doc:not([data-gauging]) .doc-money__sum {
     text-align: start;
@@ -1749,7 +1855,12 @@
 @media print {
   .doc {
     min-block-size: 0;
-    background: var(--color-paper);
+    background: var(--color-white);
+  }
+  /* THE SHEET PRINTS ON WHITE: an office printer cannot print to the edge, so a tinted ground
+     comes out framed in white (quote-spec §2); the screen keeps the paper token */
+  .doc-page {
+    background: var(--color-white);
   }
   /* THE ROOM DOES NOT PRINT, AND THE DESK NOTE IS THE ROOM. It leaves
      with the chrome and the crop marks, for the same reason and by the
@@ -1818,7 +1929,7 @@
     inline-size: 60%;
   }
   .doc-money {
-    grid-template-columns: minmax(0, 1fr) auto;
+    flex-direction: row;
   }
   .doc-money__sum {
     text-align: end;

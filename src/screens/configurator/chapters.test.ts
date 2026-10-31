@@ -25,6 +25,7 @@ import {
 } from './chapters'
 import { choiceSay } from './say'
 import { NO_OTHER_FINISH, readFinishes } from './finishes'
+import { readBoatChoices } from './boat'
 
 const pack = await loadPack()
 const ctx = pack.ctx
@@ -862,6 +863,34 @@ describe('a motor, a trailer or a part sold on its own', () => {
     expect(sold.map((p) => `${p.name} ${p.kind} ${p.amount}`)).toEqual([
       'The product accessory 138',
     ])
+  })
+
+  /* THE PAPER-QUOTE CRITIQUE, 2026-10-31: the F150LC's dealer fit said "nothing goes with this
+     motor · Nothing on it yet" while the tally said "Not chosen yet: dealer fit." */
+  it('waits for no list the price file offers nothing from, and says so once', () => {
+    const f150 = aloneOn('mot_yamaha', 'F150LC')
+    const rail = readRail(ctx, f150)
+    const fit = rail.chapters.find((c) => c.name === 'Dealer fit')!
+    expect(fit.rest).toBe('nothing goes with this motor')
+    expect(fit.bare).toBe(true)
+    expect(tallyParts(rail.chapters).map((p) => p.name)).toEqual(['The motor'])
+    /* a list with something to choose from is still waited for */
+    expect(readRail(ctx, motor).chapters.find((c) => c.name === 'Dealer fit')!.bare).toBeUndefined()
+  })
+
+  /* THE SAME CRITIQUE: the F150's nine tiles read "F130LA", "LF150XC +$17", "F150LD no change", and
+     a person could not tell what differs; the same motors on a boat's quote carry their facts */
+  it('says each motor beside it by its power, weight and shaft, as its own row states them', () => {
+    const f150 = aloneOn('mot_yamaha', 'F150LC')
+    const axis = readBoatChoices(ctx, f150).axes[0]!
+    const said = Object.fromEntries(axis.options.map((o) => [o.say, o.facts]))
+    expect(said['F150LC']).toBe('150 hp · 228 kg · 20″ shaft')
+    expect(said['F130LA']).toBe('130 hp · 172 kg · 20″ shaft')
+    expect(said['LF150XC']).toBe('150 hp · 228 kg · 25″ shaft')
+    /* a boat's axes carry none: a hull is told apart by its own words */
+    expect(
+      readBoatChoices(ctx, sp560).axes.every((a) => a.options.every((o) => o.facts === '')),
+    ).toBe(true)
   })
 
   it('reads a trailer on its own as one chapter, its own', () => {

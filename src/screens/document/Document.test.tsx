@@ -10,11 +10,15 @@ import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { issue, mintQuote, priceLevelsFor, quoteTotals, setCustomer, setNote } from '@/domain/quote'
-import { INCLUDED, NOT_PRICED_HERE, readDocument } from '@/domain/quote/document'
+import { INCLUDED, NOT_PRICED_HERE, NO_WAY_TO_REACH, readDocument } from '@/domain/quote/document'
 import {
   ALWAYS_IN,
   CHOSEN_AT_THE_GIVE,
+  COVER_FACTS,
   Document,
+  NO_DEPOSIT_SET,
+  NO_DETAILS_SET,
+  NO_TERMS_SET,
   NO_INCLUSIONS,
   NO_WRITTEN_PAGES,
   LETTERHEAD_MARK,
@@ -963,7 +967,7 @@ describe('the room speaks the kit, and the paper stays paper', () => {
    ============================================================ */
 
 /** A draft on one row of the real file, addressed and not given. */
-function draftQuote(key: string, find: string): QuoteDef {
+function draftQuote(key: string, find: string, alone = false): QuoteDef {
   const table: EntityDef = pack.byKey(key)
   const rows = (pack.rowsByEntity[table.id] ?? []) as RowData[]
   const row = rows.find((r) => rowLabel(table, r).includes(find))
@@ -977,7 +981,13 @@ function draftQuote(key: string, find: string): QuoteDef {
     orgId: 'northside',
   })
   const view = createViewFor(ctx, table.id)
-  const minted = mintQuote(ctx, { viewId: view.id, rowId: row!.id, reference: 'NSM-DRAFT' })
+  const minted = mintQuote(ctx, {
+    viewId: view.id,
+    rowId: row!.id,
+    reference: 'NSM-DRAFT',
+    /* as the picker mints: the item alone (src/screens/picker/mint.ts) */
+    ...(alone ? { hullAlone: true } : {}),
+  })
   quotes.getState().file(minted!.quote, minted!.event)
   quotes.getState().apply(minted!.quote.id, setCustomer({ name: 'R. Kelleher' }))
   return quotes.getState().get(minted!.quote.id)!
@@ -1051,5 +1061,65 @@ describe('Northside’s GST rate on a draft', () => {
     } finally {
       catalogue.setState({ org: was })
     }
+  })
+})
+
+/* ============================================================
+   THE PRINTED QUOTE'S CRITIC (2026-10-31): sections a salesperson can
+   really add and remove, a repower's cover that says what its picture
+   shows, a sheet with no number over its one band, and the sentence at
+   the paper when nothing on it reaches Northside.
+   ============================================================ */
+
+describe('the sections beside the paper, and a quote that is not a boat', () => {
+  it('takes the motor’s own facts off the paper and puts them back', async () => {
+    const quote = draftQuote('boat_highfield', 'SP560 (HYP)')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const motorFacts = () =>
+      [...container.querySelectorAll('.doc-page .doc-row')].filter(
+        (row) => /Yamaha/.test(row.textContent ?? '') && row.querySelector('.doc-row__own'),
+      )
+    expect(motorFacts().length).toBeGreaterThan(0)
+    await userEvent.click(screen.getByRole('switch', { name: /^The motor’s specification/ }))
+    expect(quotes.getState().get(quote.id)!.paperOff).toEqual(['motor'])
+    expect(motorFacts()).toHaveLength(0)
+    await userEvent.click(screen.getByRole('switch', { name: /^The motor’s specification/ }))
+    expect(motorFacts().length).toBeGreaterThan(0)
+  })
+
+  it('refuses terms, deposit wording and details nobody set, each with its sentence', () => {
+    const quote = draftQuote('boat_highfield', 'SP560 (HYP)')
+    render(<Document quoteId={quote.id} />)
+    expect(screen.getByText(NO_TERMS_SET)).toBeInTheDocument()
+    expect(screen.getByText(NO_DEPOSIT_SET)).toBeInTheDocument()
+    expect(screen.getByText(NO_DETAILS_SET)).toBeInTheDocument()
+    /* and says once, where the paper is chosen, that nothing on it reaches Northside */
+    expect(screen.getByTestId('document-unreachable')).toHaveTextContent(NO_WAY_TO_REACH)
+  })
+
+  it('sets a repower’s whole specification on its cover, says its picture’s two outboards, and numbers no lone band', () => {
+    const quote = draftQuote('mot_yamaha', 'F115LB', true)
+    const { container } = render(<Document quoteId={quote.id} />)
+    const cover = container.querySelector('.doc-page .doc-cover')!
+    expect(cover.querySelector('.doc-cover__over')).toHaveTextContent('Your motor')
+    const facts = readDocument(quote).subject.sheet.flatMap((g) => g.rows).length
+    expect(facts).toBeLessThanOrEqual(COVER_FACTS)
+    expect(cover.querySelectorAll('.doc-key')).toHaveLength(facts)
+    /* no page repeats them */
+    expect(container.querySelector('.doc-page .doc-sheet')).toBeNull()
+    expect(cover.querySelector('.doc-shot__say')?.textContent).toMatch(
+      /^Pictured: two outboards, as the maker’s own picture shows them\. Yours is the Yamaha F115LB quoted below\.$/,
+    )
+    expect(container.querySelectorAll('.doc-page .doc-band__num')).toHaveLength(0)
+    /* the price is its total, not a row that says the motor's figure over it again */
+    expect(container.querySelectorAll('.doc-sums .doc-sum:not(.doc-sum--total)')).toHaveLength(0)
+  })
+
+  it('tells the dealer a repower lists nothing for "this motor", and lists no hull as left off', () => {
+    const quote = draftQuote('mot_yamaha', 'F115LB', true)
+    render(<Document quoteId={quote.id} />)
+    const note = theNote().textContent ?? ''
+    expect(note).not.toMatch(/for this boat/)
+    expect(note).not.toMatch(/Highfield|Jeanneau|Stacer|Stabicraft/)
   })
 })

@@ -1384,6 +1384,11 @@ export const setPaperSection =
 export const PAPER_SECTION_SAID: Record<PaperSection, string> = {
   specs: 'The specification',
   pictures: 'The pictures beside the items',
+  motor: 'The motor’s specification',
+  trailer: 'The trailer’s specification',
+  terms: 'Northside’s terms',
+  deposit: 'The deposit wording',
+  details: 'Northside’s details',
 }
 
 /* ============================================================

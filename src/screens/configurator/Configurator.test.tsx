@@ -182,7 +182,16 @@ describe('a chapter head states its own answer while it is shut', () => {
       })
       expect(head).toHaveAttribute('aria-expanded', String(chapter.id === 'hull'))
       expect(head).toHaveTextContent(chapter.num)
-      expect(head).toHaveTextContent(chapter.fact)
+      if (chapter.subject && (chapter.boat?.axes.length ?? 0) > 0 && chapter.id === 'hull') {
+        /* OPEN, THE BOAT'S CHAPTER LEAVES ITS NAME TO THE LIT CHOICE under it and the bar over it
+           (the paper-quote critique, 2026-10-31: the name four times in one window); what is
+           still open stays in its head */
+        expect(head).not.toHaveTextContent(chapter.said!)
+        if (chapter.rest) expect(head).toHaveTextContent(chapter.rest)
+        expect(
+          screen.getByTestId('boat-choices').querySelector('[aria-pressed="true"]'),
+        ).not.toBeNull()
+      } else expect(head).toHaveTextContent(chapter.fact)
       if (chapter.amount !== null) expect(head).toHaveTextContent(money(chapter.amount))
     }
   })
@@ -781,6 +790,9 @@ describe('the finale is the handover', () => {
     )
     expect(card).not.toHaveTextContent(boat.name)
     expect(card.querySelector('.cfg-hand__boat')).toBeNull()
+    /* AND THE LINE THAT PRICES THE BOAT NAMES IT, with its finish (the paper-quote critique,
+       2026-10-31: "Adventure" stood alone beside the hull's price) */
+    expect(finale.querySelector('.cfg-sum__item-name')).toHaveTextContent(boat.name)
     const level = rail.rungs.find((r) => r.key === standing.levelKey)!.label
     expect(card).toHaveTextContent(`Total at ${level}`)
     /* the head does not say the figure a line above the card that does */

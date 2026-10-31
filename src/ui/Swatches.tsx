@@ -10,8 +10,9 @@ import { swatchesOf } from '@/domain/quote/spoken'
  * any code with I, O, R or WH in it — draws NOTHING, and the screen prints the code alone: a
  * colour nobody can name is a colour nobody may paint.
  *
- * TWO SHAPES. `squares` is a square per part, for a chip or a heading with room. `flag` is
- * the parts as stripes of one small tile, for a cell of the sheet whose width is the code's:
+ * THREE SHAPES. `chips` is a round, shaded chip per part, for the printed quote's cover.
+ * `squares` is a square per part, for a chip or a heading with room. `flag` is the parts as
+ * stripes of one small tile, for a cell of the sheet whose width is the code's:
  * the colour is still drawn, and the column keeps its measure.
  *
  * It is never the only statement of the colour. It is hidden from a reader, and every screen
@@ -24,7 +25,7 @@ export function Swatches({
 }: {
   colour: Colourway | null
   size?: 'sm' | 'md'
-  shape?: 'squares' | 'flag'
+  shape?: 'squares' | 'flag' | 'chips'
 }) {
   const drawn = swatchesOf(colour)
   if (drawn.length === 0) return null

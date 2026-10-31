@@ -807,7 +807,16 @@ test.describe('the lit capsule', () => {
     await page.waitForTimeout(400)
     await act.scrollIntoViewIfNeeded()
     const before = await page.evaluate(() => scrollY)
-    expect(before, 'the build is scrolled to its finale').toBeGreaterThan(100)
+    /* AT A DESK THE FINALE IS NOW A PAGE OF ITS OWN THAT FITS THE WINDOW (the build page's
+       rebuild, 2026-10-30: "The summary", full-screen at the end of the build), so the window has
+       no scroll to leave from there; measured 0 at 1280, 1440 and 1920. Below a desk the summary
+       is the build's end and is scrolled to, and the scroll case is measured there. At every size
+       the capsule is still watched through the change. */
+    const scrolled = before > 100
+    if (!scrolled) {
+      const room = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)
+      expect(room, 'the window could scroll, and the walk did not').toBeLessThanOrEqual(100)
+    }
     await page.waitForTimeout(400)
 
     const stop = await watchTheCapsule(page)
@@ -818,10 +827,11 @@ test.describe('the lit capsule', () => {
     const frames = await stop()
 
     expect(frames.length, 'frames were read through the change').toBeGreaterThan(10)
-    expect(
-      frames.some((f) => Math.abs(f.scroll - before) > 100),
-      'the change of screen changed the scroll, which is the case that broke',
-    ).toBe(true)
+    if (scrolled)
+      expect(
+        frames.some((f) => Math.abs(f.scroll - before) > 100),
+        'the change of screen changed the scroll, which is the case that broke',
+      ).toBe(true)
     expect(strayFrames(frames)).toEqual([])
     /* and it never left the Quotes door: the build and the paper are both behind it */
     expect([...new Set(frames.map((f) => f.door))]).toEqual(['/quotes'])

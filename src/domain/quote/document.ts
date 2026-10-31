@@ -91,9 +91,10 @@ import { boatTitle } from './title'
 import { levelWord, lineLevelSaid } from './levelSaid'
 import type { Colourway } from './colourway'
 import { accentOnQuote } from '@/domain/northside/letterhead'
-import { SUBJECT_CHAPTER } from '@/domain/model'
+import { PAPER_SECTIONS, SUBJECT_CHAPTER } from '@/domain/model'
 import { quietCaps } from './specSay'
 import { factSheet, keyFacts, specSheet, type SpecGroup } from './specSheet'
+import { nameOnPaper, paperFacts, trailerOnPaper, type PaperFact } from './paperWords'
 
 /* ---------------------------------------------------------- */
 /* The three words                                            */
@@ -162,6 +163,9 @@ export interface DocumentLine {
   /** THE ITEM'S OWN FACTS, as a customer reads them — "Power 90 hp", "Rated to (ATM) 1,500 kg" —
    *  frozen onto the line at the pick (`lineFacts.ts`); empty on a line that froze none */
   own: ReadonlyArray<{ label: string; value: string }>
+  /** THE ITEM'S OWN FACTS THE PAPER LEAVES OFF — a value that is no fact ("Opt") or a shorthand no
+   *  rule reads (`paperWords.ts`) — named to the dealer on the note beside the sheet */
+  unsaid: readonly PaperFact[]
   /** WHICH ROW IT IS, for the picture reader: the line's own register and row and the picture
    *  address the file gave it. Ids are kept for exactly this kind of lookup ("open this row");
    *  nothing drawn or totalled reads them. Null on a line a person typed. */
@@ -209,6 +213,7 @@ const CONTAINS_SAY: Record<RungCharge, string> = {
 /** One frozen line. `table` is the name of the table it was picked
  *  from, as the quote froze it; undefined for a line typed on the quote. */
 function readLine(line: QuoteLine, said?: string, table?: string): DocumentLine {
+  const facts = paperFacts(line.facts ?? [])
   const { unit, amount, overridden } = lineAmount(line)
   const level = line.levels.find((l) => l.key === line.levelResolved)
   const rung = level ? levelWord(level.key, level.label) : lineLevelSaid(line) || null
@@ -235,7 +240,8 @@ function readLine(line: QuoteLine, said?: string, table?: string): DocumentLine 
     rung: rung ?? null,
     offRung: line.levelKey !== line.levelResolved,
     facts: line.pairFacts ?? [],
-    own: line.facts ?? [],
+    own: facts.printed,
+    unsaid: facts.left,
     item:
       line.entityId === '' || line.rowId === ''
         ? null
@@ -263,6 +269,16 @@ function readLine(line: QuoteLine, said?: string, table?: string): DocumentLine 
           ? `${rung} states a charge of nothing for it`
           : '',
   }
+}
+
+/** A registered item's name as the paper prints it (`paperWords.ts`). */
+function itemSaid(line: QuoteLine, said: string, kind: TableKind): string {
+  const named = nameOnPaper(said)
+  if (kind !== 'trailer') return named
+  return trailerOnPaper(
+    named,
+    (line.facts ?? []).some((fact) => /boats of/i.test(fact.label)),
+  )
 }
 
 /* ---------------------------------------------------------- */
@@ -313,8 +329,13 @@ function readTable(step: BuildStep, kind: TableKind, hull: string): DocumentTabl
     readLine(
       line,
       /* and without the code nobody says aloud (`nameFirst`, minor 15): the paper printed the
-         trailer as "TA1400S13SB · T Alloy 1400 …"; its code stays in the dealer's note */
-      step.subject ? hull : nameFirst(lineSaid(line.label, step.title), line.code ?? undefined),
+         trailer as "TA1400S13SB · T Alloy 1400 …"; its code stays in the dealer's note. The file's
+         shorthand in a name is said in full ("w" is "with", "2mtr" is "2 m"), and a trailer the
+         file codes is said as a person says it, its rating and size left to its facts
+         (`paperWords.ts`) */
+      step.subject
+        ? hull
+        : itemSaid(line, nameFirst(lineSaid(line.label, step.title), line.code ?? undefined), kind),
       step.title,
     ),
   )
@@ -434,6 +455,9 @@ export interface PrintedQuote {
     sheet: SpecGroup[]
     /** the four the cover sets large (`keyFacts`) */
     key: ReadonlyArray<{ label: string; value: string }>
+    /** THE FACTS THE PAPER LEAVES OFF — "Fuel capacity Opt", a shorthand no rule reads — named to
+     *  the dealer on the note beside the sheet, never printed (`paperWords.ts`) */
+    unsaid: readonly PaperFact[]
   }
   /** THE OPTIONAL SECTIONS, AS CHOSEN (quote-spec §7a): true = printed. Read off the quote, so
    *  a given quote prints what was chosen before it was given. */
@@ -483,9 +507,21 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
   )
   const itemSpecified =
     subjectKind !== null && subjectKind !== 'boat' && (subjectLine?.facts?.length ?? 0) > 0
-  const sheet = itemSpecified
-    ? factSheet(subjectLine?.facts ?? [])
+  /* THE FILE'S WORDS SAID IN FULL, OR LEFT OFF (`paperWords.ts`): "Shaft length XL" is "Extra
+     long", "Fuel capacity Opt" is no fact and is named to the dealer instead */
+  const itemFacts = paperFacts(subjectLine?.facts ?? [])
+  const grouped = itemSpecified
+    ? factSheet(itemFacts.printed)
     : specSheet(every.filter((spec) => !unitlessMeasure(spec.value)))
+  const unsaid: PaperFact[] = itemSpecified ? itemFacts.left : []
+  const cleaned = grouped.flatMap((group) => {
+    /* an item's own facts are said once, above; a boat's specification is said here */
+    if (itemSpecified) return [group]
+    const facts = paperFacts(group.rows)
+    unsaid.push(...facts.left)
+    return facts.printed.length > 0 ? [{ ...group, rows: facts.printed }] : []
+  })
+  const sheet = sheetOnPaper(cleaned)
   const off = quote.paperOff ?? []
 
   const sections: DocumentSection[] = bands.map((band) => {
@@ -543,9 +579,13 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
       kind: subjectKind,
       series: quote.subjectSeries ? quietCaps(quote.subjectSeries) : '',
       sheet,
-      key: itemSpecified ? (subjectLine?.facts ?? []).slice(0, 4) : keyFacts(sheet),
+      key: itemSpecified ? itemFacts.printed.slice(0, 4) : keyFacts(cleaned),
+      unsaid,
     },
-    chosen: { specs: !off.includes('specs'), pictures: !off.includes('pictures') },
+    chosen: Object.fromEntries(PAPER_SECTIONS.map((s) => [s, !off.includes(s)])) as Record<
+      PaperSection,
+      boolean
+    >,
     sections,
     typed,
     adjustments: quote.adjustments,
@@ -557,6 +597,58 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
     included: onDocument.filter((l) => l.state === 'included').length,
     optional,
   }
+}
+
+/** Said to the dealer where nothing on the printed quote lets the customer reach Northside. */
+export const NO_WAY_TO_REACH =
+  'None of Northside’s address, phone or email is set on Settings, so this printed quote gives the customer no way to reach Northside.'
+
+/**
+ * WHETHER THE PAPER LETS A CUSTOMER REACH NORTHSIDE (the printed quote's critic, 2026-10-31: no
+ * address, phone, email or ABN on any of six papers, and nothing said at the give). '' where the
+ * letterhead carries an address, a phone or an email, or the salesperson's phone or email prints;
+ * otherwise the sentence, said to the dealer where the quote is printed and given (quote-spec §0,
+ * rule 5: "a sentence at the moment of issue"). The paper itself never says it: a customer is
+ * told only what they need, and nothing is filled from a guess.
+ */
+export function unreachableSay(
+  letterhead: FrozenLetterhead | null,
+  preparer: FrozenPreparer | null,
+  details = true,
+): string {
+  const set = (v: string | undefined): boolean => v !== undefined && v.trim() !== ''
+  const northside =
+    details &&
+    letterhead !== null &&
+    [letterhead.address, letterhead.phone, letterhead.email].some(set)
+  const person = preparer !== null && [preparer.phone, preparer.email].some(set)
+  return northside || person ? '' : NO_WAY_TO_REACH
+}
+
+/** The largest specification set as one list rather than in groups. */
+const FLAT_UP_TO = 12
+
+/**
+ * THE SPECIFICATION AS THE PAPER GROUPS IT: in groups only where every group holds two facts or
+ * more. A heading over one row ("Weight", "Details", "Capacity") reads as a heading with nothing
+ * under it (the printed quote's critic, 2026-10-31), so a sheet of up to twelve facts with such a
+ * group is one list in the file's order of groups, and a longer one gathers its lone facts under
+ * "Details". A sheet of one group needs no heading at all: it is returned as one list.
+ */
+export function sheetOnPaper(groups: readonly SpecGroup[]): SpecGroup[] {
+  const rows = groups.flatMap((group) => group.rows)
+  const one = (): SpecGroup[] => (rows.length === 0 ? [] : [{ id: 'more', name: '', rows }])
+  if (groups.length <= 1) return one()
+  const lone = groups.filter((group) => group.rows.length === 1)
+  if (lone.length === 0) return [...groups]
+  if (rows.length <= FLAT_UP_TO) return one()
+  const kept = groups.filter((group) => group.rows.length > 1 && group.id !== 'more')
+  const rest = groups.filter((group) => group.rows.length === 1 || group.id === 'more')
+  const details = rest.flatMap((group) => group.rows)
+  if (details.length >= 2) return [...kept, { id: 'more', name: 'Details', rows: details }]
+  /* one lone fact and nothing to gather it with: it joins the group before it */
+  const last = kept[kept.length - 1]
+  return last ? [...kept.slice(0, -1), { ...last, rows: [...last.rows, ...details] }] : one()
 }
 
 /** A figure, or a span of two, and nothing else — `measured`'s own. */

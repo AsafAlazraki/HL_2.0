@@ -494,8 +494,12 @@ test('the boat chosen in its chapter, and the summary that fills the screen', as
   await expect(summary.getByRole('heading', { level: 2 })).toHaveText(/Highfield Sport 520/)
   await expect(summary.locator('.cfg-sum__item')).toHaveCount(2)
   await expect(summary.locator('.cfg-hand')).toContainText('For Jordan Avery')
-  /* THE BOAT'S NAME ONCE, AND THE CONTACT LINE ON THE CARD (the critic, P-10) */
-  expect((await summary.innerText()).match(/Highfield Sport 520/g)?.length).toBe(1)
+  /* THE BOAT'S NAME AS THE TITLE AND ON THE LINE THAT PRICES IT, never on the card (the critic,
+     P-10; the paper-quote critique, 2026-10-31: the hull's line said its finish alone), AND THE
+     CONTACT LINE ON THE CARD */
+  expect((await summary.innerText()).match(/Highfield Sport 520/g)?.length).toBe(2)
+  await expect(summary.locator('.cfg-sum__item-name').first()).toContainText('Highfield Sport 520')
+  await expect(summary.locator('.cfg-hand')).not.toContainText('Highfield Sport 520')
   await expect(summary.locator('.cfg-hand')).toContainText('jordan.avery@example.com')
   await shot('11-summary')
 

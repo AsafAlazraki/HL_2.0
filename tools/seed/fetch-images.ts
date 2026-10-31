@@ -793,6 +793,49 @@ const RULINGS: {
       'automatic: the person’s PA600SB ruling, applied to the same maker’s PA660SB, PA760SB and PA860SB renders; seen on the picker by Claude (gate round), 2026-10-20',
     source: 'tools/seed/fetch-images.ts RULINGS (gate round, 2026-10-20)',
   },
+  /* THE PRINTED QUOTE'S CRITIC (2026-10-31, blocker 1): a repower's cover printed Yamaha's studio
+     shot of a white F115 beside a grey one for one grey F115LB, and the F150's is a triple rig.
+     Each picture below shows more outboards than a line sells; it is drawn, and a cover captions
+     the count (`pictured` in src/screens/document/art.ts reads the leading count word). */
+  ...(
+    [
+      [/f115-grey--white-800-x-600.ashx$/, 'two', 'a white F115 beside a grey one'],
+      [
+        /yamaha-f150-profile-800-x-600px-grey.ashx$/,
+        'three',
+        'three grey F150s rigged side by side',
+      ],
+      [/yamaha-f175-profile-800-x-600px-grey.ashx$/, 'two', 'two grey F175s side by side'],
+      [
+        /yamaha-f200-profile-800-x-600px-grey.ashx$/,
+        'three',
+        'three grey F200s rigged side by side',
+      ],
+      [/f250xsb2-f250xsb-product-profile-800x600.ashx$/, 'two', 'a white F250 beside a grey one'],
+      [/f300xsb2-f300xsb-product-profile-800x600.ashx$/, 'two', 'a white F300 beside a grey one'],
+      [
+        /f300xsa2-f300xsa-product-profile-800x600.ashx$/,
+        'two',
+        'a white XSA outboard beside a grey one',
+      ],
+      [/yamaha-f50c-white-product-colour-800-x-600.ashx$/, 'two', 'a white F50 beside a grey one'],
+      [/yamaha-f70b-white-product-colour-800-x-600.ashx$/, 'two', 'a white F70 beside a grey one'],
+      [/f90-product-colour-800-x-600-new.ashx$/, 'two', 'a white F90 beside a grey one'],
+    ] as const
+  ).map(([address, count, shows]) => ({
+    table: '',
+    models: [],
+    everyRow: true as const,
+    address,
+    person: false as const,
+    decision: 'note' as const,
+    rule: 'shows more outboards than one',
+    shows: `Yamaha's studio picture: ${shows}`,
+    differs: [`${count} outboards in one picture: a cover says so under it`],
+    verification:
+      'looked at by Claude (the printed quote round), 2026-10-31, at 800×600 on a contact sheet',
+    source: 'docs/directions/paper-quote/critique.md, blocker 1',
+  })),
 ]
 
 /** An address whose own file name says it is a logo: refused for every row, by the machine. */

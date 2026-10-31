@@ -154,6 +154,7 @@ describe('what the customer’s copy prints', () => {
       offRung: false,
       facts: [{ label: 'Slot', value: '1' }],
       own: [],
+      unsaid: [],
       item: null,
       contains: [],
       say: '',
