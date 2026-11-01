@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
-import { PREVIEW_PORT } from './tools/ports.ts'
+import { DEFAULT_PREVIEW_PORT, PREVIEW_PORT } from './tools/ports.ts'
 
 /**
  * Everything browser-side runs against `vite preview` of a fresh build, never the dev
@@ -83,7 +83,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run preview',
+    /* A run on its own port builds into its own folder, so agents running side by side
+       never rebuild the dist another run is serving (2026-10-31: a run lost its server
+       mid-suite with 68 ERR_CONNECTION_REFUSED). The default port keeps dist/. */
+    command:
+      PREVIEW_PORT === DEFAULT_PREVIEW_PORT
+        ? 'npm run build && npm run preview'
+        : `npx vite build --outDir e2e/out/dist-${PREVIEW_PORT} --emptyOutDir && npx vite preview --outDir e2e/out/dist-${PREVIEW_PORT}`,
     url: baseURL,
     /* Never reuse: a run owns the server it measures. See tools/ports.ts for the
        seventeen-failure afternoon that produced this line. */

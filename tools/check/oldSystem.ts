@@ -30,6 +30,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Failure, Rule, SourceFile } from './run'
+import { isOutput } from './run'
 import { stripCssComments } from './rules'
 
 /**
@@ -139,7 +140,7 @@ export function isDecision(value: string): boolean {
 function stylesheetsUnder(dir: string, acc: string[] = []): string[] {
   if (!existsSync(dir)) return acc
   for (const entry of readdirSync(dir)) {
-    if (entry === 'node_modules' || entry === '.git' || entry === 'dist') continue
+    if (isOutput(entry)) continue
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) stylesheetsUnder(full, acc)
     else if (entry.endsWith('.css')) acc.push(full)

@@ -18,5 +18,5 @@
     "types": ["node"]
   },
   "include": ["vite.config.ts", "vitest.config.ts", "playwright.config.ts", "tools", "e2e"],
-  "exclude": ["tools/seed/legacy"]
+  "exclude": ["tools/seed/legacy", "e2e/out"]
 }

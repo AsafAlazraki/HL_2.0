@@ -22,11 +22,19 @@ export interface Rule {
 }
 
 const SKIP_DIRS = new Set(['node_modules', 'dist', '.git', '.vite-cache', 'test-results', 'legacy'])
+/** A run's own output, never source: each agent's build and results under its port
+ *  (e2e/out/dist-<port>, test-results-<port>), which tripped this check on a built
+ *  stylesheet (2026-10-31). Ignored by git for the same reason. */
+export const isOutput = (entry: string): boolean =>
+  SKIP_DIRS.has(entry) ||
+  entry === 'out' ||
+  entry.startsWith('test-results') ||
+  entry.startsWith('.tmp')
 const EXTENSIONS = /\.(ts|tsx|css|json|html)$/
 
 async function* walk(root: string, dir: string): AsyncGenerator<string> {
   for (const entry of await readdir(dir)) {
-    if (SKIP_DIRS.has(entry)) continue
+    if (isOutput(entry)) continue
     const full = join(dir, entry)
     const s = await stat(full)
     if (s.isDirectory()) yield* walk(root, full)

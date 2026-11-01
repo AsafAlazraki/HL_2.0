@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Failure, Rule, SourceFile } from './run'
-import { eachLine } from './run'
+import { eachLine, isOutput } from './run'
 import { OLD_REPO, makeNoOldSystemRule, oldValues } from './oldSystem'
 
 const under = (prefix: string) => (path: string) => path.startsWith(prefix)
@@ -57,7 +57,7 @@ function stylesheets(dir: string, acc: string[] = []): string[] {
     return acc
   }
   for (const entry of entries) {
-    if (entry === 'node_modules' || entry === 'dist' || entry === '.git') continue
+    if (isOutput(entry)) continue
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) stylesheets(full, acc)
     else if (entry.endsWith('.css')) acc.push(relative(ROOT, full).split(sep).join('/'))
