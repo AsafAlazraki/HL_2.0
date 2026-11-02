@@ -26,6 +26,7 @@ import {
   NO_WAY_IN,
   NO_WAY_TO_A_FILED_QUOTE,
   NO_WAY_TO_THE_PICKER,
+  arrivalLanded,
   foldedSaid,
   greetingFor,
   soldWithOrAlone,
@@ -121,6 +122,84 @@ describe('where the visit began', () => {
   it('plays where the browser keeps no record of the load, as a test’s render', () => {
     expect(visitBeganHere(null, '/')).toBe(true)
     expect(visitBeganHere('not an address', '/')).toBe(true)
+  })
+})
+
+type Stand = { playState: string; endTime: number; finished: Promise<unknown> }
+const animating = (rounds: Stand[][]): Element => {
+  let round = 0
+  return {
+    getAnimations: () =>
+      (rounds[round++] ?? []).map((a) => ({
+        playState: a.playState,
+        finished: a.finished,
+        effect: { getComputedTiming: () => ({ endTime: a.endTime }) },
+      })),
+  } as unknown as Element
+}
+
+/* THE WATER WAITS FOR HOME TO FINISH ARRIVING (the second audit, 2026-11-02, S1: on a full load
+   at 1920 the water began to flow in the frame the sixteen photographs began to fade in). Asked
+   of stand-in animations: only what the browser would report, a play state, an end and a
+   promise. */
+describe('when Home has finished arriving', () => {
+  it('is at once where nothing is arriving, or where the browser cannot say', async () => {
+    await expect(arrivalLanded(animating([[]]))).resolves.toBeUndefined()
+    await expect(arrivalLanded(null)).resolves.toBeUndefined()
+    await expect(arrivalLanded({} as Element)).resolves.toBeUndefined()
+  })
+
+  it('waits for every finite arrival, and for one that began while they ran', async () => {
+    const order: string[] = []
+    let land: (() => void) | undefined
+    const first = new Promise<void>((done) => {
+      land = done
+    }).then(() => order.push('the photographs landed'))
+    const second = first.then(() => order.push('a picture’s own fade landed'))
+    const waiting = arrivalLanded(
+      animating([
+        [{ playState: 'running', endTime: 445, finished: first }],
+        [{ playState: 'running', endTime: 400, finished: second }],
+        [],
+      ]),
+    ).then(() => order.push('the water flows'))
+    await Promise.resolve()
+    expect(order).toEqual([])
+    land?.()
+    await waiting
+    expect(order).toEqual([
+      'the photographs landed',
+      'a picture’s own fade landed',
+      'the water flows',
+    ])
+  })
+
+  it('never waits on one that does not end, one already landed, or one cancelled', async () => {
+    const never = new Promise<void>(() => undefined)
+    await expect(
+      arrivalLanded(
+        animating([
+          [
+            { playState: 'running', endTime: Infinity, finished: never },
+            { playState: 'finished', endTime: 400, finished: never },
+            { playState: 'idle', endTime: 400, finished: never },
+            {
+              playState: 'running',
+              endTime: 400,
+              finished: Promise.reject(new Error('cancelled')),
+            },
+          ],
+          [],
+        ]),
+      ),
+    ).resolves.toBeUndefined()
+  })
+
+  it('stops asking after its rounds, so an arrival that keeps beginning cannot hold it for ever', async () => {
+    const again: Stand = { playState: 'running', endTime: 200, finished: Promise.resolve() }
+    await expect(
+      arrivalLanded(animating([[again], [again], [again], [again], [again], [again]]), 4),
+    ).resolves.toBeUndefined()
   })
 })
 

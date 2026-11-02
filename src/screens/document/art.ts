@@ -230,6 +230,32 @@ export function notPrintedSay(
     : said
 }
 
+/**
+ * WHAT THE PANEL WHERE THE PAPER IS CHOSEN SAYS OF THE COVER, and only where the cover is not the
+ * boat's photograph (the quote round's audit, round 2, 2026-11-02, D1: the owner's "using boats
+ * photo" waits on a photograph a person checked, or on one Northside adds and makes the cover, and
+ * the reason stood only at the foot of the note under the paper). Where the build shows a picture
+ * the cover leaves off, which and why (`notPrintedSay`); where nothing is pictured at all, the
+ * cover's own reason. '' where the cover is a photograph and nothing on the build differs from it,
+ * or where it prints the exact item's studio picture and the build shows nothing else.
+ */
+export function coverAskSay(art: CoverArt, shown: HeldPicture | null, noun: string): string {
+  const unprinted = notPrintedSay(shown, art, noun, false)
+  if (unprinted !== '') return unprinted
+  return art.kind === 'photograph' ? '' : art.because
+}
+
+/** SAID OVER THE CONTROL ON A DRAFT: the act that puts a photograph on the cover, and — where the
+ *  gallery it opens shows the maker’s photograph marked as its cover, which the paper does not print —
+ *  that it is not that one (the round’s walk, 2026-11-02: the gallery’s "Cover" stood on the Sport
+ *  560’s maker photograph under a sentence that said the cover prints). */
+export function coverAskAct(noun: string, shown: HeldPicture | null): string {
+  const act = `Add Northside’s own photograph of this ${noun} and make it the cover, and the printed quote prints it on its cover.`
+  return shown && shown.tier === 'hero' && !shown.person && !shown.added
+    ? `${act} The maker’s photograph is not printed.`
+    : act
+}
+
 /** What the top of the cover is: the photograph itself, or a pale studio panel. */
 export type CoverGround = 'photo' | 'studio'
 

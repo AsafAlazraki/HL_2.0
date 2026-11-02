@@ -623,6 +623,10 @@
 
 /* ---- the tally: what the quote comes to, at the bottom left ----------------------- */
 
+/* the ground under the floating total in a hand (`TallyBar`); nowhere else */
+.cfg-bar__dock {
+  display: none;
+}
 /* THE TOTAL AND WHAT IT IS MADE OF (`Tally`). The figure large and bold, the price it is at
    beside it, then a bar one length per part that carries a price — in the part's own ink, the
    ink its chapter's disc wears — and a key with each part's figure. One white plate on its
@@ -658,6 +662,25 @@
   grid-area: go;
   justify-self: end;
   align-self: end;
+}
+/* AT A DESK IT STANDS DOWN WHILE THE DOOR'S OWN ACT IS IN THE WINDOW (`doorIn`; the audit,
+   2026-11-02, P3: one act offered twice on a short build), keeping its room so nothing in the card
+   moves; it fades as the kit's exits do, and under reduced motion it is simply gone or back */
+.cfg-tally__go[data-door] {
+  visibility: hidden;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-still]) .cfg-tally__go {
+    transition:
+      opacity var(--duration-enter) var(--ease-out),
+      visibility 0s linear 0s;
+  }
+  :root:not([data-still]) .cfg-tally__go[data-door] {
+    transition:
+      opacity var(--duration-exit) var(--ease-out),
+      visibility 0s linear var(--duration-exit);
+  }
 }
 /* THE TOTAL IS WHERE A PART IS DROPPED (`PartDrag`): while a part is carried the plate says so
    across its whole face, the accent's dashed edge on the plate's pale blue, and lights the
@@ -943,6 +966,9 @@
 /* THE STAGE IS AN OBJECT IN THE ROOM: the kit's plate, round on every corner, on its own
    shadow, inside the page's gutter. A press on its corner opens it large (`ExpandPicture`). */
 .cfg-shot {
+  /* A RENDER'S OWN HEIGHT, written on the frame by the screen (`Stage`); read only where the render
+     is small beside its frame (`data-small`, below) */
+  --cfg-frame-h: 0px;
   /* the frame the light crosses once when the quote is given (the finale, below) */
   position: relative;
   flex: 1 1 auto;
@@ -1033,6 +1059,21 @@
   max-inline-size: min(100%, var(--cfg-held-w));
   max-block-size: min(100%, var(--cfg-held-h));
   object-fit: contain;
+}
+/* A RENDER AT MOST HALF ITS FRAME'S WIDTH, AT A DESK (`data-small`, measured by the screen): the
+   frame takes the render's own height (`--cfg-frame-h`, the held copy's) and 48px of air over and
+   under it, and the boat's column ends under the total rather than on a card the column's height
+   around a picture a sixth of it (the audit, 2026-11-02, P4: the GA38's 300 × 300 render in a
+   976 × 647 card at 1920) */
+@media (min-width: 1200px) {
+  .cfg-stage:has(.cfg-shot[data-small]),
+  .cfg-stage__pic:has(> .cfg-shot[data-small]) {
+    flex-grow: 0;
+  }
+  .cfg-shot[data-small] {
+    flex: none;
+    block-size: calc(var(--cfg-frame-h) + --spacing(24));
+  }
 }
 /* A MARK IS NOT A PHOTOGRAPH AND IS NOT DRAWN LIKE ONE: it sits at a
    fraction of its own held height, centred on the flat panel, with
@@ -1581,30 +1622,50 @@
    last line or under it, never inside the box its two lines make (measured by the overlap ruler
    at 1440 on "Mech Rigging Kit · 703 Side Mount …" and "· 13 more offered") */
 .cfg-head__said {
-  display: inline-block;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
   color: var(--color-ink);
 }
-/* the dot before what follows, drawn inside the answer's box so a wrapped answer ends on it.
-   It is generated with no words of its own (the `/ ''`): the head's text and a reader's ear
-   take the dot from `.cfg-head__heard` instead, so it is said once and the answer's own words
-   stay its words */
-.cfg-head__said[data-more]::after {
-  content: '\00a0·' / '';
-  font-size: var(--text-xs);
+/* THE ANSWER AND WHAT FOLLOWS IT, AS TWO BOXES IN ONE WRAPPING ROW, EACH LED BY THE DOT'S ROOM
+   (`--cfg-dot`). The row starts that room before the fact's own edge, and the fact clips what
+   stands before its edge, so a box that begins a line — the answer always, what follows it when
+   it wraps — has its room, and its dot, out of sight: the dot is drawn only between the two on
+   one line, and never ends or begins one (the audit, 2026-11-02, P6; the critic, P-13). */
+.cfg-head__fact {
+  --cfg-dot: --spacing(4);
+  overflow-x: clip;
+}
+.cfg-head__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-inline-start: calc(-1 * var(--cfg-dot));
+}
+.cfg-head__said,
+.cfg-head__rest {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+.cfg-head__said::before,
+.cfg-head__rest::before {
+  content: '' / '';
+  display: inline-block;
+  inline-size: var(--cfg-dot);
+}
+/* the dot itself is generated with no words of its own (the `/ ''`): the head's text and a
+   reader's ear take it from `.cfg-head__heard` instead, so it is said once */
+.cfg-head__rest[data-after]::before {
+  content: '·' / '';
+  text-align: center;
   font-weight: 400;
   color: var(--color-ink-2);
 }
-/* IN A HAND THE ANSWER IS ITS OWN LINE and what follows it the next, with no dot left hanging at
-   the end of a wrapped answer (the critic, P-13: "… White / White / White/Blue ·" at 390) */
+/* IN A HAND THE ANSWER IS ITS OWN LINE and what follows it the next, so no dot is drawn (the
+   critic, P-13: "… White / White / White/Blue ·" at 390) */
 @media (max-width: 639.98px) {
   .cfg-head__said {
-    display: block;
-  }
-  .cfg-head__said[data-more]::after {
-    content: none;
+    flex-basis: 100%;
   }
 }
 /* the separator as text, for the head's words and a reader's ear, drawn nowhere */
@@ -3623,11 +3684,30 @@
   .cfg-tally__fig {
     font-size: var(--text-3xl);
   }
-  /* THE FLOATING TOTAL IN A HAND: the window's width less its gutters, resting on the tab bar's own
-     top edge so no sliver of the page shows between the two; its step a row of its own under the
-     figure, and its way on the door's, the rail's last row a thumb's reach under the work */
+  /* THE FLOATING TOTAL IN A HAND: the window's width less its gutters, standing over the tab bar
+     with the air the tab bar keeps under itself (8px), so the two floating plates read as two and
+     each keeps its four corners (the audit, 2026-11-02, P1: flush on the tab bar's top edge they
+     read as one block, the total's lower corners lost in the pill); its step a row of its own under
+     the figure, and its way on the door's, the rail's last row a thumb's reach under the work */
+  /* AND THE ROOM'S OWN GROUND UNDER THE TWO OF THEM, from the total's lower corners to the window's
+     foot, so the air between the two plates is the room's colour and never a sliver of the page
+     passing under them (a search field's top edge showed in it on arrival, configurator.spec.ts's
+     "in a hand, the build arrives ending between two chapters"); it stands and goes with the total */
+  .cfg-bar__dock {
+    display: block;
+    position: fixed;
+    z-index: 4;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: calc(var(--shell-foot) + --spacing(1.5) + var(--radius-plate));
+    background: var(--color-ground);
+    pointer-events: none;
+  }
+  .cfg-bar__dock:not([data-up]) {
+    visibility: hidden;
+  }
   .cfg-bar {
-    inset-block-end: calc(var(--shell-foot) - --spacing(0.5));
+    inset-block-end: calc(var(--shell-foot) + --spacing(1.5));
     flex-wrap: wrap;
     row-gap: --spacing(2);
     padding: --spacing(2.5) --spacing(4);
@@ -3972,9 +4052,11 @@
     block-size: var(--cfg-shot-hand);
   }
 }
-/* AND THE FLOATING TOTAL IS THE WINDOW'S OWN FOOT THERE, its full width and flush with its edge, so
-   nothing of the page shows under it in a window 390px tall (a checkout's bar) */
-@media (min-width: 640px) and (max-width: 1199.98px) and (max-height: 700px) {
+/* AND THE FLOATING TOTAL IS THE WINDOW'S OWN FOOT AT EVERY ONE-COLUMN SIZE PAST A HAND, its full
+   width and flush with its edge, so nothing of the page shows under it (a checkout's bar): in a
+   window 390px tall, and on a tablet, where it stood 12px over the window's foot and a strip of the
+   colour cards showed under it with their words cut (the audit, 2026-11-02, P2) */
+@media (min-width: 640px) and (max-width: 1199.98px) {
   .cfg-bar {
     inset-inline: 0;
     inset-block-end: 0;

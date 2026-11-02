@@ -202,6 +202,28 @@ export function visitBeganHere(loaded: string | null, base: string): boolean {
   return /^(index\.html|sign-in\/?)?$/.test(rest)
 }
 
+/**
+ * WHEN HOME HAS FINISHED ARRIVING: every finite animation or transition running under `node` —
+ * the arrival's keyframes and each picture's own fade as its bytes land — has landed, and so has
+ * any that began while those ran, for at most `rounds` rounds, so nothing that keeps starting
+ * holds the water for ever. One that never ends is not waited on. Where the browser cannot say
+ * (a test's render), it is landed at once.
+ */
+export async function arrivalLanded(node: Element | null, rounds = 4): Promise<void> {
+  for (let round = 0; round < rounds; round += 1) {
+    if (!node || typeof node.getAnimations !== 'function') return
+    const running = node
+      .getAnimations({ subtree: true })
+      .filter(
+        (a) =>
+          (a.playState === 'running' || a.playState === 'paused') &&
+          a.effect?.getComputedTiming().endTime !== Infinity,
+      )
+    if (running.length === 0) return
+    await Promise.all(running.map((a) => a.finished.catch(() => undefined)))
+  }
+}
+
 /** The address this page was loaded at, from the browser's own record of the navigation. */
 function loadedAt(): string | null {
   if (typeof performance === 'undefined' || typeof performance.getEntriesByType !== 'function')
@@ -283,7 +305,15 @@ export function Home({
      compositor ("Commit") and a script's answer took up to 716ms; with the water still, 46ms, and
      every answer came within 170ms. So the water stands on its one frame — the band's own still
      water, as Entry holds it while the file is read — until every picture on Home has decoded,
-     and then flows. A page with no pictures to wait for lets it go at once. */
+     and then flows. A page with no pictures to wait for lets it go at once.
+
+     AND UNTIL HOME HAS FINISHED ARRIVING (the quote round's second audit, 2026-11-02, S1). On a
+     full load at 1920 the file came in, the pictures decoded at once from the cache, and the
+     water began to flow in the same frame as the sixteen photographs and the doors began to
+     fade in: the probe's sampler was blocked for about 3.3s and 16 of 16 were seen at 3,873ms.
+     So the water also waits for every arrival and every picture's own fade that is running when
+     the pictures have decoded — a finite one; one paused while a caret is in a field waits with
+     it — and flows the frame after the last has landed. */
   const root = useRef<HTMLElement>(null)
   const [calm, setCalm] = useState(true)
   const settled = status === 'ready' || status === 'failed'
@@ -296,9 +326,11 @@ export function Home({
       pictures.map((img) =>
         typeof img.decode === 'function' ? img.decode().catch(() => undefined) : undefined,
       ),
-    ).then(() => {
-      if (!gone) frame = requestAnimationFrame(() => setCalm(false))
-    })
+    )
+      .then(() => (gone ? undefined : arrivalLanded(root.current)))
+      .then(() => {
+        if (!gone) frame = requestAnimationFrame(() => setCalm(false))
+      })
     return () => {
       gone = true
       cancelAnimationFrame(frame)
@@ -383,6 +415,8 @@ export function Home({
       data-from={open ? (from ?? undefined) : undefined}
       data-foot={foot ? '' : undefined}
       data-arrive={arrive ? '' : undefined}
+      /* THE WATER HOLDS OR FLOWS, said to a test and never to the eye (S1 above) */
+      data-water={heroPicture && hero ? undefined : calm ? 'still' : 'flowing'}
       /* THE SHELL'S BAR STANDS AT THE HEAD OF THIS SCREEN IN A HAND, never at its foot over
          Home's own words (the critique of the built Home, blocker 2; src/screens/shell/shell.css) */
       data-pill="head"
@@ -919,7 +953,10 @@ function Paper({ job }: { job: Extract<Job, { kind: 'draft' | 'given' }> }) {
   const whom = whomParts.join(' · ')
   return (
     <span className="home-job-in">
-      <span className="home-job-face" data-art={card.picture ? 'photograph' : 'mark'}>
+      <span
+        className="home-job-face"
+        data-art={card.picture ? 'photograph' : card.copy ? 'studio' : 'mark'}
+      >
         {card.picture ? (
           <Picture
             src={card.picture.src}
@@ -929,6 +966,14 @@ function Paper({ job }: { job: Extract<Job, { kind: 'draft' | 'given' }> }) {
             width={card.picture.width}
             height={card.picture.height}
             shared={card.travel}
+          />
+        ) : card.copy ? (
+          <Picture
+            src={card.copy.src}
+            alt=""
+            width={card.copy.width}
+            height={card.copy.height}
+            fit="contain"
           />
         ) : (
           <MakerWell maker={card.maker} />

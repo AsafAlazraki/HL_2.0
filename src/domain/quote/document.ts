@@ -625,6 +625,21 @@ export function unreachableSay(
   return northside || person ? '' : NO_WAY_TO_REACH
 }
 
+/** A line of Northside's details on Settings, by the key Settings opens it under (`/manage?line=`). */
+export type DetailLine = 'address' | 'phone' | 'email' | 'abn'
+
+/**
+ * WHERE "OPEN SETTINGS" LANDS: the first of Northside's details a customer reaches it by that is not
+ * set — the address, then the phone, the email and the ABN — so the press opens the field to type
+ * it rather than the top of a long page (the quote round's audit, round 2, D3). The address where
+ * none is held at all, or every one is set.
+ */
+export function detailToSet(letterhead: FrozenLetterhead | null): DetailLine {
+  const order: readonly DetailLine[] = ['address', 'phone', 'email', 'abn']
+  const set = (v: string | undefined): boolean => v !== undefined && v.trim() !== ''
+  return order.find((line) => !set(letterhead?.[line])) ?? 'address'
+}
+
 /** The largest specification set as one list rather than in groups. */
 const FLAT_UP_TO = 12
 

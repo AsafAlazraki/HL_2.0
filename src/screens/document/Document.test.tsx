@@ -955,10 +955,60 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     expect(theNote()).not.toHaveTextContent(way)
   })
 
+  /* THE QUOTE ROUND'S AUDIT, ROUND 2, D1: the reason stood only at the foot of the note under the
+     paper. It is said where the paper is chosen, with the act that puts Northside's photograph on
+     the cover, on a draft; a given quote keeps the reason and is offered no act */
+  it('says why the cover is not the boat’s photograph where the paper is chosen, with the act', async () => {
+    const draft = draftQuote('boat_highfield', 'SP560 (HYP)')
+    const { unmount } = render(<Document quoteId={draft.id} />)
+    const ask = screen.getByTestId('document-cover-ask')
+    expect(ask).toHaveTextContent(/The build shows the Highfield Sport 560 on the water/)
+    expect(ask).toHaveTextContent(
+      /Nobody has checked that it shows this model, so it is not printed\./,
+    )
+    await userEvent.click(
+      within(ask).getByRole('button', { name: 'Add a photograph for the cover' }),
+    )
+    const dialog = await screen.findByRole('dialog', {
+      name: /Pictures of the Highfield Sport 560/,
+    })
+    expect(dialog).toHaveTextContent(
+      'Add Northside’s own photograph of this boat and make it the cover, and the printed quote prints it on its cover. The maker’s photograph is not printed.',
+    )
+    unmount()
+
+    const given = issuedQuote('boat_highfield', 'SP560 (HYP)')
+    render(<Document quoteId={given.id} />)
+    const kept = screen.getByTestId('document-cover-ask')
+    expect(kept).toHaveTextContent(/Nobody has checked/)
+    expect(within(kept).queryByRole('button')).toBeNull()
+  })
+
+  /* THE PRICE STANDS BESIDE WHAT IT IS FOR (round 2, D2): the very picture the cover prints, never
+     another, with the name under it; a cover with no picture leaves the column to the air */
+  it('sets the cover’s own picture beside Your price, and nothing where the cover has none', () => {
+    const quote = issuedQuote('boat_stacer', 'Stacer - 409 Assault Pro')
+    const { container, unmount } = render(<Document quoteId={quote.id} />)
+    const cover = container.querySelector<HTMLImageElement>('.doc-shot__img')!
+    const beside = container.querySelector<HTMLImageElement>('.doc-sums__boat .doc-sums__img')!
+    expect(beside).toHaveAttribute('src', cover.getAttribute('src'))
+    expect(beside).toHaveAttribute('alt', '')
+    expect(container.querySelector('.doc-sums__title')).toHaveTextContent(
+      readDocument(quote).subject.title,
+    )
+    unmount()
+
+    const bare = issuedQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    const { container: none } = render(<Document quoteId={bare.id} />)
+    expect(none.querySelector('.doc-shot')).not.toHaveAttribute('data-art', 'photograph')
+    expect(none.querySelector('.doc-sums__boat')).toBeNull()
+  })
+
   it('says nothing more where the cover prints the picture the build shows', () => {
     const quote = issuedQuote('boat_stacer', 'Stacer - 409 Assault Pro')
     render(<Document quoteId={quote.id} />)
     expect(theNote()).not.toHaveTextContent(/The build shows|is printed instead/)
+    expect(screen.queryByTestId('document-cover-ask')).toBeNull()
   })
 
   /* THE GATE ROUND, 2026-10-20: the 519's on-water photograph is a SIDE console. Its Centre

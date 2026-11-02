@@ -6,6 +6,8 @@ import { localTimeOf } from '@/domain/quote/diary/days'
 import { givenOn } from '@/domain/quote/diary/today'
 import { quoteTotals } from '@/domain/quote/totals'
 import { boatOfQuote } from '@/domain/quote/spoken'
+import imagesRaw from '../../../data/northside/images.json?raw'
+import { heldCopyOf } from '@/screens/quotes/cover'
 import { deskOf } from './filed'
 
 /* ============================================================
@@ -172,6 +174,33 @@ describe('the desk, read off what is filed', () => {
       deskOf([doc({ rootTableId: 'boat_stacer', subjectLabel: 'Highfield - SP560 PVC' })], at)
         .newest?.picture,
     ).toBeUndefined()
+  })
+
+  /* WHERE NO PHOTOGRAPH IS HELD, THE EXACT STUDIO COPY QUOTES DRAWS (2026-11-02): a part quoted
+     on its own stood beside an empty white well on Home while Quotes drew its picture. The card
+     carries what `heldCopyOf` answers for the same quote, and nothing for an address no copy is
+     held of. */
+  it('carries the exact studio copy Quotes draws where no photograph is held, and only that', () => {
+    const ledger = (JSON.parse(imagesRaw) as { images: { address: string; file?: string }[] })
+      .images
+    const held = ledger.find((e) => e.file && !/logo/i.test(e.address))!
+    const part = doc({
+      rootTableId: 'boat_stacer',
+      rootRowId: 'boat_stacer:30',
+      subjectLabel: 'Stacer 529 Assault Pro',
+      subjectImage: { id: 'i', src: held.address },
+    } as Partial<QuoteDef>)
+    const card = deskOf([part], at).newest
+    expect(card?.picture).toBeUndefined()
+    expect(card?.copy).toEqual(heldCopyOf(part))
+    expect(card?.copy?.src.endsWith(`seed-images/${held.file}`)).toBe(true)
+    const unheld = doc({
+      rootTableId: 'boat_stacer',
+      rootRowId: 'boat_stacer:30',
+      subjectLabel: 'Stacer 529 Assault Pro',
+      subjectImage: { id: 'i', src: 'https://nobody.example/not-a-boat.jpg' },
+    } as Partial<QuoteDef>)
+    expect(deskOf([unheld], at).newest?.copy).toBeUndefined()
   })
   /* EVERY DRAFT BEING WRITTEN, for the desk that draws them as cards: the register's own
      draft band, in its own order, and nothing given or replaced among them */

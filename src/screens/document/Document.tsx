@@ -12,13 +12,16 @@ import {
 } from 'react'
 import {
   ArrowLeftIcon,
+  CameraPlusIcon,
   FilePdfIcon,
   FileXIcon,
   GearSixIcon,
   PrinterIcon,
 } from '@phosphor-icons/react'
 import {
+  AddPicture,
   Button,
+  Dialog,
   Icon,
   Plate,
   PriceFigure,
@@ -29,6 +32,7 @@ import {
   type Glyph,
 } from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
+import { useOptionPicture } from '@/app/optionPicture'
 import { letterheadNow, preparerNow } from '@/app/northside'
 import { contactLine } from '@/domain/northside/letterhead'
 import type { FrozenLetterhead, OrgProfile, PaperSection, TableKind } from '@/domain/model'
@@ -37,6 +41,7 @@ import { setPaperSection, signedMoney } from '@/domain/quote'
 import { localDay } from '@/domain/quote/day'
 import {
   INCLUDED,
+  detailToSet,
   readDocument,
   unreachableSay,
   type DocumentLine,
@@ -46,9 +51,19 @@ import {
 import type { QuoteDef } from '@/domain/model'
 import { DOORS, NO_WAYS, type Way } from '@/app/ways'
 import { glyphOfWay } from '@/screens/shell/glyphs'
-import { itemOf, letterheadOf, lineOf, pictureOfQuote, type HeldPicture } from '@/data/pictures'
+import {
+  itemOf,
+  itemOfQuote,
+  letterheadOf,
+  lineOf,
+  pictureOfQuote,
+  srcSetOf,
+  type HeldPicture,
+} from '@/data/pictures'
 import {
   coverArt,
+  coverAskAct,
+  coverAskSay,
   coverSay,
   groundOf,
   nightMarkOf,
@@ -672,7 +687,7 @@ function Sheaf({
       <div className="doc-floor">
         {/* WHAT GOES ON THE PAPER, chosen beside it: first in the reading order, so a salesperson
             on a phone meets the switches before the pages they change */}
-        <SectionsPanel doc={doc} apply={apply} quoteId={quote.id} />
+        <SectionsPanel doc={doc} apply={apply} quote={quote} art={art} shown={shown} />
         <article
           className="doc-sheaf"
           data-settled={settled ? 'yes' : 'no'}
@@ -1081,13 +1096,20 @@ export function choicesOf(doc: PrintedQuote): PaperChoice[] {
 function SectionsPanel({
   doc,
   apply,
-  quoteId,
+  quote,
+  art,
+  shown,
 }: {
   doc: PrintedQuote
   apply: (quoteId: string, command: ReturnType<typeof setPaperSection>) => unknown
-  quoteId: string
+  quote: QuoteDef
+  art: CoverArt
+  shown: HeldPicture | null
 }) {
+  const quoteId = quote.id
   const choices = choicesOf(doc)
+  const noun = subjectNoun(doc)
+  const cover = coverAskSay(art, shown, noun)
   const unreachable = unreachableSay(doc.letterhead, doc.preparer, doc.chosen.details)
   const set = (section: PaperSection) => (on: boolean) => {
     apply(quoteId, setPaperSection(section, on))
@@ -1098,16 +1120,36 @@ function SectionsPanel({
         <div className="doc-pick__in">
           <p className="doc-desk__lab">On the printed quote</p>
           <p className="doc-desk__say">{ALWAYS_IN}</p>
-          {/* NOTHING ON THIS PAPER REACHES NORTHSIDE, said where the paper is chosen and given
-              (quote-spec §0, rule 5), with the way to put it right on a draft; the customer's
-              copy says nothing of it */}
-          {unreachable === '' ? null : (
-            <div className="doc-pick__reach" data-testid="document-unreachable">
-              <Refusal on="room">{unreachable}</Refusal>
-              {doc.issued ? null : (
-                <Button intent="veiled" size="sm" href="/manage" icon={GearSixIcon}>
-                  Open Settings
-                </Button>
+          {unreachable === '' && cover === '' ? null : (
+            <div className="doc-pick__asks">
+              {/* NOTHING ON THIS PAPER REACHES NORTHSIDE, said where the paper is chosen and given
+                (quote-spec §0, rule 5), with the way to put it right on a draft; the customer's
+                copy says nothing of it */}
+              {unreachable === '' ? null : (
+                <div className="doc-pick__reach" data-testid="document-unreachable">
+                  <Refusal on="room">{unreachable}</Refusal>
+                  {doc.issued ? null : (
+                    <Button
+                      intent="veiled"
+                      size="sm"
+                      href={`/manage?line=${detailToSet(doc.letterhead)}`}
+                      icon={GearSixIcon}
+                    >
+                      Open Settings
+                    </Button>
+                  )}
+                </div>
+              )}
+              {/* WHY THE COVER IS NOT THE BOAT'S PHOTOGRAPH, said where the paper is chosen, with the one
+                act that changes it on a draft (the quote round's audit, round 2, D1) */}
+              {cover === '' ? null : (
+                <div className="doc-pick__reach" data-testid="document-cover-ask">
+                  <p className="doc-desk__lab">The cover</p>
+                  <Refusal on="room">{cover}</Refusal>
+                  {doc.issued ? null : (
+                    <CoverPhotograph quote={quote} doc={doc} noun={noun} shown={shown} />
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -1145,6 +1187,53 @@ function SectionsPanel({
         </div>
       </Plate>
     </div>
+  )
+}
+
+/**
+ * NORTHSIDE'S OWN PHOTOGRAPH FOR THE COVER, ADDED BESIDE THE PAPER (the owner, 2026-10-30: "a
+ * cover page ... using boats photo"; the quote round's audit, round 2, D1). The kit's control for
+ * one option's pictures (`AddPicture`), bound to the row this quote is written against by the same
+ * hand the build's stage uses (`useOptionPicture`): drop, paste or choose a photograph, then press
+ * "Make it the cover". Each is one step on the catalogue's stack with its Undo, and the paper
+ * beside it reads the new cover the moment it is taken (`coverArt` is read again when Northside's
+ * pictures or a gallery's cover move). Nothing here checks a maker's photograph on the dealer's
+ * behalf: only a picture Northside adds, or one a person marked, prints.
+ */
+function CoverPhotograph({
+  quote,
+  doc,
+  noun,
+  shown,
+}: {
+  quote: QuoteDef
+  doc: PrintedQuote
+  noun: string
+  shown: HeldPicture | null
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      title={`Pictures of the ${doc.subject.title}`}
+      description={coverAskAct(noun, shown)}
+      trigger={
+        <Button intent="veiled" size="sm" icon={CameraPlusIcon} aria-haspopup="dialog">
+          Add a photograph for the cover
+        </Button>
+      }
+    >
+      {open ? <CoverPictures quote={quote} doc={doc} /> : null}
+    </Dialog>
+  )
+}
+
+/** The control, bound only while its dialog stands. */
+function CoverPictures({ quote, doc }: { quote: QuoteDef; doc: PrintedQuote }) {
+  const item = useMemo(() => itemOfQuote(quote), [quote])
+  return (
+    <AddPicture {...useOptionPicture(item, doc.subject.title, doc.subject.kind ?? undefined)} />
   )
 }
 
@@ -1523,7 +1612,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
     keepWithNext: 1,
     /* the price opens the page after the cover where nothing stands between them */
     ...(sole && !specPage ? { breakBefore: true } : {}),
-    node: <YourPrice doc={doc} sub={sole ? quoteSub(doc) : undefined} />,
+    node: <YourPrice doc={doc} art={art} sub={sole ? quoteSub(doc) : undefined} />,
   })
   /* THE TERMS PRINT ONLY WHERE THE DEALERSHIP WROTE THEM AND THEY ARE KEPT ON. A section whose
      whole content was a sentence saying it had none was the app explaining itself to the buyer;
@@ -2257,7 +2346,7 @@ function AdjustmentHead() {
  * sheet. And the bands above the total are what make the page add up
  * where a reader can see it do so, which the lone total did not.
  */
-function YourPrice({ doc, sub }: { doc: PrintedQuote; sub?: string }) {
+function YourPrice({ doc, art, sub }: { doc: PrintedQuote; art: CoverArt; sub?: string }) {
   const t = doc.totals
   /* A PRICE OF ONE ROW IS ITS TOTAL (the printed quote's critic, 2026-10-31: a one-motor quote
      printed $16,667 four times): the row that would say the motor's figure over the total that is
@@ -2265,40 +2354,75 @@ function YourPrice({ doc, sub }: { doc: PrintedQuote; sub?: string }) {
   const all = priceRows(doc)
   const rows = all.length === 1 && !all[0]!.signed && all[0]!.amount === t.total ? [] : all
   const includes = includesSay(doc)
+  /* WHAT THE PRICE IS FOR, BESIDE IT (the quote round's audit, 2026-11-02, D2): the figures stood
+     in the right 60% of the sheet over an empty left column, and on a last sheet of only the price
+     and the signatures the page read as an L of white. Porsche's summary sets the car beside its
+     price; this sets the very picture the cover printed — never another, so nothing the cover may
+     not print stands here — with the name and finish under it. A cover with no picture leaves the
+     column to the air, as it was. */
+  const pic = art.kind === 'photograph' ? art.held : null
   return (
     <section className="doc-sums" aria-label="Your price">
       <PartHead word="Your price" {...(sub ? { sub } : {})} />
-      <dl className="doc-sums__list">
-        {rows.map((row) => (
-          <div className="doc-sum" key={row.key} data-word={row.included ? 'included' : undefined}>
-            <dt>{row.label}</dt>
-            <dd className="doc-fig">{rowFigure(row)}</dd>
-          </div>
-        ))}
-        <div className="doc-sum doc-sum--total">
-          <dt>{totalLabel(doc)}</dt>
-          <dd className="doc-fig">
-            <PriceFigure amount={t.total} />
-          </dd>
-        </div>
-        {/* THE GST IN IT, ONCE NORTHSIDE'S RATE IS ON THE QUOTE (quote-spec §8): worked over the
+      <div className="doc-sums__body">
+        {pic ? (
+          <figure className="doc-sums__boat" data-ground={groundOf(art)}>
+            <img
+              className="doc-sums__img"
+              src={pic.src}
+              {...(pic.widths.length > 1 ? { srcSet: srcSetOf(pic), sizes: '72mm' } : {})}
+              alt=""
+              width={pic.width}
+              height={pic.height}
+              style={{ '--held-w': pic.width, '--held-h': pic.height } as CSSProperties}
+              decoding="async"
+            />
+            <figcaption className="doc-sums__name">
+              <span className="doc-sums__title">{doc.subject.title}</span>
+              {doc.subject.finish === '' ? null : (
+                <span className="doc-sums__finish">{doc.subject.finish}</span>
+              )}
+            </figcaption>
+          </figure>
+        ) : null}
+        <div className="doc-sums__figs">
+          <dl className="doc-sums__list">
+            {rows.map((row) => (
+              <div
+                className="doc-sum"
+                key={row.key}
+                data-word={row.included ? 'included' : undefined}
+              >
+                <dt>{row.label}</dt>
+                <dd className="doc-fig">{rowFigure(row)}</dd>
+              </div>
+            ))}
+            <div className="doc-sum doc-sum--total">
+              <dt>{totalLabel(doc)}</dt>
+              <dd className="doc-fig">
+                <PriceFigure amount={t.total} />
+              </dd>
+            </div>
+            {/* THE GST IN IT, ONCE NORTHSIDE'S RATE IS ON THE QUOTE (quote-spec §8): worked over the
             whole total, as Northside's own workbook works it (`totals.ts`), under the total
             rather than above it, because every figure above already includes it. Absent where no
             rate is set: no rate is ever assumed. */}
-        {t.totalExcludingTax !== null ? (
-          <>
-            <div className="doc-sum doc-sum--tax">
-              <dt>GST at {t.taxRate?.toLocaleString('en-AU')}%, included</dt>
-              <dd className="doc-fig">{money(t.taxAmount ?? 0)}</dd>
-            </div>
-            <div className="doc-sum doc-sum--tax">
-              <dt>Before GST</dt>
-              <dd className="doc-fig">{money(t.totalExcludingTax)}</dd>
-            </div>
-          </>
-        ) : null}
-      </dl>
-      {includes === '' ? null : <p className="doc-sums__say">{includes}</p>}
+            {t.totalExcludingTax !== null ? (
+              <>
+                <div className="doc-sum doc-sum--tax">
+                  <dt>GST at {t.taxRate?.toLocaleString('en-AU')}%, included</dt>
+                  <dd className="doc-fig">{money(t.taxAmount ?? 0)}</dd>
+                </div>
+                <div className="doc-sum doc-sum--tax">
+                  <dt>Before GST</dt>
+                  <dd className="doc-fig">{money(t.totalExcludingTax)}</dd>
+                </div>
+              </>
+            ) : null}
+          </dl>
+          {includes === '' ? null : <p className="doc-sums__say">{includes}</p>}
+        </div>
+      </div>
     </section>
   )
 }

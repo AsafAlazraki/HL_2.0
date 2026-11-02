@@ -809,12 +809,19 @@ function readTable(
     sharedWhy: shared,
     /* said as its tile says it, so the sentence and the tile name one thing one way */
     recommends: recommended ? (labels[counts.candidates.indexOf(recommended)] ?? '') : '',
-    /* each named as its tile names it */
-    severalSay: severalSay(
-      kind,
-      step.lines.map((line) => spokenName(lineSaid(line.label, step.title), line.code)),
-      takesTwo,
-    ),
+    /* each named as its tile names it. ONLY WHERE TWO ARE NOT WHAT A PRESS DOES: a motor or a
+       trailer goes on in place of the one there, so two of either are said; parts are put on beside
+       each other, each its own row with its own figure right under this, so a sentence naming them
+       all said them twice (the audit, 2026-11-02, P6: the Stacer's three parts in a grey box, then
+       in "Also on this quote from Parts & Accessories") */
+    severalSay:
+      kind === 'motor' || kind === 'trailer'
+        ? severalSay(
+            kind,
+            step.lines.map((line) => spokenName(lineSaid(line.label, step.title), line.code)),
+            takesTwo,
+          )
+        : '',
     includes: includesSay(priced.map((row) => row.contains)),
     showingAll,
     amount: step.amount,

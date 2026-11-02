@@ -602,15 +602,17 @@
   flex: none;
   margin: 0;
 }
-/* THE SIGNATURES STAND AT THE FOOT OF THE LAST SHEET (the quote round's audit, 2026-11-02, D2): a
-   last sheet holding only "Your price" and the acceptance ended at about 625 of its 1,020px and
-   left the lower third blank under the signature lines, a page that read as unfinished. The
-   acceptance now takes the sheet's foot and the air stands between what is paid and where it is
-   signed, as a contract's last page does. Where the sheet is full there is no air to move, and in
-   a hand's single column (no sheet) it follows the price as it always did. Nothing is measured
-   differently: the margin is the room the page had left, never a height. */
+/* THE SIGNATURES STAND IN THE ROOM THE LAST SHEET HAS LEFT, CENTRED IN IT (the quote round's
+   audits, 2026-11-02). Round 1 found a last sheet of only "Your price" and the acceptance ending at
+   625 of its 1,020px, the lower third blank under the signature lines; the signatures were sent to
+   the foot, and round 2 found about 210px of empty page between the price and them instead. Both
+   were one block of white. The room left is now shared: as much air over "Acceptance" as under
+   its last line, so neither the price nor the signatures stands alone against a third of a page.
+   Where the sheet is full there is no air to share, and in a hand's single column (no sheet) it
+   follows the price as it always did. Nothing is measured differently: the margins are the room
+   the page had left, never a height. Lost: the signatures on the foot's rule. */
 .doc-atom[data-atom='accept'] {
-  margin-block-start: auto;
+  margin-block: auto;
 }
 .doc-atom > * {
   margin-block: 0;
@@ -975,6 +977,17 @@
   );
   object-fit: contain;
   mix-blend-mode: multiply;
+}
+/* A COVER WITH NO PICTURE KEEPS THE PICTURE'S ROOM (the quote round's audit, round 2, D1): the
+   Patrol 600's panel stood 237px tall around Highfield's mark and left 430px of the night empty
+   under its facts, a page with a hole where the boat would be. The mark, or the name in type, now
+   stands centred in the room a studio picture is given (`--studio-max`), so every cover has one
+   geometry whatever it holds, and the night under it holds the name, the facts and the price as a
+   pictured cover's does. The mark is drawn no larger: only its air grows. */
+.doc-cover[data-ground='studio'] .doc-shot[data-art='mark'],
+.doc-cover[data-ground='studio'] .doc-shot[data-art='word'] {
+  min-block-size: var(--studio-max);
+  align-items: center;
 }
 .doc-shot__mark {
   display: block;
@@ -1492,11 +1505,63 @@
 .doc-sums {
   padding-block-start: --spacing(2);
 }
+/* THE FIGURES IN THE RIGHT 60%, AND WHAT THEY ARE FOR IN THE LEFT (the quote round's audit,
+   2026-11-02, D2): the cover's own picture, whole, never past its pixels, its name under it. With
+   no picture the column is air, as it always was. */
+.doc-sums__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 60%;
+  column-gap: --spacing(8);
+  align-items: start;
+}
+.doc-sums__figs {
+  grid-column: 2;
+  grid-row: 1;
+}
+.doc-sums__boat {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  padding-block-start: --spacing(2);
+}
+.doc-sums__img {
+  --held-w: 0;
+  --held-h: 1;
+  display: block;
+  inline-size: min(100%, calc(var(--held-w) * 1px));
+  block-size: auto;
+  aspect-ratio: var(--held-w) / var(--held-h);
+  object-fit: contain;
+}
+/* a studio picture stands on the cover's own pale panel, its white multiplied into it */
+.doc-sums__boat[data-ground='studio'] {
+  padding: --spacing(3);
+  background: var(--color-neutral-50);
+}
+.doc-sums__boat[data-ground='studio'] .doc-sums__img {
+  margin-inline: auto;
+  max-block-size: 40mm;
+  inline-size: auto;
+  max-inline-size: min(100%, calc(var(--held-w) * 1px));
+  mix-blend-mode: multiply;
+}
+.doc-sums__name {
+  display: grid;
+  gap: --spacing(0.5);
+  padding-block-start: --spacing(2);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+.doc-sums__title {
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+.doc-sums__finish {
+  color: var(--color-neutral-500);
+}
 .doc-sums__list {
   margin: 0;
   padding-block-start: --spacing(2);
-  margin-inline-start: auto;
-  inline-size: 60%;
 }
 .doc-sum {
   display: flex;
@@ -1560,8 +1625,6 @@
 .doc-sums__say {
   margin: 0;
   padding-block-start: --spacing(3);
-  margin-inline-start: auto;
-  inline-size: 60%;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-500);
@@ -1636,6 +1699,11 @@
   max-inline-size: var(--page-w);
   margin-block-end: --spacing(8);
 }
+/* why nothing reaches Northside, and why the cover is not the boat's photograph, each with its act */
+.doc-pick__asks {
+  display: grid;
+  gap: --spacing(4);
+}
 .doc-pick__reach {
   display: grid;
   justify-items: start;
@@ -1692,7 +1760,7 @@
   .doc-pick__in > .doc-desk__say:nth-child(2) {
     grid-area: say;
   }
-  .doc-pick__reach {
+  .doc-pick__asks {
     grid-area: reach;
   }
   .doc-pick__list {
@@ -1906,9 +1974,22 @@
   .doc:not([data-gauging]) .doc-atom[data-atom='cover'] > * {
     block-size: auto;
   }
-  .doc:not([data-gauging]) .doc-sums__list,
-  .doc:not([data-gauging]) .doc-sums__say {
-    inline-size: 100%;
+  /* the figures the column's width, the picture over them at no more than its own pixels */
+  .doc:not([data-gauging]) .doc-sums__body {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: --spacing(4);
+  }
+  .doc:not([data-gauging]) .doc-sums__figs {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .doc:not([data-gauging]) .doc-sums__boat {
+    max-inline-size: 72mm;
+  }
+  /* a hand's column is as tall as what it holds: a mark keeps its own air, not a picture's room */
+  .doc:not([data-gauging]) .doc-shot[data-art='mark'],
+  .doc:not([data-gauging]) .doc-shot[data-art='word'] {
+    min-block-size: 0;
   }
   /* THE PARTS SET AS ONE COLUMN: the key facts two by two, the specification's groups one under
      another, the contact panel and the two signature blocks stacked (quote-spec §9: "stacked
@@ -2158,9 +2239,6 @@
   }
   .doc-row__qty {
     display: block;
-  }
-  .doc-sums__list {
-    inline-size: 60%;
   }
   .doc-money {
     flex-direction: row;

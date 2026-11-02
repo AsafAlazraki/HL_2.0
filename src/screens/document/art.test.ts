@@ -7,6 +7,8 @@ import type { HeldPicture } from '@/data/pictures'
 import {
   NIGHT_MAX_PX,
   SHEET_PX,
+  coverAskAct,
+  coverAskSay,
   coverSay,
   groundOf,
   notPrintedSay,
@@ -120,5 +122,49 @@ describe('why the build’s picture is not the cover’s', () => {
     /* a photograph a person marked is printed wherever it is shown, so there is nothing to explain */
     const marked = held({ id: 'h', src: '/h.webp', tier: 'hero', person: true, exact: true })
     expect(notPrintedSay(marked, printed, 'boat', true)).toBe('')
+  })
+})
+
+describe('what the panel where the paper is chosen says of the cover', () => {
+  const machine = held({
+    id: 'highfield-sp560',
+    src: '/sp560.webp',
+    tier: 'hero',
+    person: false,
+    exact: false,
+    subject: 'Highfield Sport 560 on the water',
+  })
+
+  it('says which photograph the build shows and why the cover leaves it off', () => {
+    const render = photo({ id: 'row:a', src: '/a.webp', tier: 'catalogue', verdict: 'studio' })
+    expect(coverAskSay(render, machine, 'boat')).toBe(
+      'The build shows the Highfield Sport 560 on the water, as its maker photographed it. Nobody has checked that it shows this model, so it is not printed.',
+    )
+  })
+
+  it('gives the cover’s own reason where it prints no picture and the build shows none', () => {
+    expect(
+      coverAskSay({ kind: 'word', because: 'No photograph of this boat yet.' }, null, 'boat'),
+    ).toBe('No photograph of this boat yet.')
+  })
+
+  it('says nothing where the cover prints what the build shows', () => {
+    const marked = held({ id: 'h', src: '/h.webp', tier: 'hero', person: true, exact: true })
+    expect(coverAskSay({ kind: 'photograph', held: marked }, marked, 'boat')).toBe('')
+    expect(coverAskSay(photo({ id: 'row:m', verdict: 'studio' }), null, 'motor')).toBe('')
+  })
+
+  it('names the act on a draft in the noun of what is sold', () => {
+    expect(coverAskAct('trailer', null)).toBe(
+      'Add Northside’s own photograph of this trailer and make it the cover, and the printed quote prints it on its cover.',
+    )
+  })
+
+  it('says the maker’s photograph the gallery marks as its cover is not the one printed', () => {
+    expect(coverAskAct('boat', machine)).toBe(
+      'Add Northside’s own photograph of this boat and make it the cover, and the printed quote prints it on its cover. The maker’s photograph is not printed.',
+    )
+    const marked = held({ id: 'h', tier: 'hero', person: true })
+    expect(coverAskAct('boat', marked)).not.toMatch(/maker’s photograph is not printed/)
   })
 })

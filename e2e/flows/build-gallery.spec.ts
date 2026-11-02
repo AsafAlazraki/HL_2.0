@@ -118,8 +118,12 @@ test('the boat’s gallery from the stage: its cover first, a cover chosen in th
   const large = largeIn(page)
   await expect(large).toBeVisible()
   const count = large.locator('.ui-lightbox-count')
-  /* the model's number kept with its name, never alone on a line (the audit, 2026-11-02, P19) */
-  await expect(count).toHaveText(new RegExp(`^Cover1 of ${n} · Highfield Sport\u00a0560$`))
+  /* the model's number kept with its name, never alone on a line (the audit, 2026-11-02, P19).
+     REWRITTEN 2026-11-02 (the audit's round 2, P8: "1 of 2 · Highfield Sport 560" wrapped at 390
+     and 844 × 390): the count names the model without its maker, whom the gallery's head names
+     over it in full */
+  await expect(count).toHaveText(new RegExp(`^Cover1 of ${n} · Sport\u00a0560$`))
+  await expect(large.locator('.ui-lightbox-title')).toHaveText(/^Highfield Sport\s560$/)
   await expect(large.locator('.ui-lightbox-img')).toHaveAttribute('src', was!)
   /* what this quote carries that the picture may not show, said under it as on the stage */
   await expect(large).toContainText(/On this quote: no motor yet/)

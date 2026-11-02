@@ -355,15 +355,18 @@ export const FOLDED_PREF = 'build.folded'
  * hull's material and not through its colour cards.
  */
 const ROOM_AIR = 12
-/** THE FLOATING TOTAL'S ROOM OVER THE WINDOW'S FOOT (`TallyBar`, configurator.css): its 56px and
- *  the 12px it stands above the window's foot; in a hand it rests on the tab bar's edge, and in a
- *  window 700px tall or less it is the window's own foot. */
-const FLOAT_ROOM = { hand: 54, short: 56, column: 68 } as const
+/** THE FLOATING TOTAL'S ROOM OVER THE WINDOW'S FOOT (`TallyBar`, configurator.css): its 56px; in a
+ *  hand it stands 8px over the tab bar on the room's own ground (the audit's P1, 2026-11-02), and
+ *  its room is counted 4px short of that so the search field under the boat's measures begins at
+ *  the total's foot and not 2px above it, its glyph clear of the tab bar's edge (measured at
+ *  390 × 844 on the Sport 560, the Patrol 600 and the Formosa GRT 425: the field's glyph stood at
+ *  786–802 across the edge at 790); at every other one-column size it is the window's own foot
+ *  (P2). */
+const FLOAT_ROOM = { hand: 58, column: 56 } as const
 function floatRoom(): number {
   if (typeof window.matchMedia !== 'function') return 0
   if (window.matchMedia('(max-width: 639.98px)').matches) return FLOAT_ROOM.hand
-  if (!window.matchMedia(ONE_COLUMN).matches) return 0
-  return window.matchMedia('(max-height: 700px)').matches ? FLOAT_ROOM.short : FLOAT_ROOM.column
+  return window.matchMedia(ONE_COLUMN).matches ? FLOAT_ROOM.column : 0
 }
 /** where an element stands on the page, by the layout's offsets and never its painted box */
 function pageTop(el: HTMLElement): number {
@@ -877,6 +880,26 @@ function Build({
     return () => watch.disconnect()
   }, [oneColumn, railDrawn])
 
+  /* AT A DESK THE TOTAL'S ACT STANDS DOWN WHILE THE DOOR'S IS IN THE WINDOW (the audit, 2026-11-02,
+     P3): on a short build — a part on its own — the total's "View final package" and the door's at
+     the rail's foot stood in one window, one act offered twice. The door is the act where the
+     chapters end; the total's is the way on from anywhere above it. Read as the chapters' column
+     passes the door, which its own clipping hides. */
+  const [doorIn, setDoorIn] = useState(false)
+  useEffect(() => {
+    const node = floor.current
+    const door = node?.querySelector('.cfg-door')
+    if (oneColumn || railDrawn === '' || !door || typeof IntersectionObserver === 'undefined') {
+      setDoorIn(false)
+      return
+    }
+    const watch = new IntersectionObserver((entries) => {
+      for (const entry of entries) setDoorIn(entry.isIntersecting)
+    })
+    watch.observe(door)
+    return () => watch.disconnect()
+  }, [oneColumn, railDrawn])
+
   /* EVERY CHAPTER STANDS OPEN, AND A PERSON MAY FOLD ONE (the owner, 2026-10-31: "all cards on
      the right should be open by default"). What is folded is this browser's, kept by chapter id in
      prefs (`folded.ts`), so a chapter folded on one quote is folded on the next. A press on a
@@ -1177,6 +1200,7 @@ function Build({
                   note={packageOpen ? '' : note}
                   said={packageOpen || barUp ? null : said}
                   onPackage={rail === null ? undefined : viewPackage}
+                  doorIn={doorIn}
                   raise={raise}
                   refusal={refusal}
                   onLarge={showLarge}
@@ -2559,6 +2583,7 @@ function Tally({
   note,
   said,
   onPackage,
+  doorIn = false,
   raise,
   refusal,
   onLarge,
@@ -2568,6 +2593,8 @@ function Tally({
   rail: Rail | null
   open: boolean
   art: StageArt | null
+  /** at a desk, the door to the final package is in the window, so this act stands down (P3) */
+  doorIn?: boolean
   /** a sheet stands over the page, and a part carried in it is dropped on the sheet's own total */
   over?: boolean
   /** what is not in the total, once (`totalNoteSay`); '' for nothing */
@@ -2625,6 +2652,7 @@ function Tally({
             onLarge({
               item: itemOfQuote(quote),
               name: heldTogether(boat.name),
+              short: countNameOf(boat),
               at: placeIn(gallery, photo),
               boat: true,
             })
@@ -2708,7 +2736,12 @@ function Tally({
       {/* THE SAME ACT AS THE RAIL'S DOOR, IN THE SAME AMBER (the critic, 2026-11-02: here it was the
           kit's navy, 300px from the door's amber, two looks for one act) */}
       {onPackage ? (
-        <div className="cfg-tally__go">
+        <div
+          className="cfg-tally__go"
+          data-door={doorIn ? '' : undefined}
+          inert={doorIn ? true : undefined}
+          aria-hidden={doorIn ? true : undefined}
+        >
           <Button intent="act" size="sm" icon={ArrowRightIcon} onClick={onPackage}>
             View final package
           </Button>
@@ -2741,29 +2774,33 @@ function TallyBar({
   onPackage?: (() => void) | undefined
 }) {
   return (
-    <section
-      className="cfg-bar"
-      aria-label="The total"
-      data-testid="running-bar"
-      data-up={up ? '' : undefined}
-      inert={up ? undefined : true}
-      aria-hidden={up ? undefined : true}
-    >
-      <p className="cfg-bar__sum">
-        <span className="cfg-bar__lab">Total</span>
-        <span className="cfg-bar__fig">
-          {total === null ? '—' : <PriceFigure amount={total} size="lg" />}
-        </span>
-      </p>
-      {said ? <div className="cfg-bar__step">{said}</div> : null}
-      {onPackage ? (
-        <div className="cfg-bar__go">
-          <Button intent="act" size="sm" icon={ArrowRightIcon} onClick={onPackage}>
-            View final package
-          </Button>
-        </div>
-      ) : null}
-    </section>
+    <>
+      {/* THE GROUND UNDER THE TWO FLOATING PLATES IN A HAND (configurator.css, `.cfg-bar__dock`) */}
+      <div className="cfg-bar__dock" data-up={up ? '' : undefined} aria-hidden="true" />
+      <section
+        className="cfg-bar"
+        aria-label="The total"
+        data-testid="running-bar"
+        data-up={up ? '' : undefined}
+        inert={up ? undefined : true}
+        aria-hidden={up ? undefined : true}
+      >
+        <p className="cfg-bar__sum">
+          <span className="cfg-bar__lab">Total</span>
+          <span className="cfg-bar__fig">
+            {total === null ? '—' : <PriceFigure amount={total} size="lg" />}
+          </span>
+        </p>
+        {said ? <div className="cfg-bar__step">{said}</div> : null}
+        {onPackage ? (
+          <div className="cfg-bar__go">
+            <Button intent="act" size="sm" icon={ArrowRightIcon} onClick={onPackage}>
+              View final package
+            </Button>
+          </div>
+        ) : null}
+      </section>
+    </>
   )
 }
 
@@ -2783,6 +2820,9 @@ interface GalleryOpen {
   /** the boat this quote is for: each of its pictures is said with what the quote carries that
    *  the picture may not show */
   boat?: true
+  /** THE NAME BESIDE THE COUNT, where the gallery's head already says the whole: "1 of 2 · Sport
+   *  560" (the audit, 2026-11-02, P8: "1 of 2 · Highfield Sport 560" wrapped at 390 and 844) */
+  short?: string | undefined
 }
 
 /** WHERE THE PICTURE A TILE DRAWS STANDS IN ITS ROW'S GALLERY, so the gallery opens on the picture
@@ -2827,7 +2867,7 @@ function RowLarge({
   /** the words under each picture, where the screen has its own sentence for it */
   noteOf?: ((held: HeldPicture) => string) | undefined
 }) {
-  const { item, name, kind } = shown.open
+  const { item, name, kind, short } = shown.open
   const held = useGallery(item)
   const bound = useOptionPicture(item, name, kind)
   const n = bound.gallery.length
@@ -2845,7 +2885,7 @@ function RowLarge({
       pictures={pictures}
       at={at}
       onAt={onAt}
-      title={name}
+      title={short ?? name}
       strip
       acts={
         at === null ? undefined : (
@@ -2982,13 +3022,21 @@ function Stage({
   /* the first photograph is the one the ledger hands over once it is read, not the absence before */
   if (first === '' && held) setFirst(held.src)
 
+  /* A RENDER AT MOST HALF ITS FRAME'S WIDTH (`small`): its frame takes the picture's own height and
+     some air rather than the column's, at a desk (configurator.css). The GA38's 300 × 300 render
+     stood in a 976 × 647 white card at 1920, about 14% of it, and read as an empty card (the audit,
+     2026-11-02, P4); drawn larger it would blur. Read off the frame's width, which the frame's
+     height never moves. */
+  const [small, setSmall] = useState(false)
   /* THE PAINTED SIZE, NOT THE BOX: `object-fit: cover` scales the whole picture until it covers
      the box, so the scale is the larger of the two ratios */
   useEffect(() => {
     const img = photo.current
     if (!held || !img || typeof ResizeObserver === 'undefined') return
+    const frame = img.parentElement
     const measure = (): void => {
       const box = img.getBoundingClientRect()
+      if (frame) setSmall(held.verdict !== 'scene' && held.width * 2 <= frame.clientWidth)
       if (box.width <= 0 || box.height <= 0) return
       const scale = Math.max(box.width / held.width, box.height / held.height)
       setDrawn({ w: Math.round(held.width * scale), h: Math.round(held.height * scale) })
@@ -2996,6 +3044,7 @@ function Stage({
     measure()
     const watch = new ResizeObserver(measure)
     watch.observe(img)
+    if (frame) watch.observe(frame)
     return () => {
       watch.disconnect()
     }
@@ -3022,6 +3071,7 @@ function Stage({
           data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
           data-held={art.kind === 'photograph' ? `${art.held.width}x${art.held.height}` : undefined}
           data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
+          data-small={small ? '' : undefined}
           /* NEVER ENLARGED, STRUCTURALLY: a photograph on the water is cropped (`cover`), so the
              ledger's own pixels are the ceiling on its box and `cover` can only scale down; a
              render on white is drawn whole on the frame's own white, so the frame takes its
@@ -3029,9 +3079,11 @@ function Stage({
              300 × 300 render stood in a 300px card with a 380px hole beside it at 1920, and a
              motor's 800px render in an 800px frame inside a 976px column) */
           style={
-            art.kind === 'photograph' && art.held.verdict === 'scene'
-              ? { maxInlineSize: art.held.width, maxBlockSize: art.held.height }
-              : undefined
+            art.kind !== 'photograph'
+              ? undefined
+              : art.held.verdict === 'scene'
+                ? { maxInlineSize: art.held.width, maxBlockSize: art.held.height }
+                : ({ '--cfg-frame-h': `${art.held.height}px` } as CSSProperties)
           }
         >
           {art.kind === 'photograph' ? (
@@ -3094,6 +3146,7 @@ function Stage({
                   onLarge({
                     item,
                     name: heldTogether(boat.name),
+                    short: countNameOf(boat),
                     kind,
                     at: placeIn(gallery, art.held),
                     boat: true,
@@ -3721,25 +3774,26 @@ function ChapterCard({
                 its act, and an empty box in its place read as a head that says nothing. */}
             {said === '' && tail === '' ? null : (
               <span className="cfg-head__fact">
-                {said === '' ? null : (
-                  /* THE DOT ENDS THE ANSWER'S OWN BOX (the build's closing verify, 2026-10-20). The
-                   answer is its own box, so a long one ("Yamaha/Stacer · Binnacle Mount Rigging
-                   Kit" at 390, a swapped motor's "… Cables & Filter" at 834) put "· 6 more
-                   offered" on a line of its own that began with the dot. The box now ends on the
-                   dot (configurator.css, `[data-more]`), bound to the answer's last word by a
-                   no-break space and in the quieter ink, so the line breaks after it instead. */
-                  <span className="cfg-head__said" data-more={tail === '' ? undefined : ''}>
-                    {slashed(nameOnPaper(said))}
-                  </span>
-                )}
-                {tail === '' ? null : (
-                  <span className="cfg-head__rest">
-                    {/* the dot a reader hears and reads in the head's text: the one drawn is the
-                      answer's own, generated with no words of its own */}
-                    {said === '' ? null : <span className="cfg-head__heard"> ·</span>}
-                    {`${said === '' ? '' : ' '}${tail}`}
-                  </span>
-                )}
+                {/* THE DOT BETWEEN THE ANSWER AND WHAT FOLLOWS IS DRAWN ONLY BETWEEN THEM ON ONE LINE
+                    (configurator.css, `.cfg-head__line`). Ending the answer's box on it (2026-10-20)
+                    left it at a line's end whenever what followed wrapped: "Striker Vivid 4cv with
+                    GT20-TM Transducer and 2 others ·" over "4 more offered" (the audit, 2026-11-02,
+                    P6); and beginning the next line with it read as a stray mark (the build's
+                    closing verify). Now the two are boxes in a wrapping row, each led by the dot's
+                    room, and a box that begins a line has its dot outside the row's clipped edge. */}
+                <span className="cfg-head__line">
+                  {said === '' ? null : (
+                    <span className="cfg-head__said">{slashed(nameOnPaper(said))}</span>
+                  )}
+                  {tail === '' ? null : (
+                    <span className="cfg-head__rest" data-after={said === '' ? undefined : ''}>
+                      {/* the dot a reader hears and reads in the head's text: the one drawn is
+                        generated with no words of its own */}
+                      {said === '' ? null : <span className="cfg-head__heard"> · </span>}
+                      {tail}
+                    </span>
+                  )}
+                </span>
               </span>
             )}
           </span>
@@ -5488,14 +5542,17 @@ function ShopList({ rows }: { rows: readonly OptionRow[] }) {
  *  thing another way (a rigging kit, by its motor), the pairing's own facts where they are not
  *  already on the tile, and the dealer's code. */
 function shopOf(row: OptionRow): { label: string; value: string }[] {
+  /* THE FILE'S SHORTHAND SAID IN FULL, as every other line says it (`nameOnPaper`): "Side Mount w
+     6Y5 2 Gauges" printed here while the tile said "with" (the audit, 2026-11-02, P7). The code is
+     the code. */
   return [
-    ...(row.listed === '' ? [] : [{ label: 'On the price list', value: row.listed }]),
+    ...(row.listed === '' ? [] : [{ label: 'On the price list', value: nameOnPaper(row.listed) }]),
     /* a fact this row leaves empty is not a line with nothing after its label */
     ...(row.twin
       ? []
       : row.facts
           .filter((f) => f.full.trim() !== '')
-          .map((f) => ({ label: f.label, value: f.full }))),
+          .map((f) => ({ label: f.label, value: nameOnPaper(f.full) }))),
     ...(row.code === '' ? [] : [{ label: 'Code', value: row.code }]),
   ]
 }
@@ -6872,6 +6929,10 @@ const upper = (said: string): string => said.charAt(0).toUpperCase() + said.slic
  *  (the audit, 2026-11-02, P19: "1 of 2 · Highfield Sport / 560" in the gallery's count at 390) */
 const heldTogether = (name: string): string => name.replace(/ (\S+)$/, ' $1')
 const slashed = (said: string): string => said.replace(/ \/ /g, ' / ')
+/** THE BOAT BESIDE ITS GALLERY'S COUNT, without its maker, which the gallery's head says over it:
+ *  "Sport 560", "Patrol 600 Open"; its whole name where the file gives no model */
+const countNameOf = (boat: { model: string; qualifier: string; name: string }): string =>
+  heldTogether(boat.model === '' ? boat.name : [boat.model, boat.qualifier].join(' ').trim())
 
 function namesSay(names: readonly string[]): string {
   const shown = names.slice(0, 3).map((n) => `the ${n}`)

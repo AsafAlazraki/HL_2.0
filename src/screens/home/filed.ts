@@ -39,6 +39,7 @@ import { boatOfQuote } from '@/domain/quote/spoken'
 import { stillWanted } from '@/domain/quote/steps'
 import { boatTravel } from '@/screens/picker/travel'
 import { heroOfQuote } from '@/data/pictures'
+import { heldCopyOf, type HeldCopy } from '@/screens/quotes/cover'
 import type { HeldPicture } from './ledgers'
 
 /** One filed document, as the card on Home draws it. */
@@ -77,6 +78,10 @@ export interface FiledCard {
   wants: string | null
   /** the held photograph of exactly this model, where one exists */
   picture: HeldPicture | undefined
+  /** WHERE NO PHOTOGRAPH IS HELD, THE EXACT STUDIO COPY of what is sold — a motor, a trailer or
+   *  a part quoted on its own — the one Quotes draws for the same quote (`heldCopyOf`), so a
+   *  Garmin GA38 alone no longer stands beside an empty white well on Home (2026-11-02) */
+  copy: HeldCopy | undefined
   /** THE NAME ITS PHOTOGRAPH TRAVELS UNDER: the row it is written for, the
    *  name the build's stage and the paper's cover stand under (the picker's
    *  `boatTravel`), so a press carries the boat onto whichever one opens */
@@ -137,6 +142,7 @@ function cardOf(row: RegisterRow, quote: QuoteDef, nowMs: number): FiledCard {
     rung: level?.label ?? null,
     wants: stillWanted(quote),
     picture: heroOfQuote(quote) ?? undefined,
+    copy: heldCopyOf(quote),
     travel: boatTravel(quote.rootTableId, quote.rootRowId),
   }
 }

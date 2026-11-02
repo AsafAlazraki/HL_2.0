@@ -402,6 +402,31 @@ describe('the file’s own recommendation, and a second line on one table', () =
     }
   })
 
+  /* PARTS ARE PUT ON BESIDE EACH OTHER, EACH ITS OWN ROW WITH ITS OWN FIGURE (the audit,
+     2026-11-02, P6): a sentence naming them all above those rows said every part twice */
+  it('says nothing over several parts from one list, each already its own row', () => {
+    const fit = readRail(ctx, sp560).chapters.find((c) => c.id === 'fit')!
+    const table = fit.tables.find((t) => t.rows.filter((r) => r.act.do === 'add').length >= 2)
+    expect(table, 'no list in the fit chapter offers two parts to add').toBeDefined()
+    const adds = table!.rows.flatMap((r) => (r.act.do === 'add' ? [r.act] : [])).slice(0, 2)
+    let quote: QuoteDef = sp560
+    for (const act of adds) {
+      quote = {
+        ...quote,
+        lines: [...quote.lines, act.line],
+        sections: quote.sections.map((s) =>
+          s.blockId === act.blockId ? { ...s, lineIds: [...s.lineIds, act.line.id] } : s,
+        ),
+      }
+    }
+    const after = readRail(ctx, quote)
+      .chapters.find((c) => c.id === 'fit')!
+      .tables.find((t) => t.id === table!.id)!
+    const on = [...after.rows, ...after.also].filter((r) => r.fitted)
+    expect(on.length).toBeGreaterThanOrEqual(2)
+    expect(after.severalSay).toBe('')
+  })
+
   it('says nothing about a table carrying one line', () => {
     for (const chapter of readRail(ctx, sp560).chapters) {
       for (const table of chapter.tables) {

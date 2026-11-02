@@ -637,11 +637,13 @@ test('the arrival at the door lands its pictures quickly and sharp, and Home pre
       )
     const played = new Set<string>()
     const ends: number[] = []
+    const rows: number[] = []
     for (const el of document.querySelectorAll('.home-boat, .home-door, .home-job')) {
       const style = getComputedStyle(el)
       if (style.animationName === 'none') continue
       played.add(style.animationName)
       ends.push(ms(style.animationDelay) + ms(style.animationDuration))
+      if (!el.classList.contains('home-job')) rows.push(ends.at(-1) ?? 0)
     }
     const flat = (rules: CSSRuleList): CSSRule[] =>
       [...rules].flatMap((rule) => (rule instanceof CSSGroupingRule ? flat(rule.cssRules) : [rule]))
@@ -658,11 +660,19 @@ test('the arrival at the door lands its pictures quickly and sharp, and Home pre
         played.has(rule.name) &&
         [...rule.cssRules].some((frame) => (frame as CSSKeyframeRule).style.filter !== ''),
     )
-    return { names: [...played], blur, last: ends.length > 0 ? Math.max(...ends) : 0 }
+    return {
+      names: [...played],
+      blur,
+      last: ends.length > 0 ? Math.max(...ends) : 0,
+      rows: rows.length > 0 ? Math.max(...rows) : 0,
+    }
   })
   expect(landing.names.length, 'the arrival played on its pictures and doors').toBeGreaterThan(0)
   expect(landing.blur, 'a picture or door comes out of a blur').toBe(false)
   expect(landing.last, 'the last picture or door lands by').toBeLessThanOrEqual(800)
+  /* THE ROWS LAND IN HALF THE TIME (the second audit, S1): the last photograph or door of a row
+     is seen 445ms after the row is drawn, not 745ms */
+  expect(landing.rows, 'the last photograph or door of a row lands by').toBeLessThanOrEqual(450)
 
   /* a visit that begins on Quotes, and Home pressed from the bar */
   await page.goto('/quotes')
@@ -686,6 +696,76 @@ test('the arrival at the door lands its pictures quickly and sharp, and Home pre
     ),
   )
   expect(arriving, 'something on Home is still arriving after a press from Quotes').toEqual([])
+  await photographsUp(boatsRegion(page))
+})
+
+/* ============================================================
+   A FULL LOAD OF HOME (the second audit, 2026-11-02, S1: at 1920 a reload painted 1 of 16
+   pictures at 584ms and 16 of 16 at 3,873ms, the sampler blocked between, because the water
+   began to flow in the frame the photographs began to fade in). Watched from inside the page,
+   every frame, from the load: the water never flows while anything on Home is still arriving,
+   it does flow once Home has arrived, and every photograph in the window is seen.
+   ============================================================ */
+test('a full load of Home lands its photographs before the water flows', async ({ page }) => {
+  await throughTheDoor(page)
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await page.addInitScript(() => {
+    const seen = { open: -1, shown: -1, inView: 0, flowing: -1, crossed: [] as string[] }
+    Object.assign(window, { hl2HomeLoad: seen })
+    const watch = (): void => {
+      const home = document.querySelector<HTMLElement>('[data-testid="home"]')
+      const now = performance.now()
+      if (home) {
+        if (seen.open < 0 && home.dataset.file === 'open') seen.open = now
+        const arriving = home
+          .getAnimations({ subtree: true })
+          .filter(
+            (a) => a.playState === 'running' && a.effect?.getComputedTiming().endTime !== Infinity,
+          )
+        if (home.dataset.water === 'flowing') {
+          if (seen.flowing < 0) seen.flowing = now
+          for (const a of arriving)
+            seen.crossed.push(
+              `${String((a.effect as KeyframeEffect | null)?.target?.className)} at ${now.toFixed(0)}ms`,
+            )
+        }
+        const pictures = [...home.querySelectorAll<HTMLImageElement>('.home-boat img')].filter(
+          (img) => img.getBoundingClientRect().top < innerHeight,
+        )
+        const sharp = (img: HTMLImageElement): boolean => {
+          let opacity = 1
+          for (let el: Element | null = img; el; el = el.parentElement)
+            opacity *= Number(getComputedStyle(el).opacity)
+          return img.complete && img.naturalWidth > 0 && opacity > 0.9
+        }
+        seen.inView = Math.max(seen.inView, pictures.length)
+        if (seen.shown < 0 && pictures.length > 0 && pictures.every(sharp)) seen.shown = now
+      }
+      if (now < 15_000) requestAnimationFrame(watch)
+    }
+    requestAnimationFrame(watch)
+  })
+  await page.goto('/')
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('home')).toHaveAttribute('data-arrive', '')
+  await expect(page.getByTestId('home')).toHaveAttribute('data-water', 'flowing', {
+    timeout: 15_000,
+  })
+  const load = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          hl2HomeLoad: { open: number; shown: number; inView: number; crossed: string[] }
+        }
+      ).hl2HomeLoad,
+  )
+  test.info().annotations.push({
+    type: 'measured',
+    description: `file open at ${load.open.toFixed(0)}ms; ${load.inView} photographs in the window, every one seen at ${load.shown.toFixed(0)}ms`,
+  })
+  expect(load.crossed, 'the water flowed while something on Home was arriving').toEqual([])
+  if (load.inView > 0)
+    expect(load.shown, 'every photograph in the window was seen').toBeGreaterThan(0)
   await photographsUp(boatsRegion(page))
 })
 /* eslint-enable unicorn/consistent-function-scoping */

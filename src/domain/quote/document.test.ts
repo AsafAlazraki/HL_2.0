@@ -28,6 +28,7 @@ import {
   NOT_PRICED_HERE,
   NO_PRICE_TYPED,
   OPTIONAL,
+  detailToSet,
   kindsFrom,
   noLevelDeclared,
   readDocument,
@@ -428,5 +429,21 @@ describe('the dealer’s terms', () => {
 
   it('treats a note of spaces as no note, because a blank is not a term', () => {
     expect(readDocument({ ...quote, note: '   ' }).terms).toBeNull()
+  })
+})
+
+describe('where Open Settings lands', () => {
+  it('opens the first of Northside’s details a customer reaches it by that is not set', () => {
+    expect(detailToSet(null)).toBe('address')
+    expect(detailToSet({ name: 'Northside Marine' })).toBe('address')
+    expect(detailToSet({ name: 'Northside Marine', address: 'a' })).toBe('phone')
+    expect(detailToSet({ name: 'N', address: 'a', phone: '07', email: '  ' })).toBe('email')
+    expect(detailToSet({ name: 'N', address: 'a', phone: '07', email: 'e@x' })).toBe('abn')
+  })
+
+  it('opens the address where every one is set', () => {
+    expect(detailToSet({ name: 'N', address: 'a', phone: '07', email: 'e@x', abn: '1' })).toBe(
+      'address',
+    )
   })
 })
