@@ -1144,7 +1144,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
                any other reason is said once, in the open finale over its act. A shut head is
                never empty: it is the outline. */
             blockers.every((why) => why === ADDRESSED_TO_NOBODY)
-            ? 'after their name'
+            ? 'gives once their name is on it'
             : 'not ready to give yet',
     amount: totals.total,
     tables: [],

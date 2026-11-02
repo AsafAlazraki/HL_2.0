@@ -920,7 +920,9 @@ describe('the finale is the handover', () => {
        where it comes, never the gap again */
     const motor = render(<Configurator quoteId={quote.id} at="motor" />)
     expect(screen.getByRole('button', { name: 'Name the customer' })).toBeInTheDocument()
-    expect(head()).toHaveTextContent(/^The final package\s*after their name/)
+    /* rewritten 2026-11-02: "after their name" was not a sentence a salesperson can act on (the
+       critic); the door says what the give waits for */
+    expect(head()).toHaveTextContent(/^The final package\s*gives once their name is on it/)
     expect(screen.queryAllByText(nobody)).toEqual([])
     motor.unmount()
 

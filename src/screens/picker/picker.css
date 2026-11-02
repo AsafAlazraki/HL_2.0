@@ -1496,13 +1496,15 @@
 
 /* THE ACT'S ONE SENTENCE — its refusal while it waits (the button points `aria-describedby`
    here through `refusedBy`). Neutral-900 on the foot's pale blue, because while it is a
-   refusal it is the thing to read. */
+   refusal it is the thing to read. BALANCED, not pretty (2026-11-02): it is one or two lines,
+   and `pretty` let "each one." stand alone on the second line under the plate's act at 1440,
+   and "price follows each one." at 834. */
 .picker-act__say {
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-900);
-  text-wrap: pretty;
+  text-wrap: balance;
 }
 .picker-act__say:empty {
   display: none;

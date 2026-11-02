@@ -64,19 +64,25 @@
                                where it stands two across and the customer the bar's width (the
                                press that names them, or their name and contact and a pencil).
                                The photograph stands above the search and the rail, the boat's
-                               specifications plate below the rail. The tally is a card the
-                               window's width over the tab bar, sticky at its foot; at the page's
-                               end it rests in its place. A "Show all" sheet is the window less
-                               8px, its find field and the total side by side at its head.
-     844 x 390 (phone, turned) The rail first, then the stage. The bar is one strip of three — the
-                               number, where it stands, the customer — and the tally one row, so
-                               the work keeps the window.
+                               specifications plate below the rail. Models two across, colours
+                               one across, each name on its line. The tally is a card the
+                               window's width over the tab bar, sticky at its foot, the step and
+                               its Undo its second row; at the page's end it rests in its place.
+                               A "Show all" sheet is the window less 8px, its find field and the
+                               total side by side at its head.
+     844 x 390 (phone, turned) The rail first, then the stage. The bar is ONE STRIP: the maker and
+                               the boat beside the number, where it stands and the customer; the
+                               field's label is said to a reader only. The tally is one row the
+                               window's width (figure, step and Undo, the way on, the caret),
+                               56px of a 390px window, and the hull's head stands above it on
+                               arrival.
      834 x 1112 (tablet)       The bar stacks, its facts three across with the customer two wide.
                                The stage is a band the chapters start under: the photograph 3 : 2
                                on the larger half, the specifications plate beside it, opening
                                downwards. The tally is a card at the bottom left with the boat
                                small beside its figure. The page scrolls.
-     1280 x 800 (laptop)       Two columns, and THE PAGE IS THE WINDOW: the bar across the top;
+     1280 x 800 (laptop)       Two columns, and THE PAGE IS THE WINDOW: the bar across the top, the
+                               boat's name over its swatches and finish, two lines as at 1440;
                                on the left the photograph, taking whatever the specifications
                                and the total under it leave, never past its pixels; on the right
                                the search and the step meter over the chapters, which scroll in
@@ -90,15 +96,19 @@
      A wide window under 700px tall keeps two columns and lets the page scroll, both columns at
      their own height: the boat's column has no room to stand in it.
 
-   AT EVERY SIZE (the owner, 2026-10-31): every chapter stands open and a head folds its own,
-   kept by this browser; the hull's models and versions are compact cards two across, one height
-   each, its materials chips and its colours one strip of swatches; every line of a list ends on
-   one grid, its figure at one column and its "Add" or "Take off" at the next; the bar keeps a
-   hairline between the maker's mark and the boat, upright where they stand side by side and
-   across where a hand stacks them; the rail ends on the final package's door, its act amber, the
-   act under the words in a hand; at a desk and on a tablet the total carries the same way on, in
-   the file's blue, and in a hand it is the rail's foot alone. THE FINAL PACKAGE stands over the
-   whole window at every size, and its own ladder is written over its rules, below.
+   AT EVERY SIZE (the owner, 2026-10-31; the critic, 2026-11-02): every chapter stands open and a
+   head folds its own, kept by this browser; the hull's models, versions and colours are compact
+   cards, one height down each axis, a well (photograph or swatches) beside the name and what
+   choosing it does under the name; its materials chips. Tiles of pictures stand one height across
+   a row, and "See its picture larger" under each on one line. Every line of a list ends on one grid: its figure plain and bold, and its "Add" or
+   "Take off" the line's one pill, every act on one end edge. The bar keeps a hairline between the
+   maker's mark and the boat, upright where they stand side by side and across where a hand
+   stacks them. The rail ends on the final package's door, its act amber; at a desk and on a
+   tablet the total carries the same act in the same amber, and in a hand it is the rail's foot
+   alone. THE LAST STEP AND ITS UNDO ARE THE TOTAL'S OWN LINE AT EVERY SIZE (no toast), and end
+   when the reader reads on into another chapter or opens a picture, the customer's panel or a
+   whole range. THE FINAL PACKAGE stands over the whole window at every size, and its own ladder
+   is written over its rules, below.
 
    ------------------------------------------------------------------------------------
    MOTION. NO FIGURE ON THIS SCREEN MOVES: a price that counts up reads as a price still being
@@ -338,7 +348,7 @@
    each colour the decode names (built-critique-m2-close-2.md, the one thing to change first) */
 .cfg-mast__detail {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: --spacing(2);
   margin: 0;
@@ -536,7 +546,12 @@
 .cfg-whoform {
   display: grid;
   gap: --spacing(3);
-  inline-size: min(--spacing(88), calc(100vw - --spacing(12)));
+}
+/* IN THE BAR'S POPOVER, INSIDE ITS PADDING (the critic, 2026-11-02, B1: the form was 352px in a
+   popover whose box is 360 with 16px either side, so the fields and the act ran to its end edge and
+   the box scrolled 8px sideways on the caret). The form is the popover's content box, never more. */
+.cfg-whoform[data-in='panel'] {
+  inline-size: min(--spacing(80), calc(100vw - --spacing(16)));
 }
 .cfg-whoform__say {
   margin: 0;
@@ -670,11 +685,16 @@
   flex: none;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  /* THE STEP STANDS BESIDE THE WAY ON, in the row the act holds anyway, and what the total does
+     not hold is its own line the card's width (the critic, 2026-11-02: under a step's own row the
+     photograph above went from 250px to a 160px band at 1280 × 800, B8; and the note stood five
+     lines tall in a 190px column beside the act) */
   grid-template-areas:
     'sum level'
     'made made'
-    'note go'
-    'step step';
+    'note note'
+    'step step'
+    'go go';
   align-items: end;
   gap: --spacing(3) --spacing(4);
   padding: --spacing(5) --spacing(6);
@@ -878,9 +898,8 @@
 }
 .cfg-tally__step {
   grid-area: step;
+  align-self: center;
   min-inline-size: 0;
-  padding-block-start: --spacing(3);
-  border-block-start: 1px solid var(--color-rule);
 }
 .cfg-tally__step .cfg-alarm {
   margin: 0;
@@ -901,6 +920,54 @@
 }
 .cfg-step > :last-child {
   flex: none;
+}
+
+/* AT A DESK THE WAY ON STANDS BESIDE THE KEY UNDER THE BAR, and the step stands where the note
+   does, over it: the line's height is the taller of the two, so a step landing moves nothing on
+   the card and nothing in the photograph above it (the critic, 2026-11-02, B8: under a step's own
+   row the photograph went from 250px to a 160px band at 1280 × 800). While a step stands the note
+   steps aside; the key still says what has no price, and the note is back when the step ends. */
+@media (min-width: 1200px) {
+  .cfg-tally {
+    grid-template-areas:
+      'sum level'
+      'bar bar'
+      'key go'
+      'note note';
+  }
+  .cfg-tally__made {
+    display: contents;
+  }
+  .cfg-tally__bar {
+    grid-area: bar;
+  }
+  .cfg-tally__key {
+    grid-area: key;
+    align-self: center;
+  }
+  .cfg-tally__go {
+    align-self: center;
+  }
+  .cfg-tally__note,
+  .cfg-tally__step {
+    grid-area: note;
+    align-self: start;
+  }
+  .cfg-tally:has(> .cfg-tally__step) > .cfg-tally__note {
+    visibility: hidden;
+  }
+  .cfg-tally:not(:has(> .cfg-tally__note, > .cfg-tally__step)) {
+    grid-template-areas:
+      'sum level'
+      'bar bar'
+      'key go';
+  }
+  .cfg-tally__step .cfg-step {
+    display: flex;
+  }
+  .cfg-tally__step .cfg-step__said {
+    flex: 1 1 auto;
+  }
 }
 
 /* ---- the stage: the hull, and only the hull --------------------------------------- */
@@ -1395,8 +1462,8 @@
 }
 
 /* THE LAST STEP IS NOT DRAWN HERE. It stood between the field and the chapters, a 56px line
-   that pushed every chapter down under the press; it is the head's own line below 1440 and the
-   kit's toast from there (Configurator.tsx), and neither moves anything on the page. */
+   that pushed every chapter down under the press; it is the total's own line at every size since
+   2026-11-02 (Configurator.tsx), and moves nothing. */
 
 /* A PRESS THE ENGINE REFUSED, in its own words, led by the warning glyph in the act's dark
    amber — the ink this screen spends on a sentence that stops a press. It stands in the head
@@ -1874,12 +1941,22 @@
   list-style: none;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(80)), 1fr));
-  align-items: start;
+  align-items: stretch;
   gap: --spacing(3);
 }
 .cfg-tiles > li {
   display: grid;
   min-inline-size: 0;
+}
+/* EVERY TILE OF A ROW ONE HEIGHT, and "See its picture larger" under each at one height across
+   the row (the critic, 2026-11-02, B2: the F25LWTC's "Recommended" line made it 116px beside the
+   F30LA's 101, and their picture presses stood 15px apart). The tile takes what its row leaves
+   above the press: the tile is the first row of its cell and takes all the cell leaves (the kit's
+   tile fills the room it is given), and the press is the row under it. */
+.cfg-tiles > li > .cfg-opt {
+  grid-template-rows: minmax(0, 1fr);
+  grid-auto-rows: auto;
+  align-content: stretch;
 }
 
 /* ---- the boat, chosen in its own chapter (`BoatChooser`) ---------------------------- */
@@ -1887,12 +1964,13 @@
 /* ONE ROW OF CHOICES PER AXIS the file distinguishes the boat's series by, in the order a buyer
    thinks — Model (or Version), then Material, then Colour — each headed by one summary line: its
    name, the value on the quote, and how many the price list offers (and, where every one is the
-   same price, that it is, once). A model or a version is a compact card, one height for every
-   card on the axis: its picture in one well, its name, and what choosing it does to the total at
-   the card's end. A material is a chip. A colour is a swatch with its name, one strip of them,
-   never a wall of cards (the owner, 2026-10-31: "make it really easy to use"). A press answers on
-   the choice at once, and the photograph, the bar and the total answer with it. Cards two across
-   in the rail at every size, so sixteen models are eight short rows. */
+   same price, that it is, once). A model, a version or a colour is a compact card, one height
+   for every card on the axis: its picture or its swatches in one well, its name, and what choosing
+   it does to the total under the name (the owner, 2026-10-31: "make it really easy to use"; the
+   critic, 2026-11-02: a strip of colour pills wrapped raggedly at every size). A material is a
+   chip. A press answers on the choice at once, and the photograph, the bar and the total answer
+   with it. Cards two across in the rail at every size, so sixteen models are eight short rows;
+   a colour's cards one across in a hand, where a three-colour name needs the width. */
 .cfg-boat {
   display: grid;
   gap: --spacing(6);
@@ -1945,8 +2023,7 @@
   grid-auto-rows: 1fr;
   gap: --spacing(2);
 }
-.cfg-axis__list[data-shape='chips'],
-.cfg-axis__list[data-shape='swatches'] {
+.cfg-axis__list[data-shape='chips'] {
   display: flex;
   flex-wrap: wrap;
 }
@@ -1966,30 +2043,32 @@
   gap: --spacing(3);
 }
 .cfg-pick__in > .cfg-pick__delta {
-  justify-self: end;
   margin: 0;
 }
-/* A SWATCH: the colourway's swatches, its name, and its difference where it has one, as a pill
-   in a strip; a row of the strip is one height, its tallest */
-.cfg-axis__list[data-shape='swatches'] > li {
-  display: flex;
+/* WHAT CHOOSING IT DOES STANDS UNDER ITS NAME, on every card of every axis and at every size, as a
+   hand has always drawn it (the critic, 2026-11-02: at a desk the figure at the card's end took
+   the room the name needed, so "Light Grey / White / White/Blue" broke over three lines at 1280,
+   and the chosen F2.5SMHB's "on the quote" broke its "15″ shaft" onto a line of its own). The
+   name, its facts and its figure down one column beside the well; every figure on the axis
+   starts on one vertical, under every name. */
+.cfg-pick__in {
+  grid-template-columns: --spacing(16) minmax(0, 1fr);
+  grid-template-areas:
+    'well words'
+    'well delta';
+  row-gap: --spacing(1);
 }
-.cfg-pick[data-shape='swatch'] {
-  display: flex;
+.cfg-pick__in > .cfg-pick__well {
+  grid-area: well;
 }
-.cfg-pick[data-shape='swatch'] .cfg-pick__press {
-  padding: --spacing(2) --spacing(4) --spacing(2) --spacing(2.5);
-  border-radius: var(--radius-pill);
+.cfg-pick__in > .cfg-pick__words {
+  grid-area: words;
+  align-self: end;
 }
-.cfg-pick__in[data-axis='colour'] {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(2.5);
-}
-.cfg-pick__swatch {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
+.cfg-pick__in > .cfg-pick__delta {
+  grid-area: delta;
+  justify-self: start;
+  align-self: start;
 }
 /* ONE WELL FOR EVERY CARD: white, on a hairline, the same size — a photograph on the water fills
    it to its edges, and a maker's drawing or the boat's glyph stands whole on it */
@@ -2008,6 +2087,17 @@
 .cfg-pick__well[data-scene] {
   padding: 0;
   box-shadow: none;
+}
+/* A COLOUR'S WELL: its swatches on the plate's pale well; a colourway its maker's code does not
+   name draws no colour, and its well says so with a dashed edge and nothing in it */
+.cfg-pick__well[data-colour] {
+  background: var(--color-plate-tint);
+  box-shadow: none;
+}
+.cfg-pick__well[data-colour]:empty {
+  background: none;
+  box-shadow: none;
+  border: 1px dashed var(--color-rule-strong);
 }
 .cfg-pick__img {
   inline-size: 100%;
@@ -2135,9 +2225,14 @@
   .cfg-axis__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* A COLOURWAY'S NAME IS THREE COLOURS LONG, so in a hand its cards are one across, each name on
+     its one line (two across, "Light Grey / White / White/Blue" broke over three lines at 390) */
+  .cfg-axis[data-axis='colour'] .cfg-axis__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
   /* in a hand two across, each still a line: a small well beside its name and what it does under
      the name, so sixteen models are eight short rows and not a page of photographs */
-  .cfg-pick__in:not([data-axis='colour']) {
+  .cfg-pick__in {
     grid-template-columns: --spacing(11) minmax(0, 1fr);
     grid-template-areas:
       'well words'
@@ -2352,32 +2447,31 @@
   grid-column: 1;
   margin: 0;
 }
+/* every act ends at the line's end, "Add" and "Take off" on one end edge with the chapter's caret
+   and its "For the workshop" (the critic, 2026-11-02, B4: they stood 20px apart and 28 to 48px
+   short of the line's end) */
 .cfg-row__money > .cfg-row__add {
   grid-column: 2;
   grid-row: 1;
-  justify-self: start;
+  justify-self: end;
 }
-/* WHAT THE PRESS MOVES THE TOTAL BY, in the kit's figure pill: the plate's pale well with the
-   tint's own blue ink, bold and tabular (the option tile's figure). A press that takes a line
-   off prints its minus in the same pill; a row with no figure keeps its dash, quiet, and no
-   pill round nothing. */
+/* WHAT THE PRESS MOVES THE TOTAL BY, AS A FIGURE AND NOT A PRESS (the critic, 2026-11-02, B6:
+   "+$199" and "+ Add" were the same blue pill side by side, and the figure read as a second
+   button): bold and tabular in the page's ink, no ground under it; the act beside it is the line's
+   only pill. On the quote it is the kit's filled pill, the chosen tile's own figure. */
 .cfg-row__delta {
   display: inline-block;
-  padding: --spacing(0.5) --spacing(2.25);
-  border-radius: var(--radius-pill);
+  padding: --spacing(0.5) 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 700;
-  color: var(--color-ink-on-tint);
-  background: var(--color-plate-tint);
-}
-.cfg-row__delta[data-way='down'] {
   color: var(--color-ink);
-  background: var(--color-wash);
 }
 /* ON THE QUOTE: the price it stands on the quote at, in the kit's filled pill — the chosen
    option tile's own figure */
 .cfg-row__delta[data-way='on'] {
+  padding-inline: --spacing(2.25);
+  border-radius: var(--radius-pill);
   color: var(--color-ink-on-accent);
   background: var(--color-accent);
 }
@@ -3062,10 +3156,17 @@
   .cfg-floor {
     grid-template-columns: minmax(0, 1fr) --spacing(160);
   }
-  /* the bar's five facts keep one line each at 1280: the boat's words wrap first */
+  /* the bar's five facts keep one line each at 1280, and the boat keeps two: its name, and its
+     swatches and finish on one line under it (the critic, 2026-11-02: at 38% the swatches stood
+     alone on a line of their own and the bar was 96px against 1440's 80). The mark a little
+     smaller, the boat's words a little more room. */
   .cfg-mast__what {
-    max-inline-size: 38%;
-    padding-inline-end: --spacing(5);
+    max-inline-size: 46%;
+    gap: --spacing(4);
+    padding-inline: --spacing(4) --spacing(5);
+  }
+  .cfg-mast__mark {
+    max-inline-size: --spacing(32);
   }
   .cfg-mast__fact {
     padding-inline: --spacing(4);
@@ -3149,6 +3250,10 @@
   }
   .cfg-tally:not([data-unfolded]) .cfg-tally__fig {
     margin: 0;
+  }
+  .cfg-tally__step {
+    padding-block-start: --spacing(2);
+    border-block-start: 1px solid var(--color-rule);
   }
   .cfg-tally__fold {
     grid-area: fold;
@@ -3614,6 +3719,65 @@
 }
 
 /* --- A PHONE TURNED OVER: the name a hand's size, so the work starts nearer the top. --- */
+/* A PHONE TURNED OVER KEEPS ITS HEAD ONE STRIP (the critic, 2026-11-02, B7: stacked, the head and
+   the field's label put the hull's head under the floating total on arrival, "15 finishes" all that
+   showed of it): the maker and the boat beside the quote's three facts, and the field's label said
+   to a reader and drawn nowhere, its placeholder and glyph saying what it finds */
+@media (min-width: 640px) and (max-width: 1199.98px) and (max-height: 700px) {
+  .cfg-mast__bar {
+    flex-direction: row;
+  }
+  .cfg-mast__what {
+    flex: 0 1 auto;
+    max-inline-size: 48%;
+    gap: --spacing(4);
+    padding-inline: --spacing(4);
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--color-rule);
+  }
+  .cfg-mast__facts {
+    flex: 1 1 auto;
+  }
+  .cfg-mast__fact:nth-child(n) {
+    padding-inline: --spacing(4);
+  }
+  .cfg-mast__fact:nth-child(n + 4) {
+    border-block-start: 0;
+  }
+  .cfg-find__top {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .cfg-find {
+    padding-block-end: --spacing(1.5);
+  }
+  .cfg-find > .cfg-find__said {
+    margin-block-start: --spacing(1);
+  }
+  /* AND THE FOLDED TOTAL IS ONE ROW THE WINDOW'S WIDTH, its step between the figure and the way
+     on: under it as a second row, the total and its step stood 140px tall, 36% of the window */
+  .cfg-tally:not([data-unfolded]) {
+    inline-size: 100%;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'sum step go fold';
+  }
+  .cfg-tally:not([data-unfolded]) .cfg-tally__step {
+    padding: 0;
+    border: 0;
+    align-self: center;
+  }
+  .cfg-tally__step .cfg-step {
+    display: flex;
+  }
+  .cfg-tally__step .cfg-step__said {
+    flex: 1 1 auto;
+  }
+}
 @media (max-width: 1199.98px) and (max-height: 700px) {
   .cfg-mast__what {
     padding-block: --spacing(2.5);
@@ -4101,24 +4265,24 @@
    THE WHOLE WINDOW, AND THE PAGE WHILE IT STANDS: the shell's pill steps out of sight, the build
    steps out of the page's flow (inert, and put back exactly where it was), and the window
    scrolls the package as a document, its bar standing at the top.
-   One page in the order a customer is shown it: the boat's name, its photograph large beside the
-   handover card, every line with its picture beside the printed quote itself.
+   One page in the order a customer is shown it: the boat's name, the handover card, every line with
+   its picture, and the printed quote itself, whose cover carries the boat's photograph.
 
    ITS REFLOW, at the six sizes the rulers run:
-     390 x 844     One column, 16px gutter: the bar (back, and the print act as its glyph and one
-                   word), the name, the photograph 3 : 2 the column's width, the card (the name's
-                   fields first where nobody is named), the lines, and the paper as the document
-                   sets itself in a hand, one column with each page's edge said.
-     844 x 390     The same column; the photograph is never taller than three fifths of the
-                   window, so the card begins in the second window and not the fourth. The paper is
-                   A4, drawn at the column's width where 210 mm is wider than it.
-     834 x 1112    The same column at 24px: the photograph 3 : 2, the paper's A4 sheets at their own
-                   size where they fit and a little smaller where they do not, never cut.
-     1280 x 800    Two columns: the photograph on the larger side and the card beside it, then the
-                   lines in a column that stands still beside the paper as it scrolls.
-     1440 x 900    The same at the page's 56px gutter.
-     1920 x 1080   The same, the page held to 1680px and centred, so the photograph is never drawn
-                   past what its file holds and the paper's sheets stand at their own size.
+     390 x 844     One column, 16px gutter: the bar (back, and the print act), the name, the card
+                   (the name's fields first where nobody is named; every field, sentence and the
+                   total on the card's one end edge), the lines, and the paper as the document sets
+                   itself in a hand, one column with each page's edge said.
+     844 x 390     The same column. The paper is A4, drawn at the column's width where 210 mm is
+                   wider than it.
+     834 x 1112    The same column at 24px, the paper's A4 sheets at their own size where they fit
+                   and a little smaller where they do not, never cut.
+     1280 x 800    Two columns and THE PAPER IN THE FIRST WINDOW: the name, the card and the lines on
+                   the start side (440px at least), the printed quote beside them drawn at the
+                   column's width; "On this quote" stands still beside the paper as it is read.
+     1440 x 900    The same at the page's 56px gutter, the paper at its own A4 size.
+     1920 x 1080   The same, the page held to 1520px and centred, so the card is a hand's measure
+                   and the paper's sheets stand at their own size.
 
    MOTION: it arrives on the preparing moment (below), which lifts on the package; the paper's
    sheets are fed out by the document's own motion. Under reduced motion neither plays and it is
@@ -4184,7 +4348,7 @@
   gap: --spacing(4);
   /* its ends on the page's own measure, whatever the window's width */
   padding: --spacing(3)
-    max(var(--pkg-gutter), calc((100% - --spacing(420)) / 2 + var(--pkg-gutter)));
+    max(var(--pkg-gutter), calc((100% - --spacing(380)) / 2 + var(--pkg-gutter)));
   background: --alpha(var(--color-ground) / 92%);
   backdrop-filter: blur(--spacing(3));
   border-block-end: 1px solid var(--color-rule);
@@ -4268,59 +4432,12 @@
   color: var(--color-ink-2);
 }
 
-/* THE HERO: the photograph and the handover card beside it */
-.cfg-pkg__hero {
+/* THE HANDOVER'S COLUMN: the name, the card and the lines, one under another */
+.cfg-pkg__aside {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   gap: var(--pkg-gap);
-  align-items: start;
-}
-.cfg-pkg__photo {
-  --pkg-held: none;
-  position: relative;
-  margin: 0;
-  aspect-ratio: 3 / 2;
-  max-block-size: min(var(--pkg-held), 70dvh);
-  inline-size: 100%;
-  overflow: hidden;
-  border-radius: var(--radius-plate);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-lg);
-}
-.cfg-pkg__img {
-  position: absolute;
-  inset: 0;
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
-}
-/* a maker's render on white stands whole on the plate; only a photograph fills its frame */
-.cfg-pkg__photo[data-verdict]:not([data-verdict='scene']) .cfg-pkg__img {
-  object-fit: contain;
-  padding: --spacing(6);
-  box-sizing: border-box;
-}
-/* no photograph held: the maker's white mark, or the list's name, on the file's deep blue, as the
-   build's stage draws them */
-.cfg-pkg__photo[data-art='mark'],
-.cfg-pkg__photo[data-art='word'] {
-  display: grid;
-  place-items: center;
-  background: var(--grain), var(--color-blue-900);
-}
-.cfg-pkg__markbig {
-  inline-size: min(60%, --spacing(80));
-  block-size: auto;
-}
-.cfg-pkg__word {
-  padding: --spacing(6);
-  text-align: center;
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-blue-100);
+  min-inline-size: 0;
 }
 .cfg-pkg__side {
   display: grid;
@@ -4349,6 +4466,11 @@
 .cfg-pkg__card[data-asking] .cfg-hand__who {
   display: none;
 }
+/* and the total then stands alone in the card's head, on the card's end edge with the fields over
+   it (the critic, 2026-11-02, B5: an empty column and its gap held it 20px short of them) */
+.cfg-pkg__card[data-asking] .cfg-hand__head {
+  grid-template-columns: minmax(0, 1fr);
+}
 .cfg-pkg__step {
   padding: --spacing(3) --spacing(4);
   border-radius: var(--radius-plate);
@@ -4357,12 +4479,6 @@
 }
 
 /* THE LINES AND THE PAPER */
-.cfg-pkg__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--pkg-gap);
-  align-items: start;
-}
 .cfg-pkg__count {
   margin: 0 0 --spacing(2);
   display: flex;
@@ -4527,29 +4643,22 @@
   }
 }
 
-/* AT A DESK: the photograph on the larger side and the card beside it, then the lines standing
-   still beside the paper while it scrolls */
+/* AT A DESK THE PAPER IS IN THE FIRST WINDOW (the critic, 2026-11-02, B5): the handover's column on
+   the start side, its card and its lines; the printed quote beside it at A4 where A4 fits and drawn
+   smaller, whole, where it does not; "On this quote" stands still beside the paper as it is read
+   down, so the column under the card is never empty */
 @media (min-width: 1200px) {
-  .cfg-pkg__hero {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
-  .cfg-pkg__hero:not([data-pictured]) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .cfg-pkg__body {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .cfg-pkg__page {
+    /* the two columns held together on a wide screen: the card never wider than a hand reads */
+    max-inline-size: --spacing(380);
+    display: grid;
+    grid-template-columns: minmax(--spacing(110), 1fr) minmax(0, calc(210mm + --spacing(8)));
+    align-items: start;
+    column-gap: --spacing(10);
   }
   .cfg-pkg__lines {
     position: sticky;
     inset-block-start: --spacing(20);
-  }
-  /* the photograph stands beside the card while a long card is read down */
-  .cfg-pkg__photo {
-    position: sticky;
-    inset-block-start: --spacing(20);
-  }
-  .cfg-pkg__paper {
-    inline-size: calc(210mm + --spacing(8));
   }
 }
 @media (min-width: 1441px) {
@@ -4602,15 +4711,8 @@
     block-size: --spacing(10);
   }
 }
-/* A PHONE TURNED OVER: the width is there and the height is not, so the photograph stands beside
-   the card as at a desk, a window's height at most */
+/* A PHONE TURNED OVER: the page's top padding a hand's, so the name and the card start at once */
 @media (min-width: 640px) and (max-height: 520px) {
-  .cfg-pkg__hero {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  }
-  .cfg-pkg__photo {
-    max-block-size: none;
-  }
   .cfg-pkg__page {
     padding-block-start: --spacing(5);
   }
@@ -4750,16 +4852,13 @@
     background: none;
   }
   .cfg-pkg__bar,
-  .cfg-pkg__title,
-  .cfg-pkg__hero,
-  .cfg-pkg__lines,
+  .cfg-pkg__aside,
   .cfg-pkg__count,
   .cfg-pkg__say,
   .cfg-pkg__prep {
     display: none;
   }
-  .cfg-pkg__page,
-  .cfg-pkg__body {
+  .cfg-pkg__page {
     display: block;
     padding: 0;
     max-inline-size: none;
@@ -4794,21 +4893,25 @@
   }
 }
 
-/* THE STEP'S CARD TAKES THE WHOLE BAND BESIDE THE PILL ON THE BUILD, from 1680px (`bandHolds`):
-   Sonner draws every card 356px wide whatever its band, and at 1920 a swap stood four lines tall
-   in a 356px card beside 208px of empty band, over the bar's Prepared by */
-@media (min-width: 1680px) {
-  :root:has([data-testid='configurator']) [data-sonner-toaster][data-y-position='top'] {
-    --width: calc(50vw - --spacing(95) - --spacing(4));
-  }
-}
-
 /* A LINE'S PRICE, PUT ON IN THE PACKAGE'S CARD, stacks its field over its acts: the card is a
    column beside the photograph, and side by side the field's own label stood four lines tall at
    1280 × 800 */
 .cfg-pkg .cfg-hand__line-price {
   grid-template-columns: minmax(0, 1fr);
-  justify-items: start;
+}
+/* ONE END EDGE AND ONE MEASURE IN THE CARD (the critic, 2026-11-02, B5: the name's fields ended at
+   1217, the line's price at 1267 and the total at 1340 at 1440; at 834 the reasons were held to the
+   kit's refusal measure beside notes at the card's width): every field and the total end on the
+   card's padding, and every sentence is set at the refusal's own measure, about 44 characters of
+   the reason's type */
+.cfg-pkg .cfg-act__waits {
+  max-inline-size: none;
+}
+.cfg-pkg .cfg-act__lead,
+.cfg-pkg .cfg-act__say,
+.cfg-pkg .cfg-hand__notes > *,
+.cfg-pkg .cfg-hand__count {
+  max-inline-size: --spacing(86);
 }
 
 /* A TILE'S PICTURE, LARGE: the quiet press under the tile, at its start, the same place on every

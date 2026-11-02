@@ -1189,21 +1189,20 @@ test('a press leaves what was pressed where it was pressed', async ({ page }) =>
   ).toBeLessThanOrEqual(1.5)
 
   /* NOTHING GROWS BETWEEN THE FIELD AND THE CHAPTERS, and the sentence and its Undo are in the
-     window wherever the press was — in a hand the rail's head is far above it. From 1440 it is
-     the kit's toast, in the band beside the pill; narrower it is the head's own line, and
-     nothing stands over the rail (the refine round, 2026-10-20). */
+     window wherever the press was — in a hand the rail's head is far above it. It is the total's
+     own line at every size, and nothing stands over the rail (rewritten 2026-11-02: from 1440 it
+     was the kit's toast in the band beside the pill, which at 1920 stood outside the page's gutter
+     over the bar's Prepared by, the critic's B10). */
   expect(
     await field.evaluate((el) => el.getBoundingClientRect().height),
     'the rail head grew at the press',
   ).toBeCloseTo(fieldBefore, 0)
-  const wide = (page.viewportSize()?.width ?? 0) >= 1440
-  /* BELOW 1440 THE STEP IS THE TOTAL'S OWN LINE (the critic, P-1b, 2026-10-31: the total floats
-     folded to one line with its step under it; it was the masthead's line until then) */
-  if (wide) await expect(step).toHaveAttribute('data-sonner-toast', '')
-  else await expect(page.getByTestId('running-total').getByTestId('last-step')).toHaveCount(1)
+  /* THE STEP IS THE TOTAL'S OWN LINE AT EVERY SIZE (the critic, P-1b, 2026-10-31, below 1440;
+     and from 2026-11-02 above it too) */
+  await expect(page.getByTestId('running-total').getByTestId('last-step')).toHaveCount(1)
   await expect(step).toBeInViewport({ ratio: 1 })
-  /* and below 1440 nothing is drawn over the rail: no toast stands anywhere */
-  if (!wide) await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
+  /* and nothing is drawn over the rail: no toast stands anywhere */
+  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
 
   /* ITS UNDO IS PRESSED AWAY FROM THE LIST, and the list holds still under the reader:
      taking a second motor back takes the engine's sentence from over it */
@@ -1257,13 +1256,10 @@ test('the step’s Undo is reached by a keyboard, and hands the caret back', asy
 
   /* the press turned it into its own way back, where the caret still is */
   await expect(step.getByRole('button', { name: 'Put it back' })).toBeFocused()
-  /* and leaving it puts the caret back on the row it was taken from */
-  if ((page.viewportSize()?.width ?? 0) >= 1440) {
-    await page.keyboard.press('Shift+Tab')
-    await page.keyboard.press('Shift+Tab')
-  } else {
-    await page.keyboard.press('Escape')
-  }
+  /* and leaving it puts the caret back on the row it was taken from: Escape out of the total's
+     line, at every size since it is the step's one place (rewritten 2026-11-02: from 1440 it was
+     Shift Tab out of the kit's toast) */
+  await page.keyboard.press('Escape')
   await expect.poll(() => held.evaluate((el) => el === document.activeElement)).toBe(true)
 })
 

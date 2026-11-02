@@ -83,6 +83,10 @@ test('a returning visitor lands on Home, and the desk keeps their name', async (
 test('a browser that has lost its copy of the file says so on Home, and the way back to it', async ({
   page,
 }) => {
+  /* two walks through the door, each allowed thirty seconds to read the file, could not both fit
+     in the default thirty: at 834 × 1112 on 2026-11-02 the second read was cut off at 30 s while
+     another agent's run shared the machine */
+  test.setTimeout(120_000)
   await withoutTheFile(page)
 
   /* THE TABLES, counted from here on: what matters is that Home does not quietly fetch the
@@ -425,7 +429,15 @@ test.describe('the shell', () => {
        ("REDCO Custom / Highfield SP560 Aluminium") now says it the same way. */
     expect(said).toMatch(/^Sport 560 · /)
     expect(String(target.values['boat_highfield.model'])).toBe('SP560')
-    await expect(page.getByTestId('configurator')).toContainText(`Highfield ${said}`)
+    /* THE BOAT AND ITS FINISH ARE TWO LINES OF THE BUILD'S HEAD (the owner, 2026-10-31: "a line
+       between highfield logo and the boat in the top and lets separate them"): the boat is the
+       heading, "Highfield Sport 560", and the finish the row named stands under it. Until that
+       day this read the row's whole sentence, "Highfield Sport 560 · Hypalon · …", as one run of
+       the build's words. */
+    const [model, ...finish] = said.split(' · ')
+    const build = page.getByTestId('configurator')
+    await expect(build.getByRole('heading', { level: 1 })).toHaveText(`Highfield ${model}`)
+    await expect(build).toContainText(finish.join(' · '))
   })
 
   test('a model of many versions opens the picker on it', async ({ page }) => {
@@ -629,7 +641,13 @@ test.describe('the shell', () => {
     /* THROUGH THE PILL'S OWN DOOR, not a typed address: a press goes through the router with
        the issued document in memory, where a reload can race the 300 ms write-behind and
        arrive on a desk where the quote is still a draft — which would not be the desk the
-       critique photographed, and on which the old count would have agreed by accident. */
+       critique photographed, and on which the old count would have agreed by accident.
+       THE GIVE IS MADE IN THE FINAL PACKAGE, which stands over the whole window with the pill out
+       of sight under it (2026-10-31), so the walk goes "Back to editing" first, as a person
+       does, and the pill is there again on the build. */
+    await page.getByRole('button', { name: 'Back to editing' }).click()
+    await expect(page.getByTestId('final-package')).toHaveCount(0)
+    await expect(page.getByTestId('shell-pill')).toBeVisible()
     await page
       .getByTestId('shell-pill')
       .getByRole('link', { name: /^Quotes( |$)/ })
@@ -800,24 +818,30 @@ test.describe('the lit capsule', () => {
     await expect(page.getByTestId('running-total')).toBeVisible()
     await issueIt(page)
     const act = page.getByRole('button', { name: 'Open the printed quote' }).first()
-    /* the critique's desk: the build scrolled well down to its finale, so the press changes the
-       scroll as it changes the screen. SCROLLED THERE, NOT ONLY INTO VIEW (2026-10-21): at
-       1920 × 1080 the given finale's act already stands in the first window, so "into view if
-       needed" left the page at 0 and the walk measured a desk that was never scrolled. */
-    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight))
+    /* THE PAPER IS OPENED FROM THE FINAL PACKAGE (the owner, 2026-10-31: "let's go view final
+       package … and we can see the pdf quote preview"), which is the page while it stands, with
+       the pill out of sight under it; its act is the handover card's first, near the package's
+       head. Until that day the act stood at the foot of the build's summary and the walk scrolled
+       the window to the page's end. Now the window is scrolled as far as the act allows while it
+       stays in reach — standing just under the package's sticky bar — so the press still changes
+       the scroll as it changes the screen wherever the package is taller than the window. */
+    const target = await act.evaluate((el) => {
+      const bar = document.querySelector('.cfg-pkg__bar')
+      const under = bar ? bar.getBoundingClientRect().bottom : 0
+      const top = scrollY + el.getBoundingClientRect().top - under - 16
+      scrollTo({ top, behavior: 'instant' })
+      return top
+    })
     await page.waitForTimeout(400)
-    await act.scrollIntoViewIfNeeded()
+    await expect(act).toBeInViewport()
     const before = await page.evaluate(() => scrollY)
-    /* AT A DESK THE FINALE IS NOW A PAGE OF ITS OWN THAT FITS THE WINDOW (the build page's
-       rebuild, 2026-10-30: "The summary", full-screen at the end of the build), so the window has
-       no scroll to leave from there; measured 0 at 1280, 1440 and 1920. Below a desk the summary
-       is the build's end and is scrolled to, and the scroll case is measured there. At every size
-       the capsule is still watched through the change. */
+    const room = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)
+    /* the walk scrolled as far as it set out to, or to the page's end where that came first */
+    expect(
+      Math.abs(before - Math.max(0, Math.min(target, room))),
+      'the window could scroll, and the walk did not',
+    ).toBeLessThanOrEqual(1)
     const scrolled = before > 100
-    if (!scrolled) {
-      const room = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)
-      expect(room, 'the window could scroll, and the walk did not').toBeLessThanOrEqual(100)
-    }
     await page.waitForTimeout(400)
 
     const stop = await watchTheCapsule(page)

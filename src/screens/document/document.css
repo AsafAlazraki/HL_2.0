@@ -123,26 +123,32 @@
                                desk note under it, each at the paper's width and each set
                                in two columns (what is always printed and why beside the
                                switches; the note's facts two abreast), so neither card is
-                               a 64ch column with 300px of white beside it.
-     1280 x 800 (laptop)       True size. The crop marks come on, the page number moves out
-                               into the left gutter as a rail beside each sheet — pagedjs'
-                               own furniture — and the picker and the note take a 15–16rem
-                               margin beside the cover; the paper and its margin stand
-                               centred as one, inside the chrome's 24px gutter.
-     1440 x 900 (desk)         The same, wider: the margin at 256px, the floor either side
-                               of paper-and-margin equal.
-     1920 x 1080 (showroom)    Unchanged in shape. The chrome and the floor keep a 40px
-                               gutter; the sheet is the same 210 mm it is everywhere,
-                               because a millimetre does not get bigger on a bigger
-                               monitor, and the paper with its margin stays centred.
+                               a 64ch column with 300px of white beside it. The chrome
+                               stands in as far as the paper does (here and at 844), so
+                               its status dot and Print sit over the cards' own edges.
+     1280 x 800 (laptop)       True size. The crop marks come on, the page number stands in
+                               a 64px rail left of each sheet — pagedjs' own furniture —
+                               and the picker and the note take the margin beside the
+                               cover. Rail, paper and margin are ONE composition with one
+                               pair of edges: at 1280 it fills the 24px gutter, so the
+                               chrome's first word, the page number and the rail share a
+                               left edge and Print and the margin's card a right one.
+     1440 x 900 (desk)         The same, and the margin at its widest, 24rem, so the
+                               composition is narrower than the window and stands centred;
+                               the chrome's padding is the floor's, so its edges move with it.
+     1920 x 1080 (showroom)    Unchanged in shape: the same composition, centred, with at
+                               least a 40px gutter. The sheet is the same 210 mm it is
+                               everywhere, because a millimetre does not get bigger on a
+                               bigger monitor, and nothing else grows to fill the glass.
 
    THE DESK NOTE'S OWN STEP IS AT 1240, and it is the only thing in
    this file that moves at that width: under it the floor either side
    of the paper is 115px, which is not a column anybody can read, so
    the note is a card under the last sheet at the paper's own width.
-   Over it the floor is a four-column grid and the note is in the
-   margin; its column is a fixed width, so the paper's x does not
-   move with what the note says.
+   Over it the floor is a three-column grid (rail, paper, margin) and
+   the note is in the margin; the margin's width is set by the window
+   and never by the note, so the paper's x does not move with what the
+   note says.
 
    ------------------------------------------------------------------------------------
    THE KIT'S LANGUAGE, ON SCREEN ONLY (2026-09-28; src/ui, tokens.css
@@ -202,6 +208,14 @@
   /* the tallest the cover picture is drawn — see `.doc-shot`: a 4:3 picture at the full 174 mm
      measure is 130.5 mm tall, so every landscape picture spans the measure */
   --shot-max: 131mm;
+
+  /* THE ROOM AT A DESK, where the paper has a margin beside it (the ladder's 1240 step): the
+     window's gutter, the column the page number stands in, the widest the margin's card grows,
+     and so the whole composition — rail, paper and margin with the two gaps between them. */
+  --doc-gutter: --spacing(6);
+  --doc-rail: --spacing(16);
+  --doc-margin-w: 24rem;
+  --doc-span: calc(var(--doc-rail) + var(--page-w) + var(--doc-margin-w) + 2 * --spacing(8));
 
   /* THE SHEET IS SQUARE, and nothing on it reads a radius. This scope set `--radius-sm` and
      `--radius-xs` to 0 as well, which squared the chrome's buttons through the cascade
@@ -1538,6 +1552,13 @@
    So the picker sets what is always printed, and why nothing reaches Northside, beside the
    switches; and the note sets its facts two abreast. Under 640 they are one column again. */
 @media screen and (min-width: 640px) and (max-width: 1239.98px) {
+  /* THE CHROME'S EDGES ARE THE CARDS' EDGES here too (2026-11-02): at 834 the chrome kept a
+     24px gutter over cards and paper standing 20px in, so the status dot and Print each sat 4px
+     off the edges under them. The chrome now stands in as far as the paper does, or the floor's
+     16px where the paper has left. */
+  .doc-chrome {
+    padding-inline: max(--spacing(4), calc((100% - var(--page-w)) / 2));
+  }
   .doc-pick__in {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: auto auto auto 1fr;
@@ -1650,26 +1671,45 @@
    1280, a 187px column whose card ended 15px from the window's edge while the chrome above it
    kept 24, so "Pictures beside the items: none to print" broke over two lines and the card stood
    jammed against the glass; at 1440 the floor left of the paper was 300px of nothing but the
-   page rail. Now the floor is four columns — the rail's gutter (at least 64px, which with the
-   32px gap holds the 92px the rail hangs out by), the paper, the margin (14 to 16rem) and the
-   rest — and the floor keeps the chrome's own gutter, so the note's edge and Print's edge are
-   one line. 1240 is the narrowest window those four columns fit without scrolling sideways
-   (64 + 794 + 224 + 3 x 32 + 48 = 1,226).
+   page rail.
+
+   AND THE COMPOSITION HAS ONE PAIR OF EDGES (the polish critic, 2026-11-02, R1). That centring
+   still left 180px of floor right of a 255px margin at 1440, "PAGE 1" alone in the left floor,
+   and Print ending at 1416 over a card ending at 1260; the card wrapped "What comes with your /
+   boat" and set every refusal four lines tall. Now the floor is three columns — the rail the
+   page number stands in (64px), the paper, the margin (from 14rem up to 24rem) — and the floor
+   and the chrome share one inline padding: the gutter, or half of whatever the window has over
+   the whole span, so the three stand centred and the chrome's first word, the page number and
+   the paper's rail share a left edge while Print and the margin's card share a right one.
+   Measured: the margin is 310px at 1280 and 384px at 1440 and 1920, and the chrome's first word
+   and the page number both stand at x 24, 67 and 307. 1240 is still the step (by arithmetic the
+   three fit from 48 + 64 + 794 + 224 + 2 x 32 = 1,194, and at 1240 the margin comes to 270px).
 
    THE SHEET DOES NOT MOVE WHEN THE NOTE ARRIVES: the margin's column is the same width whatever
    the note holds, so the paper's x never depends on the note's words. */
 @media screen and (min-width: 1240px) {
+  /* ONE COMPOSITION, ONE PAIR OF EDGES (the polish critic, 2026-11-02, R1). The chrome and the
+     floor keep the same inline padding: the window's gutter, or more where the window is wider
+     than the composition, so the composition stands centred and the chrome's words start where
+     the page number does and Print ends where the margin's card does. */
+  .doc-chrome,
+  .doc:not([data-gauging]) .doc-floor {
+    padding-inline: max(var(--doc-gutter), calc((100% - var(--doc-span)) / 2));
+  }
   .doc:not([data-gauging]) .doc-floor {
     display: grid;
-    grid-template-columns:
-      minmax(--spacing(16), 1fr) auto minmax(--spacing(56), --spacing(64))
-      minmax(0, 1fr);
+    grid-template-columns: var(--doc-rail) auto minmax(--spacing(56), 1fr);
     /* THE PICKER OVER THE NOTE, IN THE MARGIN: the sheaf spans both rows, and the second takes
        what is left, so the note stands directly under the picker however tall the paper is */
     grid-template-rows: auto 1fr;
     align-items: start;
     column-gap: --spacing(8);
-    padding-inline: --spacing(6);
+  }
+  /* THE PAGE NUMBER STANDS AT THE COMPOSITION'S LEFT EDGE, in the rail's own column, under the
+     chrome's first word: it no longer hangs at a fixed reach off the paper into open floor */
+  .doc:not([data-gauging]) .doc-page::before {
+    inset-inline-end: auto;
+    inset-inline-start: calc(-1 * (var(--doc-rail) + --spacing(8)));
   }
   .doc:not([data-gauging]) .doc-sheaf,
   .doc:not([data-gauging]) .doc-gauge {
@@ -1691,9 +1731,8 @@
 }
 
 @media screen and (min-width: 1441px) {
-  .doc-chrome,
-  .doc:not([data-gauging]) .doc-floor {
-    padding-inline: --spacing(10);
+  .doc {
+    --doc-gutter: --spacing(10);
   }
   .doc-chrome__say {
     max-inline-size: 96ch;

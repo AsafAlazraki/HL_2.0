@@ -1,0 +1,224 @@
+390x844 [build top] CUT "Highfield Sport 560" 137>1 .cfg-stage__name | OVERLAP "Northside Marine — Home" x "" 44x7 | OVERLAP "Find" x "" 36x3 | OVERLAP "Home" x "" 48x3 | OVERLAP "Quotes — 1 filed, 1 of them an" x "" 51x3 | OVERLAP "Customers" x "" 70x3 | OVERLAP "Data" x "" 48x3 | OVERLAP +2 more
+390x844 chapters open 4 of 4
+390x844 heads 01The hull15 finishe=true ; 02Motor4 offeredNoth=true ; For the workshop=false ; 03Trailer1 offeredNo=true ; For the workshop=false ; 04Dealer fit9 offere=true ; For the workshop=false
+390x844 mast mark 32,36 139x24 borderR=0px after=none/autoxauto before=none/autoxauto
+390x844 hull axes 3: MODEL Sport 560 16 on the price list | MATERIAL PVC 2 on the price list | COLOUR White / White / White/Blue 7 on the price list, all one price
+844x390 [build top] CUT "1" 6>1 .ui-figure__said | CUT "Highfield Sport 560" 137>1 .cfg-stage__name | OVERLAP "What the total is made of" x "Sport 330, −$25,130" 28x9 | OVERLAP "View final package" x "Sport 330, −$25,130" 165x9
+844x390 chapters open 4 of 4
+844x390 heads 01The hull15 finishe=true ; 02Motor4 offeredNoth=true ; For the workshop=false ; 03Trailer1 offeredNo=true ; For the workshop=false ; 04Dealer fit9 offere=true ; For the workshop=false
+844x390 mast mark 48,101 116x20 borderR=0px after=none/autoxauto before=none/autoxauto
+844x390 hull axes 3: MODEL Sport 560 16 on the price list | MATERIAL PVC 2 on the price list | COLOUR White / White / White/Blue 7 on the price list, all one price
+390x844 model cards 16
+390x844 card heights 91
+390x844 delta rights 153,320,146,338
+844x390 model cards 16
+844x390 card heights 87
+844x390 delta rights 209,583,202,603
+390x844 [after model 2] CUT "Highfield Sport 330" 137>1 .cfg-stage__name | OVERLAP "Northside Marine — Home" x "Sport 800, in Hypalon, +$95,47" 29x40 | OVERLAP "Find" x "Sport 800, in Hypalon, +$95,47" 36x36 | OVERLAP "Home" x "Sport 800, in Hypalon, +$95,47" 48x36 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 800, in Hypalon, +$95,47" 45x36 | OVERLAP "Customers" x "Sport 900, in Hypalon, +$113,6" 69x36 | OVERLAP "Data" x "Sport 900, in Hypalon, +$113,6" 48x36 | OVERLAP +3 more
+844x390 [after model 2] CUT "1" 6>1 .ui-figure__said | CUT "Highfield Sport 330" 137>1 .cfg-stage__name | OVERLAP "Northside Marine — Home" x "SP300, a code its maker does n" 40x18 | OVERLAP "Find" x "SP300, a code its maker does n" 69x14 | OVERLAP "Home" x "SP300, a code its maker does n" 82x14 | OVERLAP "Quotes — 1 filed, 1 of them an" x "SP300, a code its maker does n" 91x14 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 330, on the quote" 15x14 | OVERLAP "Customers" x "Sport 330, on the quote" 109x14 | OVERLAP +5 more
+390x844 material presses 2; head now MATERIAL Hypalon 2 on the price list
+844x390 material presses 2; head now MATERIAL Hypalon 2 on the price list
+390x844 colour presses 8; head now COLOUR Light Grey / White / Dark Blue 8 on the price list
+390x844 [after hull choices] CUT "Highfield SP300" 112>1 .cfg-stage__name | OVERLAP "Northside Marine — Home" x "I-B-C, +$1,160" 29x44 | OVERLAP "Find" x "I-B-C, +$1,160" 36x36 | OVERLAP "Home" x "I-B-C, +$1,160" 48x36 | OVERLAP "Quotes — 1 filed, 1 of them an" x "I-B-C, +$1,160" 51x36 | OVERLAP "Customers" x "I-B-C, +$1,160" 70x36 | OVERLAP "Data" x "I-B-C, +$1,160" 48x36 | OVERLAP +4 more
+390x844 no opt Yamaha F90XB
+844x390 colour presses 8; head now COLOUR Light Grey / White / Dark Blue 8 on the price list
+844x390 [after hull choices] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | OVERLAP "Northside Marine — Home" x "PVC, −$3,400" 40x29 | OVERLAP "Find" x "PVC, −$3,400" 22x25 | OVERLAP "Find" x "Hypalon, on the quote" 40x25 | OVERLAP "Home" x "Hypalon, on the quote" 82x25 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Hypalon, on the quote" 50x25 | OVERLAP "What the total is made of" x "I-B-C, +$1,160" 28x40 | OVERLAP +2 more
+844x390 no opt Yamaha F90XB
+390x844 no opt 2 x MFM50
+390x844 grid rows 12; act right/width 358w326:7; act words 
+844x390 no opt 2 x MFM50
+844x390 grid rows 12; act right/width 416w364:1 792w364:1 792w740:5; act words 
+390x844 [scroll 1] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Sport 760 ST, +$74,420" 29x34 | OVERLAP "Northside Marine — Home" x "Sport 800, +$93,240" 29x2 | OVERLAP "Find" x "Sport 760 ST, +$74,420" 36x30 | OVERLAP "Home" x "Sport 760 ST, +$74,420" 48x30 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 760 ST, +$74,420" 45x30 | OVERLAP "Customers" x "Sport 760 WL (Windlass), +$80," 69x30 | OVERLAP +4 more
+844x390 [scroll 1] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "SP300, a code its maker does n" 40x20 | OVERLAP "Find" x "SP300, a code its maker does n" 69x16 | OVERLAP "Home" x "SP300, a code its maker does n" 82x16 | OVERLAP "Quotes — 1 filed, 1 of them an" x "SP300, a code its maker does n" 91x16 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 330, +$1,430" 15x16 | OVERLAP "Customers" x "Sport 330, +$1,430" 109x16 | OVERLAP +4 more
+390x844 [scroll 2] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "I-B-C, +$1,160" 29x37 | OVERLAP "Find" x "I-B-C, +$1,160" 36x33 | OVERLAP "Home" x "I-B-C, +$1,160" 48x33 | OVERLAP "Quotes — 1 filed, 1 of them an" x "I-B-C, +$1,160" 51x33 | OVERLAP "Customers" x "I-B-C, +$1,160" 70x33 | OVERLAP "Data" x "I-B-C, +$1,160" 48x33 | OVERLAP +2 more
+844x390 [scroll 2] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Sport 600, +$45,700" 40x40 | OVERLAP "Find" x "Sport 600, +$45,700" 69x32 | OVERLAP "Home" x "Sport 600, +$45,700" 82x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 600, +$45,700" 91x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 660, +$53,730" 15x32 | OVERLAP "Customers" x "Sport 660, +$53,730" 109x32 | OVERLAP +2 more
+390x844 [scroll 3] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "03Trailer1 offeredNothing on i" 44x21 | OVERLAP "Find" x "03Trailer1 offeredNothing on i" 36x17 | OVERLAP "Home" x "03Trailer1 offeredNothing on i" 48x17 | OVERLAP "Quotes — 1 filed, 1 of them an" x "03Trailer1 offeredNothing on i" 51x17 | OVERLAP "Customers" x "03Trailer1 offeredNothing on i" 70x17 | OVERLAP "Data" x "03Trailer1 offeredNothing on i" 48x17 | OVERLAP +2 more
+844x390 [scroll 3] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "PVC, −$3,400" 40x27 | OVERLAP "Find" x "PVC, −$3,400" 22x23 | OVERLAP "Find" x "Hypalon, on the quote" 40x23 | OVERLAP "Home" x "Hypalon, on the quote" 82x23 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Hypalon, on the quote" 50x23 | OVERLAP "What the total is made of" x "Black / Black / Dark Blue, +$1" 28x4 | OVERLAP +2 more
+390x844 [scroll 4] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Battery Terminals · 1 pair, no" 29x44 | OVERLAP "Find" x "Battery Terminals · 1 pair, no" 36x36 | OVERLAP "Home" x "Battery Terminals · 1 pair, no" 48x36 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Battery Terminals · 1 pair, no" 51x36 | OVERLAP "Customers" x "Battery Terminals · 1 pair, no" 70x36 | OVERLAP "Data" x "Battery Terminals · 1 pair, no" 48x36 | OVERLAP +3 more
+844x390 [scroll 4] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Black / Black / Black, +$1,160" 40x39 | OVERLAP "Find" x "Black / Black / Black, +$1,160" 69x32 | OVERLAP "Home" x "Black / Black / Black, +$1,160" 82x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Black / Black / Black, +$1,160" 91x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "I-B-C, +$1,160" 15x32 | OVERLAP "Customers" x "I-B-C, +$1,160" 109x32 | OVERLAP +4 more
+390x844 [scroll 5] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard
+844x390 [scroll 5] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Yamaha F25LWTC, recommended, n" 40x40 | OVERLAP "Find" x "Yamaha F25LWTC, recommended, n" 69x32 | OVERLAP "Home" x "Yamaha F25LWTC, recommended, n" 82x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Yamaha F25LWTC, recommended, n" 89x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Yamaha F30LA, not on the quote" 13x32 | OVERLAP "Customers" x "Yamaha F30LA, not on the quote" 109x32 | OVERLAP +4 more
+844x390 [scroll 6] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "04Dealer fitTube Covers to sui" 40x40 | OVERLAP "Find" x "04Dealer fitTube Covers to sui" 69x32 | OVERLAP "Home" x "04Dealer fitTube Covers to sui" 82x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "04Dealer fitTube Covers to sui" 114x32 | OVERLAP "Customers" x "04Dealer fitTube Covers to sui" 109x32 | OVERLAP "Data" x "04Dealer fitTube Covers to sui" 74x32 | OVERLAP +1 more
+844x390 [scroll 7] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Battery MFM50, not on the quot" 40x6 | OVERLAP "Find" x "Battery MFM50, not on the quot" 69x2 | OVERLAP "Home" x "Battery MFM50, not on the quot" 82x2 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Battery MFM50, not on the quot" 114x2 | OVERLAP "Customers" x "Battery MFM50, not on the quot" 109x2 | OVERLAP "Data" x "Battery MFM50, not on the quot" 74x2 | OVERLAP +1 more
+390x844 [lightbox] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard
+844x390 [scroll 8] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Choose its price" 15x4
+844x390 [scroll 9] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard
+390x844 [customer dialog] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "" 44x22 | OVERLAP "Find" x "" 36x18 | OVERLAP "Home" x "" 48x18 | OVERLAP "Quotes — 1 filed, 1 of them an" x "" 51x18 | OVERLAP "Customers" x "" 70x18 | OVERLAP "Data" x "" 48x18 | OVERLAP +1 more
+844x390 [lightbox] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard
+390x844 [show all sheet] CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard
+844x390 [customer dialog] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard | OVERLAP "What the total is made of" x "Sport 330, +$1,430" 28x9 | OVERLAP "View final package" x "Sport 330, +$1,430" 165x9 | OVERLAP "View final package" x "Put their name on it" 15x35 | OVERLAP "" x "" 320x30 | OVERLAP "01The hull15 finishes" x "" 320x25 | OVERLAP "01The hull15 finishes" x "Put their name on it" 320x9 | OVERLAP +2 more
+844x390 [show all sheet] CUT "1" 6>1 .ui-figure__said | CUT "Highfield SP300" 112>1 .cfg-stage__name | CUT "·" 3>1 .cfg-head__heard
+390x844 [package top] clean
+390x844 package doc 3505 over 844
+390x844 [package scroll 1] OVERLAP "Back to editing" x "Choose what prints" 119x13
+390x844 [package scroll 2] clean
+390x844 [package scroll 3] clean
+390x844 [package scroll 4] clean
+844x390 [package top] clean
+844x390 package doc 3728 over 390
+844x390 [package scroll 1] OVERLAP "Back to editing" x "" 111x12 | OVERLAP "Print or save the PDF" x "" 145x12
+390x844 before door  3503:0 ; after back ?at= 3503:0
+844x390 [package scroll 2] OVERLAP "Back to editing" x "Put a price on this line" 111x8
+844x390 [package scroll 3] clean
+844x390 [package scroll 4] clean
+844x390 [package scroll 5] clean
+844x390 [package scroll 6] clean
+844x390 [package scroll 7] clean
+844x390 [package scroll 8] clean
+390x844 [document] OVERLAP "Northside Marine — Home" x "" 44x30 | OVERLAP "Find" x "" 7x30
+390x844 document doc 390x4001 over 390x844
+844x390 [package scroll 9] clean
+390x844 complementaries: What is not printed
+844x390 [package scroll 10] clean
+390x844 [sections] OVERLAP "Northside Marine — Home" x "" 44x30 | OVERLAP "Find" x "" 7x30
+844x390 [package scroll 11] clean
+844x390 before door  2614:0 ; after back ?at= 2614:0
+844x390 [document] CUT "1" 6>1 .ui-figure__said
+844x390 document doc 844x3747 over 844x390
+844x390 complementaries: What is not printed
+390x844 [motor picker] CUT "Find a model" 94>1 .picker-find__label | OVERLAP "Northside Marine — Home" x "F5LMHA, $2,130" 44x44 | OVERLAP "Find" x "F5LMHA, $2,130" 36x36 | OVERLAP "Home" x "F5LMHA, $2,130" 48x36 | OVERLAP "Quotes — 0 filed" x "F5LMHA, $2,130" 44x36 | OVERLAP "Customers" x "F6SMHA, $2,246" 68x36 | OVERLAP "Data" x "F6SMHA, $2,246" 48x36 | OVERLAP +1 more
+844x390 [sections] CUT "1" 6>1 .ui-figure__said
+390x844 [motor build] CUT "Yamaha F2.5SMHB" 131>1 .cfg-stage__name | OVERLAP "Northside Marine — Home" x "" 44x8 | OVERLAP "Find" x "" 36x4 | OVERLAP "Home" x "" 48x4 | OVERLAP "Quotes — 1 filed, 1 of them an" x "" 51x4 | OVERLAP "Customers" x "" 70x4 | OVERLAP "Data" x "" 48x4 | OVERLAP +2 more
+390x844 [motor package] clean
+844x390 [motor picker] CUT "0" 6>1 .ui-figure__said
+844x390 [motor build] CUT "1" 6>1 .ui-figure__said | CUT "Yamaha F2.5SMHB" 131>1 .cfg-stage__name | OVERLAP "What the total is made of" x "F4SMHA, 4 hp · 27 kg · 15″ sha" 28x21 | OVERLAP "View final package" x "F4SMHA, 4 hp · 27 kg · 15″ sha" 165x21
+844x390 [motor package] clean
+834x1112 [build top] CUT "1" 6>1 .ui-figure__said | OVERLAP "What the total is made of" x "Sport 360, −$24,030" 34x5 | OVERLAP "What the total is made of" x "Sport 420, −$18,850" 34x27 | OVERLAP "View final package" x "Sport 420, −$18,850" 165x27
+834x1112 chapters open 4 of 4
+834x1112 heads 01The hull15 finishe=true ; 02Motor4 offeredNoth=true ; For the workshop=false ; 03Trailer1 offeredNo=true ; For the workshop=false ; 04Dealer fit9 offere=true ; For the workshop=false
+834x1112 mast mark 52,95 144x28 borderR=0px after=none/autoxauto before=none/autoxauto
+834x1112 hull axes 3: MODEL Sport 560 16 on the price list | MATERIAL PVC 2 on the price list | COLOUR White / White / White/Blue 7 on the price list, all one price
+834x1112 model cards 16
+834x1112 card heights 87
+834x1112 delta rights 209,578,202,598
+834x1112 [after model 2] CUT "1" 6>1 .ui-figure__said | OVERLAP "What the total is made of" x "Sport 760 WL (Windlass), in Hy" 40x10 | OVERLAP "What the total is made of" x "Sport 900, in Hypalon, +$113,6" 40x22 | OVERLAP "View final package" x "Sport 760 ST, in Hypalon, +$76" 148x6 | OVERLAP "View final package" x "Sport 760 WL (Windlass), in Hy" 8x6 | OVERLAP "View final package" x "Sport 800, in Hypalon, +$95,47" 148x22 | OVERLAP "View final package" x "Sport 900, in Hypalon, +$113,6" 8x22 | OVERLAP +1 more
+834x1112 material presses 2; head now MATERIAL Hypalon 2 on the price list
+834x1112 colour presses 8; head now COLOUR Light Grey / White / Dark Blue 8 on the price list
+834x1112 [after hull choices] CUT "1" 6>1 .ui-figure__said | OVERLAP "Northside Marine — Home" x "Sport 360, +$2,810" 40x31 | OVERLAP "Find" x "Sport 360, +$2,810" 69x27 | OVERLAP "Home" x "Sport 360, +$2,810" 82x27 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 360, +$2,810" 91x27 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 390, +$7,110" 15x27 | OVERLAP "Customers" x "Sport 390, +$7,110" 109x27 | OVERLAP +4 more
+834x1112 no opt Yamaha F90XB
+834x1112 no opt 2 x MFM50
+834x1112 grid rows 12; act right/width 411w359:1 782w359:1 782w730:5; act words 
+834x1112 [scroll 1] CUT "1" 6>1 .ui-figure__said | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Sport 360, +$2,810" 40x40 | OVERLAP "Find" x "Sport 360, +$2,810" 69x32 | OVERLAP "Home" x "Sport 360, +$2,810" 82x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 360, +$2,810" 91x32 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 390, +$7,110" 15x32 | OVERLAP "Customers" x "Sport 390, +$7,110" 109x32 | OVERLAP +4 more
+834x1112 [scroll 2] CUT "1" 6>1 .ui-figure__said | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "Black / Black / Black, +$1,160" 40x13 | OVERLAP "Northside Marine — Home" x "02Motor4 offeredNothing on it " 40x6 | OVERLAP "Find" x "Black / Black / Black, +$1,160" 69x9 | OVERLAP "Home" x "Black / Black / Black, +$1,160" 82x9 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Black / Black / Black, +$1,160" 91x9 | OVERLAP "Quotes — 1 filed, 1 of them an" x "I-B-C, +$1,160" 15x9 | OVERLAP +5 more
+834x1112 [scroll 3] CUT "1" 6>1 .ui-figure__said | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Northside Marine — Home" x "03Trailer1 offeredNothing on i" 40x13 | OVERLAP "Find" x "03Trailer1 offeredNothing on i" 69x9 | OVERLAP "Home" x "03Trailer1 offeredNothing on i" 82x9 | OVERLAP "Quotes — 1 filed, 1 of them an" x "03Trailer1 offeredNothing on i" 114x9 | OVERLAP "Customers" x "03Trailer1 offeredNothing on i" 109x9 | OVERLAP "Data" x "03Trailer1 offeredNothing on i" 74x9 | OVERLAP +1 more
+834x1112 [lightbox] CUT "1" 6>1 .ui-figure__said | CUT "·" 3>1 .cfg-head__heard
+1280x800 [build top] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $41,340" 155>1 .cfg-tally__heard
+1280x800 chapters open 4 of 4
+1280x800 heads 01The hull15 finishe=true ; 02Motor4 offeredNoth=true ; For the workshop=false ; 03Trailer1 offeredNo=true ; For the workshop=false ; 04Dealer fit9 offere=true ; For the workshop=false
+1280x800 mast mark 56,94 128x28 borderR=0px after=none/autoxauto before=none/autoxauto
+1280x800 hull axes 3: MODEL Sport 560 16 on the price list | MATERIAL PVC 2 on the price list | COLOUR White / White / White/Blue 7 on the price list, all one price
+1280x800 model cards 16
+1280x800 card heights 87
+1280x800 delta rights 777,1081,770,1101
+834x1112 [customer dialog] CUT "1" 6>1 .ui-figure__said | CUT "·" 3>1 .cfg-head__heard | OVERLAP "See the boat larger" x "" 5x7 | OVERLAP "What the total is made of" x "Sport 420, +$8,220" 34x40 | OVERLAP "View final package" x "Sport 420, +$8,220" 165x36
+1280x800 [after model 2] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $16,210" 155>1 .cfg-tally__heard | OVERLAP "" x "01The hull15 finishes" 356x36
+834x1112 [show all sheet] CUT "1" 6>1 .ui-figure__said | CUT "·" 3>1 .cfg-head__heard
+1280x800 material presses 2; head now MATERIAL Hypalon 2 on the price list
+1280x800 colour presses 8; head now COLOUR Light Grey / White / Dark Blue 8 on the price list
+1280x800 [after hull choices] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 600, +$45,700" 39x13 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 700 ST, +$61,320" 39x11 | OVERLAP "Customers" x "Sport 600, +$45,700" 117x13 | OVERLAP "Customers" x "Sport 700 ST, +$61,320" 117x11 | OVERLAP "Data" x "Sport 600, +$45,700" 82x13 | OVERLAP "Data" x "Sport 700 ST, +$61,320" 82x11 | OVERLAP +8 more
+1280x800 no opt Yamaha F90XB
+1280x800 no opt 2 x MFM50
+1280x800 grid rows 12; act right/width 1220w600:7; act words 
+834x1112 [package top] clean
+834x1112 package doc 3717 over 1112
+834x1112 [package scroll 1] clean
+1280x800 [scroll 1] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "SP300, a code its maker does n" 39x20 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 360, +$2,810" 39x4 | OVERLAP "Customers" x "SP300, a code its maker does n" 117x20 | OVERLAP "Customers" x "Sport 360, +$2,810" 117x4 | OVERLAP "Data" x "SP300, a code its maker does n" 82x20 | OVERLAP "Data" x "Sport 360, +$2,810" 82x4 | OVERLAP +10 more
+834x1112 [package scroll 2] clean
+1280x800 [scroll 2] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 760 ST, +$74,420" 39x32 | OVERLAP "Customers" x "Sport 760 ST, +$74,420" 117x32 | OVERLAP "Data" x "Sport 760 ST, +$74,420" 82x32 | OVERLAP "History" x "Sport 760 ST, +$74,420" 41x32 | OVERLAP "History" x "Sport 760 WL (Windlass), +$80," 48x32 | OVERLAP "Name the customer" x "Sport 800, +$93,240" 46x28 | OVERLAP +3 more
+834x1112 [package scroll 3] clean
+1280x800 [scroll 3] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "Light Grey / White / Dark Blue" 39x32 | OVERLAP "Customers" x "Light Grey / White / Dark Blue" 117x32 | OVERLAP "Data" x "Light Grey / White / Dark Blue" 82x32 | OVERLAP "History" x "Light Grey / White / Dark Blue" 41x32 | OVERLAP "History" x "Black / White / Carbon, +$1,16" 48x32 | OVERLAP "Name the customer" x "Dark Grey / Grey / Military Bl" 46x28 | OVERLAP +3 more
+1280x800 [scroll 4] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "Yamaha F25LWTC, recommended, n" 39x27 | OVERLAP "Customers" x "Yamaha F25LWTC, recommended, n" 117x27 | OVERLAP "Data" x "Yamaha F25LWTC, recommended, n" 82x27 | OVERLAP "History" x "Yamaha F25LWTC, recommended, n" 97x27 | OVERLAP "Name the customer" x "Yamaha F25LWTC, recommended, n" 154x28 | OVERLAP "" x "Yamaha F30LA, not on the quote" 336x36
+834x1112 before door  2381:0 ; after back ?at= 2381:0
+1280x800 [scroll 5] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "03Trailer1 offeredNothing on i" 59x10 | OVERLAP "Customers" x "03Trailer1 offeredNothing on i" 117x10 | OVERLAP "Data" x "03Trailer1 offeredNothing on i" 82x10 | OVERLAP "History" x "03Trailer1 offeredNothing on i" 97x10 | OVERLAP "Name the customer" x "04Dealer fitTube Covers to sui" 154x28
+1280x800 [scroll 6] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "Tube Covers to suit Hypalon Bo" 39x30 | OVERLAP "Customers" x "Tube Covers to suit Hypalon Bo" 117x30 | OVERLAP "Data" x "Tube Covers to suit Hypalon Bo" 82x30 | OVERLAP "History" x "Tube Covers to suit Hypalon Bo" 97x30 | OVERLAP "Name the customer" x "VHF Radio · GME GX750B Hideawa" 154x28
+1280x800 [lightbox] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard
+834x1112 [document] CUT "1" 6>1 .ui-figure__said
+834x1112 document doc 834x3747 over 834x1112
+1280x800 [customer dialog] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "" x "" 70x29 | OVERLAP "01The hull15 finishes" x "" 320x36 | OVERLAP "SP300, a code its maker does n" x "Put their name on it" 30x20 | OVERLAP "Sport 330, +$1,430" x "Put their name on it" 282x20
+834x1112 complementaries: What is not printed
+834x1112 [sections] CUT "1" 6>1 .ui-figure__said
+1280x800 [show all sheet] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard
+1280x800 [package top] clean
+1280x800 package doc 2292 over 800
+1280x800 [package scroll 1] OVERLAP "Back to editing" x "Put a price on this line" 111x21
+1280x800 [package scroll 2] clean
+1280x800 [package scroll 3] clean
+1280x800 before door  0:2358 ; after back ?at= 0:2358
+834x1112 [motor picker] CUT "0" 6>1 .ui-figure__said
+1280x800 [document] CUT "1" 6>1 .ui-figure__said
+1280x800 document doc 1280x2549 over 1280x800
+1280x800 complementaries: What is not printed
+834x1112 [motor build] CUT "1" 6>1 .ui-figure__said | OVERLAP "What the total is made of" x "F5LMHA, 5 hp · 28 kg · 20″ sha" 40x40 | OVERLAP "View final package" x "F5LMHA, 5 hp · 28 kg · 20″ sha" 165x36
+1280x800 [sections] CUT "1" 6>1 .ui-figure__said
+834x1112 [motor package] clean
+1280x800 [motor picker] CUT "0" 6>1 .ui-figure__said
+1280x800 [motor build] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Motor $1,468" 162>1 .cfg-tally__heard
+1280x800 [motor package] clean
+1440x900 [build top] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $41,340" 155>1 .cfg-tally__heard
+1440x900 chapters open 4 of 4
+1440x900 heads 01The hull15 finishe=true ; 02Motor4 offeredNoth=true ; For the workshop=false ; 03Trailer1 offeredNo=true ; For the workshop=false ; 04Dealer fit9 offere=true ; For the workshop=false
+1440x900 mast mark 76,94 144x28 borderR=0px after=none/autoxauto before=none/autoxauto
+1440x900 hull axes 3: MODEL Sport 560 16 on the price list | MATERIAL PVC 2 on the price list | COLOUR White / White / White/Blue 7 on the price list, all one price
+1440x900 model cards 16
+1440x900 card heights 87
+1440x900 delta rights 857,1193,850,1213
+1440x900 [after model 2] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $16,210" 155>1 .cfg-tally__heard | OVERLAP "" x "01The hull15 finishes" 420x36
+1440x900 material presses 2; head now MATERIAL Hypalon 2 on the price list
+1440x900 colour presses 8; head now COLOUR Light Grey / White / Dark Blue 8 on the price list
+1440x900 [after hull choices] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 420, +$8,220" 39x32 | OVERLAP "Customers" x "Sport 420, +$8,220" 117x32 | OVERLAP "Data" x "Sport 420, +$8,220" 82x32 | OVERLAP "History" x "Sport 420, +$8,220" 73x32 | OVERLAP "History" x "Sport 460, +$11,470" 16x32 | OVERLAP "Name the customer" x "Sport 520, +$20,760" 82x24 | OVERLAP +5 more
+1440x900 no opt Yamaha F90XB
+1440x900 no opt 2 x MFM50
+1440x900 grid rows 12; act right/width 1026w326:1 1364w326:1 1364w664:5; act words 
+1440x900 [scroll 1] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 360, +$2,810" 39x11 | OVERLAP "Quotes — 1 filed, 1 of them an" x "Sport 420, +$8,220" 39x13 | OVERLAP "Customers" x "Sport 360, +$2,810" 117x11 | OVERLAP "Customers" x "Sport 420, +$8,220" 117x13 | OVERLAP "Data" x "Sport 360, +$2,810" 82x11 | OVERLAP "Data" x "Sport 420, +$8,220" 82x13 | OVERLAP +8 more
+1440x900 [scroll 2] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "PVC, −$3,400" 39x18 | OVERLAP "Customers" x "PVC, −$3,400" 84x18 | OVERLAP "Customers" x "Hypalon, on the quote" 24x18 | OVERLAP "Data" x "Hypalon, on the quote" 82x18 | OVERLAP "History" x "Hypalon, on the quote" 70x18 | OVERLAP "Name the customer" x "White / White / White/Blue, +$" 82x13 | OVERLAP +3 more
+1920x1080 [build top] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $41,340" 155>1 .cfg-tally__heard
+1920x1080 chapters open 4 of 4
+1920x1080 heads 01The hull15 finishe=true ; 02Motor4 offeredNoth=true ; For the workshop=false ; 03Trailer1 offeredNo=true ; For the workshop=false ; 04Dealer fit9 offere=true ; For the workshop=false
+1920x1080 mast mark 100,94 144x28 borderR=0px after=none/autoxauto before=none/autoxauto
+1920x1080 hull axes 3: MODEL Sport 560 16 on the price list | MATERIAL PVC 2 on the price list | COLOUR White / White / White/Blue 7 on the price list, all one price
+1440x900 [scroll 3] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Name the customer" x "Yamaha F25LWTC, recommended, n" 80x22 | OVERLAP "Name the customer" x "Yamaha F30LA, not on the quote" 63x22 | OVERLAP "" x "Yamaha F25LWTC, recommended, n" 326x25 | OVERLAP "" x "See its picture larger" 159x7 | OVERLAP "" x "Yamaha F30LA, not on the quote" 62x25 | OVERLAP "" x "See its picture larger" 62x7
+1440x900 [scroll 4] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Quotes — 1 filed, 1 of them an" x "04Dealer fitTube Covers to sui" 59x32 | OVERLAP "Customers" x "04Dealer fitTube Covers to sui" 117x32 | OVERLAP "Data" x "04Dealer fitTube Covers to sui" 82x32 | OVERLAP "History" x "04Dealer fitTube Covers to sui" 97x32 | OVERLAP "Name the customer" x "Tube Covers to suit Hypalon Bo" 154x17 | OVERLAP "" x "VHF Radio · GME GX750B Hideawa" 400x36
+1920x1080 model cards 16
+1920x1080 card heights 87
+1920x1080 delta rights 1313,1649,1306,1669
+1920x1080 [after model 2] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $16,210" 155>1 .cfg-tally__heard | OVERLAP "" x "01The hull15 finishes" 420x36
+1440x900 [lightbox] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard
+1440x900 [customer dialog] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "" x "" 138x29 | OVERLAP "01The hull15 finishes" x "" 320x36 | OVERLAP "SP300, a code its maker does n" x "Put their name on it" 66x20 | OVERLAP "Sport 330, +$1,430" x "Put their name on it" 246x20
+1920x1080 material presses 2; head now MATERIAL Hypalon 2 on the price list
+1440x900 [show all sheet] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard
+1920x1080 colour presses 8; head now COLOUR Light Grey / White / Dark Blue 8 on the price list
+1920x1080 [after hull choices] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | OVERLAP "Data" x "SP300, a code its maker does n" 53x32 | OVERLAP "History" x "SP300, a code its maker does n" 105x32 | OVERLAP "" x "Sport 420, +$8,220" 328x27 | OVERLAP "" x "Sport 460, +$11,470" 64x27
+1920x1080 no opt Yamaha F90XB
+1920x1080 no opt 2 x MFM50
+1920x1080 grid rows 12; act right/width 1482w326:1 1820w326:1 1820w664:5; act words 
+1920x1080 [scroll 1] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Data" x "Sport 520, +$20,760" 53x11 | OVERLAP "Data" x "Sport 600, +$45,700" 53x13 | OVERLAP "History" x "Sport 520, +$20,760" 105x11 | OVERLAP "History" x "Sport 600, +$45,700" 105x13 | OVERLAP "" x "Sport 760 ST, +$74,420" 328x36 | OVERLAP "" x "Sport 760 WL (Windlass), +$80," 64x36
+1920x1080 [scroll 2] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Data" x "Dark Grey / Grey / Military Bl" 53x20 | OVERLAP "Data" x "Black / Black / Black, +$1,160" 53x4 | OVERLAP "History" x "Dark Grey / Grey / Military Bl" 105x20 | OVERLAP "History" x "Black / Black / Black, +$1,160" 105x4 | OVERLAP "" x "02Motor4 offeredNothing on it " 420x5
+1920x1080 [scroll 3] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "Data" x "03Trailer1 offeredNothing on i" 73x32 | OVERLAP "History" x "03Trailer1 offeredNothing on i" 105x32 | OVERLAP "" x "04Dealer fitTube Covers to sui" 420x26
+1440x900 [package top] clean
+1440x900 package doc 2506 over 900
+1440x900 [package scroll 1] clean
+1920x1080 [lightbox] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard
+1440x900 [package scroll 2] clean
+1440x900 [package scroll 3] clean
+1920x1080 [customer dialog] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard | OVERLAP "See the boat larger" x "" 36x9 | OVERLAP "" x "" 170x29 | OVERLAP "01The hull15 finishes" x "" 170x36 | OVERLAP "SP300, a code its maker does n" x "Put their name on it" 150x20
+1440x900 before door  0:2036 ; after back ?at= 0:2036
+1920x1080 [show all sheet] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Hull $18,440" 155>1 .cfg-tally__heard | CUT "·" 3>1 .cfg-head__heard
+1440x900 [document] CUT "1" 6>1 .ui-figure__said
+1440x900 document doc 1440x2549 over 1440x900
+1440x900 complementaries: What is not printed
+1440x900 [sections] CUT "1" 6>1 .ui-figure__said
+1920x1080 [package top] clean
+1920x1080 package doc 2506 over 1080
+1920x1080 [package scroll 1] clean
+1920x1080 [package scroll 2] clean
+1920x1080 before door  0:1856 ; after back ?at= 0:1856
+1440x900 [motor picker] CUT "0" 6>1 .ui-figure__said
+1920x1080 [document] CUT "1" 6>1 .ui-figure__said
+1920x1080 document doc 1920x2549 over 1920x1080
+1920x1080 complementaries: What is not printed
+1440x900 [motor build] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Motor $1,468" 162>1 .cfg-tally__heard
+1920x1080 [sections] CUT "1" 6>1 .ui-figure__said
+1440x900 [motor package] clean
+1920x1080 [motor picker] CUT "0" 6>1 .ui-figure__said
+1920x1080 [motor build] CUT "1" 6>1 .ui-figure__said | CUT "Made of: Motor $1,468" 162>1 .cfg-tally__heard
+1920x1080 [motor package] clean

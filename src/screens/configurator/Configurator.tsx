@@ -72,8 +72,6 @@ import {
   isField,
   reducedMotion,
   transition,
-  undo,
-  unsay,
   useStill,
   kindInk,
   type DashesProps,
@@ -156,6 +154,7 @@ import type { DrawnAxis, DrawnChoices, DrawnOption } from './boat'
 import { hullHero, stageArt, type Held, type StageArt } from './stage'
 import { copyOf, creditOf, itemOfQuote, markOnDark, markOnPaper, srcSetOf } from '@/data/pictures'
 import { kindOfAct, kindOfBoat, wayBack, type Step } from './step'
+import { flushSync } from 'react-dom'
 import { GivenSeal, readyTheStamp } from './GivenSeal'
 import {
   LEVEL_SAY,
@@ -256,13 +255,12 @@ import './configurator.css'
      the kit's toast in the corner, which below 1440px lay over the
      rail it was about — the Garmin's name at 1280, the tile just
      pressed at 834 and 390 — and stayed there two chapters later
-     (the refine round, 2026-10-20). It is the masthead's own line now,
-     between the boat and the total the step just changed (`StepLine`),
-     where the band beside the pill is too narrow for a toast; from
-     1440 it is the toast, top right, over nothing. Either way it ends
-     when the dealer opens another chapter, Alt T takes the caret to
-     its Undo and Escape gives it back, and it is offered only when it
-     can work (`step.ts`). Every pick on this screen is a press that
+     (the refine round, 2026-10-20). Since 2026-11-02 it is the total's
+     own line at every size, beside the figure the step just changed
+     (`StepLine` in `Tally`), and no toast is raised. It ends when the
+     dealer reads on into another chapter, Alt T takes the caret to its
+     Undo and Escape gives it back, and it is offered only when it can
+     work (`step.ts`). Every pick on this screen is a press that
      says whether it is on the quote, and pressing it again is its way
      back.
    ============================================================ */
@@ -300,39 +298,8 @@ export const NO_DOCUMENT_HERE =
  *  accepted there. */
 export const CASCADE_SAY = LEVEL_SAY
 
-/** WHERE THE KIT'S TOAST STANDS OVER NOTHING: the band beside the pill, from 1440px — the same
- *  query `src/ui/Toaster.tsx` places it by. Narrower, the step is the masthead's own line. */
-const TOAST_STANDS = '(min-width: 1440px)'
-
 /** Where this browser keeps the build's folded chapters, by id (`folded.ts`). */
 export const FOLDED_PREF = 'build.folded'
-
-/**
- * A STEP THE BAND CAN HOLD IN TWO LINES (the build page round, 2026-10-31: at 1440 a dealer-fit
- * step, "Fusion Apollo RA670 Stereo w 2 Pairs of XS 6.5" Speakers + 1.8mtr Aerial put on the
- * quote · no price on it", stood 8–87px in the band and over the bar's Prepared by at 68; at 1920
- * a swap stood 8–98). The band is 60px over the bar, which two lines of the toast fill. A step
- * longer than that is said where a shorter one is said below 1440, in the total's own card, and
- * the toast is not raised. The width is the card's (`src/ui/toaster.css`: half the window less
- * the pill's half and its air, and Sonner's 356px below 1680 where the build does not widen it)
- * less its glyph, its padding and its way back.
- */
-function bandHolds(said: string): boolean {
-  if (typeof document === 'undefined' || /jsdom/i.test(navigator.userAgent)) return true
-  const pen = document.createElement('canvas').getContext('2d')
-  if (!pen) return true
-  const wide = innerWidth >= 1680
-  pen.font = `600 ${wide ? 14 : 12}px ${getComputedStyle(document.body).fontFamily}`
-  const card = wide ? innerWidth / 2 - 396 : Math.min(356, innerWidth / 2 - 396)
-  /* its glyph, its padding and its way back ("Put it back" the widest) take about 170px */
-  const words = card - 170
-  return words > 0 && pen.measureText(said).width <= words * 1.8
-}
-
-function toastStandsNow(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia(TOAST_STANDS).matches
-}
 
 /**
  * IN A HAND THE BUILD'S FIRST WINDOW ENDS BETWEEN TWO CHAPTERS, never through one
@@ -419,19 +386,6 @@ function fitTheBoat(node: HTMLElement): () => void {
     settled()
     window.removeEventListener('resize', fit)
   }
-}
-
-/** Whether this window says the step in the kit's toast (true) or in the masthead's line. */
-function useToastStands(): boolean {
-  const [stands, setStands] = useState(toastStandsNow)
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const query = window.matchMedia(TOAST_STANDS)
-    const changed = (): void => setStands(query.matches)
-    query.addEventListener('change', changed)
-    return () => query.removeEventListener('change', changed)
-  }, [])
-  return stands
 }
 
 export interface ConfiguratorProps {
@@ -574,11 +528,12 @@ function Build({
     at: number
     title: string
   } | null>(null)
-  const showLarge = useCallback(
-    (set: readonly LightboxPicture[], index: number, title: string) =>
-      setLarge({ set, at: index, title }),
-    [],
-  )
+  /* a picture opened large ends the step: it belongs to what the reader was doing (`endStep`) */
+  const showLarge = useCallback((set: readonly LightboxPicture[], index: number, title: string) => {
+    setStep(null)
+    setRefused(null)
+    setLarge({ set, at: index, title })
+  }, [])
 
   /* TWO FACTS ABOUT WHERE THE PAGE IS, written on the screen as attributes and never through a
      render, read once a frame while it moves:
@@ -697,56 +652,49 @@ function Build({
     [quoteId, hold],
   )
 
-  /* THE LAST STEP IS SAID WHERE IT COVERS NOTHING (the refine round, 2026-10-20). It was a
-     line inserted above the chapters until 2026-09-28, 56px that pushed every chapter down under
-     the pointer at the press; then the kit's toast, which below 1440 stood in the corner over
-     the rail it was about — the Garmin's name at 1280, the F175XCB tile just pressed at 834 and
-     844 × 390, the F200XC's price at 390 — and stayed there two chapters later. From 1440 the
-     toast stands in the band beside the pill, over nothing. Narrower, the step is the
-     masthead's own line, between the boat and the total it changed (`StepLine`), and nothing
-     stands over the rail.
+  /* THE LAST STEP IS SAID IN ONE PLACE AT EVERY SIZE: THE TOTAL'S OWN CARD, beside the figure it
+     changed and the way on (`Tally`). It was a line above the chapters until 2026-09-28, 56px that
+     pushed every chapter down under the press; then the kit's toast, in the corner over the rail
+     below 1440 and in the band beside the pill above it, where at 1920 it stood outside the page's
+     gutter over the bar's Prepared by, three lines tall (the critic, 2026-11-02, B10). The total's
+     card is in sight at every size and over none of the work, so the step is said there, and no
+     toast is raised by this screen.
 
-     ONE STEP, ONE PLACE: every step is raised under this document's own id, so the next step
-     changes the line where it stands and a way back from a step that is no longer the last is
-     never on the screen (`step.ts`). A step with no way back — giving the quote to the
-     customer, the one act with none — takes it away: the finale's seal is where that moment is
-     said. OPENING ANOTHER CHAPTER ENDS IT (`endStep`): the step belongs to the chapter it was
-     made in, and a toast that outlived it lay over the next two. Leaving the build takes it
-     away too, since its Undo writes to this document and nowhere else. */
-  /* THE FINAL PACKAGE IS ASKED FOR where the address names it, or on a given quote the address
-     names no chapter of (`packageOpen`, below, reads it whole): while it stands over the window the
-     step is said in its own card, never in a toast laid over its bar */
-  const packageAsked =
-    quote !== undefined &&
-    query.trim() === '' &&
-    (at === 'finale' || (quote.state !== 'draft' && at === ''))
-  const toasts = useToastStands() && !packageAsked
-  const stepToast = `step:${quoteId}`
+     ONE STEP, ONE PLACE: the next step changes the line where it stands, and a way back from a
+     step that is no longer the last is never on the screen (`step.ts`). A step with no way back —
+     giving the quote to the customer, the one act with none — takes it away: the finale's seal is
+     where that moment is said. THE STEP BELONGS TO WHAT THE READER WAS DOING (`endStep`): reading
+     on into another chapter ends it, and so does opening a picture large, the customer's panel or a
+     whole range over the page (the critic, B9: it stood through eight screens of scrolling, the
+     lightbox, the customer's panel and a sheet). Leaving the build takes it away too, since its
+     Undo writes to this document and nowhere else. */
   const back = step && quote ? wayBack(step, quote) : null
-  /* the step stands in the band only where the band holds it (`bandHolds`) */
-  const banded = toasts && step !== null && bandHolds(step.said)
-  useEffect(() => {
-    const standing = step ? quotesStore.getState().quotes.find((q) => q.id === quoteId) : undefined
-    const way = step && standing ? wayBack(step, standing) : null
-    if (!step || way === null || !toasts || !bandHolds(step.said)) {
-      unsay(stepToast)
-      return
-    }
-    undo(step.said, () => goBack(step), {
-      id: stepToast,
-      testId: 'last-step',
-      way,
-      kind: step.kind,
-    })
-  }, [step, quoteId, stepToast, goBack, toasts])
-  useEffect(() => () => unsay(stepToast), [stepToast])
   const endStep = useCallback(() => {
     setStep(null)
     setRefused(null)
   }, [])
+  /* WHERE THE READER WAS WHEN THE STEP WAS TAKEN, by the chapter the middle of the window is in
+     (`Reading`), and when: a chapter's height answers a press, so the reader is let settle for a
+     moment before moving on is read as moving on */
+  const readingAt = useRef(-1)
+  const stepWhere = useRef<{ at: number; since: number }>({ at: -1, since: 0 })
+  useEffect(() => {
+    if (step) stepWhere.current = { at: readingAt.current, since: performance.now() }
+  }, [step])
+  const readOn = useCallback(
+    (where: number) => {
+      readingAt.current = where
+      const was = stepWhere.current
+      if (was.at === -1 || where === was.at || performance.now() - was.since < STEP_SETTLES_MS)
+        return
+      stepWhere.current = { at: -1, since: 0 }
+      endStep()
+    },
+    [endStep],
+  )
 
   /* ALT T TAKES THE CARET TO THE STEP'S WAY BACK, AND ESCAPE GIVES IT BACK — the toast's own
-     two keys (Sonner's), kept for the line that stands in its place below 1440. Where the caret
+     two keys (Sonner's), kept for the line that stands in its place. Where the caret
      was is remembered, and the way back's own press keeps the caret on it, as the toast's did. */
   const caretWas = useRef<HTMLElement | null>(null)
   const stepLine = useRef<HTMLOutputElement>(null)
@@ -1012,9 +960,12 @@ function Build({
      only where motion is welcome), and the address names the package */
   const firstBand = chapters.find((c) => c.kind === 'band')?.id ?? ''
   const viewPackage = (): void => {
-    endStep()
+    /* THE STEP GOES FIRST AND THE PAGE IS READ AFTER IT (the critic, 2026-11-02, B9): read before,
+       the window's scroll was the page with the step on it, and back at the shorter page it landed
+       46px off at 390 and 41px at 834 */
+    flushSync(endStep)
     before.current = {
-      at: at === 'finale' || at === '' ? (here === 'finale' ? firstBand : here) : at,
+      at: at === 'finale' ? firstBand : at,
       y: window.scrollY,
       column: scroller?.scrollTop ?? 0,
     }
@@ -1036,7 +987,7 @@ function Build({
   /* THE STEP'S LINE IN THE HEAD, below 1440 (`StepLine`): the step and its way back, or the
      engine's refusal of the last press, in its own words */
   const said =
-    !banded && step !== null && back !== null ? (
+    step !== null && back !== null ? (
       <StepLine
         ref={stepLine}
         said={step.said}
@@ -1052,7 +1003,7 @@ function Build({
   /* AND ON A SHEET, WHERE THE TALLY THAT SAYS IT IS BEHIND THE SHEET (below 1440): the step a press
      inside the sheet took, with its way back, at the sheet's own head */
   const sheetSaid =
-    !banded && step !== null && back !== null ? (
+    step !== null && back !== null ? (
       <StepLine
         ref={sheetStep}
         said={step.said}
@@ -1066,6 +1017,7 @@ function Build({
      of the products and things should be popup please done nicely"): a list's whole range in the
      range sheet, and the parts table's in the chandlery's aisles */
   const showAllOf = (tableId: string): void => {
+    endStep()
     const chapter = chapters.find((c) => c.tables.some((t) => t.id === tableId))
     const table = chapter?.tables.find((t) => t.id === tableId)
     if (!chapter || !table) return
@@ -1105,7 +1057,11 @@ function Build({
           preparer={quote.preparer ?? preparerNow(sheet, quote.preparedBy ?? who)}
           kept={kept}
           asking={asking}
-          onAsking={setAsking}
+          onAsking={(opening) => {
+            /* the customer's panel opening ends the step; closing it says its own */
+            if (opening) endStep()
+            setAsking(opening)
+          }}
           setStep={setStep}
           setRefused={setRefused}
         />
@@ -1167,6 +1123,7 @@ function Build({
                     placeholder={open ? 'A name, a code, a rigging kit' : 'Nothing to search'}
                   />
                   <Reading
+                    onAt={readOn}
                     scroller={desk ? scroller : null}
                     chapters={chapterRefs}
                     /* EVERY CHAPTER STANDS OPEN (2026-10-31), so the dashes say the chapter the
@@ -2364,6 +2321,7 @@ function Customer({
       <CustomerForm
         quote={quote}
         quoteId={quoteId}
+        panel
         onDone={() => onOpen(false)}
         setStep={setStep}
         setRefused={setRefused}
@@ -2375,12 +2333,15 @@ function Customer({
 function CustomerForm({
   quote,
   quoteId,
+  panel = false,
   onDone,
   setStep,
   setRefused,
 }: {
   quote: QuoteDef
   quoteId: string
+  /** drawn in the bar's panel, at the panel's own measure (configurator.css) */
+  panel?: boolean
   onDone: () => void
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
@@ -2425,7 +2386,7 @@ function CustomerForm({
   }
 
   return (
-    <div className="cfg-whoform">
+    <div className="cfg-whoform" data-in={panel ? 'panel' : undefined}>
       <Field label="Who the quote is for">
         <Input
           id="cfg-customer"
@@ -2471,8 +2432,7 @@ function CustomerForm({
  * ALWAYS IN SIGHT WHILE BUILDING, NEVER OVER THE WORK: at a desk it stands at the foot of the
  * boat's own column, beside the chapters and over none of them; below a desk it is a card at the
  * bottom left of the window, over the shell's tab bar and never on it. It carries the step and
- * its way back where the toast is not drawn (below 1440), so the step is said beside the total
- * it changed. IT NEVER COUNTS: `PriceFigure` sets a figure and stays.
+ * its way back at every size, so the step is said beside the total it changed. IT NEVER COUNTS: `PriceFigure` sets a figure and stays.
  *
  * WHILE THE FINALE IS OPEN ITS CARD SAYS THE TOTAL, at the level it is given at, and the tally
  * steps aside (docs/WORDS.md, one fact once).
@@ -2501,7 +2461,7 @@ function Tally({
   over?: boolean
   /** what is not in the total, once (`totalNoteSay`); '' for nothing */
   note: string
-  /** the last step and its way back, or the refusal of the last press, below 1440 */
+  /** the last step and its way back, or the refusal of the last press */
   said: ReactNode
   /** opens the final package (`FinalPackage`), the build's one way on */
   onPackage?: () => void
@@ -2629,9 +2589,11 @@ function Tally({
 
       {/* THE BUILD'S ONE WAY ON, WHEREVER THE TOTAL IS (the owner, 2026-10-31: "let's go view final
           package"): the whole quote, its paper and the acts that finish it, over the window */}
+      {/* THE SAME ACT AS THE RAIL'S DOOR, IN THE SAME AMBER (the critic, 2026-11-02: here it was the
+          kit's navy, 300px from the door's amber, two looks for one act) */}
       {onPackage ? (
         <div className="cfg-tally__go">
-          <Button intent="primary" size="sm" icon={ArrowRightIcon} onClick={onPackage}>
+          <Button intent="act" size="sm" icon={ArrowRightIcon} onClick={onPackage}>
             View final package
           </Button>
         </div>
@@ -3774,10 +3736,12 @@ function BoatChooser({
         const now = axis.options.find((o) => o.current)
         /* EVERY CHOICE ONE PRICE IS SAID ONCE, at the axis's head (`axisOnePrice`) */
         const onePrice = axisOnePrice(axis.options)
-        /* A COLOUR IS A SWATCH, NOT A CARD (the owner, 2026-10-31: "make it really easy to use"):
-           fifteen colourways are one strip of swatches with their names, a model or a version a
-           compact card, a material a chip */
-        const shape = axis.id === 'material' ? 'chips' : axis.id === 'colour' ? 'swatches' : 'cards'
+        /* A COLOUR IS A CARD AS A MODEL IS (the owner, 2026-10-31: "make it really easy to use"; the
+           critic, 2026-11-02, B3: a strip of pills of their own widths wrapped 1, 1, 2, 2, 2 at 1440
+           with two colourways alone beside 340px of nothing, and in a hand two names wrapped inside
+           their pills): its swatches in the card's well, its name, and its difference at the card's
+           end, two across and one height down the axis. A material is a chip. */
+        const shape = axis.id === 'material' ? 'chips' : 'cards'
         return (
           <fieldset
             key={axis.id}
@@ -3840,11 +3804,11 @@ function carriedSay(carried: readonly { name: string; section: string }[], noun 
 /**
  * One choice on one axis of the boat: its picture or its colours, its name, and what it does.
  *
- * THREE SHAPES, ONE HEIGHT EACH (the owner, 2026-10-31: "the hull stuff has heaps in it for all
- * brands so let's make it really easy to use"): a model or a version is a compact card — its
- * picture in one well, its name as a person says it, and what choosing it does to the total at
- * the card's end, the same column on every card; a colour is a swatch with its name, one strip of
- * them; a material is a chip. Where every choice on the axis is one price the axis's head says so
+ * TWO SHAPES, ONE HEIGHT DOWN AN AXIS (the owner, 2026-10-31: "the hull stuff has heaps in it for
+ * all brands so let's make it really easy to use"; the critic, 2026-11-02, B3): a model, a version
+ * or a colour is a compact card — its picture or its swatches in one well, its name as a person
+ * says it, and what choosing it does to the total under the name, the same place on every card;
+ * a material is a chip. Where every choice on the axis is one price the axis's head says so
  * once and no choice repeats "no change" (`axisOnePrice`).
  */
 function BoatPick({
@@ -3916,14 +3880,11 @@ function BoatPick({
       </Tile>
     )
   }
-  const name =
-    axis === 'colour' && option.colour && !option.colour.read ? (
-      <span className="cfg-mono">{option.say}</span>
-    ) : (
-      slashed(option.say).replace(/ · /g, ' · ')
-    )
+  /* a code its maker does not name is said in the card's own face, on the card's own line (the
+     critic, B3: in the code face it sat 3px under its row) */
+  const name = slashed(option.say).replace(/ · /g, ' · ')
   return (
-    <span className="cfg-pick" data-shape={axis === 'colour' ? 'swatch' : 'card'}>
+    <span className="cfg-pick" data-shape="card">
       {/* THE SCREEN'S OWN PRESS, AS THE KIT'S TILE IS ONE: a toggle a reader hears as pressed or
           not, never disabled — a refused one is dimmed, keeps the caret, swallows the press and
           points at the chapter's one sentence. Its own so the chosen one says so by its ring, with
@@ -3938,62 +3899,58 @@ function BoatPick({
         aria-describedby={refusedBy}
         onClick={refusedBy === undefined ? press : undefined}
       >
-        {axis === 'colour' ? (
-          /* A COLOUR IS ITS SWATCHES AND ITS NAME, and its difference where it has one */
-          <span className="cfg-pick__in" data-axis={axis}>
-            <span className="cfg-pick__swatch">
-              {option.colour ? <Swatches colour={option.colour} /> : <KindMark kind={kind} />}
-            </span>
-            <span className="cfg-pick__name">{name}</span>
-            {delta}
-          </span>
-        ) : (
-          <span className="cfg-pick__in" data-axis={axis}>
-            {/* ONE WELL FOR EVERY CARD (the critic, P-8): a photograph on the water fills it; a
+        <span className="cfg-pick__in" data-axis={axis}>
+          {/* ONE WELL FOR EVERY CARD (the critic, P-8): a photograph on the water fills it; a
                 maker's drawing, or the boat's glyph where the ledger holds no picture, stands
                 whole on the same white well */}
-            <span
-              className="cfg-pick__well"
-              data-pictured={option.picture ? '' : undefined}
-              data-scene={option.scene ? '' : undefined}
-            >
-              {option.picture ? (
-                <img
-                  className="cfg-pick__img"
-                  src={option.picture.src}
-                  alt=""
-                  width={option.picture.width}
-                  height={option.picture.height}
-                  decoding="async"
-                  {...(option.picture.srcSet
-                    ? { srcSet: option.picture.srcSet, sizes: '128px' }
-                    : {})}
-                />
-              ) : option.colour ? (
+          <span
+            className="cfg-pick__well"
+            data-pictured={option.picture ? '' : undefined}
+            data-scene={option.scene ? '' : undefined}
+            data-colour={axis === 'colour' ? '' : undefined}
+          >
+            {/* A COLOUR'S WELL HOLDS ITS SWATCHES, and a colourway its maker's code does not name
+                  holds nothing: a colour nobody can name is a colour nobody may paint (Swatches) */}
+            {axis === 'colour' ? (
+              option.colour ? (
                 <Swatches colour={option.colour} />
-              ) : (
-                <KindMark kind={kind} />
-              )}
-            </span>
-            <span className="cfg-pick__words">
-              <span className="cfg-pick__name">{name}</span>
-              {also === '' ? null : <span className="cfg-pick__also">{`in ${also}`}</span>}
-              {/* WHAT TELLS IT FROM THE NEXT ONE: a motor's power, weight and shaft, as its row
-                  states them and as the same motor says them offered on a boat's quote */}
-              {option.facts === '' ? null : (
-                <span className="cfg-pick__facts">
-                  {/* each fact kept whole, "172 kg" never broken from its unit, and a line breaks
-                      after a dot */}
-                  {option.facts
-                    .split(' · ')
-                    .map((fact) => fact.replaceAll(' ', ' '))
-                    .join(' · ')}
-                </span>
-              )}
-            </span>
-            {delta}
+              ) : null
+            ) : option.picture ? (
+              <img
+                className="cfg-pick__img"
+                src={option.picture.src}
+                alt=""
+                width={option.picture.width}
+                height={option.picture.height}
+                decoding="async"
+                {...(option.picture.srcSet
+                  ? { srcSet: option.picture.srcSet, sizes: '128px' }
+                  : {})}
+              />
+            ) : option.colour ? (
+              <Swatches colour={option.colour} />
+            ) : (
+              <KindMark kind={kind} />
+            )}
           </span>
-        )}
+          <span className="cfg-pick__words">
+            <span className="cfg-pick__name">{name}</span>
+            {also === '' ? null : <span className="cfg-pick__also">{`in ${also}`}</span>}
+            {/* WHAT TELLS IT FROM THE NEXT ONE: a motor's power, weight and shaft, as its row
+                  states them and as the same motor says them offered on a boat's quote */}
+            {option.facts === '' ? null : (
+              <span className="cfg-pick__facts">
+                {/* each fact kept whole, "172 kg" never broken from its unit, and a line breaks
+                      after a dot */}
+                {option.facts
+                  .split(' · ')
+                  .map((fact) => fact.replaceAll(' ', ' '))
+                  .join(' · ')}
+              </span>
+            )}
+          </span>
+          {delta}
+        </span>
       </button>
     </span>
   )
@@ -5127,7 +5084,7 @@ function Marked({ text, query }: { text: string; query: string }) {
 /**
  * THE DOOR TO THE FINAL PACKAGE, AT THE RAIL'S FOOT, where the summary's door stood (the owner,
  * 2026-10-31: "let's go view final package"): its name, where the give stands ("ready to give",
- * "after their name", "given") and the act itself, amber, the build's one way on. The total's
+ * "gives once their name is on it", "given") and the act itself, amber, the build's one way on. The total's
  * card carries the same act.
  */
 function PackageDoor({
@@ -5172,6 +5129,11 @@ function PackageDoor({
  *  motion it is not played at all. */
 const PREPARING_MS = 1200
 
+/** HOW LONG A CHAPTER IS LET SETTLE AFTER A PRESS before the reader's moving into another one is
+ *  read as reading on (`readOn` in `Build`): a press can change a chapter's height under the
+ *  window's middle. */
+const STEP_SETTLES_MS = 800
+
 /** How many of the quote's lines the preparing moment names before it says how many more. */
 const PREPARING_LINES = 4
 
@@ -5199,11 +5161,12 @@ function toTheName(): void {
  * dialog: a modal's top layer printed as one fixed box, and the rulers set every modal aside as a
  * layer over a page, where this is the page.
  *
- * WHAT IT HOLDS, IN THE ORDER A CUSTOMER IS SHOWN IT: the boat's name and its finish; its
- * photograph, large; the handover card the finale always was (who it is for, the total at the price
+ * WHAT IT HOLDS, IN THE ORDER A CUSTOMER IS SHOWN IT: the boat's name and its finish; the handover card the finale always was (who it is for, the total at the price
  * it is given at, the give and everything that stops it, a price put on a line the price list gives
  * none); every chosen line with its own picture and figure; and the printed quote itself, the
- * document screen's own component, paged as it prints. The acts that finish it: name the customer
+ * document screen's own component, paged as it prints, whose cover carries the boat's photograph
+ * (at a desk it stands beside the card in the first window: the critic, 2026-11-02, B5, found the
+ * first fold a form with the paper under it, and the photograph drawn twice). The acts that finish it: name the customer
  * where nobody is named, give it, print or save the PDF, and once given email it from the dealer's
  * own mail, which is as much as this app can honestly send.
  *
@@ -5361,67 +5324,37 @@ function FinalPackage({
         </header>
 
         <div className="cfg-pkg__page">
-          <header className="cfg-pkg__title">
-            {mark.drawn ? (
-              <img
-                className="cfg-pkg__mark"
-                src={mark.mark.src}
-                alt={mark.mark.brand}
-                width={mark.mark.width}
-                height={mark.mark.height}
-              />
-            ) : (
-              <p className="cfg-pkg__eyebrow">{register}</p>
-            )}
-            <h2 className="cfg-pkg__name" id={headId} ref={heading} tabIndex={-1}>
-              {boat.name}
-            </h2>
-            {boat.detail === '' ? null : (
-              <p className="cfg-pkg__detail">
-                <Swatches colour={boat.colour} />
-                <span>{slashed(boat.detail)}</span>
-              </p>
-            )}
-          </header>
-
-          <div className="cfg-pkg__hero" data-pictured={art ? '' : undefined}>
-            {art ? (
-              <figure
-                className="cfg-pkg__photo"
-                data-art={art.kind}
-                data-verdict={photo?.verdict}
-                style={(photo ? { '--pkg-held': `${photo.height}px` } : {}) as CSSProperties}
-              >
-                {photo ? (
-                  <img
-                    className="cfg-pkg__img"
-                    src={photo.src}
-                    alt={photo.subject === '' ? boat.say : photo.subject}
-                    width={photo.width}
-                    height={photo.height}
-                    decoding="async"
-                    {...(photo.widths.length > 1
-                      ? { srcSet: srcSetOf(photo), sizes: '(min-width: 1200px) 60vw, 100vw' }
-                      : {})}
-                  />
-                ) : art.kind === 'mark' ? (
-                  <img
-                    className="cfg-pkg__markbig"
-                    src={art.mark.src}
-                    alt={art.mark.brand}
-                    width={art.mark.width}
-                    height={art.mark.height}
-                  />
-                ) : (
-                  <span className="cfg-pkg__word">{register}</span>
-                )}
-              </figure>
-            ) : null}
+          {/* THE HANDOVER BESIDE THE PAPER (the critic, 2026-11-02, B5: the first fold was a form and
+              the paper started below it): the boat's name, the card and every line in one column,
+              and the printed quote itself, its cover and photograph, in the first window beside them */}
+          <div className="cfg-pkg__aside">
+            <header className="cfg-pkg__title">
+              {mark.drawn ? (
+                <img
+                  className="cfg-pkg__mark"
+                  src={mark.mark.src}
+                  alt={mark.mark.brand}
+                  width={mark.mark.width}
+                  height={mark.mark.height}
+                />
+              ) : (
+                <p className="cfg-pkg__eyebrow">{register}</p>
+              )}
+              <h2 className="cfg-pkg__name" id={headId} ref={heading} tabIndex={-1}>
+                {boat.name}
+              </h2>
+              {boat.detail === '' ? null : (
+                <p className="cfg-pkg__detail">
+                  <Swatches colour={boat.colour} />
+                  <span>{slashed(boat.detail)}</span>
+                </p>
+              )}
+            </header>
 
             <div className="cfg-pkg__side">
               <div className="cfg-pkg__card" data-asking={!issued && !named ? '' : undefined}>
                 {/* NOBODY NAMED: THE NAME IS PUT ON HERE, at the head of the card whose give waits
-                    for it, in place of the card's own "For" */}
+                  for it, in place of the card's own "For" */}
                 {!issued && !named ? (
                   <section className="cfg-pkg__who" aria-label="Who it is for">
                     <CustomerForm
@@ -5451,9 +5384,6 @@ function FinalPackage({
               </div>
               {step ? <div className="cfg-pkg__step">{step}</div> : null}
             </div>
-          </div>
-
-          <div className="cfg-pkg__body">
             <section className="cfg-pkg__lines" aria-labelledby={`${headId}-lines`}>
               <h3 className="cfg-pkg__count" id={`${headId}-lines`}>
                 <span>On this quote</span>
@@ -5514,18 +5444,18 @@ function FinalPackage({
                 </div>
               ) : null}
             </section>
-
-            <section className="cfg-pkg__paper" aria-labelledby={`${headId}-paper`}>
-              <h3 className="cfg-pkg__count" id={`${headId}-paper`}>
-                <span>The printed quote</span>
-                <span className="cfg-pkg__n">as the customer reads it</span>
-              </h3>
-              <p className="cfg-pkg__say">{PRINT_IS_THE_PAGE}</p>
-              <div className="cfg-pkg__doc" ref={paper}>
-                <Document quoteId={quoteId} />
-              </div>
-            </section>
           </div>
+
+          <section className="cfg-pkg__paper" aria-labelledby={`${headId}-paper`}>
+            <h3 className="cfg-pkg__count" id={`${headId}-paper`}>
+              <span>The printed quote</span>
+              <span className="cfg-pkg__n">as the customer reads it</span>
+            </h3>
+            <p className="cfg-pkg__say">{PRINT_IS_THE_PAGE}</p>
+            <div className="cfg-pkg__doc" ref={paper}>
+              <Document quoteId={quoteId} />
+            </div>
+          </section>
         </div>
       </div>
 
@@ -6542,7 +6472,10 @@ function Reading({
   chapters,
   open,
   names,
+  onAt,
 }: {
+  /** told the chapter the middle of the window is in, each time it changes */
+  onAt?: (at: number) => void
   /** the chapters' own column where it is what scrolls (a desk), else null for the window */
   scroller: HTMLElement | null
   chapters: readonly RefObject<HTMLElement | null>[]
@@ -6552,6 +6485,8 @@ function Reading({
 }) {
   const place = useChapterProgress(chapters, scroller)
   useSmoothScroll(scroller === null)
+  const told = useEffectEvent((at: number) => onAt?.(at))
+  useEffect(() => told(place.at), [place.at])
   useEffect(() => {
     chapters.forEach((ref, i) => {
       const el = ref.current
@@ -6587,11 +6522,11 @@ function Reading({
 }
 
 /**
- * THE LAST STEP, IN THE HEAD, BELOW 1440 (the refine round, 2026-10-20): what the press did, in
- * the command's own sentence and with the glyph of what it happened to, and its way back — the
- * kit's toast's three parts, drawn in the masthead between the boat and the total, where it
- * covers nothing. The toast stood over the rail it was about below 1440: over the Garmin's name
- * at 1280, over the tile just pressed at 834 and 844 × 390, over the F200XC's price at 390.
+ * THE LAST STEP, IN THE TOTAL'S CARD AT EVERY SIZE (the refine round, 2026-10-20; the critic,
+ * 2026-11-02): what the press did, in the command's own sentence and with the glyph of what it
+ * happened to, and its way back — the kit's toast's three parts, drawn beside the figure the step
+ * changed, where it covers nothing. The toast stood over the rail it was about below 1440, and
+ * from 1440 over the bar's Prepared by, outside the page's gutter at 1920.
  *
  * A reader is told the step as it lands (`role="status"`). Alt T takes the caret to the way back
  * and Escape gives it back (`Build`); the press keeps the caret on it, as the toast's did, and

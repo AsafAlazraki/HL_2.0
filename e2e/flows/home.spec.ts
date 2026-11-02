@@ -253,6 +253,26 @@ test('day one: Northside on the water, the find beside the act, the boats and th
   const first = await at()
   await page.waitForTimeout(1000)
   expect(await at()).toEqual(first)
+  /* AT A PAIR'S WIDTH (2026-11-02, the polish critic: at 390 Haines Signature, the seventh door,
+     stood 351px wide alone under three pairs of 175): every door is the first door's width, and
+     a door alone on its row stands at the middle of the row */
+  const drawn = await doors.locator('.home-doors').evaluate((list) => {
+    const box = list.getBoundingClientRect()
+    return {
+      centre: box.left + box.width / 2,
+      doors: [...list.children].map((li) => {
+        const r = li.getBoundingClientRect()
+        return { top: Math.round(r.top), width: r.width, centre: r.left + r.width / 2 }
+      }),
+    }
+  })
+  for (const door of drawn.doors)
+    expect(Math.abs(door.width - drawn.doors[0].width), 'a door at its pair’s width').toBeLessThan(
+      1,
+    )
+  const last = drawn.doors[drawn.doors.length - 1]
+  if (drawn.doors.filter((door) => door.top === last.top).length === 1)
+    expect(Math.abs(last.centre - drawn.centre), 'a lone door on the axis').toBeLessThan(1)
 
   /* ---- the act, live, and never a bar at the foot ---- */
   const act = page.getByRole('button', { name: 'New quote' })

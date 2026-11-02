@@ -30,7 +30,8 @@
      · UNDER 640, IN A HAND — the sea holds the mark large, the date and
        the greeting; the field and the act stand full width under them,
        New quote on the first screen; the work one card to a row; two
-       boats and two doors to a row. The shell's bar stands at the head
+       boats and two doors to a row, the seventh maker's door at the
+       middle of its own row at a pair's width. The shell's bar stands at the head
        of this screen and scrolls away with it, never at its foot and
        never over these words (src/screens/shell/shell.css, `data-pill`).
 
@@ -566,10 +567,14 @@
   min-width: 0;
 }
 /* a row the doors do not fill ends on the axis: the last door of an odd count, two to a row,
-   takes the whole row rather than standing alone at its start */
+   stands at the middle of its row at its pair's width, never alone at the row's start and never
+   stretched across it (2026-11-02, the polish critic: Haines Signature at 390 stood 351px wide
+   under three pairs of 175) */
 @media (max-width: 639.98px) {
   .home-door:last-child:nth-child(odd) {
     grid-column: 1 / -1;
+    justify-self: center;
+    inline-size: calc((100% - --spacing(3)) / 2);
   }
 }
 .home-door-in {

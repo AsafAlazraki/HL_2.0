@@ -24,18 +24,19 @@
 
      390 × 844   THE PHONE: the head stacks (the title, then New quote across); a card
                  is the picture across its top at 16:9, then the customer, the boat and
-                 the quiet line, then the total and the acts under it, side by side and
-                 wrapping where they do not fit. The pill is the foot bar and the page
-                 reserves it.
+                 the quiet line, then the total and the acts under it, one under another,
+                 every one starting on the card's text edge (a quiet act on its words, not
+                 its padding). The pill is the foot bar and the page reserves it.
      844 × 390   A PHONE ON ITS SIDE: the card with the picture 9rem wide at its start,
-                 the words beside it, the total and acts under the words.
+                 the words beside it, the total and acts under the words, side by side.
      834 × 1112  THE TABLET: the same card as 844, with room; the head on one line, the
                  title and New quote on one middle line.
      1280 × 800  THE DESK: picture 13rem, words, then the total and acts in a column of
      1440 × 900  their own at the card's end, every card's total at one x, the pair
      1920 × 1080 centred on the card's middle line as the words are. The column stops at
                  68rem and stands centred; the floor under the last card is the honest
-                 end of the desk, never filled.
+                 end of the desk, never filled. The last act ends on its words at the
+                 total's own right edge.
 
    ONE RHYTHM: 20px between the head and the first group, 8px from a group's head to its
    cards, 12px between cards and 36px between one group and the next head.
@@ -170,7 +171,10 @@
 /* ---- one deal ---- */
 .qd-deal {
   display: grid;
-  grid-template-columns: var(--qd-shot) minmax(0, 1fr) minmax(12rem, auto);
+  /* THE ACTS' COLUMN IS AT LEAST 16rem, which holds a draft's two acts AND the question its
+     Discard asks: until 2026-11-02 the question's one long line widened the column the moment
+     Discard was pressed (12rem then), and the boat's name beside it broke onto a second line */
+  grid-template-columns: var(--qd-shot) minmax(0, 1fr) minmax(16rem, auto);
   grid-template-areas:
     'shot words total'
     'shot words acts'
@@ -277,13 +281,29 @@
   padding-block-start: --spacing(1);
   gap: --spacing(2);
 }
+/* A QUIET ACT ENDS ON ITS WORDS, NOT ON ITS PADDING (2026-11-02). It has no fill, so the eye
+   reads its ink as its edge: at a desk "Make a new version" ended 8px short of the total above
+   it (1236 against 1244 at 1440), so the last quiet act gives its padding back to the card's
+   edge and the column ends on one line. The screen's own span holds each quiet act, so this is
+   the card's layout around the button and never a reach into the button. */
+.qd-deal__quiet {
+  display: flex;
+}
+.qd-deal__acts > .qd-deal__quiet:last-child,
+.qd-ask > .qd-deal__quiet:last-child {
+  margin-inline-end: calc(-1 * --spacing(2));
+}
 .qd-deal__said {
   grid-area: said;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
+/* THE QUESTION TAKES THE ACTS' WHOLE WIDTH: as wide as its own two buttons, it set "Discard
+   20261102-01? A / discarded draft cannot be put / back." three lines tall in 190px of a 256px
+   column at 1440 */
 .qd-ask {
+  flex: 1 1 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: end;
@@ -292,7 +312,10 @@
 }
 .qd-ask__say {
   flex-basis: 100%;
+  /* it wraps to the acts' column and never sets its width */
+  contain: inline-size;
   text-align: end;
+  text-wrap: balance;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink);
@@ -336,6 +359,11 @@
   .qd-ask {
     justify-content: start;
   }
+  /* and where the acts read from the start, a quiet act that opens its row starts on its words,
+     under the words of the card (a replaced deal's lone "Open the printed quote") */
+  .qd-deal__acts > .qd-deal__quiet:first-child {
+    margin-inline-start: calc(-1 * --spacing(2));
+  }
   .qd-ask__say {
     text-align: start;
   }
@@ -366,6 +394,18 @@
   }
   .qd-deal__shot {
     aspect-ratio: 16 / 9;
+  }
+  /* THE ACTS ONE UNDER ANOTHER IN A HAND, each starting on the card's own edge: wrapping, the
+     quiet act fell to a second line 10px in from every word above it (its padding, at 390) */
+  .qd-deal__acts {
+    flex-direction: column;
+    align-items: start;
+  }
+  .qd-deal__acts > .qd-deal__quiet {
+    margin-inline-start: calc(-1 * --spacing(2));
+  }
+  .qd-ask {
+    align-self: stretch;
   }
   .qd-deals[data-state='superseded'] .qd-deal__shot {
     display: none;

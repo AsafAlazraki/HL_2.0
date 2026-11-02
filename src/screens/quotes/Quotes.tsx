@@ -422,48 +422,56 @@ function Deal({
             <Button intent="primary" size="sm" icon={TrashIcon} onClick={onDiscard}>
               Discard it
             </Button>
-            <Button
-              intent="quiet"
-              size="sm"
-              icon={ArrowUUpLeftIcon}
-              onClick={() => setAsking(false)}
-            >
-              Keep it
-            </Button>
+            <span className="qd-deal__quiet">
+              <Button
+                intent="quiet"
+                size="sm"
+                icon={ArrowUUpLeftIcon}
+                onClick={() => setAsking(false)}
+              >
+                Keep it
+              </Button>
+            </span>
           </span>
         ) : row.state === 'draft' ? (
           <>
             <Button intent="primary" icon={ArrowRightIcon} onClick={onOpen}>
               Carry on building
             </Button>
-            <Button intent="quiet" size="sm" icon={TrashIcon} onClick={() => setAsking(true)}>
-              Discard
-            </Button>
+            <span className="qd-deal__quiet">
+              <Button intent="quiet" size="sm" icon={TrashIcon} onClick={() => setAsking(true)}>
+                Discard
+              </Button>
+            </span>
           </>
         ) : row.state === 'issued' ? (
           <>
             <Button intent="primary" icon={FileTextIcon} onClick={onOpen}>
               Open the printed quote
             </Button>
-            {row.supersededBy ? (
-              <Button
-                intent="quiet"
-                size="sm"
-                icon={ArrowRightIcon}
-                onClick={() => onOpenOther(row.supersededBy!)}
-              >
-                {`Open ${row.supersededBy}`}
-              </Button>
-            ) : (
-              <Button intent="quiet" size="sm" icon={ArrowsClockwiseIcon} onClick={onVersion}>
-                Make a new version
-              </Button>
-            )}
+            <span className="qd-deal__quiet">
+              {row.supersededBy ? (
+                <Button
+                  intent="quiet"
+                  size="sm"
+                  icon={ArrowRightIcon}
+                  onClick={() => onOpenOther(row.supersededBy!)}
+                >
+                  {`Open ${row.supersededBy}`}
+                </Button>
+              ) : (
+                <Button intent="quiet" size="sm" icon={ArrowsClockwiseIcon} onClick={onVersion}>
+                  Make a new version
+                </Button>
+              )}
+            </span>
           </>
         ) : (
-          <Button intent="quiet" size="sm" icon={FileTextIcon} onClick={onOpen}>
-            Open the printed quote
-          </Button>
+          <span className="qd-deal__quiet">
+            <Button intent="quiet" size="sm" icon={FileTextIcon} onClick={onOpen}>
+              Open the printed quote
+            </Button>
+          </span>
         )}
       </span>
       {said ? <output className="qd-deal__said">{said}</output> : null}
