@@ -80,19 +80,23 @@ test('the trailer with no picture asks for one, and refuses a text file and past
   })
 })
 
-test('the motor takes its own picture by the keyboard’s chooser, keeps the maker’s in front until chosen, and Undo puts back what was taken off', async ({
+/* REWRITTEN 2026-11-02 to the owner's new truth ("per boat and product the ability to have more
+   than one image and cover image"): it was 'the motor takes its own picture by the keyboard’s
+   chooser, keeps the maker’s in front until chosen, and Undo puts back what was taken off', where
+   the frame was the chooser and a switch chose the dealer's over the maker's. Now the dealer's
+   picture stands beside the maker's in one gallery, and the cover is chosen among them. */
+test('the motor takes its own picture beside the maker’s by the keyboard’s chooser, is made the cover, and Undo puts back what was taken off', async ({
   page,
 }, testInfo) => {
   const motor = options(page).nth(1)
   const said = (await motor.locator('.kit-cap').textContent()) ?? ''
-  const frame = motor.getByRole('button', { name: `Add your own picture of the ${said}` })
-  await expect(frame).toBeVisible()
-  await expect(motor.getByText('The maker’s picture of this exact item.')).toBeVisible()
+  const frame = motor.locator('.ui-addpic-frame')
+  await expect(frame).toHaveAccessibleName(`See the ${said} larger: picture 1 of 1`)
   const makers = (await frame.locator('img').getAttribute('src')) ?? ''
   expect(makers).toMatch(/\/seed-images\/[^/]+\.webp$/)
 
-  /* THE KEYBOARD'S WAY: Tab to the frame, Enter opens the chooser, the file is given */
-  await frame.focus()
+  /* THE KEYBOARD'S WAY: Tab to Add pictures, Enter opens the chooser, the file is given */
+  await motor.getByRole('button', { name: 'Add pictures' }).focus()
   const chooser = page.waitForEvent('filechooser')
   await page.keyboard.press('Enter')
   const file = path.join(ROOT, 'public', 'seed-images', makers.split('/').pop()!)
@@ -105,34 +109,28 @@ test('the motor takes its own picture by the keyboard’s chooser, keeps the mak
   })
 
   const provenance = motor.locator('.ui-addpic-line')
-  await expect(provenance).toHaveText(
-    /^Yours is kept: added by Asaf, \d{1,2} [A-Z][a-z]+ \d{4}\. The maker’s picture of this exact item is shown\.$/,
-  )
+  await expect(provenance).toHaveText(/^Added by Asaf, \d{1,2} [A-Z][a-z]+ \d{4} · 2 of 2$/)
   await expect(motor.getByRole('status')).toHaveText(/^Kept at \d+ × \d+, /)
   await expect(page.getByText(`Your picture is on the ${said} now.`)).toBeVisible()
+  const thumbs = motor.getByRole('list', { name: `The ${said}’s pictures` }).getByRole('button')
+  await expect(thumbs).toHaveCount(2)
+  /* the maker's is still the cover */
+  await expect(thumbs.first()).toHaveAccessibleName('Picture 1 of 2, the cover')
 
-  /* shown over the maker's: the dealer's bytes, redrawn here, are the frame's picture */
-  await motor.getByRole('switch', { name: 'Show yours instead of the maker’s' }).click()
-  await expect(provenance).toHaveText(/^Added by Asaf, \d{1,2} [A-Z][a-z]+ \d{4}$/)
-  await expect(motor.locator('.ui-addpic-frame')).toHaveAccessibleName(
-    `Put another picture on the ${said}`,
-  )
-  await expect(motor.locator('.ui-addpic-frame img')).toHaveAttribute(
-    'src',
-    /^data:image\/webp;base64,/,
-  )
+  /* made the cover: the dealer's bytes, redrawn here, lead the gallery */
+  await motor.getByRole('button', { name: 'Make it the cover' }).click()
+  await expect(thumbs.first()).toHaveAccessibleName('Picture 1 of 2, the cover, Northside’s own')
+  await expect(frame.locator('img')).toHaveAttribute('src', /^data:image\/(?:webp|png);base64,/)
   await group(page).screenshot({
     path: testInfo.outputPath(`add-picture-${testInfo.project.name}.png`),
   })
 
   /* taken off, and back with Undo */
   await motor.getByRole('button', { name: 'Take it off' }).click()
-  await expect(provenance).toHaveText('The maker’s picture of this exact item.')
+  await expect(thumbs).toHaveCount(0)
+  await expect(provenance).toHaveText(/^(?:Picture from \S+|A picture this app holds)$/)
   const toast = page.locator('.ui-toast', { hasText: `Your picture is off the ${said}.` })
   await toast.getByRole('button', { name: 'Undo' }).click()
-  await expect(provenance).toHaveText(/^Added by Asaf, /)
-  await expect(motor.locator('.ui-addpic-frame img')).toHaveAttribute(
-    'src',
-    /^data:image\/webp;base64,/,
-  )
+  await expect(thumbs).toHaveCount(2)
+  await expect(thumbs.first()).toHaveAccessibleName('Picture 1 of 2, the cover, Northside’s own')
 })

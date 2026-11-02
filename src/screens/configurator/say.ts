@@ -642,3 +642,24 @@ export function pictureSays(
     ours: carries.length === 0 ? '' : `On this quote: ${carries.join(', with ')}.`,
   }
 }
+
+/**
+ * WHAT THE "CHANGE MODEL" DIALOG HOLDS, AND WHAT A PRESS IN IT DOES (`ModelLine`): "16 models on
+ * the price list, each with what choosing it does to this quote's total. Choosing one puts it on in
+ * place of the Patrol 600 Open, with Undo beside the total." A thing sold on its own is weighed
+ * against the ones nearest it, and its count says so ("9 nearest of 138").
+ */
+export function modelSheetSay(options: {
+  /** how many the dialog draws, the one on the quote among them */
+  many: number
+  /** the axis's own count where it draws fewer than its series holds, else '' */
+  count: string
+  /** what one of them is, as a person says it: "model", "motor" */
+  word: string
+  /** the one on the quote, as a person says it */
+  now: string
+}): string {
+  const { many, count, word, now } = options
+  const held = count === '' ? `${au(many)} ${many === 1 ? word : `${word}s`}` : `The ${count}`
+  return `${held} on the price list, each with what choosing it does to this quote’s total. Choosing one puts it on in place of the ${now}, with Undo beside the total.`
+}

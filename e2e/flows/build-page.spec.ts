@@ -36,7 +36,9 @@ import { cameToRest, openChapter, pickAndStart } from '../mint'
      6. AT A DESK ONLY THE CHAPTERS SCROLL: a wheel over the column moves
         the column and nothing else, a wheel over the boat moves nothing,
         and a reload at a chapter opens the column there;
-     7. the specifications open, every one, from a keyboard;
+     7. the specifications, every one, stand open with no press: the
+        few with the photograph a column's air from it, the rest in the
+        hull chapter (2026-10-31: "all dropdowns on the quote expanded");
      8. "Show all" opens over the page, with its own find field and the
         total, and a press inside it changes the total in place;
      9. NOTHING IS BLURRY: every picture drawn at or under its own pixels,
@@ -215,24 +217,30 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   await expect(head).toContainText('Jordan Avery')
   await expect(head).toContainText('0400 000 000')
 
-  /* 7. THE SPECIFICATIONS, EVERY ONE, FROM A KEYBOARD, over the page, said as a person says them
-     (the critic, 2026-10-31, P-2: they opened in the boat's column, took the photograph down to a
-     strip, and read "Min 90 HP", "Shaft Lgth", "Matrix", "Model Code") */
-  const shotBefore = (await page.locator('.cfg-shot').boundingBox())!
-  const more = page.getByRole('button', { name: /^All \d+ specifications$/ })
-  await more.focus()
-  await page.keyboard.press('Enter')
-  const specs = page.getByRole('dialog', { name: /every specification$/ })
+  /* 7. THE SPECIFICATIONS, EVERY ONE, OPEN WITHOUT A PRESS, said as a person says them (the critic,
+     2026-10-31, P-2: they opened in the boat's column, took the photograph down to a strip, and
+     read "Min 90 HP", "Shaft Lgth", "Matrix", "Model Code"). REWRITTEN 2026-11-02 (the owner,
+     2026-10-31: "all dropdowns on the quote expanded by default please and also between the image
+     and specs thing below it more padding please"): the few with the photograph stand on their
+     own plate a column's air under it (or beside it on a tablet), every other one stands open in
+     the hull chapter, and nothing about it is a press */
+  await expect(page.getByRole('button', { name: /^All \d+ specifications$/ })).toHaveCount(0)
+  const strip = (await page.locator('.cfg-specs').boundingBox())!
+  const photoNow = (await page.locator('.cfg-shot').boundingBox())!
+  const under = strip.y >= photoNow.y + photoNow.height - 1
+  const air = under
+    ? strip.y - (photoNow.y + photoNow.height)
+    : strip.x - (photoNow.x + photoNow.width)
+  expect(air, 'the air between the photograph and its specification').toBeGreaterThanOrEqual(24)
+  const specs = page.locator('[data-chapter="hull"]').getByTestId('specifications')
+  await specs.scrollIntoViewIfNeeded()
   await expect(specs).toBeVisible()
-  await expect(specs.getByTestId('specifications')).toContainText('90–115 hp')
-  await expect(specs.getByTestId('specifications')).toContainText(/Shaft length/i)
-  await expect(specs.getByTestId('specifications')).not.toContainText(/Matrix|Model code|Lgth/i)
+  await expect(specs).toContainText('90–115 hp')
+  await expect(specs).toContainText(/Shaft length/i)
+  await expect(specs).not.toContainText(/Matrix|Model code|Lgth/i)
   await cameToRest(page)
   await shot('04-specs')
-  await page.keyboard.press('Escape')
-  await expect(specs).toBeHidden()
-  await expect(more).toBeFocused()
-  expect((await page.locator('.cfg-shot').boundingBox())!.height).toBe(shotBefore.height)
+  expect((await page.locator('.cfg-shot').boundingBox())!.height).toBe(photoNow.height)
 
   /* 8. AT A DESK ONLY THE CHAPTERS SCROLL */
   await openChapter(page, /^02 Motor/)
@@ -244,7 +252,11 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
       window: await page.evaluate(() => scrollY),
       bar: (await page.locator('.cfg-mast__bar').boundingBox())!.y,
       photo: (await page.locator('.cfg-shot').boundingBox())!.y,
-      tally: (await tally.boundingBox())!.y,
+      /* THE TOTAL'S FOOT, where it stands in the boat's column: reading on into another chapter
+         ends the last step said in the total (by design, the polish critic's B9), so the card's
+         own height may answer; where it stands does not (rewritten 2026-11-02: with the hull one
+         model's choices, a wheel of 700 now reads on into Motor at 1280 and 1920) */
+      tally: await tally.evaluate((el) => Math.round(el.getBoundingClientRect().bottom)),
     })
     const before = await still()
     const scrolled = await column.evaluate((el) => el.scrollTop)
@@ -377,8 +389,10 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
    can see the pdf quote preview and things … and then go back to
    editing if we need").
 
-     1. the hull chapter offers the Sport series' models, its two
-        materials and its colours, each with what it does to the total;
+     1. the hull chapter names the Sport 560 and offers its two materials
+        and its colours, each with what it does to the total, and the
+        series' sixteen models one press away in Change model's dialog
+        (2026-10-31: "why can i still see other models like pa 460");
      2. a press changes the bar, the total and the photograph at once;
      3. "View final package" at the rail's foot plays the preparing
         moment and opens the package over the whole window, at its own
@@ -405,15 +419,18 @@ test('the boat chosen in its chapter, and the final package over the window', as
   const head = page.locator('.cfg-mast')
   const tally = page.getByTestId('running-total')
 
-  /* 1. THE AXES OF THE SERIES, EACH A ROW OF PRESSES WITH ITS DIFFERENCE */
+  /* 1. THE MODEL ON THE QUOTE, AND ITS OWN AXES, EACH A ROW OF PRESSES WITH ITS DIFFERENCE.
+     REWRITTEN 2026-11-02 (the owner, 2026-10-31: "for hull, i pick my model - why can i still see
+     other models like pa 460 if i am on a pa600 quote, don't need that much"): the model is one
+     line with "Change model", and the series' sixteen are in its dialog, never in the chapter */
   const choices = page.getByTestId('boat-choices')
   await expect(choices).toBeVisible()
-  await expect(choices.getByRole('group', { name: /^Model/ })).toBeVisible()
+  const model = choices.getByRole('group', { name: /^Model/ })
+  await expect(model).toContainText('Sport 560')
+  await expect(model.locator('[aria-pressed]')).toHaveCount(0)
   await expect(choices.getByRole('group', { name: /^Material/ })).toBeVisible()
   await expect(choices.getByRole('group', { name: /^Colour/ })).toBeVisible()
-  await expect(
-    choices.getByRole('group', { name: /^Model/ }).locator('[aria-pressed]'),
-  ).toHaveCount(16)
+  await expect(choices.getByRole('button', { name: /^Sport 520, / })).toHaveCount(0)
   await shot('09-hull-choices')
 
   /* 2. A PRESS ANSWERS EVERYWHERE AT ONCE */
@@ -423,12 +440,21 @@ test('the boat chosen in its chapter, and the final package over the window', as
   await expect(tally.locator('.cfg-tally__fig')).not.toHaveText(before)
   const photo = page.locator('.cfg-shot__img')
   const was = await photo.getAttribute('src')
-  await choices.getByRole('button', { name: /^Sport 520, / }).click()
-  await expect(head.getByRole('heading', { level: 1 })).toHaveText(/Highfield Sport 520/)
-  await expect(choices.getByRole('button', { name: /^Sport 520, on the quote$/ })).toHaveAttribute(
+  const change = model.getByRole('button', { name: 'Change model' })
+  await change.click()
+  const series = page.getByRole('dialog', { name: 'Change the model' })
+  await expect(series.locator('[aria-pressed]')).toHaveCount(16)
+  await expect(series.getByRole('button', { name: /^Sport 560, on the quote$/ })).toHaveAttribute(
     'aria-pressed',
     'true',
   )
+  await shot('09b-change-model')
+  await series.getByRole('button', { name: /^Sport 520, / }).click()
+  /* the choice closes the dialog onto the build, the caret back on the press that opened it */
+  await expect(series).toBeHidden()
+  await expect(change).toBeFocused()
+  await expect(head.getByRole('heading', { level: 1 })).toHaveText(/Highfield Sport 520/)
+  await expect(model).toContainText('Sport 520')
   expect(await photo.getAttribute('src')).not.toBe(was)
   await cameToRest(page)
   await shot('10-sport-520')

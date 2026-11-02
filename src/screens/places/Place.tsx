@@ -1,14 +1,25 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   DatabaseIcon,
   FilePlusIcon,
+  ImagesIcon,
   TagIcon,
   WrenchIcon,
 } from '@phosphor-icons/react'
-import { Button, Icon, KIND_GLYPH, Picture, Plate, Segmented, Tile } from '@/ui'
-import { pictures, srcSetOf } from '@/data/pictures'
+import {
+  Button,
+  Icon,
+  KIND_GLYPH,
+  Lightbox,
+  Picture,
+  Plate,
+  Segmented,
+  Tile,
+  type LightboxPicture,
+} from '@/ui'
+import { creditOf, pictures, srcSetOf } from '@/data/pictures'
 import { localDay } from '@/domain/quote/day'
 import { makerOfTable } from '@/domain/catalogue/makers'
 import { useCatalogue, useQuotes } from '@/app/useStores'
@@ -273,6 +284,9 @@ export function Place({ address, tab, onTab, go, openTheFile }: PlaceProps) {
 /* ---------------------------------------------------------- */
 
 function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
+  /* A HEADING'S PHOTOGRAPHS, LARGE: which heading is open and at which, kept after it shuts so
+     the plate's own exit is seen */
+  const [large, setLarge] = useState<{ name: string; at: number | null } | null>(null)
   const table = page.table
   if (!table) {
     return <p className="pl-pane__say">{page.card.name} has no list in the price list now.</p>
@@ -284,6 +298,21 @@ function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
   const maker = `${page.quoteWord} `
   const captionOf = (subject: string): string =>
     subject.startsWith(maker) ? subject.slice(maker.length) : subject
+  /* THE GALLERY OF ONE HEADING: its own photographs on the water, each named by the model it
+     shows and where it came from — never a picture of a model it does not hold */
+  const opened = large ? page.range.find((p) => p.name === large.name) : undefined
+  const set: LightboxPicture[] = (opened?.pictures ?? []).map((p) => {
+    const srcSet = srcSetOf(p)
+    return {
+      src: p.src,
+      width: p.width,
+      height: p.height,
+      ...(srcSet ? { srcSet } : {}),
+      alt: p.subject,
+      caption: p.subject,
+      credit: creditOf(p),
+    }
+  })
   /* WHAT GOES ON ITS BOATS, from the maker's own page: Fitment open on this maker's models, so
      a model with one version is two presses from here (exposure.md, the flow round) */
   const fits = boat ? `/fitment?maker=${encodeURIComponent(makerOfTable(table))}` : null
@@ -388,10 +417,38 @@ function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
                   </span>
                 </span>
               </Tile>
+              {/* ITS PHOTOGRAPHS, LARGE: a press of its own under the tile — the tile's press is
+                  the price list, and one press is never laid over another */}
+              {shot ? (
+                <span className="pl-part__large">
+                  <Button
+                    intent="quiet"
+                    size="sm"
+                    icon={ImagesIcon}
+                    onClick={() => setLarge({ name: part.name, at: 0 })}
+                    aria-label={
+                      part.pictures.length > 1
+                        ? `See the ${n(part.pictures.length)} photographs of the ${part.name} larger`
+                        : `See the photograph of the ${part.name} larger`
+                    }
+                  >
+                    {part.pictures.length > 1
+                      ? `See the ${n(part.pictures.length)} photographs`
+                      : 'See the photograph'}
+                  </Button>
+                </span>
+              ) : null}
             </li>
           )
         })}
       </ul>
+      <Lightbox
+        pictures={set}
+        at={large?.at ?? null}
+        onAt={(at) => setLarge((was) => (was ? { ...was, at } : null))}
+        title={opened?.name ?? ''}
+        strip
+      />
     </div>
   )
 }

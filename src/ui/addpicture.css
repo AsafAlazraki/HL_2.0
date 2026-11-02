@@ -1,6 +1,7 @@
 /* ============================================================
-   ADD A PICTURE (AddPicture.tsx) — the option's picture, and the way to
-   change it, in one frame.
+   ONE OPTION'S PICTURES (AddPicture.tsx) — the picture picked from the
+   option's gallery in one frame, every picture of it small under the
+   frame where there are two or more, and the acts on the one picked.
 
    THE FRAME IS A WHITE WELL at 4 : 3 on the plate, the shape every
    option's picture is drawn in, so a pictured and an unpictured option
@@ -36,6 +37,28 @@
   gap: --spacing(2);
   min-width: 0;
   color: var(--color-ink);
+}
+
+/* the frame and the cover's mark over its corner */
+.ui-addpic-stage {
+  position: relative;
+  min-width: 0;
+}
+.ui-addpic-cover {
+  position: absolute;
+  inset-block-start: --spacing(2);
+  inset-inline-start: --spacing(2);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: 0 --spacing(2) 0 --spacing(1.5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: --spacing(6);
+  font-weight: 700;
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  pointer-events: none;
 }
 
 .ui-addpic-frame {
@@ -84,6 +107,15 @@
   box-shadow: var(--shadow-focus);
 }
 
+/* A WINDOW WITH NO HEIGHT TO SPARE (a phone on its side): the frame keeps under half of it, so
+   the strip and the acts are a short scroll away rather than a screen; the picture is drawn
+   contained in the wider frame, never cropped */
+@media (max-height: 520px) {
+  .ui-addpic-frame {
+    max-block-size: 50dvh;
+  }
+}
+
 .ui-addpic-shot {
   display: block;
   inline-size: 100%;
@@ -126,6 +158,80 @@
   overflow: hidden;
   clip-path: inset(50%);
   opacity: 0;
+}
+
+/* EVERY PICTURE OF THE GALLERY, small, a press each: the one picked ringed in the accent, the
+   cover marked with the accent's star. One line that scrolls sideways where there are more than
+   the measure holds; nothing wraps under the frame into a second row of pictures. */
+.ui-addpic-strip {
+  display: flex;
+  gap: --spacing(2);
+  margin: 0;
+  /* room for the ring of the picked one and the caret's, which the sideways scroll would clip */
+  padding: --spacing(1.5);
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+.ui-addpic-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(16);
+  aspect-ratio: 4 / 3;
+  padding: --spacing(0.5);
+  border: 0;
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow var(--duration-hover) var(--ease-out);
+}
+.ui-addpic-thumb img {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+.ui-addpic-thumb[aria-pressed='true'] {
+  box-shadow: var(--ring-chosen);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-addpic-thumb[aria-pressed='false']:hover {
+    box-shadow: 0 0 0 1px var(--color-ink-on-tint);
+  }
+}
+/* the caret's ring drawn inward: the strip scrolls, and an outer ring would be cut at its edge */
+.ui-addpic-thumb:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-inset);
+}
+.ui-addpic-thumb-cover {
+  position: absolute;
+  inset-block-start: --spacing(0.5);
+  inset-inline-start: --spacing(0.5);
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(5);
+  block-size: --spacing(5);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+}
+
+/* where the picked one stands, and what a held picture shows that is not exactly this option */
+.ui-addpic-place {
+  font-weight: 500;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.ui-addpic-standing {
+  display: block;
+  font-weight: 500;
+  color: var(--color-ink-2);
 }
 
 .ui-addpic-hint,

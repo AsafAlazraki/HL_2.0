@@ -474,7 +474,16 @@
 }
 .pl-part {
   display: grid;
+  /* the tile takes the row's height, and a heading with photographs keeps their press under it */
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: --spacing(1);
   min-inline-size: 0;
+}
+/* THE PRESS THAT OPENS A HEADING'S PHOTOGRAPHS, under its tile and never over it: the tile's own
+   press opens the price list, and one press laid over another is one a person cannot be sure of */
+.pl-part__large {
+  display: flex;
+  justify-content: flex-start;
 }
 .pl-part__in {
   display: grid;

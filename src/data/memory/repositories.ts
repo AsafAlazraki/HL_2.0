@@ -6,6 +6,7 @@ import {
   type CatalogueMeta,
   type CatalogueRepository,
   type Filed,
+  type GalleryRepository,
   type OrgRepository,
   type OwnPictureRepository,
   type QuoteRepository,
@@ -243,6 +244,11 @@ export function memoryOrg(orgId: string, options: MemoryOptions = {}): OrgReposi
       return Promise.resolve()
     },
   }
+}
+
+/** How Northside arranged its options' galleries, cloned in and out as IndexedDB would. */
+export function memoryGalleries(orgId: string, options: MemoryOptions = {}): GalleryRepository {
+  return new MemoryStore((options.db ?? createMemoryDatabase()).galleries, orgId, 'gallery')
 }
 
 /** The pictures Northside added to its options, cloned in and out as IndexedDB would. */

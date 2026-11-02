@@ -12,7 +12,7 @@ import { createViewFor } from '@/domain/catalogue/views'
 import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/model'
 import { apply, isDone, mintQuoteFromView, quoteTotals, refinish } from '@/domain/quote'
 import { refinishSubject } from './freeze'
-import { boatChoices, goodsChoices, NO_OTHER_BOAT, type BoatChoices } from './choices'
+import { boatChoices, goodsChoices, NO_OTHER_BOAT, ownChoices, type BoatChoices } from './choices'
 
 const pack = await loadPack()
 const ctx = pack.ctx
@@ -203,5 +203,42 @@ describe('the ones beside a thing sold on its own', () => {
 
   it('offers nothing on a boat, which is the hull chapter’s to choose', () => {
     expect(goodsChoices(ctx, quoteOn('boat_highfield', 'SP560 (PVC) W-W-WB')).axes).toEqual([])
+  })
+})
+
+describe('the chapter shows the model on the quote, and that model’s own choices', () => {
+  it('keeps a Patrol 600 to its own materials and colours, the other fifteen Patrols one press away', () => {
+    const choices = boatChoices(ctx, quoteOn('boat_highfield', 'PA600 Open (PVC) LG-W-DG'))
+    const { model, own } = ownChoices(choices.axes)
+    expect(model!.options.length).toBe(16)
+    expect(model!.options.filter((o) => o.current).map((o) => o.say)).toEqual(['Patrol 600 Open'])
+    /* not one card for the Patrol 460 or any other model is among what the chapter draws */
+    expect(own.map((a) => a.id)).toEqual(['material', 'colour'])
+    expect(own.flatMap((a) => a.options).some((o) => /Patrol 460/.test(o.label))).toBe(false)
+    expect(own.flatMap((a) => a.options).every((o) => /PA600 Open/.test(o.label))).toBe(true)
+  })
+
+  it('keeps a Stabicraft 1850 Supercab to its three versions', () => {
+    const { model, own } = ownChoices(
+      boatChoices(ctx, quoteOn('boat_stabicraft', '1850 Supercab (Sportfish)')).axes,
+    )
+    expect(model!.options.map((o) => o.say)).toEqual([
+      '1850 Supercab',
+      '2050 Supercab',
+      '2350 Supercab',
+    ])
+    expect(own.map((a) => `${a.id} ${a.options.length}`)).toEqual(['trim 3'])
+  })
+
+  it('leaves a Stacer 519 SeaMaster with nothing but its model, which its series can change', () => {
+    const { model, own } = ownChoices(
+      boatChoices(ctx, quoteOn('boat_stacer', '519 SeaMaster')).axes,
+    )
+    expect(model!.options.length).toBe(7)
+    expect(own).toEqual([])
+  })
+
+  it('draws no model line where the series holds no other model', () => {
+    expect(ownChoices([])).toEqual({ model: null, own: [] })
   })
 })

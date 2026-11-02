@@ -1,5 +1,6 @@
 import {
   dexieCatalogue,
+  dexieGalleries,
   dexieOrg,
   dexieOwnPictures,
   dexieQuotes,
@@ -8,12 +9,14 @@ import {
 import { createMemoryDatabase, type MemoryDatabase } from './memory/database'
 import {
   memoryCatalogue,
+  memoryGalleries,
   memoryOrg,
   memoryOwnPictures,
   memoryQuotes,
 } from './memory/repositories'
 import type {
   CatalogueRepository,
+  GalleryRepository,
   OrgRepository,
   OwnPictureRepository,
   QuoteRepository,
@@ -23,6 +26,7 @@ export type {
   CatalogueMeta,
   CatalogueRepository,
   Filed,
+  GalleryRepository,
   OrgRepository,
   OwnPictureRepository,
   QuoteRepository,
@@ -52,6 +56,8 @@ export interface Repositories {
   org: OrgRepository
   /** the pictures Northside added to its options, beside the sheet and never in it */
   pictures: OwnPictureRepository
+  /** how Northside arranged its options' galleries, beside the pictures and never in the sheet */
+  galleries: GalleryRepository
 }
 
 /** vitest sets `MODE` to 'test' on every file it runs; the built app
@@ -86,6 +92,7 @@ export function repositories(orgId: string): Repositories {
       quotes: memoryQuotes(orgId, { db: memoryDb }),
       org: memoryOrg(orgId, { db: memoryDb }),
       pictures: memoryOwnPictures(orgId, { db: memoryDb }),
+      galleries: memoryGalleries(orgId, { db: memoryDb }),
     }
   } else {
     const db = sharedDatabase()
@@ -95,6 +102,7 @@ export function repositories(orgId: string): Repositories {
       quotes: dexieQuotes(orgId, { db }),
       org: dexieOrg(orgId, { db }),
       pictures: dexieOwnPictures(orgId, { db }),
+      galleries: dexieGalleries(orgId, { db }),
     }
   }
   held.set(orgId, made)

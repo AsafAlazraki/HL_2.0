@@ -29,8 +29,9 @@ import {
 import type { CatalogueCtx, QuoteLine } from '@/domain/model'
 import { aisleById, aislesOf, makersOf, UNSORTED } from '@/domain/catalogue/aisles'
 import { money } from '@/domain/money'
-import { itemOf } from '@/data/pictures'
-import { useOptionPicture } from '@/app/optionPicture'
+import { itemOf, placeIn, type Item } from '@/data/pictures'
+import { shotsOf, useGallery, useOptionPicture } from '@/app/optionPicture'
+import { ImagesIcon } from '@phosphor-icons/react'
 import {
   AddPicture,
   Button,
@@ -39,6 +40,7 @@ import {
   Icon,
   Input,
   Picture,
+  largeOf,
   type LightboxPicture,
 } from '@/ui'
 import { DRAG_HOW, usePart } from './drag'
@@ -141,6 +143,10 @@ export interface ChandleryProps {
   /** where a press writes the open aisle and its maker */
   onAisle: (aisle: string, maker: string) => void
   onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+  /** WHERE A PART'S GALLERY OPENS ON A DEALER'S PAGE, with its acts (/catalogue): handed the
+   *  part, its name and the picture to open on. Without it a press opens the gallery by `onLarge`,
+   *  to be looked at only. */
+  onGallery?: ((item: Item, name: string, at: number) => void) | undefined
   /** inside a quote: what it is fitting, and how a part goes on and off */
   fitting?: ChandleryFitting | undefined
   /** follow an address without a page load */
@@ -154,9 +160,13 @@ export function Chandlery({
   maker,
   onAisle,
   onLarge,
+  onGallery,
   fitting,
   go,
 }: ChandleryProps) {
+  /* A PART'S PRESS OPENS ITS OWN GALLERY: with its acts where the page has them, else to look at */
+  const opener: Opener = (tile, at, set) =>
+    onGallery ? onGallery(tile.item, tile.name, at) : onLarge(set, at, tile.name)
   const [find, setFind] = useState('')
   const [shown, setShown] = useState(PAGE)
   const shelf = useMemo(() => shelfOf(ctx), [ctx])
@@ -279,7 +289,7 @@ export function Chandlery({
           more={() => setShown((n) => n + PAGE)}
           price={price}
           fitting={fitting}
-          onLarge={onLarge}
+          open={opener}
           empty={`No part on the price list is named “${query}”. A code is not a name: try what the part is.`}
         />
       ) : (
@@ -294,7 +304,7 @@ export function Chandlery({
                 more={() => {}}
                 price={price}
                 fitting={fitting}
-                onLarge={onLarge}
+                open={opener}
                 empty=""
               />
             ) : (
@@ -382,7 +392,7 @@ export function Chandlery({
                 more={() => setShown((n) => n + PAGE)}
                 price={price}
                 fitting={fitting}
-                onLarge={onLarge}
+                open={opener}
                 empty={`Nothing in ${open.name} is sold by ${maker}.`}
               />
             </section>
@@ -399,7 +409,10 @@ export function Chandlery({
   )
 }
 
-/** One run of part cards, with the pictures among them opened large in turn. */
+/** HOW A CARD OPENS ITS PART'S GALLERY: the tile, the picture to open on, and the gallery large. */
+type Opener = (tile: PartTile, at: number, set: readonly LightboxPicture[]) => void
+
+/** One run of part cards, each opening its own part's gallery. */
 function Shelf({
   title,
   count,
@@ -408,7 +421,7 @@ function Shelf({
   more,
   price,
   fitting,
-  onLarge,
+  open,
   empty,
 }: {
   title: string
@@ -418,23 +431,13 @@ function Shelf({
   more: () => void
   price: (part: ShelfPart) => PartTile | null
   fitting: ChandleryFitting | undefined
-  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+  open: Opener
   empty: string
 }) {
   const tiles = [...parts].slice(0, shown).flatMap((part) => {
     const tile = price(part)
     return tile ? [{ part, tile }] : []
   })
-  const pictured = tiles.filter((t) => t.tile.picture !== null)
-  const large: LightboxPicture[] = pictured.map(({ tile }) => ({
-    src: tile.picture!.src,
-    width: tile.picture!.width,
-    height: tile.picture!.height,
-    ...(tile.picture!.srcSet ? { srcSet: tile.picture!.srcSet } : {}),
-    alt: tile.name,
-    caption: tile.name,
-    credit: tile.picture!.credit,
-  }))
   const rest = count - tiles.length
   return (
     <section className="cat-shelf" aria-label={title === '' ? undefined : title}>
@@ -450,22 +453,7 @@ function Shelf({
       ) : (
         <ul className="cat-parts">
           {tiles.map(({ part, tile }) => (
-            <PartCard
-              key={part.id}
-              part={part}
-              tile={tile}
-              fitting={fitting}
-              onLarge={
-                tile.picture
-                  ? () =>
-                      onLarge(
-                        large,
-                        pictured.findIndex((t) => t.part.id === part.id),
-                        title === '' ? 'Parts' : title,
-                      )
-                  : undefined
-              }
-            />
+            <PartCard key={part.id} part={part} tile={tile} fitting={fitting} open={open} />
           ))}
         </ul>
       )}
@@ -480,18 +468,24 @@ function Shelf({
   )
 }
 
-/** One part's card: its picture or the door to the dealer's, its name and price, and Add. */
+/** One part's card: its cover or the dealer's way to add one, its name and price, and Add. */
 function PartCard({
   part,
   tile,
   fitting,
-  onLarge,
+  open,
 }: {
   part: ShelfPart
   tile: PartTile
   fitting: ChandleryFitting | undefined
-  onLarge: (() => void) | undefined
+  open: Opener
 }) {
+  /* THE PART'S GALLERY: every picture of this one part, the cover first; the press opens it on
+     the picture the card draws */
+  const gallery = useGallery(tile.item)
+  const many = gallery.length
+  const onLarge = (): void =>
+    open(tile, placeIn(gallery, tile.picture), largeOf(tile.name, shotsOf(gallery, tile.name)))
   const lineId = fitting?.on.get(part.id)
   const on = lineId !== undefined
   const live = fitting !== undefined && !on && fitting.refusedBy === undefined
@@ -523,11 +517,18 @@ function PartCard({
                 lazy
               />
             </span>
-            {onLarge ? (
-              <span className="cat-part__expand">
-                <ExpandPicture label="See its picture larger" onExpand={onLarge} />
+            {many > 1 ? (
+              <span className="cat-part__many" aria-hidden="true">
+                <Icon glyph={ImagesIcon} size="sm" />
+                {many.toLocaleString('en-AU')}
               </span>
             ) : null}
+            <span className="cat-part__expand">
+              <ExpandPicture
+                label={many > 1 ? `See its ${many} pictures larger` : 'See its picture larger'}
+                onExpand={onLarge}
+              />
+            </span>
           </>
         ) : (
           <OwnPicture part={part} name={tile.name} />

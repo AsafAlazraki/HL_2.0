@@ -3,6 +3,7 @@ import { ArrowsOutSimpleIcon, CaretLeftIcon, CaretRightIcon, XIcon } from '@phos
 import {
   useRef,
   type CSSProperties,
+  type ReactNode,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
@@ -23,8 +24,14 @@ import { Icon } from './Icon'
  * from (the ledger's provenance — the maker's host, or "Added by Asaf, 30 October 2026" for a
  * picture Northside added). Never a stand-in: a set holds only pictures the ledger holds.
  *
- * BETWEEN THE PICTURES OF ONE CHAPTER by the arrows on the screen, the arrow keys, or a swipe.
- * Under reduced motion the picture changes in place and the plate fades; nothing slides.
+ * BETWEEN THE PICTURES OF ONE SET by the arrows on the screen, the arrow keys, or a swipe, with
+ * the count said. Under reduced motion the picture changes in place and the plate fades; nothing
+ * slides.
+ *
+ * A ROW'S GALLERY (2026-11-02) is the set it is opened on wherever a picture belongs to one option
+ * (`galleryOf` in `@/data/pictures`): its pictures held and Northside's, the cover first and
+ * marked "Cover", and — with `strip` — every one of them as a small picture under it, a press
+ * each, so a person sees how many there are and goes straight to one.
  */
 export interface LightboxPicture {
   src: string
@@ -43,6 +50,10 @@ export interface LightboxPicture {
    *  for it: "Highfield Sport 560 on the water, in the maker's own finish and rig. On this
    *  quote: the Yamaha F90XB." The build's caption under its photograph lives here now. */
   note?: string
+  /** this picture is the row's cover, said beside the count */
+  cover?: boolean
+  /** its id in the row's gallery, where it is one: what its small press is known by */
+  id?: string
 }
 
 export interface LightboxProps {
@@ -53,12 +64,16 @@ export interface LightboxProps {
   onAt: (at: number | null) => void
   /** what the set is, for a reader: "Motor", "The boat" */
   title: string
+  /** draw every picture of the set as a small press under the one open — for one row's gallery */
+  strip?: boolean
+  /** what may be done to the picture open, under it (`GalleryActs`): a dealer's screen only */
+  acts?: ReactNode
 }
 
 /** How far a finger travels across the picture before it counts as a swipe. */
 const SWIPE_PX = 48
 
-export function Lightbox({ pictures, at, onAt, title }: LightboxProps) {
+export function Lightbox({ pictures, at, onAt, title, strip = false, acts }: LightboxProps) {
   const open = at !== null && pictures[at] !== undefined
   const picture = open ? pictures[at] : undefined
   const many = pictures.length > 1
@@ -94,7 +109,13 @@ export function Lightbox({ pictures, at, onAt, title }: LightboxProps) {
     <BaseDialog.Root open={open} onOpenChange={(next) => (next ? undefined : onAt(null))}>
       <BaseDialog.Portal>
         <BaseDialog.Backdrop className="ui-lightbox-backdrop" />
-        <BaseDialog.Popup className="ui-lightbox" data-ground="plate" onKeyDown={onKey}>
+        <BaseDialog.Popup
+          className="ui-lightbox"
+          data-ground="plate"
+          data-strip={many && strip ? '' : undefined}
+          data-acts={acts ? '' : undefined}
+          onKeyDown={onKey}
+        >
           <header className="ui-lightbox-head">
             <div className="ui-lightbox-words">
               <BaseDialog.Title className="ui-lightbox-title">
@@ -149,6 +170,7 @@ export function Lightbox({ pictures, at, onAt, title }: LightboxProps) {
                 <Icon glyph={CaretLeftIcon} />
               </button>
               <p className="ui-lightbox-count" aria-live="polite">
+                {picture?.cover ? <span className="ui-lightbox-cover">Cover</span> : null}
                 {`${at + 1} of ${pictures.length} · ${title}`}
               </p>
               <button
@@ -161,6 +183,24 @@ export function Lightbox({ pictures, at, onAt, title }: LightboxProps) {
               </button>
             </footer>
           ) : null}
+          {many && strip && at !== null ? (
+            <ul className="ui-lightbox-strip" aria-label={`Every picture · ${title}`}>
+              {pictures.map((p, i) => (
+                <li key={p.id ?? p.src}>
+                  <button
+                    type="button"
+                    className="ui-lightbox-thumb"
+                    aria-current={i === at ? 'true' : undefined}
+                    aria-label={`Picture ${i + 1} of ${pictures.length}${p.cover ? ', the cover' : ''}`}
+                    onClick={() => onAt(i)}
+                  >
+                    <img src={p.src} alt="" width={p.width} height={p.height} draggable={false} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {open && acts ? <div className="ui-lightbox-acts">{acts}</div> : null}
         </BaseDialog.Popup>
       </BaseDialog.Portal>
     </BaseDialog.Root>

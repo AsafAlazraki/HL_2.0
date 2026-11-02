@@ -197,13 +197,17 @@ describe('a chapter head states its own answer, open or folded', () => {
       expect(head).toHaveAttribute('aria-expanded', 'true')
       expect(head).toHaveTextContent(chapter.num)
       if (chapter.subject && (chapter.boat?.axes.length ?? 0) > 0 && chapter.id === 'hull') {
-        /* OPEN, THE BOAT'S CHAPTER LEAVES ITS NAME TO THE LIT CHOICE under it and the bar over it
+        /* OPEN, THE BOAT'S CHAPTER LEAVES ITS NAME TO THE MODEL LINE under it and the bar over it
            (the paper-quote critique, 2026-10-31: the name four times in one window); what is
-           still open stays in its head */
+           still open stays in its head. REWRITTEN 2026-11-02 (the owner, 2026-10-31: "why can i
+           still see other models like pa 460 if i am on a pa600 quote"): the model on the quote is
+           named on its own line, where a lit card among the series stood */
         expect(head).not.toHaveTextContent(chapter.said!)
         if (chapter.rest) expect(head).toHaveTextContent(chapter.rest)
+        const choices = screen.getByTestId('boat-choices')
         expect(
-          screen.getByTestId('boat-choices').querySelector('[aria-pressed="true"]'),
+          choices.querySelector('.cfg-model .cfg-axis__now') ??
+            choices.querySelector('[aria-pressed="true"]'),
         ).not.toBeNull()
       } else expect(head).toHaveTextContent(chapter.fact)
       /* THE SUBTOTAL, ONCE: in the head, or, where the one thing on the quote in an open chapter
@@ -617,14 +621,26 @@ describe('the boat, chosen in its own chapter', () => {
     expect(document.querySelector('.cfg-mast')).toHaveTextContent(/Hypalon/)
   })
 
+  /* REWRITTEN 2026-11-02 (the owner, 2026-10-31: "for hull, i pick my model - why can i still see
+     other models like pa 460 if i am on a pa600 quote"): the series is one quiet press away, in a
+     dialog, and the chapter draws only the model on the quote and its own choices */
   it('re-roots in place on another model, and every figure on the page answers', async () => {
     const quote = fileAQuote('boat_highfield', 'SP560 (PVC) W-W-WB')
     render(<Configurator quoteId={quote.id} at="hull" />)
     const boat = railFor(quote).chapters.find((c) => c.id === 'hull')!.boat!
     const sport520 = boat.axes[0]!.options.find((o) => o.say === 'Sport 520')!
+    const choices = screen.getByTestId('boat-choices')
+    /* no card of another model stands in the chapter: the model on the quote is its own line */
+    expect(within(choices).queryByRole('button', { name: /^Sport 520, / })).toBeNull()
+    expect(choices.querySelector('.cfg-model')).toHaveTextContent('Sport 560')
+    await userEvent.click(within(choices).getByRole('button', { name: 'Change model' }))
+    const dialog = screen.getByRole('dialog', { name: 'Change the model' })
+    expect(within(dialog).getAllByRole('button', { pressed: false })).toHaveLength(15)
     await userEvent.click(
-      screen.getByRole('button', { name: `Sport 520, ${signedMoney(sport520.delta)}` }),
+      within(dialog).getByRole('button', { name: `Sport 520, ${signedMoney(sport520.delta)}` }),
     )
+    /* the choice closes the dialog onto the build, where everything answers */
+    expect(screen.queryByRole('dialog', { name: 'Change the model' })).toBeNull()
     const now = quotes.getState().get(quote.id)!
     expect(now.subjectLabel).toBe(sport520.label)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Highfield Sport 520')

@@ -19,7 +19,7 @@ import { sellableRows } from '@/domain/catalogue/views/sellable'
 import { aisleOf, type PartIn } from '@/domain/catalogue/aisles'
 import { lineAmount, mintLine } from '@/domain/quote'
 import { lineSaid, nameFirst } from '@/domain/quote/spoken'
-import { copyOf, creditOf, itemOf, srcSetOf } from '@/data/pictures'
+import { copyOf, creditOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
 
 /** The register the chandlery is built on: the price list's own parts and accessories. */
 export const PARTS_TABLE = 'parts'
@@ -42,8 +42,17 @@ export interface PartTile {
   amount: number | null
   /** the line the press puts on the quote, at that level */
   line: QuoteLine
-  /** its own picture, or null — never another part's */
-  picture: { src: string; width: number; height: number; srcSet?: string; credit: string } | null
+  /** the part as the one reader is asked about it: its gallery's row */
+  item: Item
+  /** its own picture — its cover where it is exactly this part — or null; never another part's */
+  picture: {
+    id: string
+    src: string
+    width: number
+    height: number
+    srcSet?: string
+    credit: string
+  } | null
 }
 
 /** The parts register, where the price list has one. */
@@ -100,15 +109,18 @@ export function pricerFor(
   const engine = makeEngine(ctx)
   return (part) => {
     const line = mintLine({ ctx, engine, entity: table, row: part.row, levelKey })
-    const held = copyOf(itemOf(PARTS_TABLE, part.id, line.image?.src))
+    const item = itemOf(PARTS_TABLE, part.id, line.image?.src)
+    const held = copyOf(item)
     const srcSet = held ? srcSetOf(held) : undefined
     return {
       id: part.id,
       name: nameFirst(lineSaid(line.label, table.name), line.code),
       amount: lineAmount(line).amount,
       line,
+      item,
       picture: held
         ? {
+            id: held.id,
             src: held.src,
             width: held.width,
             height: held.height,

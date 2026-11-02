@@ -18,12 +18,17 @@
        no sibling, no package, no "similar" part. Nothing here copies it.
      · ITS PROVENANCE IS A PERSON AND A DAY: "Added by Asaf, 30 October
        2026", said wherever it is drawn with its words.
-     · IT IS DRAWN BY THE ONE READER. `withOwnPictures` lays these over
+     · AN OPTION MAY HAVE SEVERAL (2026-11-02), and they are one gallery
+       with the held pictures of that row, one of them its cover
+       (`./gallery.ts`). Adding a picture adds it beside the others; it
+       never replaces one.
+     · IT IS DRAWN BY THE ONE READER. `withGalleries` lays these over
        the book the three bundled ledgers make (`./pictures.ts`), so the
        build, the catalogue and the paper ask the same question they
        always asked and get the dealer's picture where it is the answer.
-     · A HELD PICTURE OF THE EXACT ITEM STILL WINS, unless the dealer
-       chose theirs (`chosen`). "Exact" is the book's own word: the price
+     · A HELD PICTURE OF THE EXACT ITEM STILL WINS by default, unless the
+       dealer chose his as the row's cover (or, before galleries, chose
+       it over the maker's: `chosen`). "Exact" is the book's own word: the price
        file's own copy for that row, or a picture a person marked as that
        row, model and finish. A picture of the model in another colourway
        is not the exact item, so the dealer's picture of the exact item
@@ -48,7 +53,6 @@
    before a byte is read is here (`ownPicturePlan`).
    ============================================================ */
 import { sizeSay } from '../modules/size'
-import type { Found, Item, Picture, PictureBook } from './pictures'
 
 /** One picture Northside added to one option. */
 export interface OwnPicture {
@@ -78,7 +82,10 @@ export interface OwnPicture {
   addedBy: string
   /** when, ISO */
   addedAt: string
-  /** the dealer chose this over a held picture of the exact item */
+  /** THE DEALER CHOSE THIS OVER A HELD PICTURE OF THE EXACT ITEM — the one choice there was
+   *  before galleries (2026-10-30), still read so a picture chosen then is still drawn. A choice
+   *  made since is the row's cover (`GalleryOrder` in `./gallery.ts`), and new pictures are
+   *  filed with `false`. */
   chosen: boolean
 }
 
@@ -137,11 +144,6 @@ export const pastedWords = (address: boolean): string =>
     ? 'That is an address, not a picture. A picture from the web is kept only once it is saved here: save it, then choose it or drop it here.'
     : 'What was pasted is words, not a picture. Copy the picture itself and paste again, or choose its file.'
 
-/** Said when more than one file is dropped or pasted at once: an option has one picture, and
- *  choosing among them for the dealer would be choosing which depicts the item. */
-export const manyFiles = (n: number): string =>
-  `That is ${n} files at once. An option has one picture, so drop or paste just the one that shows it.`
-
 /** Said when what was dropped carried no file at all — a picture dragged out of another web
  *  page arrives as its address, and an address is not fetched. */
 export const DROPPED_NO_FILE =
@@ -156,6 +158,9 @@ export const OPTION_GONE = 'That option is no longer in the price list.'
 
 /** Said where a picture a press was about has already gone. */
 export const PICTURE_GONE = 'That picture is already off.'
+
+/** Said where a press is about a picture that is not in this option's gallery. */
+export const NOT_IN_GALLERY = 'That picture is not one of this option’s.'
 
 /* ---------------------------------------------------------- */
 /* Before a byte is read                                       */
@@ -276,92 +281,6 @@ export function readOwnPicture(
   }
 }
 
-/* ---------------------------------------------------------- */
-/* Laid over the book                                           */
-/* ---------------------------------------------------------- */
-
-const keyOf = (table: string, row: string): string => `${table}\n${row}`
-
-/** The dealer's picture as the reader answers with it: exact, a person's, its provenance said. */
-export function pictureOfOwn(p: OwnPicture): Picture {
-  return {
-    id: `own:${p.id}`,
-    src: p.src,
-    width: p.width,
-    height: p.height,
-    widths: [{ src: p.src, width: p.width }],
-    tier: 'catalogue',
-    address: '',
-    pageUrl: '',
-    verdict: 'own',
-    subject: p.name,
-    table: p.table,
-    model: '',
-    rows: [p.row],
-    standing: 'row',
-    exact: true,
-    person: true,
-    depicts: p.name,
-    differs: [],
-    verification: addedLine(p),
-    licenceNote: 'Northside’s own picture.',
-    beyond: '',
-    added: { by: p.addedBy, at: p.addedAt },
-  }
-}
-
-/**
- * THE BOOK, WITH NORTHSIDE'S OWN PICTURES LAID OVER IT. `own` is the pictures that still stand
- * (their option still named as it was); the first for an option wins, and there is one.
- *
- * Every question a screen asks is answered the same way: the dealer's picture where they chose
- * it, or where no picture of the exact item is held; otherwise the book's own answer. The
- * price file's own copy (`rowCopy`) and a model's picture (`modelPicture`) are questions about
- * the shipped ledgers and are not changed. The model on the water (`hero`) is the dealer's
- * only where they chose theirs: a hero is a photograph of the MODEL, and a dealer's picture of
- * one option is not drawn as the model's unless they said so.
- */
-export function withOwnPictures(book: PictureBook, own: readonly OwnPicture[]): PictureBook {
-  if (own.length === 0) return book
-  const byOption = new Map<string, OwnPicture>()
-  for (const p of own)
-    if (!byOption.has(keyOf(p.table, p.row))) byOption.set(keyOf(p.table, p.row), p)
-  const ownOf = (item: Item): OwnPicture | null => byOption.get(keyOf(item.table, item.row)) ?? null
-
-  /** the dealer's picture, where it is the answer for this item */
-  const wins = (item: Item): Picture | null => {
-    const p = ownOf(item)
-    if (!p) return null
-    return p.chosen || !book.exactHeld(item) ? pictureOfOwn(p) : null
-  }
-  const found = (picture: Picture): Found => ({ held: true, picture })
-
-  return {
-    ...book,
-    own: ownOf,
-    hero: (item) => {
-      const p = ownOf(item)
-      return p?.chosen ? pictureOfOwn(p) : book.hero(item)
-    },
-    catalogue: (item) => wins(item) ?? book.catalogue(item),
-    picture: (item) => wins(item) ?? book.picture(item),
-    /* THE PAPER: the dealer's where it wins; else the book's, where the book may print one; and
-       where the book holds the exact item but may not print it (a row's own copy that no person
-       marked cannot sit beside a line), the dealer's — a person's statement of that exact item */
-    forCover: (item) => {
-      const w = wins(item)
-      if (w) return found(w)
-      const held = book.forCover(item)
-      const p = ownOf(item)
-      return held.held || !p ? held : found(pictureOfOwn(p))
-    },
-    forLine: (item) => {
-      const w = wins(item)
-      if (w) return found(w)
-      const held = book.forLine(item)
-      const p = ownOf(item)
-      return held.held || !p ? held : found(pictureOfOwn(p))
-    },
-    notes: (item) => (wins(item) ? [] : book.notes(item)),
-  }
-}
+/* The dealer's picture as the reader answers with it, and the book with Northside's pictures
+   and arrangements laid over it, are the gallery's: `./gallery.ts` (`pictureOfOwn`,
+   `withGalleries`, `withOwnPictures`). */

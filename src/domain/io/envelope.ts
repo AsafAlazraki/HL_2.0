@@ -136,6 +136,7 @@ import {
   type XY,
 } from '@/domain/model'
 import { newId, nowIso } from '@/domain/id'
+import { readGalleryOrder, type GalleryOrder } from '@/domain/model/gallery'
 import { readOwnPicture, type OwnPicture } from '@/domain/model/ownPictures'
 import { readOrg } from '@/domain/northside/read'
 import { parseHex } from '@/domain/northside/colour'
@@ -1786,6 +1787,11 @@ export function validateEnvelope(raw: unknown, orgId: string): Validated {
       ok: false,
       error: 'That copy is damaged: the pictures Northside added to its options cannot be read.',
     }
+  if (raw.galleries !== undefined && !Array.isArray(raw.galleries))
+    return {
+      ok: false,
+      error: 'That copy is damaged: the covers and order of its options’ pictures cannot be read.',
+    }
 
   const stamp = nowIso()
 
@@ -2150,6 +2156,17 @@ export function validateEnvelope(raw: unknown, orgId: string): Validated {
     ownPictures.push(read)
   }
 
+  /* AND HOW IT ARRANGED THEIR GALLERIES, each read as untrusted (`readGalleryOrder`): ids that
+     key their own store, a person and a day; one that fails costs only itself */
+  const galleries: GalleryOrder[] = []
+  const galleryIds = new Set<string>()
+  for (const o of Array.isArray(raw.galleries) ? (raw.galleries as unknown[]) : []) {
+    const read = readGalleryOrder(o, orgId, isSafeId)
+    if (!read || galleryIds.has(read.id)) continue
+    galleryIds.add(read.id)
+    galleries.push(read)
+  }
+
   const projectRaw = isRecord(raw.project) ? raw.project : {}
   const data: ProjectFile = {
     kind: EXPORT_KIND,
@@ -2178,6 +2195,7 @@ export function validateEnvelope(raw: unknown, orgId: string): Validated {
     /* KEPT EVEN EMPTY when the copy carried the key: an empty list is a copy that held no
        pictures, which is not the same as a copy from before pictures were kept */
     ...(Array.isArray(raw.ownPictures) ? { ownPictures } : {}),
+    ...(Array.isArray(raw.galleries) ? { galleries } : {}),
   }
   return { ok: true, data }
 }

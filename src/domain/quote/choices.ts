@@ -386,3 +386,23 @@ export function goodsChoices(ctx: CatalogueCtx, quote: QuoteDef, near = GOODS_NE
 }
 
 const capitalised = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1)
+
+/**
+ * THE CHAPTER SHOWS THE MODEL ON THE QUOTE, AND ITS OWN CHOICES (the owner, 2026-10-31: "for
+ * hull, i pick my model - why can i still see other models like pa 460 if i am on a pa600 quote,
+ * don't need that much"). The model axis is not drawn as a card per model: it is the model on the
+ * quote and one press that opens the rest of its series. Every other axis — its versions, its
+ * materials, its colourways — is already this model's own (`boatChoices` reads each from the rows
+ * that share every axis above it), and is drawn as it is.
+ *
+ * `model` is the model axis where the series holds another model to change to, else null; `own`
+ * is every other axis, in its order.
+ */
+export function ownChoices<A extends { id: AxisId }>(
+  axes: readonly A[],
+): { model: A | null; own: A[] } {
+  return {
+    model: axes.find((a) => a.id === 'model') ?? null,
+    own: axes.filter((a) => a.id !== 'model'),
+  }
+}

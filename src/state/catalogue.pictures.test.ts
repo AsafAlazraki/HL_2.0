@@ -12,12 +12,23 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { EntityDef, PackManifest, RowData } from '@/domain/model'
 import { isDone } from '@/domain/catalogue/commands'
-import { addOwnPicture, removeOwnPicture } from '@/domain/catalogue/pictureCommands'
+import {
+  addOwnPicture,
+  addOwnPictures,
+  coverPicture,
+  removeOwnPicture,
+} from '@/domain/catalogue/pictureCommands'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 import { createMemoryDatabase, type MemoryDatabase } from '@/data/memory/database'
-import { memoryCatalogue, memoryOrg, memoryOwnPictures } from '@/data/memory/repositories'
-import { holdOwnPictures } from '@/data/ownPictures'
-import { catalogueOf, itemOf, ownOf, pictureOf } from '@/data/pictures'
+import {
+  memoryCatalogue,
+  memoryGalleries,
+  memoryOrg,
+  memoryOwnPictures,
+} from '@/data/memory/repositories'
+import { holdGalleries, holdOwnPictures } from '@/data/ownPictures'
+import { catalogueOf, coverOf, galleryOf, itemOf, ownOf, pictureOf } from '@/data/pictures'
 import { createCatalogueStore, type CatalogueStore } from './catalogue'
 
 const ISO = new Date(2026, 9, 30, 12).toISOString()
@@ -48,6 +59,7 @@ const manifest = { name: 'Northside Marine', version: 't' } as PackManifest
 
 let db: MemoryDatabase
 let told: (readonly OwnPicture[])[]
+let ordersTold: (readonly GalleryOrder[])[]
 let store: CatalogueStore
 
 const make = (): CatalogueStore =>
@@ -60,6 +72,11 @@ const make = (): CatalogueStore =>
     onOwnPictures: (standing) => {
       told.push(standing)
       holdOwnPictures(standing)
+    },
+    galleriesFor: (orgId) => memoryGalleries(orgId, { db }),
+    onGalleries: (standing) => {
+      ordersTold.push(standing)
+      holdGalleries(standing)
     },
   })
 
@@ -84,6 +101,7 @@ const add = (row = 'p1', name = 'Battery MFM50') =>
 beforeEach(async () => {
   db = createMemoryDatabase()
   told = []
+  ordersTold = []
   store = make()
   await open(store)
 })
@@ -91,6 +109,7 @@ beforeEach(async () => {
 afterEach(() => {
   /* the reader is the app's one: leave it holding nothing for the next file */
   holdOwnPictures([])
+  holdGalleries([])
 })
 
 describe('a picture is one step on the catalogue’s stack', () => {
@@ -160,5 +179,73 @@ describe('the one reader answers with it', () => {
     /* and the price list as it was draws it again */
     await open(store)
     expect(pictureOf(battery)?.src).toBe(BYTES)
+  })
+})
+
+describe('a row’s gallery, its cover and its order, on the same stack', () => {
+  const battery = itemOf('e-parts', 'p1')
+  const two = () => {
+    store.getState().apply(
+      addOwnPictures({
+        table: 'e-parts',
+        row: 'p1',
+        name: 'Battery MFM50',
+        pictures: [
+          { src: BYTES, width: 1100, height: 825, file: 'a.jpg' },
+          { src: BYTES, width: 1100, height: 825, file: 'b.jpg' },
+        ],
+        by: 'Asaf',
+      }),
+    )
+    return galleryOf(battery).map((p) => p.id)
+  }
+
+  it('holds several pictures of one option as one gallery, oldest first', () => {
+    const shown = two()
+    expect(shown).toHaveLength(2)
+    expect(coverOf(battery)?.id).toBe(shown[0])
+  })
+
+  it('writes the cover beside the pictures, reads it back on the next open, and hands it to the reader', async () => {
+    const shown = two()
+    const chosen = store
+      .getState()
+      .apply(coverPicture({ table: 'e-parts', row: 'p1', shown, id: shown[1]!, by: 'Asaf' }))
+    expect(isDone(chosen) && chosen.said).toBe('The Battery MFM50’s cover is your picture now.')
+    expect(ordersTold.at(-1)?.map((o) => o.cover)).toEqual([shown[1]])
+    expect(coverOf(battery)?.id).toBe(shown[1])
+    expect(pictureOf(battery)?.id).toBe(shown[1])
+    await store.getState().flush()
+    expect((await memoryGalleries('northside', { db }).all()).map((o) => o.cover)).toEqual([
+      shown[1],
+    ])
+
+    const next = make()
+    await open(next)
+    expect(Object.values(next.getState().galleries ?? {}).map((o) => o.cover)).toEqual([shown[1]])
+  })
+
+  it('takes the cover back with Undo, off the disk too', async () => {
+    const shown = two()
+    const chosen = store
+      .getState()
+      .apply(coverPicture({ table: 'e-parts', row: 'p1', shown, id: shown[1]!, by: 'Asaf' }))
+    if (!isDone(chosen)) throw new Error('refused')
+    store.getState().undo(chosen.event.id)
+    expect(store.getState().galleries).toBeUndefined()
+    expect(coverOf(battery)?.id).toBe(shown[0])
+    await store.getState().flush()
+    expect(await memoryGalleries('northside', { db }).all()).toEqual([])
+  })
+
+  it('stops reading the cover when a new price list puts another option at its place', async () => {
+    const shown = two()
+    store
+      .getState()
+      .apply(coverPicture({ table: 'e-parts', row: 'p1', shown, id: shown[1]!, by: 'Asaf' }))
+    await store.getState().flush()
+    await open(store, [line('p1', 'D Shackle - 10 mm Galv'), ROWS[1]!])
+    expect(ordersTold.at(-1)).toEqual([])
+    expect(Object.values(store.getState().galleries ?? {})).toHaveLength(1)
   })
 })

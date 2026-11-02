@@ -38,6 +38,7 @@
    ============================================================ */
 
 import { EXPORT_KIND, EXPORT_VERSION, type CatalogueCtx } from '@/domain/model'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 import type { ProjectFile } from './envelope'
 
@@ -134,6 +135,9 @@ export function buildExportPayload(
    *  the shelf's "Save a copy". Written in a full copy only, and written EVEN EMPTY when handed:
    *  a copy that held none brings none back (see `ProjectExport.ownPictures`). */
   ownPictures?: readonly OwnPicture[],
+  /** HOW NORTHSIDE ARRANGED THEIR GALLERIES (2026-11-02), handed in beside them and written the
+   *  same way: in a full copy only, even empty when handed. */
+  galleries?: readonly GalleryOrder[],
 ): ProjectFile {
   const s = ctx
   const views = Object.values(s.views).sort(byCreatedAt)
@@ -190,6 +194,13 @@ export function buildExportPayload(
       ? {
           ownPictures: [...ownPictures].sort(
             (a, b) => a.addedAt.localeCompare(b.addedAt) || a.id.localeCompare(b.id),
+          ),
+        }
+      : {}),
+    ...(includeData && galleries
+      ? {
+          galleries: [...galleries].sort(
+            (a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id),
           ),
         }
       : {}),

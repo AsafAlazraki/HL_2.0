@@ -296,6 +296,26 @@
   inset-block-start: --spacing(2);
   inset-inline-end: --spacing(2);
 }
+/* A PART WITH MORE THAN ONE PICTURE says how many over the cover's foot, so a person knows the
+   press opens a gallery and not one picture */
+.cat-part__many {
+  position: absolute;
+  inset-block-end: --spacing(2);
+  inset-inline-start: --spacing(2);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: 0 --spacing(2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: --spacing(6);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  background: --alpha(var(--color-plate) / 92%);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  pointer-events: none;
+}
 .cat-part__name {
   margin: 0;
   font-size: var(--text-sm);

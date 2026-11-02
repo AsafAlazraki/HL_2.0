@@ -32,7 +32,7 @@
    counts what is made for the boat of what is on sale, each reason counts
    what it holds back, and Show all opens the whole list (`Whole.tsx`).
    ============================================================ */
-import { useCallback, useMemo, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowUpRightIcon,
   CaretDownIcon,
@@ -46,11 +46,13 @@ import {
   WarningIcon,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Button, Icon, Picture, PriceFigure, Tile, move, transition } from '@/ui'
+import { Button, ExpandPicture, Icon, Picture, PriceFigure, Tile, move, transition } from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { copyOf, itemOf, pictureOf, srcSetOf } from '@/data/pictures'
+import { copyOf, itemOf, pictureOf, placeIn, srcSetOf } from '@/data/pictures'
+import { useGallery } from '@/app/optionPicture'
+import { RowGallery } from '@/app/RowGallery'
 import { makeCtx, rowLabel, type CatalogueCtx } from '@/domain/model'
 import {
   offeredIn,
@@ -349,10 +351,15 @@ function BoatPlate({
   onLine: (id: LineId) => void
 }) {
   /* THE BOAT'S OWN RENDER — the price list's Image Link for this very finish, then the one
-     picture reader's answer for this boat. Never a stand-in (src/data/pictures): a boat with no
-     picture has no window, and its name takes the plate's width. */
+     picture reader's answer for this boat; the cover Northside chose wins over both. Never a
+     stand-in (src/data/pictures): a boat with no picture has no window, and its name takes the
+     plate's width. */
   const item = itemOf(fit.place.tableId, fit.place.rowId, fit.imageAddress)
   const shown = copyOf(item) ?? pictureOf(item)
+  /* AND ITS GALLERY: every picture of this one boat, opened large on the one the window draws,
+     with the dealer's acts — Fitment is a page of the price list, not one a customer is shown */
+  const gallery = useGallery(item)
+  const [large, setLarge] = useState<number | null>(null)
   const maker = fit.trailer?.maker ?? spokenBoat(fit.place.tableId, '').maker
   /* the maker's own words for where it sits, without the finish the detail line spells out */
   const mark = [maker, ...(fit.path.length > 1 ? fit.path.slice(0, -1) : fit.path)].filter(
@@ -390,8 +397,26 @@ function BoatPlate({
               fit="contain"
               priority
             />
+            {/* the window is the plate's own white on the night: the press and the count wear the
+                day's inks, or they are white on white */}
+            <span className="ft-window__expand" data-ground="plate">
+              <ExpandPicture
+                label={
+                  gallery.length > 1
+                    ? `See the ${fit.name}’s ${gallery.length} pictures larger`
+                    : `See the ${fit.name} larger`
+                }
+                onExpand={() => setLarge(placeIn(gallery, shown))}
+              />
+            </span>
+            {gallery.length > 1 ? (
+              <span className="ft-window__many" data-ground="plate" aria-hidden="true">
+                {gallery.length.toLocaleString('en-AU')}
+              </span>
+            ) : null}
           </figure>
         ) : null}
+        <RowGallery item={item} name={fit.name} kind="boat" at={large} onAt={setLarge} />
       </div>
 
       <ul className="ft-lines" aria-label={`What the ${fit.name} takes`}>

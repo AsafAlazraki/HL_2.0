@@ -6,6 +6,7 @@ import {
   type CatalogueMeta,
   type CatalogueRepository,
   type Filed,
+  type GalleryRepository,
   type OrgRepository,
   type OwnPictureRepository,
   type QuoteRepository,
@@ -420,6 +421,15 @@ export function dexieOrg(orgId: string, options: DexieRepositoryOptions = {}): O
 
 /** The pictures Northside added to its options: one store, its own write queue, never wiped
  *  with the sheet. */
+/** How Northside arranged its options' galleries: one store, its own write queue, never wiped. */
+export function dexieGalleries(
+  orgId: string,
+  options: DexieRepositoryOptions = {},
+): GalleryRepository {
+  const db = options.db ?? sharedDatabase()
+  return new DexieStore(db.galleries, orgId, 'gallery', new WriteQueue())
+}
+
 export function dexieOwnPictures(
   orgId: string,
   options: DexieRepositoryOptions = {},

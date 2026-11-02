@@ -845,7 +845,7 @@ export const nameOfRow = (table: EntityDef, row: ViewRow): string =>
  * file's own string stays where the dealer corrects it: on its own fact, under the heading.
  */
 export function recordSaid(table: EntityDef, label: string, code = ''): string {
-  const clean = label.replace(/s+/g, ' ').trim()
+  const clean = label.replace(/\s+/g, ' ').trim()
   if (clean === '') return ''
   if (table.kind === 'boat') {
     const said = spokenBoat(table.id, clean)

@@ -63,7 +63,6 @@ import {
   Lightbox,
   OptionTile,
   Picture,
-  Popover,
   PriceFigure,
   Refusal,
   Swatches,
@@ -125,6 +124,7 @@ import {
 import type { ShownFact } from '@/domain/quote/distinguish'
 import { swapLines } from '@/domain/quote/swap'
 import { axisOnePrice } from '@/domain/quote/axisPrice'
+import { ownChoices } from '@/domain/quote/choices'
 import { SUBJECT_BLOCK } from '@/domain/quote'
 import { emailIn, summaryItems } from './summary'
 /* A CHAPTER WITH NOTHING ON IT HAS NO SUBTOTAL, and says so in the register's words, "Nothing on
@@ -166,6 +166,7 @@ import {
   inSentence,
   insteadSay,
   levelCountSay,
+  modelSheetSay,
   pictureSays,
   reasonSay,
   savedSay,
@@ -2250,9 +2251,14 @@ function Mast({
 }
 
 /**
- * THE CUSTOMER, IN THE BAR. A press on the cell opens what the quote holds about them under it —
- * their name and one line of contact, both printed on the quote exactly as typed — and a given
- * quote says them and offers nothing.
+ * THE CUSTOMER, IN THE BAR. A press on the cell opens what the quote holds about them — their name
+ * and one line of contact, both printed on the quote exactly as typed — and a given quote says them
+ * and offers nothing.
+ *
+ * IN ITS OWN SMALL DIALOG, OVER THE PAGE DIMMED (the polish critic, 2026-11-02: dropped from its
+ * cell as a popover it lay over the rail's first model cards, its fields over a chapter's
+ * controls). The form is a moment of its own: the build waits behind it, still and inert, and
+ * Escape, Close or a press outside hand the caret back to the cell that opened it.
  *
  * THIS FILE HAS NO CUSTOMER REGISTER — `hasCustomerRegister` reads false on the pack, measured —
  * so the name is typed, frozen onto the document the moment it is put on, and belongs to this
@@ -2292,11 +2298,10 @@ function Customer({
     )
   }
   return (
-    <Popover
+    <Dialog
       open={open}
       onOpenChange={onOpen}
-      side="bottom"
-      align="start"
+      size="sm"
       title="The customer"
       trigger={
         name === '' ? (
@@ -2321,27 +2326,23 @@ function Customer({
       <CustomerForm
         quote={quote}
         quoteId={quoteId}
-        panel
         onDone={() => onOpen(false)}
         setStep={setStep}
         setRefused={setRefused}
       />
-    </Popover>
+    </Dialog>
   )
 }
 
 function CustomerForm({
   quote,
   quoteId,
-  panel = false,
   onDone,
   setStep,
   setRefused,
 }: {
   quote: QuoteDef
   quoteId: string
-  /** drawn in the bar's panel, at the panel's own measure (configurator.css) */
-  panel?: boolean
   onDone: () => void
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
@@ -2386,7 +2387,7 @@ function CustomerForm({
   }
 
   return (
-    <div className="cfg-whoform" data-in={panel ? 'panel' : undefined}>
+    <div className="cfg-whoform">
       <Field label="Who the quote is for">
         <Input
           id="cfg-customer"
@@ -2843,18 +2844,9 @@ function FinishInset({
   )
 }
 
-/** How many of the boat's measures stand at rest, before "All the specifications". */
+/** How many of the boat's measures stand with its photograph; the rest stand in its chapter. */
 const SPECS_LEAD = 4
 
-/**
- * THE BOAT'S SPECIFICATION (the owner, 2026-10-30: "for specs, ability to open more of them and
- * design that a bit nicer"). The few the paper prints lead — the file's own first measures, as
- * the quote froze them — each a small tile: the glyph of what it measures, the figure large and
- * bold, its label under it. A press under them opens EVERY measure the price file holds for this
- * boat (`allSpecsOf`, read live, never a price and never a cost), growing out of the strip on
- * the travel spring with its caret turning over; under reduced motion it is simply there. A UNIT
- * ON EVERY MEASURE the file or its maker states one for (`measured`): "6.98 m", never a bare 6.98.
- */
 /** A THING SOLD ON ITS OWN WITHOUT ITS RECORD (`goodsSpecs`): a sand anchor's strip led with
  *  "No · Discontinued" and "NSM · Supplier", and a Minn Kota package's with its labour and its
  *  gross profit (2026-10-31). A boat's register is its maker's specification and is read whole. */
@@ -2868,48 +2860,69 @@ function ownSpecs<T extends { label: string }>(
     : goodsSpecs(ctx.entities[quote.rootTableId], specs)
 }
 
-function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
-  const [open, setOpen] = useState(false)
-  const boat = boatOfQuote(quote)
-  const { noun } = quoteSells(ctx, quote)
-  /* SAID AS A PERSON SAYS THEM (`specsSaid`, src/domain/quote/specSay.ts): "Power 90–115 hp" for
-     the file's "Min 90 HP" and "Max 115 HP", "Shaft length", "105 L", and the file's own "Matrix"
-     and "Model Code" left out, since neither is the boat */
-  const all = useMemo(
-    () =>
-      specsSaid(
-        ownSpecs(ctx, quote, allSpecsOf(ctx, quote)).map((spec) =>
-          measured(quote.rootTableId, spec),
-        ),
-      ),
-    [ctx, quote],
+/**
+ * EVERY MEASURE THE PRICE LIST HOLDS FOR WHAT THE QUOTE IS FOR, as the build says them: the few the
+ * paper prints first, as the quote froze them, then every other the file holds (`allSpecsOf`, read
+ * live, never a price and never a cost), each SAID AS A PERSON SAYS IT (`specsSaid`,
+ * src/domain/quote/specSay.ts): "Power 90–115 hp" for the file's "Min 90 HP" and "Max 115 HP",
+ * "Shaft length", "105 L", and the file's own "Matrix" and "Model Code" left out, since neither is
+ * the boat. A UNIT ON EVERY MEASURE the file or its maker states one for (`measured`): "6.98 m",
+ * never a bare 6.98.
+ *
+ * A MOTOR OR A TRAILER SOLD ON ITS OWN IS SAID IN THE PAPER'S WORDS: the facts frozen on its own
+ * line (`lineFactsOf`), which the printed quote's cover and specification print — "Power 150 hp",
+ * "Shaft 20 in", "Engine L4 / 2670cc". The strip read the file's columns instead, "150 HP RATING",
+ * '20" SHAFT LENGTH' and "CYLINDERS / DISPLACEMENT" over two lines, so the build and the paper named
+ * one motor's facts two ways (the paper-quote critique, 2026-10-31).
+ */
+function specsOf(
+  ctx: CatalogueCtx,
+  quote: QuoteDef,
+): { lead: readonly SpecLine[]; rest: readonly SpecLine[] } {
+  const all = specsSaid(
+    ownSpecs(ctx, quote, allSpecsOf(ctx, quote)).map((spec) => measured(quote.rootTableId, spec)),
   )
   const frozen = specsSaid(
     ownSpecs(ctx, quote, quote.subjectSpecs).map((spec) => measured(quote.rootTableId, spec)),
   )
-  /* A MOTOR OR A TRAILER SOLD ON ITS OWN IS SAID IN THE PAPER'S WORDS: the facts frozen on its own
-     line (`lineFactsOf`), which the printed quote's cover and specification print — "Power 150
-     hp", "Shaft 20 in", "Engine L4 / 2670cc". The strip read the file's columns instead, "150 HP
-     RATING", '20" SHAFT LENGTH' and "CYLINDERS / DISPLACEMENT" over two lines, so the build and
-     the paper named one motor's facts two ways (the paper-quote critique, 2026-10-31). */
-  const own = quoteSells(ctx, quote).boat
+  const own: readonly SpecLine[] = quoteSells(ctx, quote).boat
     ? []
     : (quote.lines.find(
         (l) => l.id === quote.sections.find((s) => s.blockId === SUBJECT_BLOCK)?.lineIds[0],
       )?.facts ?? [])
-  const every =
+  const every: readonly SpecLine[] =
     own.length > 0
       ? own
       : [...frozen, ...all.filter((s) => !frozen.some((f) => f.label === s.label))]
-  const lead = every.slice(0, SPECS_LEAD)
+  return { lead: every.slice(0, SPECS_LEAD), rest: every.slice(SPECS_LEAD) }
+}
+
+interface SpecLine {
+  label: string
+  value: string
+}
+
+/**
+ * THE BOAT'S SPECIFICATION, UNDER ITS PHOTOGRAPH (the owner, 2026-10-30: "for specs, ability to
+ * open more of them and design that a bit nicer"; 2026-10-31: "between the image and specs thing
+ * below it more padding please"). The few the paper prints, each a small tile: the figure large and
+ * bold, its label under it — on the kit's plate, with the column's own air between it and the
+ * photograph (configurator.css, `--cfg-air`).
+ *
+ * EVERY OTHER MEASURE IS OPEN, IN ITS CHAPTER (the owner, 2026-10-31: "all dropdowns on the quote
+ * expanded by default"; `SpecsMore`). It opened over the page from a press here, and before that in
+ * this column, where fourteen rows took the photograph down to a 160px strip of hull (the critic,
+ * P-2). At a desk this column is the window's height and only the chapters scroll, so the rest
+ * stand open where there is room for them: in the chapter of what the quote is for, under its
+ * choices, open with it and folded with it. The photograph keeps its height.
+ */
+function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
+  const { noun } = quoteSells(ctx, quote)
+  const { lead } = useMemo(() => specsOf(ctx, quote), [ctx, quote])
   /* A PART WHOSE FILE HOLDS NOTHING BUT ITS RECORD HAS NO SPECIFICATION, and says so in a
      sentence where the strip would stand empty */
-  if (every.length === 0)
+  if (lead.length === 0)
     return <p className="cfg-note">{`The price list gives no specifications for this ${noun}.`}</p>
-  /* EVERY MEASURE OPENS OVER THE PAGE (the critic, P-2: opened in the boat's column, fourteen rows
-     took the photograph down to a 160px strip of hull). The photograph keeps its height; the
-     whole specification is a sheet of its own, the figures large, closed by Escape back onto the
-     press that opened it. */
   return (
     <div className="cfg-specs">
       <dl className="cfg-specs__lead">
@@ -2917,30 +2930,32 @@ function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
           <SpecTile key={spec.label} label={spec.label} value={spec.value} />
         ))}
       </dl>
-      {every.length <= lead.length ? null : (
-        <Dialog
-          open={open}
-          onOpenChange={setOpen}
-          size="lg"
-          title={`${boat.name}, every specification`}
-          description={`Every measure the price list gives for this ${noun}.`}
-          trigger={
-            <button type="button" className="cfg-specs__more" aria-haspopup="dialog">
-              <span>{`All ${every.length.toLocaleString('en-AU')} specifications`}</span>
-              <span className="cfg-specs__chev" aria-hidden="true">
-                <Icon glyph={ArrowsOutSimpleIcon} />
-              </span>
-            </button>
-          }
-        >
-          <dl className="cfg-specsheet" data-testid="specifications">
-            {every.map((spec) => (
-              <SpecTile key={spec.label} label={spec.label} value={spec.value} />
-            ))}
-          </dl>
-        </Dialog>
-      )}
     </div>
+  )
+}
+
+/**
+ * EVERY MEASURE PAST THE FEW WITH THE PHOTOGRAPH, OPEN, in the chapter of what the quote is for
+ * (`Specs` says why here): one group under its choices, headed as each of its choices is, the
+ * figures large over their words in the spec sheet's ruled tiles. Nothing to press: it stands open
+ * with its chapter and folds with it, which the build remembers as it remembers every chapter.
+ */
+function SpecsMore({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
+  const headId = useId()
+  const { rest } = useMemo(() => specsOf(ctx, quote), [ctx, quote])
+  if (rest.length === 0) return null
+  return (
+    <section className="cfg-axis cfg-more" aria-labelledby={headId}>
+      <h3 className="cfg-axis__head" id={headId}>
+        <span className="cfg-axis__name">Specification</span>
+        <span className="cfg-axis__count">{`${rest.length.toLocaleString('en-AU')} more ${rest.length === 1 ? 'measure' : 'measures'}`}</span>
+      </h3>
+      <dl className="cfg-specsheet" data-testid="specifications">
+        {rest.map((spec) => (
+          <SpecTile key={spec.label} label={spec.label} value={spec.value} />
+        ))}
+      </dl>
+    </section>
   )
 }
 
@@ -2948,7 +2963,8 @@ function SpecTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="cfg-spec">
       <dt className="cfg-spec__lab">{label}</dt>
-      <dd className="cfg-spec__val">{value}</dd>
+      {/* A FIGURE KEEPS ITS UNIT: "4.51 m to 6.0 m" broke "6.0" from its "m" in a tile 136px wide */}
+      <dd className="cfg-spec__val">{value.replace(/(\d) (?=[^\d\s])/g, '$1 ')}</dd>
     </div>
   )
 }
@@ -3301,6 +3317,9 @@ function ChapterCard({
           {chapter.boat.why}
         </Said>
       ) : null}
+
+      {/* EVERY OTHER MEASURE OF WHAT THE QUOTE IS FOR, OPEN WITH ITS CHAPTER (`SpecsMore`) */}
+      {chapter.subject && !searching ? <SpecsMore quote={quote} ctx={ctx} /> : null}
 
       {shopped ? <ShopSwitch open={shop} onToggle={() => setShop((was) => !was)} /> : null}
 
@@ -3730,9 +3749,15 @@ function BoatChooser({
   refusedBy: string | undefined
 }) {
   const headId = useId()
+  /* THE MODEL ON THE QUOTE, AND ITS OWN CHOICES (`ownChoices`): the model is one line with one
+     press to the rest of its series, and every axis under it is this model's own */
+  const { model, own } = ownChoices(boat.axes)
   return (
     <div className="cfg-boat" data-testid="boat-choices">
-      {boat.axes.map((axis) => {
+      {model ? (
+        <ModelLine axis={model} kind={kind} noun={noun} onPress={onPress} refusedBy={refusedBy} />
+      ) : null}
+      {own.map((axis) => {
         const now = axis.options.find((o) => o.current)
         /* EVERY CHOICE ONE PRICE IS SAID ONCE, at the axis's head (`axisOnePrice`) */
         const onePrice = axisOnePrice(axis.options)
@@ -3786,6 +3811,86 @@ function BoatChooser({
         </Said>
       )}
     </div>
+  )
+}
+
+/**
+ * THE MODEL ON THE QUOTE, AND ONE QUIET PRESS TO THE REST OF ITS SERIES (the owner, 2026-10-31:
+ * "for hull, i pick my model - why can i still see other models like pa 460 if i am on a pa600
+ * quote, don't need that much"). The chapter drew a card for every model of the series — sixteen
+ * Patrols, 720px of rail at 1440, above the choices this boat actually has. Now it says the one on
+ * the quote, and "Change model" opens the series over the page, in the dialog the build's other
+ * whole lists open in: every model a card with what choosing it does to the total, the one on the
+ * quote lit. A press there re-roots the quote through the engine's own `refinish`, with its Undo
+ * beside the total, and the dialog closes onto the build, where the photograph, the bar, the
+ * specification, the total and this chapter's own choices answer at once. A motor, a trailer or a
+ * part sold on its own is chosen the same way among the ones beside it on the price list.
+ */
+function ModelLine({
+  axis,
+  kind,
+  noun,
+  onPress,
+  refusedBy,
+}: {
+  axis: DrawnAxis
+  kind: TableKind
+  noun: string
+  onPress: (act: Act) => void
+  refusedBy: string | undefined
+}) {
+  const [open, setOpen] = useState(false)
+  const headId = useId()
+  const now = axis.options.find((o) => o.current)
+  const word = axis.title.toLowerCase()
+  const onePrice = axisOnePrice(axis.options)
+  return (
+    <fieldset className="cfg-axis cfg-model" data-axis="model" aria-labelledby={headId}>
+      <h3 className="cfg-axis__head cfg-model__head" id={headId}>
+        <span className="cfg-axis__name">{axis.title}</span>
+        {now ? <span className="cfg-axis__now">{slashed(now.say)}</span> : null}
+      </h3>
+      {/* A GIVEN QUOTE'S MODEL IS A FACT, NOT A DECISION STILL OPEN (as its price level is,
+          `Rungs`): the chapter's one sentence says why nothing on it changes, and no press is
+          offered here to open a series none of which can go on */}
+      {refusedBy === undefined ? (
+        <Dialog
+          open={open}
+          onOpenChange={setOpen}
+          size="lg"
+          title={`Change the ${word}`}
+          description={modelSheetSay({
+            many: axis.options.length,
+            count: axis.count ?? '',
+            word,
+            now: now ? now.say.replaceAll(' · ', ' ') : `${noun} on it now`,
+          })}
+          trigger={
+            <Button intent="veiled" size="sm" icon={ArrowsLeftRightIcon} aria-haspopup="dialog">
+              {`Change ${word}`}
+            </Button>
+          }
+        >
+          <ul className="cfg-axis__list cfg-model__list" data-shape="cards">
+            {axis.options.map((option) => (
+              <li key={option.key}>
+                <BoatPick
+                  option={option}
+                  axis="model"
+                  kind={kind}
+                  onePrice={onePrice}
+                  onPress={(act) => {
+                    onPress(act)
+                    setOpen(false)
+                  }}
+                  refusedBy={refusedBy}
+                />
+              </li>
+            ))}
+          </ul>
+        </Dialog>
+      ) : null}
+    </fieldset>
   )
 }
 

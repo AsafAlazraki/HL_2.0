@@ -251,6 +251,16 @@ describe('what the record is headed', () => {
     expect(recordSaid(pack.byKey('mot_yamaha'), '   ')).toBe('')
   })
 
+  /* FOUND 2026-11-02 (the galleries round): the space it tidied was written /s+/, so every small
+     "s" in a line's name was turned into a space — "Formo a GRT 425 · Tiller" headed the record,
+     and that name was filed on every picture a dealer added there */
+  it('keeps every letter of the name, and tidies only its spaces', () => {
+    const said = recordSaid(pack.byKey('boat_formosa'), 'Formosa  -  GRT 425 (Tiller)')
+    expect(said).not.toMatch(/Formo a/)
+    expect(said).toMatch(/GRT 425/)
+    expect(recordSaid(pack.byKey('parts'), 'Batteries   MFM50')).toMatch(/Batteries MFM50/)
+  })
+
   it('files it under drawers said as the spine says them', () => {
     expect(pathSaid('boat_highfield', ['Roll-Up', 'RU230KAM'])).toEqual([
       'Roll-Up',

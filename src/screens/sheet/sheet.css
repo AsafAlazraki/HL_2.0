@@ -2848,6 +2848,17 @@
     overflow: auto;
     background: var(--color-white);
     padding-block-end: var(--shell-foot);
+    /* it is a dialog, open in the page (Sheet.tsx): the browser's own box for one is undone */
+    box-sizing: border-box;
+    inline-size: auto;
+    block-size: auto;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    border: 0;
+    padding-inline: 0;
+    padding-block-start: 0;
+    color: inherit;
   }
 
   .sh-over .sh-record {

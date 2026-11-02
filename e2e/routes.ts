@@ -326,6 +326,19 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
+    /* ONE LINE'S DETAILS, WITH ITS GALLERY (2026-11-02): the Formosa GRT 425 (Tiller), whose
+       photograph on the water, the price list's own picture and its studio picture are one
+       gallery under its name, the cover first, and the acts on the picture picked. Where a dealer
+       keeps a boat's pictures outside the build, measured at six viewports like every screen.
+       `ready` is the gallery's own strip, drawn only once the line's details are open and its
+       pictures read. */
+    path: '/data/boat_formosa?at=boat_formosa%3A1',
+    name: 'sheet-record-pictures',
+    register: 'foundation',
+    ready: '[data-testid="sheet"][data-read] [data-testid="sheet-record"] .ui-addpic-strip',
+    arrive: 'through-the-door',
+  },
+  {
     /* THE LETTER — CUSTOMERS AT REST, and the first of this screen's TWO
        rows in this list.
 

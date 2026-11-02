@@ -161,6 +161,12 @@
      the measured figure on a chapter it brings in (`useBroughtIn`); this is the floor where it
      has not. */
   --cfg-cover: var(--cfg-mast);
+  /* THE AIR BETWEEN THE BOAT'S PHOTOGRAPH AND ITS SPECIFICATION (the owner, 2026-10-31: "between the
+     image and specs thing below it more padding please"): at a desk the strip stood on the
+     photograph's foot with nothing between them, and every plate of the boat's column stands this
+     far from the next — the photograph, its specification and the total. Beside the photograph on
+     a tablet the band's own gap is this air too. */
+  --cfg-air: --spacing(6);
   /* THE RAIL'S PLATES ARE THE KIT'S NOW (2026-09-28). This scope used to set `--radius-sm` and
      `--radius-xs` to 0 to square the rail, which also squared every Button and Input on the
      screen through the cascade (audit.md defect 3); the kit's primitives read their own shape
@@ -547,12 +553,6 @@
   display: grid;
   gap: --spacing(3);
 }
-/* IN THE BAR'S POPOVER, INSIDE ITS PADDING (the critic, 2026-11-02, B1: the form was 352px in a
-   popover whose box is 360 with 16px either side, so the fields and the act ran to its end edge and
-   the box scrolled 8px sideways on the caret). The form is the popover's content box, never more. */
-.cfg-whoform[data-in='panel'] {
-  inline-size: min(--spacing(80), calc(100vw - --spacing(16)));
-}
 .cfg-whoform__say {
   margin: 0;
   font-size: var(--text-xs);
@@ -582,7 +582,7 @@
 .cfg-side__in {
   display: flex;
   flex-direction: column;
-  gap: --spacing(4);
+  gap: var(--cfg-air);
 }
 .cfg-scroll {
   position: relative;
@@ -981,6 +981,7 @@
   min-inline-size: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--cfg-air);
   /* IN A HAND, THE HEIGHT THAT ENDS THE FIRST WINDOW BETWEEN TWO CHAPTERS, measured and written by
      the screen (`fitTheBoat`); read only there, and only once it is written (`data-fit`) */
   --cfg-shot-hand: auto;
@@ -1171,53 +1172,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* THE PRESS THAT OPENS THEM ALL: the plate's own foot, ruled off, its words and a caret in the
-   plate's well that turns over as the rest grows */
-.cfg-specs__more {
-  inline-size: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: --spacing(3);
-  min-block-size: --spacing(10);
-  padding: --spacing(1.5) --spacing(3) --spacing(1.5) --spacing(4);
-  border: 0;
-  border-block-start: 1px solid var(--color-rule);
-  background: none;
-  font: inherit;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-ink-file);
-  text-align: start;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--duration-hover) var(--ease-out);
+/* EVERY OTHER MEASURE, OPEN IN ITS CHAPTER (`SpecsMore`): the strip's own tile, each figure large
+   over its words, ruled into a sheet as many across as the rail has room for, a choice's distance
+   under the chapter's last choice (`.cfg-boat`'s own gap) */
+.cfg-body__in > * + .cfg-more {
+  margin-block-start: --spacing(6);
 }
-@media (hover: hover) and (pointer: fine) {
-  .cfg-specs__more:hover {
-    background: var(--color-wash);
-  }
-}
-.cfg-specs__more:active {
-  background: var(--color-wash);
-}
-.cfg-specs__more:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus-inset);
-}
-.cfg-specs__chev {
-  display: inline-grid;
-  place-items: center;
-  inline-size: --spacing(7);
-  block-size: --spacing(7);
-  border-radius: var(--radius-pill);
-  color: var(--color-ink-on-tint);
-  background: var(--color-plate-tint);
-  transition: transform var(--duration-travel) var(--ease-spring);
-}
-/* EVERY SPECIFICATION, OVER THE PAGE (`Specs`): the strip's own tile, each figure large over its
-   words, ruled into a sheet three across at a desk, two on a tablet and in a hand */
 .cfg-specsheet {
   margin: 0;
   display: grid;
@@ -2030,6 +1990,51 @@
 .cfg-axis__list > li {
   display: grid;
   min-inline-size: 0;
+}
+/* THE MODEL ON THE QUOTE, AND ONE QUIET PRESS TO THE REST OF ITS SERIES (`ModelLine`; the owner,
+   2026-10-31: "why can i still see other models like pa 460 if i am on a pa600 quote"): the axis's
+   own summary line — its name and the model on the quote — with "Change model" at its end, on the
+   line's baseline wherever the words leave it the room, and under them where they do not. */
+.cfg-model {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: --spacing(3);
+  row-gap: --spacing(2);
+}
+.cfg-model__head {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+/* IN THE DIALOG, every model a card two across, as the chapter drew them, the one on the quote
+   lit: each row as tall as its own cards, so a row of short names is not drawn as tall as the one
+   whose card says "in Hypalon" (a whole series in one grid of one height left 30px of air in
+   every card of the Patrols) */
+.cfg-axis__list.cfg-model__list {
+  grid-auto-rows: auto;
+  padding: --spacing(1);
+}
+/* IN A HAND, ONE ACROSS AT THE DESK'S OWN SIZE: two across in a 310px dialog broke "Patrol 600 / EW"
+   and "Patrol 540 / Open" over two lines beside a 44px picture; one across, every name is one line
+   beside the picture a desk draws, and the dialog scrolls as a phone's list does */
+@media (max-width: 639.98px) {
+  .cfg-axis__list.cfg-model__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cfg-model__list .cfg-pick__in {
+    grid-template-columns: --spacing(16) minmax(0, 1fr);
+    column-gap: --spacing(3);
+  }
+  .cfg-model__list .cfg-pick__well {
+    inline-size: --spacing(16);
+    block-size: --spacing(11);
+    border-radius: var(--radius-md);
+  }
+  .cfg-model__list .cfg-pick__name {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
 }
 .cfg-pick {
   position: relative;
@@ -3314,7 +3319,7 @@
     position: static;
     display: grid;
     grid-template-columns: --spacing(72) minmax(0, 1fr);
-    gap: --spacing(6);
+    gap: var(--cfg-air);
     align-items: start;
     padding-block-end: --spacing(6);
     border-block-end: 1px solid var(--color-rule);
@@ -3322,6 +3327,24 @@
   .cfg-stage__say {
     padding-inline-start: 0;
     max-inline-size: none;
+  }
+  /* BESIDE THE PHOTOGRAPH THE STRIP IS THE PHOTOGRAPH'S HEIGHT, its four measures two by two with
+     their figures centred in each (on a tablet and a phone turned over, where it stood 135px tall
+     beside a 266px photograph with an empty corner under it once its press had gone) */
+  .cfg-stage__say:has(> .cfg-specs) {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+  .cfg-stage__say > .cfg-specs {
+    flex: 1 1 auto;
+    display: grid;
+  }
+  .cfg-stage__say .cfg-specs__lead {
+    grid-auto-rows: 1fr;
+  }
+  .cfg-stage__say .cfg-spec {
+    justify-content: center;
   }
   .cfg-shot {
     block-size: --spacing(52);
@@ -3388,7 +3411,7 @@
      says. */
   .cfg-stage {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: --spacing(6);
+    gap: var(--cfg-air);
   }
   .cfg-shot {
     block-size: auto;

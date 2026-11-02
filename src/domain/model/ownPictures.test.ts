@@ -27,13 +27,12 @@ import {
   daySaid,
   isAnAddress,
   isOwnBytes,
-  manyFiles,
   ownPicturePlan,
   pastedWords,
   readOwnPicture,
-  withOwnPictures,
   type OwnPicture,
 } from './ownPictures'
+import { withOwnPictures } from './gallery'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
 const ledger = (name: string): unknown =>
@@ -111,15 +110,14 @@ describe('before a byte is read', () => {
     expect(plan.why).toContain(`${OWN_PICTURE_EDGE} pixels across`)
   })
 
-  it('says an address is not fetched, and that several files are one too many', () => {
+  /* REWRITTEN 2026-11-02 to the owner's new truth ("the ability to have more than one image"):
+     several files at once are several pictures, so the sentence refusing them is gone */
+  it('says an address is not fetched', () => {
     expect(isAnAddress('https://www.yamaha-motor.com.au/f60.jpg')).toBe(true)
     expect(isAnAddress('//cdn.example/x.png')).toBe(true)
     expect(isAnAddress('Battery MFM50')).toBe(false)
     expect(pastedWords(true)).toMatch(/^That is an address, not a picture\./)
     expect(pastedWords(false)).toMatch(/^What was pasted is words, not a picture\./)
-    expect(manyFiles(3)).toBe(
-      'That is 3 files at once. An option has one picture, so drop or paste just the one that shows it.',
-    )
   })
 })
 

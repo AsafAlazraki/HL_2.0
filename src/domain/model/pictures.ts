@@ -43,6 +43,7 @@
    generated file that changed shape draws the next rung down.
    ============================================================ */
 
+import { heldGallery, type GalleryOrder } from './gallery'
 import type { OwnPicture } from './ownPictures'
 
 /* ---------------------------------------------------------- */
@@ -251,6 +252,18 @@ export interface PictureBook {
   /** the held picture of this EXACT item — the row's own copy, or one a person marked as this
    *  row, model and finish — which wins over Northside's own unless Northside chose theirs */
   exactHeld(item: Item): Picture | null
+  /** EVERY PICTURE OF THIS ROW, held and Northside's, in one order, the cover first
+   *  (`./gallery.ts`). Empty where none is held or added: never a stand-in. */
+  gallery(item: Item): readonly Picture[]
+  /** the row's cover — the first of its gallery — or null */
+  cover(item: Item): Picture | null
+  /** the cover the dealer CHOSE for this row, where it still stands; null where the row shows
+   *  its own picture by default */
+  chosenCover(item: Item): Picture | null
+  /** every picture Northside added to this row that stands, oldest first */
+  owns(item: Item): readonly OwnPicture[]
+  /** the dealer's arrangement of this row's gallery, where one stands */
+  arrangement(item: Item): GalleryOrder | null
 }
 
 /* ---------------------------------------------------------- */
@@ -673,8 +686,14 @@ export function pictureBook(
     mark,
     organisation,
     markFacts,
-    /* the ledgers this book reads hold no picture a dealer added: `withOwnPictures` lays those over */
+    /* the ledgers this book reads hold no picture a dealer added and no arrangement:
+       `withGalleries` (`./gallery.ts`) lays those over */
     own: () => null,
+    owns: () => [],
+    arrangement: () => null,
+    chosenCover: () => null,
+    gallery: (item) => heldGallery({ hero, rowCopy, modelPicture }, item),
+    cover: (item) => heldGallery({ hero, rowCopy, modelPicture }, item)[0] ?? null,
     exactHeld: (item) => {
       const own = rowCopy(item)
       if (own) return own

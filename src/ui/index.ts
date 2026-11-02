@@ -50,7 +50,11 @@ export { Dashes, type DashesProps } from './Dashes'
 export { Picture, sharedName, type PictureProps } from './Picture'
 export {
   AddPicture,
+  GalleryActs,
+  largeOf,
   type AddPictureProps,
+  type GalleryPlace,
+  type GalleryShot,
   type HeldOptionPicture,
   type PictureStep,
 } from './AddPicture'

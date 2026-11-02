@@ -15,21 +15,37 @@
    reading `src/state`, the wrong way round. So both read this, which
    carries no picture of its own.
    ============================================================ */
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 
 let held: readonly OwnPicture[] = []
+let orders: readonly GalleryOrder[] = []
 let version = 0
+
+/** The same list again, record for record. */
+const same = <T>(a: readonly T[], b: readonly T[]): boolean =>
+  a === b || (a.length === b.length && a.every((x, i) => x === b[i]))
 
 /** Hand the reader the pictures that stand now. The same list again changes nothing. */
 export function holdOwnPictures(next: readonly OwnPicture[]): void {
-  if (next === held) return
-  if (next.length === held.length && next.every((p, i) => p === held[i])) return
+  if (same(next, held)) return
   held = next
   version += 1
 }
 
+/** Hand the reader the arrangements of galleries that stand now (`@/domain/model/gallery`). */
+export function holdGalleries(next: readonly GalleryOrder[]): void {
+  if (same(next, orders)) return
+  orders = next
+  version += 1
+}
+
+/** The arrangements that stand, as last handed over. */
+export const heldGalleries = (): readonly GalleryOrder[] => orders
+
 /** The pictures that stand, as last handed over. */
 export const heldOwnPictures = (): readonly OwnPicture[] => held
 
-/** How many times the pictures have moved: the reader rebuilds its answer when this does. */
+/** How many times the pictures or their arrangements have moved: the reader rebuilds its answer
+ *  when this does. */
 export const ownPicturesVersion = (): number => version

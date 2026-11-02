@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useCatalogue } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx } from '@/domain/model'
 import { defaultLevelKey } from '@/domain/quote/pricing'
 import { aislesOf } from '@/domain/catalogue/aisles'
-import { Button, Lightbox, type LightboxPicture } from '@/ui'
+import type { Item } from '@/data/pictures'
+import { RowGallery } from '@/app/RowGallery'
+import { Button } from '@/ui'
 import { Chandlery } from './Chandlery'
 import { hasPicture, partsTable, shelfOf } from './shelf'
 import './catalogue.css'
@@ -40,11 +42,12 @@ export function Catalogue({ aisle, maker, onAisle, openTheFile, go }: CatalogueP
     () => makeCtx({ ...ctxFrom(sheet), views: { ...sheet.views }, orgId: PACK_ORG_ID }),
     [sheet],
   )
-  const [large, setLarge] = useState<{
-    set: readonly LightboxPicture[]
-    at: number
-    title: string
-  } | null>(null)
+  /* THE PART WHOSE GALLERY IS OPEN, kept after it shuts so the plate's own exit is seen */
+  const [large, setLarge] = useState<{ item: Item; name: string; at: number | null } | null>(null)
+  const onAt = useCallback(
+    (at: number | null) => setLarge((was) => (was ? { ...was, at } : null)),
+    [],
+  )
 
   const table = ready ? partsTable(ctx) : undefined
   const shelf = useMemo(() => (table ? shelfOf(ctx) : []), [ctx, table])
@@ -88,16 +91,22 @@ export function Catalogue({ aisle, maker, onAisle, openTheFile, go }: CatalogueP
           aisle={aisle}
           maker={maker}
           onAisle={onAisle}
-          onLarge={(set, at, title) => setLarge({ set, at, title })}
+          onLarge={() => undefined}
+          onGallery={(item, name, at) => setLarge({ item, name, at })}
           go={go}
         />
       )}
-      <Lightbox
-        pictures={large?.set ?? []}
-        at={large?.at ?? null}
-        title={large?.title ?? ''}
-        onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
-      />
+      {/* A PART'S GALLERY, with the dealer's acts on the picture open: this is a page of the
+          price list, never in front of a customer */}
+      {large ? (
+        <RowGallery
+          item={large.item}
+          name={large.name}
+          kind="accessory"
+          at={large.at}
+          onAt={onAt}
+        />
+      ) : null}
     </main>
   )
 }

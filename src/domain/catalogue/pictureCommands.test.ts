@@ -11,17 +11,28 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import type { RowData } from '@/domain/model'
-import { NOBODY_AT_THE_DESK, OPTION_GONE, PICTURE_GONE } from '@/domain/model/ownPictures'
+import {
+  NOBODY_AT_THE_DESK,
+  NOT_IN_GALLERY,
+  OPTION_GONE,
+  PICTURE_GONE,
+} from '@/domain/model/ownPictures'
 import { emptySheet, indexRows, type CatalogueData } from './sheet'
 import { isDone, type CatalogueCommand, type Done } from './commands'
 import {
+  COVER_STAYS_FIRST,
   NOT_OUR_BYTES,
   addOwnPicture,
-  chooseOwnPicture,
+  addOwnPictures,
+  coverPicture,
+  galleryFor,
+  movePicture,
   optionNamed,
   overTheBounds,
   ownPictureFor,
+  ownPicturesFor,
   removeOwnPicture,
+  standingGalleries,
   standingOwnPictures,
   type PictureTaken,
 } from './pictureCommands'
@@ -104,17 +115,44 @@ describe('adding a picture to one option', () => {
     expect(back.next.ownPictures).toBeUndefined()
   })
 
-  it('replaces the one before it, says whose, and the way back puts that one back exactly', () => {
+  /* REWRITTEN 2026-11-02 to the owner's new truth ("per boat and product the ability to have more
+     than one image"): it was 'replaces the one before it, says whose, and the way back puts that
+     one back exactly'. A second picture now stands beside the first. */
+  it('stands beside the one before it, oldest first, and its way back takes only itself', () => {
     const first = run(sheet, addOwnPicture({ ...BATTERY, picture: taken(), by: 'Mia' }))
     const was = ownPictureFor(first.next, BATTERY.table, BATTERY.row)!
     const second = run(first.next, add('Asaf', { file: 'mfm50-front.jpg' }), LATER)
-    expect(second.said).toBe(
-      'Your picture is on the Battery MFM50 now, in place of the one Mia added on 30 October 2026.',
-    )
-    expect(Object.keys(second.next.ownPictures ?? {})).toHaveLength(1)
+    expect(second.said).toBe('Your picture is on the Battery MFM50 now.')
+    const both = ownPicturesFor(second.next, BATTERY.table, BATTERY.row)
+    expect(both.map((p) => p.addedBy)).toEqual(['Mia', 'Asaf'])
+    expect(both[0]).toBe(was)
     const back = run(second.next, second.inverse, LATER)
-    expect(back.said).toBe('The Battery MFM50 has Mia’s picture again.')
-    expect(ownPictureFor(back.next, BATTERY.table, BATTERY.row)).toBe(was)
+    expect(back.said).toBe('Your picture is off the Battery MFM50.')
+    expect(ownPicturesFor(back.next, BATTERY.table, BATTERY.row)).toEqual([was])
+  })
+
+  it('takes several at once as one step, in the order of their files, or none of them', () => {
+    const done = run(
+      sheet,
+      addOwnPictures({
+        ...BATTERY,
+        name: 'Battery MFM50',
+        pictures: [taken({ file: 'mfm50-2.jpg' }), taken({ file: 'mfm50-10.jpg' })],
+        by: 'Asaf',
+      }),
+    )
+    expect(done.said).toBe('Your 2 pictures are on the Battery MFM50 now.')
+    expect(ownPicturesFor(done.next, BATTERY.table, BATTERY.row).map((p) => p.file)).toEqual([
+      'mfm50-2.jpg',
+      'mfm50-10.jpg',
+    ])
+    expect(run(done.next, done.inverse).said).toBe('Your 2 pictures are off the Battery MFM50.')
+    const half = addOwnPictures({
+      ...BATTERY,
+      pictures: [taken(), taken({ src: 'https://example.com/b.jpg' })],
+      by: 'Asaf',
+    })(sheet, NOW)
+    expect(half).toEqual({ refused: NOT_OUR_BYTES })
   })
 })
 
@@ -145,16 +183,120 @@ describe('taking it off', () => {
   })
 })
 
-describe('choosing it over the maker’s', () => {
-  it('is one step each way, and choosing what is chosen is nothing', () => {
-    const added = run(sheet, add())
-    const p = ownPictureFor(added.next, BATTERY.table, BATTERY.row)!
-    const chose = run(added.next, chooseOwnPicture(p.id, true, 'Asaf'))
-    expect(chose.said).toBe('The Battery MFM50 shows your picture instead of the maker’s.')
-    expect(ownPictureFor(chose.next, BATTERY.table, BATTERY.row)?.chosen).toBe(true)
-    expect(chooseOwnPicture(p.id, true, 'Asaf')(chose.next, NOW)).toEqual({ refused: '' })
-    const back = run(chose.next, chose.inverse)
-    expect(ownPictureFor(back.next, BATTERY.table, BATTERY.row)).toBe(p)
+/* REWRITTEN 2026-11-02 to the owner's new truth ("cover image and whatnot"): it was 'choosing it
+   over the maker’s · is one step each way, and choosing what is chosen is nothing'. Choosing one
+   picture over another is now choosing the row's cover, among all its pictures. */
+describe('the cover', () => {
+  /** two of the dealer's on the battery, and the ids the reader would draw them by */
+  const two = () => {
+    const done = run(
+      sheet,
+      addOwnPictures({
+        ...BATTERY,
+        name: 'Battery MFM50',
+        pictures: [taken(), taken()],
+        by: 'Asaf',
+      }),
+    )
+    const shown = ownPicturesFor(done.next, BATTERY.table, BATTERY.row).map((p) => `own:${p.id}`)
+    return { data: done.next, shown }
+  }
+  const cover = (shown: readonly string[], id: string, by: string | null = 'Asaf') =>
+    coverPicture({ ...BATTERY, name: 'Battery MFM50', shown, id, by })
+
+  it('is one step, said, filed for the option by its own name, and its way back leaves none', () => {
+    const { data, shown } = two()
+    const done = run(data, cover(shown, shown[1]!), LATER)
+    expect(done.said).toBe('The Battery MFM50’s cover is your picture now.')
+    expect(galleryFor(done.next, BATTERY.table, BATTERY.row)).toMatchObject({
+      option: 'MFM50 - Battery MFM50',
+      cover: shown[1],
+      order: shown,
+      by: 'Asaf',
+      at: LATER,
+    })
+    expect(done.event).toMatchObject({ kind: 'picture-set', rowId: BATTERY.row })
+    const back = run(done.next, done.inverse, LATER)
+    expect(back.said).toBe('The Battery MFM50’s cover is as it was.')
+    expect(back.next.galleries).toBeUndefined()
+  })
+
+  it('may be a picture the app holds of the item, said as the maker’s', () => {
+    const { data, shown } = two()
+    const held = 'row:https://example.com/mfm50.jpg'
+    const mine = run(data, cover([shown[0]!, held], held))
+    expect(mine.said).toBe('The Battery MFM50’s cover is the maker’s picture now.')
+  })
+
+  it('keeps one record per option: a second choice changes it, and its way back puts it back', () => {
+    const { data, shown } = two()
+    const first = run(data, cover(shown, shown[1]!))
+    const was = galleryFor(first.next, BATTERY.table, BATTERY.row)!
+    const again = run(first.next, cover([shown[1]!, shown[0]!], shown[0]!), LATER)
+    expect(Object.keys(again.next.galleries ?? {})).toEqual([was.id])
+    expect(galleryFor(again.next, BATTERY.table, BATTERY.row)?.cover).toBe(shown[0])
+    expect(galleryFor(run(again.next, again.inverse).next, BATTERY.table, BATTERY.row)).toBe(was)
+  })
+
+  it('is nothing where it is the cover already, and refused for a picture not of this option', () => {
+    const { data, shown } = two()
+    expect(cover(shown, shown[0]!)(data, NOW)).toEqual({ refused: '' })
+    expect(cover(shown, 'own:elsewhere')(data, NOW)).toEqual({ refused: NOT_IN_GALLERY })
+    /* one of Northside's that is another option's is not this one's, whatever a screen says */
+    const other = run(data, addOwnPicture({ ...TWO, picture: taken(), by: 'Asaf' }))
+    const theirs = `own:${ownPictureFor(other.next, TWO.table, TWO.row)!.id}`
+    expect(cover([...shown, theirs], theirs)(other.next, NOW)).toEqual({ refused: NOT_IN_GALLERY })
+    expect(cover(shown, shown[1]!, null)(data, NOW)).toEqual({ refused: NOBODY_AT_THE_DESK })
+  })
+})
+
+describe('the order', () => {
+  const three = () => {
+    const done = run(
+      sheet,
+      addOwnPictures({
+        ...BATTERY,
+        name: 'Battery MFM50',
+        pictures: [taken({ file: 'a.jpg' }), taken({ file: 'b.jpg' }), taken({ file: 'c.jpg' })],
+        by: 'Asaf',
+      }),
+    )
+    const shown = ownPicturesFor(done.next, BATTERY.table, BATTERY.row).map((p) => `own:${p.id}`)
+    return { data: done.next, shown }
+  }
+  const move = (shown: readonly string[], id: string, to: number) =>
+    movePicture({ ...BATTERY, name: 'Battery MFM50', shown, id, to, by: 'Asaf' })
+
+  it('moves one picture among the others as one step, says where, and its way back undoes it', () => {
+    const { data, shown } = three()
+    const [a, b, c] = shown as [string, string, string]
+    const done = run(data, move(shown, c, 1))
+    expect(done.said).toBe('Your picture is 2 of 3 on the Battery MFM50 now.')
+    expect(galleryFor(done.next, BATTERY.table, BATTERY.row)?.order).toEqual([a, c, b])
+    expect(galleryFor(done.next, BATTERY.table, BATTERY.row)?.cover).toBeUndefined()
+    const back = run(done.next, done.inverse)
+    expect(back.said).toBe('The Battery MFM50’s pictures are in the order they were.')
+    expect(back.next.galleries).toBeUndefined()
+  })
+
+  it('keeps the cover first: it is not moved, and nothing is moved before it', () => {
+    const { data, shown } = three()
+    const [a, b, c] = shown as [string, string, string]
+    expect(move(shown, a, 2)(data, NOW)).toEqual({ refused: COVER_STAYS_FIRST })
+    const done = run(data, move(shown, c, 0))
+    expect(galleryFor(done.next, BATTERY.table, BATTERY.row)?.order).toEqual([a, c, b])
+    expect(move(shown, b, 1)(data, NOW)).toEqual({ refused: '' })
+  })
+
+  it('keeps the cover chosen when the others are moved', () => {
+    const { data, shown } = three()
+    const [a, b, c] = shown as [string, string, string]
+    const chosen = run(data, coverPicture({ ...BATTERY, shown, id: c, by: 'Asaf' }))
+    const moved = run(chosen.next, move([c, a, b], b, 1))
+    expect(galleryFor(moved.next, BATTERY.table, BATTERY.row)).toMatchObject({
+      cover: c,
+      order: [c, b, a],
+    })
   })
 })
 
@@ -199,5 +341,29 @@ describe('a picture stands only while its option is named as it was', () => {
     expect(ownPictureFor(next, BATTERY.table, BATTERY.row)).toBeNull()
     expect(standingOwnPictures(next)).toEqual([])
     expect(next.ownPictures?.[p.id]).toBe(p)
+  })
+
+  it('and so does its arrangement: kept, and not read for whatever stands there now', () => {
+    const added = run(
+      sheet,
+      addOwnPictures({ ...BATTERY, pictures: [taken(), taken()], by: 'Asaf' }),
+    )
+    const shown = ownPicturesFor(added.next, BATTERY.table, BATTERY.row).map((p) => `own:${p.id}`)
+    const chosen = run(added.next, coverPicture({ ...BATTERY, shown, id: shown[1]!, by: 'Asaf' }))
+    expect(standingGalleries(chosen.next)).toHaveLength(1)
+    const entity = sheet.tables.parts!
+    const nameField = entity.fields.find(
+      (f) => String(sheet.index.rowById['parts:119']!.values[f.id]) === 'MFM50 - Battery MFM50',
+    )!
+    const rows = {
+      ...chosen.next.rows,
+      parts: (chosen.next.rows.parts ?? []).map((r) =>
+        r.id === 'parts:119' ? { ...r, values: { ...r.values, [nameField.id]: 'D Shackle' } } : r,
+      ),
+    }
+    const next: CatalogueData = { ...chosen.next, rows, index: indexRows(rows) }
+    expect(standingGalleries(next)).toEqual([])
+    expect(galleryFor(next, BATTERY.table, BATTERY.row)).toBeNull()
+    expect(Object.keys(next.galleries ?? {})).toHaveLength(1)
   })
 })

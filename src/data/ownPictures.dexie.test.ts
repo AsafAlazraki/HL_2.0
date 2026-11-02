@@ -2,9 +2,10 @@ import 'fake-indexeddb/auto'
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb'
 import Dexie from 'dexie'
 import { describe, expect, it } from 'vitest'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import { bytesOf, type OwnPicture } from '@/domain/model/ownPictures'
 import { openDatabase } from './dexie/database'
-import { dexieCatalogue, dexieOwnPictures } from './dexie/repositories'
+import { dexieCatalogue, dexieGalleries, dexieOwnPictures } from './dexie/repositories'
 
 /* ============================================================
    THE PICTURES NORTHSIDE ADDS, IN INDEXEDDB — the bytes in the record,
@@ -67,6 +68,53 @@ describe('the pictures Northside added, on the disk', () => {
     const db = openDatabase('hl2-old', { indexedDB, IDBKeyRange })
     expect(await db.org.get('northside')).toMatchObject({ profile: { name: 'Northside' } })
     expect(await dexieOwnPictures('northside', { db }).all()).toEqual([])
+    db.close()
+  })
+})
+
+describe('how Northside arranged its galleries, on the disk', () => {
+  const arranged = (id: string, row: string): GalleryOrder => ({
+    id,
+    orgId: 'northside',
+    table: 'parts',
+    row,
+    option: 'MFM50 - Battery MFM50',
+    name: 'Battery MFM50',
+    cover: 'own:a',
+    order: ['own:a', 'own:b'],
+    by: 'Asaf',
+    at: NOON,
+  })
+
+  it('keep their cover and order across a close, beside the pictures, never wiped with the sheet', async () => {
+    const indexedDB = new IDBFactory()
+    const first = openDatabase('hl2-galleries', { indexedDB, IDBKeyRange })
+    await dexieGalleries('northside', { db: first }).saveAll([
+      arranged('o1', 'parts:119'),
+      arranged('o2', 'parts:787'),
+    ])
+    await dexieGalleries('northside', { db: first }).saveAll([arranged('o2', 'parts:787')])
+    await dexieCatalogue('northside', { db: first }).wipe()
+    first.close()
+
+    const again = openDatabase('hl2-galleries', { indexedDB, IDBKeyRange })
+    expect(await dexieGalleries('northside', { db: again }).all()).toEqual([
+      arranged('o2', 'parts:787'),
+    ])
+    expect(await dexieGalleries('elsewhere', { db: again }).all()).toEqual([])
+    again.close()
+  })
+
+  it('open beside a database written before galleries were arranged, which keeps its pictures', async () => {
+    const indexedDB = new IDBFactory()
+    /* version 3's own tables, opened by version 4 */
+    const v3 = new Dexie('hl2-v3', { indexedDB, IDBKeyRange })
+    v3.version(3).stores({ ownPictures: 'id, orgId' })
+    await v3.table('ownPictures').put(picture('a', 'parts:119'))
+    v3.close()
+    const db = openDatabase('hl2-v3', { indexedDB, IDBKeyRange })
+    expect(await dexieOwnPictures('northside', { db }).all()).toEqual([picture('a', 'parts:119')])
+    expect(await dexieGalleries('northside', { db }).all()).toEqual([])
     db.close()
   })
 })

@@ -1624,6 +1624,9 @@ export function Sheet({
     ) : null
 
   const recordIsTheScreen = hand && peeking && !!cursorRow
+  /* WHAT THE DETAILS COVER, while they are the screen: out of reach of a key and of a reader, as
+     it is out of sight (it was a Tab stop under a full-screen page, and read as if in view) */
+  const behind = recordIsTheScreen ? ({ inert: true, 'aria-hidden': true } as const) : {}
 
   return (
     <main
@@ -1635,7 +1638,7 @@ export function Sheet({
     >
       {/* the spine's words are measured here, in the faces they are drawn in (measure.ts) */}
       <span className="sh-probe" ref={probe} aria-hidden="true" />
-      <header className="sh-mast">
+      <header className="sh-mast" {...behind}>
         <div className="sh-mast__id">
           {marked ? (
             <img
@@ -1726,6 +1729,7 @@ export function Sheet({
         className="sh-bar"
         aria-label="The series, and the ways to see them"
         data-testid="sheet-tools"
+        {...behind}
       >
         {chapters.length > 0 ? (
           /* THE SERIES, EACH A LINK, AND THE LIT ONE ON A WHITE THUMB THAT TRAVELS — the
@@ -1850,7 +1854,7 @@ export function Sheet({
       </nav>
 
       {hand && hidden.length > 0 && door === 'price' ? (
-        <p className="sh-hand" data-testid="sheet-hand">
+        <p className="sh-hand" data-testid="sheet-hand" {...behind}>
           {handSentence(
             hidden,
             (table.role !== 'join' && table.kind ? kindNoun(table.kind) : null) ?? noun,
@@ -1858,7 +1862,7 @@ export function Sheet({
         </p>
       ) : null}
 
-      <div className="sh-body" ref={body}>
+      <div className="sh-body" ref={body} {...behind}>
         {door === 'pictures' ? (
           <Gallery
             tableName={table.name}
@@ -1956,7 +1960,9 @@ export function Sheet({
       </div>
 
       {recordIsTheScreen && cursorRow ? (
-        <div className="sh-over" data-testid="sheet-over">
+        /* IN A HAND THE LINE'S DETAILS ARE THE SCREEN, over the whole list until Back: what they
+           are, said, so a reader and a ruler both know the list under them is not in view */
+        <dialog open className="sh-over" data-testid="sheet-over" aria-label="The line’s details">
           <Record
             table={table}
             row={cursorRow}
@@ -1973,7 +1979,7 @@ export function Sheet({
             hand
           />
           {stepLine}
-        </div>
+        </dialog>
       ) : null}
     </main>
   )

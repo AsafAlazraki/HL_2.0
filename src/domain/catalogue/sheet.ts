@@ -11,6 +11,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 
 /* ============================================================
@@ -89,10 +90,13 @@ export interface CatalogueData {
   /** NORTHSIDE AS IT HAS SET ITSELF ON /manage (Milestone 4): its details, people, look and
    *  Home. Absent until something is set; kept beside the sheet and never wiped with it. */
   org?: OrgProfile
-  /** THE PICTURES NORTHSIDE ADDED TO ONE OPTION EACH, by their own id
+  /** THE PICTURES NORTHSIDE ADDED TO ITS OPTIONS, by their own id
    *  (`@/domain/model/ownPictures`). Absent until one is added; kept beside the sheet and never
    *  wiped with it, as Northside's settings are. */
   ownPictures?: Readonly<Record<string, OwnPicture>>
+  /** HOW NORTHSIDE ARRANGED AN OPTION'S GALLERY — its cover and its order — by the record's own
+   *  id (`@/domain/model/gallery`). Absent until one is arranged; kept beside the pictures. */
+  galleries?: Readonly<Record<string, GalleryOrder>>
 }
 
 /** A sheet with nothing on it and no provenance. */

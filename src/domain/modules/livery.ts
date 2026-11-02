@@ -439,6 +439,9 @@ export interface RangePart {
   picture: Picture | null
   /** how many of the place's photographs show something under it */
   pictured: number
+  /** EVERY ONE OF THEM, the tile's own first — its gallery, each captioned with the model it
+   *  shows; the one the head stands on comes last, as it is already in view above */
+  pictures: Picture[]
   /** the photograph the head stands on shows something under it, so its picture is the one
    *  above rather than drawn twice */
   above: boolean
@@ -468,12 +471,18 @@ export function rangeOf(
   }
   return [...parts].map(([name, part]) => {
     const shown = heroes.filter((h) => h.table === table.id && h.rows.some((r) => part.ids.has(r)))
+    const picture = shown.find((h) => h.id !== above) ?? null
     return {
       name,
       lines: part.lines,
       models: part.keys.size,
-      picture: shown.find((h) => h.id !== above) ?? null,
+      picture,
       pictured: shown.length,
+      pictures: [
+        ...(picture ? [picture] : []),
+        ...shown.filter((h) => h !== picture && h.id !== above),
+        ...shown.filter((h) => h.id === above),
+      ],
       above: above !== undefined && shown.some((h) => h.id === above),
     }
   })

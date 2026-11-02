@@ -13,6 +13,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 import type { CatalogueMeta } from '../repository'
 
@@ -66,6 +67,8 @@ export type HLDatabase = Dexie & {
   org: Records<OrgRecord>
   /** the pictures Northside added to one option each, bytes in the record (2026-10-30) */
   ownPictures: Records<OwnPicture>
+  /** how Northside arranged an option's gallery: its cover and its order (2026-11-02) */
+  galleries: Records<GalleryOrder>
 }
 
 /** NORTHSIDE AS IT HAS SET ITSELF, kept at `id = orgId` beside the sheet and never in it: a
@@ -106,6 +109,10 @@ export function openDatabase(name: string = DATABASE_NAME, options: DexieOptions
   /* VERSION 3 ADDS ONE TABLE AND MIGRATES NOTHING (2026-10-30): the pictures Northside adds to
      its options, which no earlier version held. Not a catalogue table, so no wipe reaches it. */
   db.version(3).stores({ ownPictures: 'id, orgId' })
+  /* VERSION 4 ADDS ONE TABLE AND MIGRATES NOTHING (2026-11-02): how Northside arranges an
+     option's gallery, its cover and its order, which no earlier version held. Not a catalogue
+     table, so no wipe reaches it. */
+  db.version(4).stores({ galleries: 'id, orgId' })
   return db
 }
 

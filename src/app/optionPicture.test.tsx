@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event'
 import type { ModuleDef } from '@/domain/model'
 import { catalogue } from '@/state/catalogue'
 import { session } from '@/state/session'
-import { itemOf, pictureOf } from '@/data/pictures'
-import { holdOwnPictures } from '@/data/ownPictures'
+import { coverOf, galleryOf, itemOf, lineOf, pictureOf } from '@/data/pictures'
+import { holdGalleries, holdOwnPictures } from '@/data/ownPictures'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { AddPicture, Toaster } from '@/ui'
 import type { PictureRead } from '@/ui/pictureFile'
@@ -96,5 +96,51 @@ describe('useOptionPicture', () => {
     expect(pictureOf(BATTERY)).toBeNull()
     expect(screen.getByRole('button', { name: 'Add a picture of the Battery MFM50' })).toBeVisible()
     holdOwnPictures([])
+  })
+
+  test('adds a second beside the first, makes it the cover the whole app draws, and Undo puts it back', async () => {
+    session.getState().signIn('Asaf')
+    render(
+      <>
+        <Toaster />
+        <Bound />
+      </>,
+    )
+    drop('first.jpg')
+    expect(await screen.findByText(/^Added by Asaf, /)).toBeVisible()
+    fireEvent.drop(screen.getByRole('button', { name: /^See the Battery MFM50 larger/ }), {
+      dataTransfer: {
+        files: [new File(['y'], 'second.jpg', { type: 'image/jpeg' })],
+        types: ['Files'],
+      },
+    })
+    const strip = await screen.findByRole('list', { name: 'The Battery MFM50’s pictures' })
+    expect(within(strip).getAllByRole('button')).toHaveLength(2)
+    const [first, second] = galleryOf(BATTERY)
+    expect(coverOf(BATTERY)?.id).toBe(first?.id)
+
+    await userEvent.click(within(strip).getByRole('button', { name: /^Picture 2 of 2/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Make it the cover' }))
+    expect(
+      (await screen.findAllByText('The Battery MFM50’s cover is your picture now.')).length,
+    ).toBeGreaterThan(0)
+    /* the cover chosen here is the one every screen and the paper ask for */
+    expect(Object.values(catalogue.getState().galleries ?? {})).toMatchObject([
+      { row: 'parts:119', cover: second?.id, by: 'Asaf' },
+    ])
+    expect(coverOf(BATTERY)?.id).toBe(second?.id)
+    expect(pictureOf(BATTERY)?.id).toBe(second?.id)
+    expect(lineOf(BATTERY)).toMatchObject({ held: true, picture: { id: second?.id } })
+
+    const said = (await screen.findAllByText('The Battery MFM50’s cover is your picture now.')).at(
+      -1,
+    )!
+    await userEvent.click(
+      within(said.closest<HTMLElement>('.ui-toast')!).getByRole('button', { name: 'Undo' }),
+    )
+    await waitFor(() => expect(catalogue.getState().galleries).toBeUndefined())
+    expect(coverOf(BATTERY)?.id).toBe(first?.id)
+    holdOwnPictures([])
+    holdGalleries([])
   })
 })

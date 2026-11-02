@@ -297,6 +297,21 @@ describe('its range, what goes with it, its quotes', () => {
     expect(plain.every((p) => !p.above)).toBe(true)
   })
 
+  it('gives each heading its photographs as a gallery: the tile’s own first, the head’s last', () => {
+    const own = heroesOf(['boat_stacer'], book)
+    const head = own[0]!
+    const kept = rangeOf(tables['boat_stacer'], rows['boat_stacer']!, own, head.id)
+    for (const p of kept) {
+      /* every photograph counted is in it, once, and only those */
+      expect(p.pictures.length).toBe(p.pictured)
+      expect(new Set(p.pictures.map((h) => h.id)).size).toBe(p.pictures.length)
+      if (p.picture) expect(p.pictures[0]).toBe(p.picture)
+      if (p.above && p.pictured > 1) expect(p.pictures.at(-1)?.id).toBe(head.id)
+    }
+    /* never a photograph of another list's boat */
+    expect(kept.flatMap((p) => p.pictures).every((h) => h.table === 'boat_stacer')).toBe(true)
+  })
+
   it('draws no range for a list with no headings', () => {
     expect(rangeOf(tables['labour_rates'], rows['labour_rates']!, [])).toEqual([])
   })

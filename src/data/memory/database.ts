@@ -12,6 +12,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 import type { CatalogueMeta } from '../repository'
 
@@ -50,6 +51,8 @@ export interface MemoryDatabase {
   org: Map<string, { id: string; orgId: string; profile: OrgProfile }>
   /** the pictures Northside added to one option each */
   ownPictures: Map<string, OwnPicture>
+  /** how Northside arranged an option's gallery */
+  galleries: Map<string, GalleryOrder>
 }
 
 export function createMemoryDatabase(): MemoryDatabase {
@@ -68,5 +71,6 @@ export function createMemoryDatabase(): MemoryDatabase {
     quotes: new Map(),
     org: new Map(),
     ownPictures: new Map(),
+    galleries: new Map(),
   }
 }

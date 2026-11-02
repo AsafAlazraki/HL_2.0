@@ -1,4 +1,5 @@
 import type { ModuleDef, RoleDef } from './modules'
+import type { GalleryOrder } from './gallery'
 import type { OwnPicture } from './ownPictures'
 import type { QuoteDef } from './quote'
 import type { RowData } from './rows'
@@ -257,4 +258,9 @@ export interface ProjectExport {
    *  held none, and bringing it back leaves none; ABSENT is a copy saved before pictures were
    *  kept, and bringing it back leaves the pictures here as they are. */
   ownPictures?: OwnPicture[]
+
+  /** HOW NORTHSIDE ARRANGED ITS OPTIONS' GALLERIES — each one's cover and order (2026-11-02).
+   *  Beside the pictures and read the same way: PRESENT AND EMPTY brings back none; ABSENT is a
+   *  copy saved before galleries were arranged, and leaves the arrangements here as they are. */
+  galleries?: GalleryOrder[]
 }

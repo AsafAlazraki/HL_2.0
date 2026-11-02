@@ -28,9 +28,15 @@ import {
   type CatalogueData,
   type CatalogueIndex,
 } from '@/domain/catalogue/sheet'
-import type { CatalogueRepository, OrgRepository, OwnPictureRepository } from '@/data/repository'
-import { holdOwnPictures } from '@/data/ownPictures'
-import { standingOwnPictures } from '@/domain/catalogue/pictureCommands'
+import type {
+  CatalogueRepository,
+  GalleryRepository,
+  OrgRepository,
+  OwnPictureRepository,
+} from '@/data/repository'
+import { holdGalleries, holdOwnPictures } from '@/data/ownPictures'
+import { standingGalleries, standingOwnPictures } from '@/domain/catalogue/pictureCommands'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 import { repositories } from '@/data'
 import { wayBackSaid } from '@/domain/catalogue/wayBack'
@@ -371,6 +377,7 @@ export const dataOf = (s: CatalogueData): CatalogueData => ({
   priceLevels: s.priceLevels,
   ...(s.org ? { org: s.org } : {}),
   ...(s.ownPictures ? { ownPictures: s.ownPictures } : {}),
+  ...(s.galleries ? { galleries: s.galleries } : {}),
 })
 
 /* ---------------------------------------------------------- */
@@ -497,6 +504,19 @@ async function keptPictures(
   }
 }
 
+/** How Northside arranged its galleries, as this computer keeps them; none on a failed read,
+ *  which draws every gallery in its own order rather than failing the sheet. */
+async function keptGalleries(
+  repo: GalleryRepository,
+): Promise<Record<string, GalleryOrder> | undefined> {
+  try {
+    const all = await repo.all()
+    return all.length === 0 ? undefined : byIdMap(all)
+  } catch {
+    return undefined
+  }
+}
+
 /** A step that touches the customers and nothing else — what a person set apart may still do. */
 function onlyCustomers(e: CatalogueEvent): boolean {
   if (e.kind === 'batch') return (e.events ?? []).every(onlyCustomers)
@@ -527,6 +547,11 @@ export interface CatalogueStoreOptions {
    *  hands them to the one reader (`src/data/ownPictures.ts`); a store made in a test tells
    *  nobody unless it asks */
   onOwnPictures?: (standing: readonly OwnPicture[]) => void
+  /** WHERE NORTHSIDE'S ARRANGEMENTS OF ITS GALLERIES ARE KEPT; the app's own repository when
+   *  absent */
+  galleriesFor?: (orgId: string) => GalleryRepository
+  /** TOLD THE ARRANGEMENTS THAT STAND each time they or the price list move, as the pictures are */
+  onGalleries?: (standing: readonly GalleryOrder[]) => void
 }
 
 export function createCatalogueStore(options: CatalogueStoreOptions = {}): CatalogueStore {
@@ -538,6 +563,8 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
   let orgRepo: OrgRepository | null = null
   const picturesFor = options.picturesFor ?? ((orgId: string) => repositories(orgId).pictures)
   let picturesRepo: OwnPictureRepository | null = null
+  const galleriesFor = options.galleriesFor ?? ((orgId: string) => repositories(orgId).galleries)
+  let galleriesRepo: GalleryRepository | null = null
 
   let repository: CatalogueRepository | null = null
   const listeners = new Set<AppliedListener>()
@@ -550,6 +577,12 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
    *  the maps whose identity moved since; the repository then writes
    *  only the records whose identity moved inside them. */
   let written: CatalogueData | null = null
+  /** THE SHEET AS THE LAST WRITE QUEUED WILL LEAVE IT. A write is diffed against this, not
+   *  against `written`: two writes queued before the first lands (a step, then its Undo, at
+   *  once) must each be diffed against the one before it, or the second finds nothing moved
+   *  since the disk last answered and the Undo never reaches the disk (measured 2026-11-02,
+   *  `catalogue.pictures.test.ts`, a cover chosen and undone). */
+  let queued: CatalogueData | null = null
   let owed = false
   let timer: ReturnType<typeof setTimeout> | undefined
   let writing: Promise<void> = Promise.resolve()
@@ -562,9 +595,10 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
     if (!owed) return writing
     owed = false
     const repo = repository
-    const prev = written
+    const prev = queued ?? written
     if (!repo || !prev) return writing
     const next = dataOf(store.getState())
+    queued = next
     writing = writing
       .then(async () => {
         /* NORTHSIDE'S SETTINGS ARE ONE VALUE, written whole when it moved */
@@ -575,6 +609,10 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
         /* THE PICTURES NORTHSIDE ADDED: the store writes the difference, by the object */
         if (prev.ownPictures !== next.ownPictures && picturesRepo) {
           await picturesRepo.saveAll(Object.values(next.ownPictures ?? {}))
+        }
+        /* AND HOW IT ARRANGED THEIR GALLERIES, the same way */
+        if (prev.galleries !== next.galleries && galleriesRepo) {
+          await galleriesRepo.saveAll(Object.values(next.galleries ?? {}))
         }
         if (prev.tables !== next.tables) await repo.tables.saveAll(Object.values(next.tables))
         if (prev.rows !== next.rows) await repo.rows.saveAll(Object.values(next.rows).flat())
@@ -610,8 +648,11 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           }
         }
         written = next
+        if (queued === next) queued = null
       })
       .catch((error: unknown) => {
+        /* the next write is diffed against what the disk last took */
+        if (queued === next) queued = null
         /* A SHEET THAT DID NOT SAVE SAYS SO. Everything on screen is
            right; what is not on disk is what was changed since the
            last save, and the next flush will try the same difference
@@ -723,24 +764,39 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           /* AND THE PICTURES IT ADDED, beside the sheet and never out of it */
           picturesRepo = data.orgId === null ? null : picturesFor(data.orgId)
           const ownPictures = picturesRepo ? await keptPictures(picturesRepo) : undefined
+          galleriesRepo = data.orgId === null ? null : galleriesFor(data.orgId)
+          const galleries = galleriesRepo ? await keptGalleries(galleriesRepo) : undefined
           const loaded: CatalogueData = { ...data }
           if (org) loaded.org = org
           else delete loaded.org
           if (ownPictures) loaded.ownPictures = ownPictures
           else delete loaded.ownPictures
+          if (galleries) loaded.galleries = galleries
+          else delete loaded.galleries
           written = loaded
+          queued = null
           owed = false
-          set({ ...loaded, org, ownPictures, status: 'ready', problem: null, events: [] })
+          set({
+            ...loaded,
+            org,
+            ownPictures,
+            galleries,
+            status: 'ready',
+            problem: null,
+            events: [],
+          })
         } catch (error) {
           /* a failed load leaves NOTHING behind: showing the previous
              sheet under a failure would be showing it as current */
           repository = null
           written = null
+          queued = null
           set({
             ...emptySheet(),
             /* a sheet that would not open leaves Northside's settings standing */
             org: get().org,
             ownPictures: undefined,
+            galleries: undefined,
             status: 'failed',
             problem: error instanceof Error ? error.message : String(error),
             events: [],
@@ -839,9 +895,10 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
         /* AND THE PICTURES NORTHSIDE ADDED, so a paper opened before the sheet already holds
            them; they stand once the sheet that names their options is open */
         const ownPictures = await keptPictures(picturesFor(orgId))
+        const galleries = await keptGalleries(galleriesFor(orgId))
         /* the sheet, once open, has read its own: a boot read that lands late never overwrites it */
         if (get().status === 'ready') return
-        set({ org, ownPictures })
+        set({ org, ownPictures, galleries })
       },
     }
   })
@@ -858,6 +915,13 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
       if (s.ownPictures === prev.ownPictures && s.rows === prev.rows && s.tables === prev.tables)
         return
       tell(s.ownPictures ? standingOwnPictures(s) : [])
+    })
+  }
+  const tellOrders = options.onGalleries
+  if (tellOrders) {
+    store.subscribe((s, prev) => {
+      if (s.galleries === prev.galleries && s.rows === prev.rows && s.tables === prev.tables) return
+      tellOrders(s.galleries ? standingGalleries(s) : [])
     })
   }
 
@@ -879,4 +943,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
 }
 
 /** The app's catalogue. */
-export const catalogue: CatalogueStore = createCatalogueStore({ onOwnPictures: holdOwnPictures })
+export const catalogue: CatalogueStore = createCatalogueStore({
+  onOwnPictures: holdOwnPictures,
+  onGalleries: holdGalleries,
+})

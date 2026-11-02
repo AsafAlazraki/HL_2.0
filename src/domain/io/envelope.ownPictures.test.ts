@@ -10,6 +10,7 @@
    ============================================================ */
 import { beforeAll, describe, expect, it } from 'vitest'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import { bytesOf, type OwnPicture } from '@/domain/model/ownPictures'
 import { buildExportPayload } from './exportPayload'
 import { validateEnvelope } from './envelope'
@@ -98,6 +99,70 @@ describe('bringing a copy back reads each picture as untrusted', () => {
     expect(trip({ ...saved, ownPictures: 'not a list' })).toEqual({
       ok: false,
       error: 'That copy is damaged: the pictures Northside added to its options cannot be read.',
+    })
+  })
+})
+
+/* ---------------------------------------------------------- */
+/* And how Northside arranged each option's gallery            */
+/* ---------------------------------------------------------- */
+
+const arranged = (row: string, more: Partial<GalleryOrder> = {}): GalleryOrder => ({
+  id: `order-${row.replace(':', '-')}`,
+  orgId: 'northside',
+  table: 'parts',
+  row,
+  option: 'MFM50 - Battery MFM50',
+  name: 'Battery MFM50',
+  cover: 'own:own-parts-119',
+  order: ['own:own-parts-119', 'row:https://example.com/mfm50.jpg'],
+  by: 'Asaf',
+  at: NOON,
+  ...more,
+})
+
+describe('a full copy carries each option’s cover and order', () => {
+  it('beside the pictures, read back for whoever brings it back', () => {
+    const kept = [arranged('parts:119'), arranged('parts:787', { cover: undefined, order: [] })]
+    const saved = buildExportPayload(pack.ctx, PROJECT, true, [picture('parts:119')], kept)
+    expect(saved.galleries).toHaveLength(2)
+    const read = trip(saved, 'northside-again')
+    expect(read.ok).toBe(true)
+    if (!read.ok) return
+    expect(read.data.galleries).toEqual(
+      kept.map(({ cover, ...o }) => ({
+        ...o,
+        ...(cover ? { cover } : {}),
+        orgId: 'northside-again',
+      })),
+    )
+  })
+
+  it('says a copy that held none as none, and a copy from before galleries says nothing', () => {
+    const none = trip(buildExportPayload(pack.ctx, PROJECT, true, [], []))
+    expect(none.ok && none.data.galleries).toEqual([])
+    const before = trip(buildExportPayload(pack.ctx, PROJECT, true, []))
+    expect(before.ok && before.data.galleries).toBeUndefined()
+  })
+
+  it('drops an arrangement with no person or no day, keeps one per id, and refuses a damaged block', () => {
+    const saved = buildExportPayload(
+      pack.ctx,
+      PROJECT,
+      true,
+      [],
+      [
+        arranged('parts:119'),
+        arranged('parts:120', { by: '' }),
+        arranged('parts:121', { at: 'yesterday' }),
+      ],
+    )
+    const twice = { ...saved, galleries: [...saved.galleries!, saved.galleries![0]] }
+    const read = trip(twice)
+    expect(read.ok && read.data.galleries?.map((o) => o.row)).toEqual(['parts:119'])
+    expect(trip({ ...saved, galleries: {} })).toEqual({
+      ok: false,
+      error: 'That copy is damaged: the covers and order of its options’ pictures cannot be read.',
     })
   })
 })

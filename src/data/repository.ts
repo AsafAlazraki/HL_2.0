@@ -13,6 +13,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 
 /* ============================================================
@@ -163,6 +164,10 @@ export function newestFirst(quotes: readonly QuoteDef[]): QuoteDef[] {
  *  in the record. Beside the sheet and never in it, like Northside's settings: a sheet wipe and
  *  putting the price list back cannot reach them, because they are behind their own interface. */
 export type OwnPictureRepository = RecordStore<OwnPicture>
+
+/** HOW NORTHSIDE ARRANGED AN OPTION'S GALLERY (`@/domain/model/gallery`): its cover and its
+ *  order, one record per option. Beside the pictures, behind its own interface, never wiped. */
+export type GalleryRepository = RecordStore<GalleryOrder>
 
 /* ---------------------------------------------------------- */
 /* Declared now, implemented in Milestones 4–6                  */

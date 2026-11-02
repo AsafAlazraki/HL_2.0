@@ -26,6 +26,7 @@ import {
   giveWaitsLead,
   insteadSay,
   levelCountSay,
+  modelSheetSay,
   orphanSay,
   pictureSays,
   reasonSay,
@@ -564,5 +565,23 @@ describe('where the finale says its figures came from', () => {
     expect(sourcesSay(typed)).toMatch(/^Every price but the boat’s is the price list’s/)
     expect(sourcesSay(typed)).toContain('01 The hull')
     expect(engineWordsIn(sourcesSay(typed))).toEqual([])
+  })
+})
+
+describe('what the Change model dialog says it holds', () => {
+  it('counts a boat’s series, and names the model a press puts another in place of', () => {
+    expect(modelSheetSay({ many: 16, count: '', word: 'model', now: 'Patrol 600 Open' })).toBe(
+      '16 models on the price list, each with what choosing it does to this quote’s total. Choosing one puts it on in place of the Patrol 600 Open, with Undo beside the total.',
+    )
+  })
+  it('says a thing sold on its own is weighed against the ones nearest it', () => {
+    expect(
+      modelSheetSay({ many: 9, count: '9 nearest of 138', word: 'motor', now: 'F150LC' }),
+    ).toMatch(/^The 9 nearest of 138 on the price list, each with/)
+  })
+  it('speaks in the dealer’s words', () => {
+    expect(
+      engineWordsIn(modelSheetSay({ many: 3, count: '', word: 'model', now: '1850 Supercab' })),
+    ).toEqual([])
   })
 })

@@ -222,11 +222,35 @@
 }
 /* THE WINDOW: the maker's render on its own pale ground, as it was drawn */
 .ft-window {
+  position: relative;
   margin: 0;
   block-size: 6.5rem;
   border-radius: var(--radius-md);
   background: var(--color-plate-tint);
   overflow: hidden;
+}
+/* THE PRESS THAT OPENS THE BOAT'S GALLERY, over the window's corner, and how many it holds over
+   the other where it holds more than one */
+.ft-window__expand {
+  position: absolute;
+  inset-block-start: --spacing(1.5);
+  inset-inline-end: --spacing(1.5);
+}
+.ft-window__many {
+  position: absolute;
+  inset-block-end: --spacing(1.5);
+  inset-inline-start: --spacing(1.5);
+  min-inline-size: --spacing(6);
+  padding: 0 --spacing(1.5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: --spacing(6);
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  background: --alpha(var(--color-plate) / 92%);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
 }
 .ft-window :where(img) {
   inline-size: 100%;

@@ -31,10 +31,16 @@
    fetched (`src/screens/entry/facts.ts`).
 
    AND NORTHSIDE'S OWN PICTURES (2026-10-30). A picture the dealer adds
-   to one option is laid over the book here (`withOwnPictures`), from the
+   to one option is laid over the book here (`withGalleries`), from the
    pictures the catalogue store last handed over (`./ownPictures.ts`), so
    the build, the catalogue and the paper draw it by asking exactly what
    they asked before. The book is rebuilt only when those move.
+
+   AND EVERY ROW'S GALLERY (2026-11-02). An option's pictures — the held
+   ones and every one the dealer added — are one gallery, its cover
+   first (`galleryOf`, `coverOf`; `@/domain/model/gallery`). Where the
+   dealer chose a cover, every question below is answered with it, so a
+   screen that asked before draws the dealer's cover without a change.
 
    AN ITEM IS A ROW: its register, its id, and the address the price file
    gave it. A quote freezes all three (`rootTableId`, `rootRowId`,
@@ -53,13 +59,20 @@ import {
   type PictureBook,
 } from '@/domain/model/pictures'
 import type { QuoteDef } from '@/domain/model'
-import { addedLine, withOwnPictures, type OwnPicture } from '@/domain/model/ownPictures'
-import { heldOwnPictures, ownPicturesVersion } from './ownPictures'
+import {
+  hostOf as hostOfAddress,
+  sourceOf,
+  standingOf,
+  withGalleries,
+  type GalleryOrder,
+} from '@/domain/model/gallery'
+import type { OwnPicture } from '@/domain/model/ownPictures'
+import { heldGalleries, heldOwnPictures, ownPicturesVersion } from './ownPictures'
 import imagesRaw from '../../data/northside/images.json?raw'
 import marksRaw from '../../data/northside/marks-ledger.json?raw'
 import picturesRaw from '../../data/northside/pictures.json?raw'
 
-export type { Found, HeldMark, Ink, Item, MarkChoice, OwnPicture, Picture }
+export type { Found, GalleryOrder, HeldMark, Ink, Item, MarkChoice, OwnPicture, Picture }
 
 /** A picture this repository ships, at the size it ships it — the domain's answer. */
 export type HeldPicture = Picture
@@ -84,9 +97,16 @@ export function pictures(): PictureBook {
   )
   const version = ownPicturesVersion()
   if (dressed?.version !== version) {
-    dressed = { version, book: withOwnPictures(book, heldOwnPictures()) }
+    dressed = { version, book: withGalleries(book, heldOwnPictures(), heldGalleries()) }
   }
   return dressed.book
+}
+
+/** THE BOOK OF THE LEDGERS THIS BUNDLE CARRIES ALONE, with none of Northside's own pictures over
+ *  it — for a page that lays a copy of its own over it (the kit's specimens). */
+export function heldPictures(): PictureBook {
+  pictures()
+  return book!
 }
 
 /** One row, as the reader is asked about it. */
@@ -107,6 +127,9 @@ export const heroOf = (item: Item): HeldPicture | null => pictures().hero(item)
  *  exactly this row (model and finish) — never another colourway. */
 export function copyOf(item: Item): HeldPicture | null {
   const book = pictures()
+  /* THE COVER THE DEALER CHOSE, where it is exactly this row: a tile is drawn with it */
+  const chosen = book.chosenCover(item)
+  if (chosen?.exact) return chosen
   /* Northside's own picture of this option is exact by the dealer's word: where it is the one
      drawn, it is the copy */
   if (book.own(item)) {
@@ -180,17 +203,42 @@ export function letterheadOf(business: string | null | undefined): MarkChoice {
 }
 
 /** The host an address belongs to, for a caption. A malformed address says less rather than throwing. */
-export function hostOf(address: string): string {
-  try {
-    return new URL(address).host
-  } catch {
-    return 'an address this file carries'
-  }
-}
+export const hostOf = (address: string): string => hostOfAddress(address)
 
 /** WHERE A PICTURE CAME FROM, in one line a person reads under it large (the build's lightbox):
  *  "Added by Asaf, 30 October 2026" for Northside's own, else the maker's host it was read off. */
-export function creditOf(held: Pick<HeldPicture, 'added' | 'address' | 'tier'>): string {
-  if (held.added) return addedLine({ addedBy: held.added.by, addedAt: held.added.at })
-  return `${held.tier === 'hero' ? 'Photograph' : 'Picture'} from ${hostOf(held.address)}`
+export const creditOf = (held: Pick<HeldPicture, 'added' | 'address' | 'tier'>): string =>
+  sourceOf(held)
+
+/* ---------------------------------------------------------- */
+/* A row's gallery                                             */
+/* ---------------------------------------------------------- */
+
+/** EVERY PICTURE OF THIS ROW, held and Northside's, the cover first — never a picture of another
+ *  row. Empty where the row has none. */
+export const galleryOf = (item: Item): readonly HeldPicture[] => pictures().gallery(item)
+
+/** THE ROW'S COVER: the picture the dealer chose, else the one it was always drawn with. */
+export const coverOf = (item: Item): HeldPicture | null => pictures().cover(item)
+
+/** The cover the dealer CHOSE for this row, or null where it shows its own by default. */
+export const chosenCoverOf = (item: Item): HeldPicture | null => pictures().chosenCover(item)
+
+/** The gallery of the row a quote is written against, the cover first. */
+export const galleryOfQuote = (quote: QuoteDef): readonly HeldPicture[] =>
+  galleryOf(itemOfQuote(quote))
+
+/** THE WORDS UNDER ONE PICTURE OF A GALLERY, LARGE: where it came from, and — for a held picture
+ *  that is not exactly this row — what it shows instead. */
+export function galleryLineOf(
+  held: Pick<HeldPicture, 'added' | 'address' | 'tier' | 'exact' | 'standing' | 'model' | 'beyond'>,
+): { source: string; standing: string } {
+  return { source: sourceOf(held), standing: standingOf(held) }
+}
+
+/** Where a picture stands in a row's gallery (the one a tile drew, opened large on it), or 0. */
+export function placeIn(gallery: readonly Pick<HeldPicture, 'id' | 'src'>[], held: Pick<HeldPicture, 'id' | 'src'> | null | undefined): number {
+  if (!held) return 0
+  const at = gallery.findIndex((p) => p.id === held.id || p.src === held.src)
+  return at === -1 ? 0 : at
 }

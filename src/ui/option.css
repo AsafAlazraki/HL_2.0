@@ -25,11 +25,16 @@
 /* THE PRICE LIST RECOMMENDS IT: said by the word on the tile, and by nothing that is the chosen
    ring's (P-14: an amber 2px edge read as "selected" beside the accent's ring that means chosen).
    One press puts it on, and nothing goes on by itself. */
+/* EVERY TILE OF A ROW KEEPS ITS PARTS ON THE ROW'S LINES (the polish critic, 2026-11-02, B2: the
+   tile centred its words, so in one row of motors a tile with a RECOMMENDED line or a two-line name
+   stood its name 9px lower and its figure 11px higher than the tile beside it). A row's tiles are
+   one height, so the words run the tile's whole height: the name at its top, the figure at its
+   foot, and whatever lies between in between. The picture's well stays centred on the tile. */
 .ui-option {
   position: relative;
   display: grid;
   grid-template-columns: --spacing(28) minmax(0, 1fr);
-  align-items: center;
+  align-items: stretch;
   gap: --spacing(3);
   box-sizing: border-box;
   inline-size: 100%;
@@ -116,6 +121,7 @@
 }
 
 .ui-option-well {
+  align-self: center;
   display: grid;
   place-items: center;
   block-size: --spacing(21);
@@ -133,10 +139,18 @@
 }
 
 .ui-option-words {
-  display: grid;
-  justify-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: --spacing(0.5);
   min-width: 0;
+}
+/* the figure at the tile's foot, whatever stands over it */
+.ui-option-words > .ui-option-figure {
+  margin-block-start: auto;
+}
+.ui-option-words > :has(+ .ui-option-figure) {
+  margin-block-end: --spacing(1.5);
 }
 .ui-option-name {
   padding-inline-end: --spacing(8);
@@ -166,7 +180,6 @@
   align-items: baseline;
   flex-wrap: wrap;
   column-gap: --spacing(1.5);
-  margin-block-start: --spacing(1.5);
   padding: --spacing(1) --spacing(2.5);
   border-radius: var(--radius-pill);
   font-size: var(--text-sm);

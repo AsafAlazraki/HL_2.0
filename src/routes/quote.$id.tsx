@@ -102,11 +102,17 @@ function ConfiguratorRoute() {
   const goTo = useCallback(
     (chapterId: string) => {
       /* the chandlery's aisle stays where it was: it belongs to the fit chapter, and a dealer who
-         looks at the motor and comes back finds the aisle still open */
+         looks at the motor and comes back finds the aisle still open. NO CHAPTER IS NO `at` (the
+         polish critic, 2026-11-02, B9: "Back to editing" from a build opened with no chapter in its
+         address left `?at=` there, an empty key where there had been none) */
       void navigate({
         to: '/quote/$id',
         params: { id },
-        search: (was) => ({ ...was, at: chapterId }),
+        search: (was) => ({
+          ...(was.aisle ? { aisle: was.aisle } : {}),
+          ...(was.maker ? { maker: was.maker } : {}),
+          ...(chapterId === '' ? {} : { at: chapterId }),
+        }),
         replace: true,
       })
     },

@@ -89,6 +89,8 @@ export async function saveACopy(now: Date = new Date()): Promise<string> {
     true,
     /* every picture Northside added, standing or not: a copy keeps what this computer keeps */
     Object.values(state.ownPictures ?? {}),
+    /* and how it arranged their galleries, standing or not */
+    Object.values(state.galleries ?? {}),
   )
   const name = copyFileName(state.org?.name ?? state.business ?? 'Northside Marine', now)
   download(JSON.stringify(payload), name)
@@ -126,6 +128,8 @@ export async function bringBack(copy: ProjectFile): Promise<string | null> {
   /* THE PICTURES NORTHSIDE ADDED become the copy's — unless the copy was saved before pictures
      were kept, in which case the ones here stay as they are (`ProjectExport.ownPictures`) */
   if (copy.ownPictures) await repos.pictures.saveAll(copy.ownPictures)
+  /* AND THEIR GALLERIES' COVERS AND ORDER, the same way */
+  if (copy.galleries) await repos.galleries.saveAll(copy.galleries)
   for (const q of copy.quotes ?? []) {
     if (!(await repos.quotes.get(q.id))) await repos.quotes.put(q)
   }
@@ -185,6 +189,7 @@ export async function forgetEverything(): Promise<string | null> {
   await repos.catalogue.wipe()
   await repos.org.clear()
   await repos.pictures.saveAll([])
+  await repos.galleries.saveAll([])
   for (const q of await repos.quotes.list()) await repos.quotes.delete(q.id)
   prefs.getState().forgetAll()
   reopen('/sign-in')
