@@ -20,6 +20,7 @@ import {
   NO_DETAILS_SET,
   NO_TERMS_SET,
   NO_INCLUSIONS,
+  NO_LINE_PICTURE,
   NO_LINE_PICTURES,
   NO_WRITTEN_PAGES,
   LETTERHEAD_MARK,
@@ -30,6 +31,8 @@ import {
   NO_QUOTE_HERE,
   NO_TERMS,
   PRINT_IS_THE_PAGE,
+  unpicturedOf,
+  unsetOn,
 } from './Document'
 import { NOT_PRICED_ON_PAPER, TOTAL_SAID, deskWhy, kitsOnPaper, pricedAtSay } from './paper'
 import { refusedSay } from './art'
@@ -318,12 +321,20 @@ describe('the letterhead note beside the sheet', () => {
     expect(theNote().textContent).not.toContain(NIGHT_MARK_IN_TYPE)
   })
 
-  it('prints every reference as one unbreakable word', () => {
+  /* REWRITTEN 2026-11-03 to the owner's fully specced quote: the reference printed in every foot
+     under a running head that already said it, so it stood twice a page; the foot now carries the
+     page's number alone, and the cover none. The reference is the cover's stamp and each later
+     page's running head, and every one of them is one unbreakable word. */
+  it('prints every reference as one unbreakable word, and never in a foot', () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
     const { container } = render(<Document quoteId={quote.id} />)
     const refs = [...container.querySelectorAll('.doc-sheaf .doc-ref')]
-    expect(refs.length).toBeGreaterThan(1)
+    expect(refs.length).toBeGreaterThan(0)
     for (const ref of refs) expect(ref.textContent).toBe(quote.reference)
+    for (const foot of container.querySelectorAll('.doc-page__foot'))
+      expect(foot.textContent).not.toContain(quote.reference)
+    /* the cover's foot says nothing, not "Page 1 of n" under its own stamp */
+    expect(container.querySelector('.doc-page__foot[data-cover]')).toHaveTextContent(/^$/)
   })
 })
 
@@ -885,7 +896,8 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     expect(shot).toHaveAttribute('data-art', 'photograph')
     expect(shot).toHaveAttribute('data-verdict', 'scene')
     const cover = shot.querySelector<HTMLImageElement>('.doc-shot__img')!
-    /* the held copy itself, never a narrower one: the printer is handed every pixel held */
+    /* the held copy itself, never a narrower one, until a JPEG of it is made for the printer
+       (`usePrinted`), which a test's DOM cannot draw */
     expect(cover).toHaveAttribute('src', hero!.src)
     expect(cover).not.toHaveAttribute('srcset')
     expect(cover).toHaveAttribute('width', String(hero!.width))
@@ -895,9 +907,17 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     /* a photograph of the MODEL says so on the paper, as a brochure does: under the name, on the
        night's ground and never on the water (REWRITTEN 2026-11-02, cover-pick.md: it stood under
        the picture inside the figure) */
+    /* AND WHAT THIS QUOTE'S OWN IS, beside what the maker's photograph shows (REWRITTEN 2026-11-03,
+       the owner's fully specced quote: the Sport 660's cover showed another make of outboard and
+       another colour, and said only that it was the maker's finish and rig) */
+    const motor = readDocument(quote)
+      .sections.filter((s) => s.kind === 'motor')
+      .flatMap((s) => s.tables.flatMap((t) => t.lines))
     expect(
       within(container.querySelector<HTMLElement>('.doc-cover__title')!).getByText(
-        `Pictured: the ${hero!.subject}, in its maker’s own finish and rig.`,
+        `Pictured: the ${hero!.subject}, in its maker’s own finish and rig.${
+          motor.length === 1 ? ` Yours is with the ${motor[0]!.said}.` : ''
+        }`,
       ),
     ).toBeInTheDocument()
     expect(onThePaper(container)).not.toMatch(/no copy|held here|nothing stands in/)
@@ -984,30 +1004,20 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     expect(within(kept).queryByRole('button')).toBeNull()
   })
 
-  /* THE PRICE STANDS BESIDE WHAT IT IS FOR (round 2, D2): the very picture the cover prints, never
-     another, with the name under it. A cover with no picture left the column to the air until
-     round 3 found "Total, including GST" alone over an empty left column (D5): the head holds it now */
-  it('sets the cover’s own picture beside Your price, and the head beside the figures where the cover has none', () => {
+  /* REWRITTEN 2026-11-03 to the owner's fully specced quote: "Your price" drew the cover's own
+     photograph again, which "adds nothing and the composition is unbalanced". The cover's picture
+     stands beside the hull's own line now, small, and the price is its head and its figures: beside
+     the head where it is one figure, under it, the measure's width, where it is several. */
+  it('draws the cover’s picture beside the hull’s line and never again under Your price', () => {
     const quote = issuedQuote('boat_stacer', 'Stacer - 409 Assault Pro')
-    const { container, unmount } = render(<Document quoteId={quote.id} />)
+    const { container } = render(<Document quoteId={quote.id} />)
     const cover = container.querySelector<HTMLImageElement>('.doc-shot__img')!
-    const beside = container.querySelector<HTMLImageElement>('.doc-sums__boat .doc-sums__img')!
-    expect(beside).toHaveAttribute('src', cover.getAttribute('src'))
-    expect(beside).toHaveAttribute('alt', '')
-    expect(container.querySelector('.doc-sums__title')).toHaveTextContent(
-      readDocument(quote).subject.title,
-    )
-    expect(container.querySelector('.doc-sums')).not.toHaveAttribute('data-bare')
-    expect(container.querySelector('.doc-sums__body > .doc-part')).toBeNull()
-    unmount()
-
-    const bare = issuedQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
-    const { container: none } = render(<Document quoteId={bare.id} />)
-    expect(none.querySelector('.doc-shot')).not.toHaveAttribute('data-art', 'photograph')
-    expect(none.querySelector('.doc-sums__boat')).toBeNull()
-    expect(none.querySelector('.doc-sums')).toHaveAttribute('data-bare', '')
-    /* the head in the body's left column, the figures in its right */
-    const body = none.querySelector('.doc-sums__body')!
+    const hull = container.querySelector<HTMLImageElement>('.doc-row[data-hull] .doc-row__pic')!
+    expect(hull).toHaveAttribute('src', cover.getAttribute('src'))
+    expect(hull).toHaveAttribute('alt', '')
+    expect(container.querySelector('.doc-sums img')).toBeNull()
+    /* the head first, then the figures */
+    const body = container.querySelector('.doc-sums__body')!
     expect(body.firstElementChild).toHaveClass('doc-part')
     expect(body.firstElementChild).toHaveTextContent(/^Your price/)
     expect(body.lastElementChild).toHaveClass('doc-sums__figs')
@@ -1214,7 +1224,9 @@ describe('Northside’s GST rate on a draft', () => {
     try {
       const { container } = render(<Document quoteId={quote.id} />)
       expect(onThePaper(container)).toContain('GST at 10%, included')
-      expect(onThePaper(container)).toMatch(/Includes GST of \$[\d,]+\.\d\d at 10%/)
+      /* in whole dollars, as every figure on the paper (rewritten 2026-11-03: "$11,377.91") */
+      expect(onThePaper(container)).toMatch(/Includes GST of \$[\d,]+ at 10%/)
+      expect(onThePaper(container)).not.toMatch(/\$[\d,]+\.\d\d/)
       expect(theNote().textContent).not.toContain('No rate is set on this quote')
     } finally {
       catalogue.setState({ org: was })
@@ -1471,6 +1483,93 @@ describe('the gallery’s cover on the paper', () => {
     } finally {
       holdOwnPictures([])
       holdGalleries([])
+    }
+  })
+})
+
+/* ============================================================
+   THE OWNER'S FULLY SPECCED QUOTE, READ AS PRINTED (2026-11-03): what Settings does not hold is
+   said beside the paper with the press that opens it, a name printed in a signature block is not
+   asked for again, and the hull's line carries its finish and its picture.
+   ============================================================ */
+describe('the owner’s fully specced quote, its printed faults', () => {
+  it('says each thing Settings does not hold, why it matters on the paper, and where it is set', () => {
+    const draft = draftQuote('boat_stacer', 'Sea Ranger')
+    const was = catalogue.getState().org
+    catalogue.setState({ org: { ...(was ?? { name: 'Northside Marine' }), people: [] } as never })
+    try {
+      render(<Document quoteId={draft.id} />)
+      const unset = screen.getByTestId('document-unset')
+      expect(unset).toHaveTextContent(/How many days a quote stands for: none is set/)
+      expect(unset).toHaveTextContent(/Northside’s terms: none is set/)
+      expect(unset).toHaveTextContent(/The deposit wording: none is set/)
+      expect(within(unset).getByRole('link', { name: 'Set the days' })).toHaveAttribute(
+        'href',
+        '/manage?line=validDays',
+      )
+      expect(within(unset).getByRole('link', { name: 'Write the terms' })).toHaveAttribute(
+        'href',
+        '/manage?line=quoteTerms',
+      )
+      /* none of it is printed on the customer's copy */
+      expect(document.querySelector('.doc-sheaf')).not.toHaveTextContent(/none is set/)
+    } finally {
+      catalogue.setState({ org: was })
+    }
+  })
+
+  it('asks nothing of Settings that it holds', () => {
+    expect(
+      unsetOn({
+        letterhead: { name: 'Northside Marine', validDays: 30, deposit: '10% secures the order' },
+        terms: 'Our terms.',
+        preparer: { name: 'Asaf', title: 'Sales', phone: '07 0000 0000', email: 'a@b' },
+        preparedBy: 'Asaf',
+      }),
+    ).toEqual([])
+    /* the salesperson's own details open their own place on Settings */
+    expect(
+      unsetOn({ letterhead: null, terms: null, preparer: { name: 'Asaf' }, preparedBy: 'Asaf' }).at(
+        -1,
+      ),
+    ).toMatchObject({ at: { person: 'Asaf' }, act: 'Set Asaf’s details' })
+  })
+
+  it('asks a named signer for the signature and the date, and a block naming nobody for the name too', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const blocks = [...container.querySelectorAll('.doc-sign__block')]
+    expect([...blocks[0]!.querySelectorAll('.doc-sign__word')].map((w) => w.textContent)).toEqual([
+      'Signature',
+      'Date',
+    ])
+    expect(blocks[0]).toHaveTextContent('R. Kelleher')
+  })
+
+  it('sets the hull’s line as the biggest on the quote: its name, its material and its colours', () => {
+    const quote = issuedQuote('boat_highfield', 'SP660 (HYP) LG-W-DB')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const hull = container.querySelector('.doc-row[data-hull]')!
+    const doc = readDocument(quote)
+    expect(hull.querySelector('.doc-row__said')).toHaveTextContent(doc.subject.title)
+    expect(hull).toHaveTextContent('Material Hypalon')
+    expect(hull).toHaveTextContent(`Colours${doc.subject.colour!.say}`)
+    expect(hull.querySelector('.ui-swatches')).toHaveAttribute('data-shape', 'squares')
+    /* the cover's swatches are the build's squares too */
+    expect(container.querySelector('.doc-cover__detail .ui-swatches')).toHaveAttribute(
+      'data-shape',
+      'squares',
+    )
+  })
+
+  it('names every item printed with no picture beside it, on the note', () => {
+    const quote = issuedQuote('boat_highfield', 'SP660 (HYP) LG-W-DB')
+    render(<Document quoteId={quote.id} />)
+    const doc = readDocument(quote)
+    const none = unpicturedOf(doc)
+    if (none.length > 0) {
+      expect(theNote()).toHaveTextContent('Printed without a picture')
+      expect(theNote()).toHaveTextContent(NO_LINE_PICTURE)
     }
   })
 })

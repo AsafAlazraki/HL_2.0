@@ -353,6 +353,24 @@
 }
 
 .doc-sheaf {
+  /* THE PAPER READS AT A DESK'S SIZE (the owner's fully specced quote, read 2026-11-03: body lines
+     at 9.7 pt, a line's facts at 9.0 pt, and the foot, the eyebrows, the cover's caption and
+     "Includes pre-delivery" at 8.2 pt, "small for a printed A4 quote the customer reads at a desk").
+     The paper's three reading sizes step up the ramp by one: 10.5 pt for a line, 9.75 pt for its
+     facts, 9 pt for the smallest word on the sheet. On the paper only: the room around it keeps
+     the app's sizes. */
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  /* TRACKED CAPITALS A PDF STILL READS AS WORDS (the same read: "QUOTATION", "NORTHSIDE MARINE"
+     and "PARTS & ACCESSORIES" came out of the saved PDF a letter at a time, so a search for the
+     word did not find it). At the app's 0.14em every letter stood far enough from the next for a
+     reader of the file to take the gap for a space; at this the capitals still read as set apart,
+     and the file reads them as the words they are. */
+  --tracking-caps: 0.06em;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -566,8 +584,13 @@
 }
 .doc-page__foot {
   align-items: start;
+  justify-content: end;
   border-block-start: 1px solid var(--color-neutral-200);
   padding-block-start: --spacing(2);
+}
+/* the cover's foot is empty, so its rule goes with it, as its head's does */
+.doc-page__foot[data-cover] {
+  border-block-start: none;
 }
 .doc-page__head {
   border-block-end: 1px solid var(--color-neutral-200);
@@ -1193,6 +1216,8 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-500);
+  /* a sentence that wraps never leaves its last word alone on a line ("registration.") */
+  text-wrap: pretty;
 }
 .doc-cover .doc-money__line {
   color: var(--night-ink-2);
@@ -1258,11 +1283,15 @@
 .doc-part {
   padding-block: --spacing(6) --spacing(2);
 }
-/* the part that opens a sheet stands at its top; while the sheaf is gauging nothing opens one, so
-   an atom measures the same wherever the last assignment put it (`Atom.lead` in paginate.ts) */
+/* THE PART THAT OPENS A SHEET KEEPS AIR UNDER THE RUNNING HEAD (the owner's fully specced quote,
+   read 2026-11-03: "Specifications" stood about 6 pt under the head's hairline and "Your price"
+   about 13 pt, "cramped against the head, unlike the 40+ pt of air everywhere else"). It gives up
+   only part of its air there, so its word stands a clear step under the hairline; while the sheaf
+   is gauging nothing opens one, so an atom measures the same wherever the last assignment put it
+   (`Atom.lead` in paginate.ts reads the difference). */
 .doc:not([data-gauging]) .doc-atom:first-child .doc-part,
 .doc[data-gauging] .doc-atom[data-opening] .doc-part {
-  padding-block-start: 0;
+  padding-block-start: --spacing(5);
 }
 .doc-part__word {
   margin: 0;
@@ -1291,6 +1320,15 @@
 .doc-sheet__group {
   break-inside: avoid;
   padding-block-end: --spacing(5);
+}
+/* PARTED BY WEIGHT, NOT FLOWED (`specColumns`): two columns, each a stack of whole groups, so the
+   shorter ends a row or two above the longer and never a third of the page */
+.doc-sheet__groups[data-parted] {
+  column-count: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: --spacing(10);
+  align-items: start;
 }
 .doc-sheet__name {
   margin: 0;
@@ -1367,7 +1405,7 @@
 /* A BAND THAT RUNS OVER A PAGE BREAK, said again at the top of the next sheet: the same head,
    with "continued" in the paper's quiet ink, and no air above it under the running head */
 .doc-band[data-continued] {
-  padding-block-start: 0;
+  padding-block-start: --spacing(4);
 }
 .doc-band__cont {
   color: var(--color-neutral-500);
@@ -1461,17 +1499,27 @@
    name, inside the quote spec's 42 x 32 mm (§5) at 28 x 20 mm, so three pictured parts stand in
    the room one used to; never wider than its held pixels and never cropped */
 .doc-row[data-pictured] {
-  grid-template-columns: 28mm minmax(0, 1fr) minmax(16ch, max-content);
-  align-items: start;
+  grid-template-columns: 24mm minmax(0, 1fr) minmax(16ch, max-content);
+  align-items: center;
 }
 .doc-row[data-pictured][data-qty] {
-  grid-template-columns: 28mm minmax(0, 1fr) 4ch minmax(16ch, max-content);
+  grid-template-columns: 24mm minmax(0, 1fr) 4ch minmax(16ch, max-content);
+}
+/* THE PICTURE'S WELL, ONE WIDTH DOWN A BAND, EMPTY WHERE AN ITEM HAS NO PICTURE (the owner's fully
+   specced quote, 2026-11-03: two left edges in one band). Its picture stands no taller than 14 mm,
+   so a pictured row with one line of name is the name's own height and a little more: the read
+   found rows "about 70 pt tall" carrying "one line of name and nothing under it". */
+.doc-row__well {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 0;
 }
 .doc-row__pic {
   --held-w: 0;
   --held-h: 1;
   display: block;
-  inline-size: min(100%, calc(var(--held-w) * 1px), calc(20mm * var(--held-w) / var(--held-h)));
+  inline-size: min(100%, calc(var(--held-w) * 1px), calc(14mm * var(--held-w) / var(--held-h)));
   block-size: auto;
   aspect-ratio: var(--held-w) / var(--held-h);
   object-fit: contain;
@@ -1480,9 +1528,26 @@
      sheet; a photograph's own colours are unchanged where they are not white. */
   mix-blend-mode: multiply;
 }
-.doc-row[data-pictured] .doc-row__fig,
-.doc-row[data-pictured] .doc-row__qty {
-  padding-block-start: 1px;
+/* THE HULL'S PICTURE IS A PHOTOGRAPH, the cover's own: it fills its well's width, a little taller
+   than a part's cut-out, and is never multiplied into the paper */
+.doc-row[data-hull] .doc-row__pic {
+  inline-size: min(100%, calc(var(--held-w) * 1px));
+  mix-blend-mode: normal;
+}
+/* the hull's name is the quote's biggest line, set a step up */
+.doc-row[data-hull] .doc-row__said {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}
+.doc-row[data-hull] .doc-row__fig {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}
+/* its colours, with the same squares the cover and the build draw them in */
+.doc-row__fact--colour {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
 }
 .doc-row__said {
   display: block;
@@ -1505,91 +1570,25 @@
 /* ---- your price, the terms, and what it replaces ---------------------------------- */
 
 .doc-sums {
-  /* the picture's height on a filled sheet, set by the screen (`fillOf`) */
-  --fill-h: auto;
-  padding-block-start: --spacing(2);
+  padding-block-start: 0;
 }
-/* THE FIGURES IN THE RIGHT 60%, AND WHAT THEY ARE FOR IN THE LEFT (the quote round's audit,
-   2026-11-02, D2): the cover's own picture, whole, never past its pixels, its name under it. With
-   no picture the column is air, as it always was. */
+/* WHAT THE PRICE IS FOR HOLDS THE LEFT COLUMN, THE FIGURES THE RIGHT (the quote round's audit,
+   round 3, D5): the head beside the figures, as an invoice's summary sets it, half and half, so
+   "Highfield Patrol 600 Open, for R. Kelleher" stands on one line, and the figures on the head's
+   foot line where they are fewer than its lines. The cover's photograph is not drawn here again
+   (the owner's fully specced quote, 2026-11-03): the boat is the cover's, and the hull's line. */
 .doc-sums__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 60%;
-  column-gap: --spacing(8);
-  /* the room between the picture and the figures once a filled sheet stacks them (`fillOf`
-     reads it off the paper's geometry, where the body is one row and it moves nothing) */
-  row-gap: --spacing(6);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: --spacing(4);
 }
-/* WHERE NOTHING IS PICTURED, WHAT THE PRICE IS FOR HOLDS THE LEFT COLUMN (the quote round's audit,
-   round 3, D5): the head beside the figures, as an invoice's summary sets it, and the figures on
-   the head's foot line where they are fewer than its lines */
-.doc-sums[data-bare] {
-  padding-block-start: 0;
-}
-/* half and half: what it is for and who it is for on one line beside the figures, where 40% of
-   the measure wrapped "Highfield Patrol 600 Open, for R. Kelleher" over two */
-.doc-sums__body[data-bare] {
+.doc-sums__body[data-beside] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.doc-sums__body[data-bare] > .doc-part {
-  grid-column: 1;
-  grid-row: 1;
-}
-.doc-sums__body[data-bare] > .doc-sums__figs {
-  align-self: end;
-}
-.doc-sums__body[data-bare] .doc-sums__list {
-  padding-block-start: 0;
-}
-.doc-sums__figs {
-  grid-column: 2;
-  grid-row: 1;
-}
-.doc-sums__boat {
-  grid-column: 1;
-  grid-row: 1;
-  margin: 0;
-  padding-block-start: --spacing(2);
-}
-.doc-sums__img {
-  --held-w: 0;
-  --held-h: 1;
-  display: block;
-  inline-size: min(100%, calc(var(--held-w) * 1px));
-  block-size: auto;
-  aspect-ratio: var(--held-w) / var(--held-h);
-  object-fit: contain;
-}
-/* a studio picture stands on the cover's own pale panel, its white multiplied into it */
-.doc-sums__boat[data-ground='studio'] {
-  padding: --spacing(3);
-  background: var(--color-neutral-50);
-}
-.doc-sums__boat[data-ground='studio'] .doc-sums__img {
-  margin-inline: auto;
-  max-block-size: 40mm;
-  inline-size: auto;
-  max-inline-size: min(100%, calc(var(--held-w) * 1px));
-  mix-blend-mode: multiply;
-}
-.doc-sums__name {
-  display: grid;
-  gap: --spacing(0.5);
-  padding-block-start: --spacing(2);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-}
-.doc-sums__title {
-  font-weight: 600;
-  color: var(--color-neutral-900);
-}
-.doc-sums__finish {
-  color: var(--color-neutral-500);
+  column-gap: --spacing(8);
+  align-items: end;
 }
 .doc-sums__list {
   margin: 0;
-  padding-block-start: --spacing(2);
 }
 .doc-sum {
   display: flex;
@@ -1658,47 +1657,6 @@
   color: var(--color-neutral-500);
 }
 
-/* THE LAST SHEET'S ROOM GOES TO THE BOAT (the quote round's audit, round 3, D2; `fillOf` in
-   paginate.ts). Where the price's sheet has room left, its picture stands over the figures at the
-   height the screen measured (`--fill-h`), never past its pixels: a photograph with its name and
-   finish beside it, a studio picture on its pale panel the measure's width with its line under it.
-   On a sheet only: in a hand's single column the picture keeps its own size over the figures, and
-   while the sheaf is gauging the price stands as drawn, so the fill never moves a page break. */
-@media print, screen and (min-width: 826px) {
-  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__boat {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__figs {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__img {
-    block-size: var(--fill-h);
-    inline-size: auto;
-    max-inline-size: 100%;
-  }
-  .doc:not([data-gauging])
-    .doc-sums[data-fill]
-    .doc-sums__boat[data-ground='studio']
-    .doc-sums__img {
-    max-block-size: none;
-    max-inline-size: 100%;
-  }
-  .doc:not([data-gauging]) .doc-sums[data-fill='beside'] .doc-sums__boat {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    column-gap: --spacing(8);
-    align-items: end;
-  }
-  .doc:not([data-gauging]) .doc-sums[data-fill='beside'] .doc-sums__name {
-    padding-block-start: 0;
-  }
-}
-
 /* ---- the last page's own part: validity, who to call, and the two signature blocks ---- */
 /* the last part keeps a line's air under it, so its last words never stand on the foot's rule */
 .doc-accept {
@@ -1737,6 +1695,10 @@
 .doc-sign__who,
 .doc-sign__field[data-word='Signature'] {
   grid-column: 1 / -1;
+}
+/* A BLOCK THAT NAMES ITS SIGNER asks for the signature and the date only, side by side */
+.doc-sign__block[data-named] .doc-sign__field[data-word='Signature'] {
+  grid-column: auto;
 }
 .doc-sign__who {
   margin: 0;
@@ -1777,6 +1739,28 @@
   display: grid;
   justify-items: start;
   gap: --spacing(2);
+}
+/* WHAT SETTINGS DOES NOT HOLD, one to a line, each with the press that opens its field */
+.doc-pick__unset {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(3);
+}
+.doc-pick__unset > li {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(1.5);
+}
+.doc-pick__unset-say {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.doc-pick__unset-say > b {
+  font-weight: 600;
+  color: var(--color-ink);
 }
 .doc-pick__in {
   display: grid;
@@ -2043,17 +2027,10 @@
   .doc:not([data-gauging]) .doc-atom[data-atom='cover'] > * {
     block-size: auto;
   }
-  /* the figures the column's width, the picture over them at no more than its own pixels */
-  .doc:not([data-gauging]) .doc-sums__body {
+  /* the figures under what they are for, the column's width */
+  .doc:not([data-gauging]) .doc-sums__body[data-beside] {
     grid-template-columns: minmax(0, 1fr);
     row-gap: --spacing(4);
-  }
-  .doc:not([data-gauging]) .doc-sums__figs {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .doc:not([data-gauging]) .doc-sums__boat {
-    max-inline-size: 72mm;
   }
   /* a hand's column is as tall as what it holds: a mark keeps its own air, not a picture's room */
   .doc:not([data-gauging]) .doc-shot[data-art='mark'],
@@ -2076,6 +2053,9 @@
   .doc:not([data-gauging]) .doc-sheet__groups {
     column-count: 1;
   }
+  .doc:not([data-gauging]) .doc-sheet__groups[data-parted] {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .doc:not([data-gauging]) .doc-sheet__group[data-flat] .doc-specs {
     column-count: 1;
   }
@@ -2094,11 +2074,7 @@
   /* an item's picture over its name, not beside it: 42 mm of a 358 px column is a third of it */
   .doc:not([data-gauging]) .doc-row[data-pictured],
   .doc:not([data-gauging]) .doc-row[data-pictured][data-qty] {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .doc:not([data-gauging]) .doc-row__pic {
-    grid-column: 1 / -1;
-    inline-size: min(100%, calc(var(--held-w) * 1px), calc(22mm * var(--held-w) / var(--held-h)));
+    grid-template-columns: 18mm minmax(0, 1fr) auto;
   }
   .doc:not([data-gauging]) .doc-cover__mast {
     flex-wrap: wrap;
@@ -2141,6 +2117,14 @@
   }
   .doc:not([data-gauging]) .doc-cover[data-ground='studio'] .doc-shot__img {
     --shot-fit: 60mm;
+  }
+  /* A HAND'S COVER IS AS TALL AS IT NEEDS, SO ITS PHOTOGRAPH IS NEVER FITTED (the owner's fully
+     specced quote, 2026-11-03, doc-390x844-01.png: the Sport 660's bow ran off the right edge). The
+     sheet's fit is a height in the A4 page's own pixels; on a 358 px column it cut the photograph's
+     sides to keep that height. Here the photograph stands whole, in its own proportion. */
+  .doc:not([data-gauging]) .doc-cover[data-ground='photo'] .doc-shot[data-fit] .doc-shot__img {
+    block-size: auto;
+    aspect-ratio: var(--held-w) / var(--held-h);
   }
   .doc:not([data-gauging]) .doc-cover__name,
   .doc:not([data-gauging]) .doc-cover[data-long] .doc-cover__name {

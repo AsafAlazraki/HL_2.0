@@ -4613,10 +4613,15 @@
   color: var(--color-ink);
   text-wrap: balance;
 }
+/* THE CARET IS HANDED TO THE TITLE AS THE PACKAGE OPENS, FOR A READER, AND DRAWS NO RING (the
+   owner's fully specced quote, 2026-11-03: a given quote opened with a dark ring round "Highfield
+   Sport 660" at every size, "as if someone had pressed Tab"). The title is no control and Tab never
+   lands on it (its tab index is -1); a browser draws its focus ring on a caret a script places
+   before any key is pressed, so the ring said a press that never happened. A reader still hears
+   the title, and Tab goes on from it to the package's first control, whose ring is its own. */
+.cfg-pkg__name:focus,
 .cfg-pkg__name:focus-visible {
   outline: none;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-focus);
 }
 .cfg-pkg__detail {
   margin: 0;

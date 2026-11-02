@@ -91,6 +91,9 @@ describe('the printed document', () => {
     const titled = boatTitle(quote.rootTableId, quote.subjectLabel)
     expect(doc.subject.title).toBe(titled.title)
     expect(doc.subject.finish).toBe(titled.finish)
+    /* and its material alone, for the hull's own line (2026-11-03) */
+    expect(doc.subject.material).toBe(boat.material)
+    expect(titled.finish.startsWith(boat.material)).toBe(true)
     /* every frozen measure, with the unit its column or its maker states:
        on the paper, or off it where nobody states the unit — none lost */
     const all = quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec))

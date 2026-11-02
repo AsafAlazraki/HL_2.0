@@ -27,3 +27,23 @@ describe('rigging kits said against the quote’s motor', () => {
     expect(kitsNone(['F60LC'])).toBe('The price list has no rigging kit for the F60LC.')
   })
 })
+
+/** A kit as the build's list holds it: the shared stem, and the motor as its own tail. */
+const shelf = (tail: string): OptionRow =>
+  ({
+    stem: 'Rigging kit for the',
+    tail,
+    listed: 'Helm Master L2 · 6X9 Binnacle',
+    fitted: false,
+  }) as unknown as OptionRow
+
+describe('a kit’s name read as the build’s list holds it', () => {
+  /* THE SHARED STEM AND THE MOTOR ARE TWO WORDS (the owner's fully specced quote, 2026-11-03): the
+     list keeps "Rigging kit for the" as every row's stem and the motor as each one's own tail, and
+     read run together the F200XCB's kit was "theF200XCB", so the list said it had none */
+
+  it('offers the kit for the motor on the quote when the name is split into stem and tail', () => {
+    const rows = [shelf('F200XC'), shelf('F200XCB'), shelf('F200XCC')]
+    expect(kitsForMotors(rows, ['F200XCB']).map((r) => r.tail)).toEqual(['F200XCB'])
+  })
+})

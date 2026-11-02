@@ -152,9 +152,27 @@ export function refusedSay(rule: string): string {
  * optional equipment" does. The row's own copy is the exact boat on the
  * quote and needs no line.
  */
-export function pictured(held: HeldPicture, title = '', boat = true): string | null {
+export function pictured(
+  held: HeldPicture,
+  title = '',
+  boat = true,
+  /** WHAT THIS QUOTE'S OWN IS, where a maker's photograph shows the maker's: its finish is named
+   *  over the line (`finish`), and the motor on the quote by name ('' where it carries none) */
+  yours: { finish: boolean; motor: string } = { finish: false, motor: '' },
+): string | null {
   if (held.tier === 'hero' && held.subject !== '') {
-    return `Pictured: the ${held.subject}, in its maker’s own finish and rig.`
+    /* THE CUSTOMER IS TOLD WHAT THEIRS IS, BESIDE WHAT THE PICTURE SHOWS (the owner's fully specced
+       quote, 2026-11-03: the Sport 660's cover photograph is its maker's, white and grey tubes and
+       another make of outboard, on a quote for Light Grey / White / Dark Blue with a Yamaha
+       F200XCB). Northside holds no photograph of the boat as quoted, so the maker's stands, and
+       the line under it now says where it differs from the quote: the finish named above, and the
+       motor this quote carries. */
+    const own = [
+      yours.finish ? 'in the finish named above' : '',
+      yours.motor === '' ? '' : `with the ${yours.motor}`,
+    ].filter((part) => part !== '')
+    const said = `Pictured: the ${held.subject}, in its maker’s own finish and rig.`
+    return own.length === 0 ? said : `${said} Yours is ${own.join(', ')}.`
   }
   /* A PICTURE OF MORE THAN ONE OUTBOARD (the printed quote's critic, 2026-10-31, blocker 1): a
      repower's cover drew Yamaha's white F115 beside a grey one for one grey F115LB, with nothing

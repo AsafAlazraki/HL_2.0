@@ -36,9 +36,15 @@ import {
   codesOf,
   linesOf,
   deskWhy,
+  gstOnPaper,
   gstSay,
   includesSay,
+  kitsCensus,
   kitsOnPaper,
+  makerSaid,
+  namesOnPaper,
+  quantityShown,
+  specColumns,
   NO_LEVEL_ON_IT,
   noteOnPaper,
   offeredOf,
@@ -625,7 +631,13 @@ describe('what the total includes, and its GST (2026-10-31)', () => {
     const quote = minted('boat_stacer', '529 Assault Pro')
     expect(gstSay(readDocument(quote))).toBe('')
     const doc = readDocument({ ...quote, taxRate: 10 })
-    expect(gstSay(doc)).toBe(`Includes GST of ${money(doc.totals.total / 11)} at 10%`)
+    /* REWRITTEN 2026-11-03: in whole dollars, as every other figure on the paper ("$11,377.91" and
+       "$113,779.09" were the only figures with cents on the owner's fully specced quote) */
+    const gst = Math.round(doc.totals.total / 11)
+    expect(gstSay(doc)).toBe(`Includes GST of ${money(gst)} at 10%`)
+    /* and "Before GST" is the total less that dollar figure, so the two add up to the total */
+    expect(gstOnPaper(doc)).toEqual({ rate: 10, gst, before: doc.totals.total - gst })
+    expect(gstOnPaper(readDocument(quote))).toBeNull()
   })
 
   it('numbers the bands the paper prints 01, 02, 03 with none skipped', () => {
@@ -676,5 +688,82 @@ describe('a quote for one thing alone (2026-11-02)', () => {
       soleLine({ ...beside, adjustments: [{ id: 'a' } as (typeof doc.adjustments)[number]] }),
     ).toBeNull()
     expect(soleLine({ ...beside, typed: [line] })).toBeNull()
+  })
+})
+
+/* ============================================================
+   THE OWNER'S FULLY SPECCED QUOTE, READ AS PRINTED (2026-11-03): one style for every item's
+   name, a quantity on every part, the specification's columns even, and the rigging kits said by
+   the motor as the build offers them.
+   ============================================================ */
+/** A group of the specification of `n` rows, and what a column of them weighs. */
+const g = (name: string, n: number) => ({ id: name, name, rows: Array.from({ length: n }) })
+const weigh = (side: ReturnType<typeof g>[]) => side.reduce((n, x) => n + x.rows.length + 1.5, 0)
+
+describe('the owner’s fully specced quote, its printed faults', () => {
+  it('names a maker and its model one way, and leaves a dot that parts no maker', () => {
+    expect(makerSaid('Garmin · GPSMAP 1222xsv')).toBe('Garmin GPSMAP 1222xsv')
+    expect(makerSaid('Fusion · Apollo 770 Marine Stereo')).toBe('Fusion Apollo 770 Marine Stereo')
+    expect(makerSaid('Garmin GT56 UHD-TM Transom Mount Transducer')).toBe(
+      'Garmin GT56 UHD-TM Transom Mount Transducer',
+    )
+    expect(makerSaid('Tube Covers to suit Hypalon Boat · 6.6 m')).toBe(
+      'Tube Covers to suit Hypalon Boat · 6.6 m',
+    )
+    expect(makerSaid('Battery Box · Large')).toBe('Battery Box · Large')
+    expect(makerSaid('Anchor · 5 kg')).toBe('Anchor · 5 kg')
+  })
+
+  it('names every item but the hull that way on the paper', () => {
+    const doc = namesOnPaper(readDocument(minted('boat_highfield', 'SP660 (HYP) LG-W-DB')))
+    const hull = doc.sections.flatMap((s) => s.tables).find((t) => t.subject)!
+    expect(hull.lines[0]!.said).toContain(' · ')
+    for (const line of linesOf(doc).filter((l) => !hull.lines.includes(l)))
+      expect(line.said).toBe(makerSaid(line.said))
+  })
+
+  it('counts every part: Dealer fit always prints a quantity, a motor’s band only past one', () => {
+    const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
+    for (const band of bandsOnPaper(doc)) {
+      const many = band.tables.some((t) => t.lines.some((l) => l.qty > 1))
+      expect(quantityShown(band)).toBe(band.section.id === 'fit' || many)
+    }
+  })
+
+  it('parts the specification into two columns as evenly as whole groups allow', () => {
+    /* the Sport 660's: Size 6, Power 3, Capacity 3, Details 2 — flowed in order, the left column
+       held 9 rows and the right 5 */
+    const [left, right] = specColumns([
+      g('Size', 6),
+      g('Power', 3),
+      g('Capacity', 3),
+      g('Details', 2),
+    ])
+    expect(left[0]!.name).toBe('Size')
+    expect(Math.abs(weigh(left) - weigh(right))).toBeLessThanOrEqual(2)
+    expect([...left, ...right].map((x) => x.name).toSorted()).toEqual([
+      'Capacity',
+      'Details',
+      'Power',
+      'Size',
+    ])
+    /* each column keeps the sheet's order */
+    const order = ['Size', 'Power', 'Capacity', 'Details']
+    for (const side of [left, right]) {
+      const at = side.map((x) => order.indexOf(x.name))
+      expect(at).toEqual(at.toSorted((a, b) => a - b))
+    }
+    /* a sheet of one list is not parted */
+    expect(specColumns([g('', 11)])).toEqual([[g('', 11)], []])
+  })
+
+  it('says a rigging kit register by the motor, never by the frozen count the build no longer offers', () => {
+    const quote = minted('boat_stacer', '519 Sea Ranger SDF')
+    const doc = kitsOnPaper(readDocument(quote))
+    const kits = offeredOf(doc).find((o) => /rigging kits?/i.test(o.title))
+    if (kits) expect(offeredSay(kits)).not.toMatch(/\d+ offered/)
+    /* with no motor on the quote */
+    const bare = { ...doc, sections: doc.sections.filter((s) => s.kind !== 'motor') }
+    expect(kitsCensus(bare)).toBe('none taken, because this quote has no motor for a kit to fit')
   })
 })

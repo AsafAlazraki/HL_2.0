@@ -95,7 +95,8 @@ test('the details set on /manage print on the next quote given, and never move o
 
   /* the given quote prints what it printed before, read again after a reload */
   await page.goto(documentAt)
-  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/, {
+  /* the last foot: the cover's says nothing from 2026-11-03 (the owner's fully specced quote) */
+  await expect(page.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/, {
     timeout: 30_000,
   })
   const again = page.getByTestId('document').getByTestId('letterhead')

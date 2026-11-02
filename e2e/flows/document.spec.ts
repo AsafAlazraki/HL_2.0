@@ -183,13 +183,14 @@ async function written(page: Page): Promise<void> {
 }
 
 /** The document, arrived at and settled: the page assignment is made
- *  in a layout effect, so `of N` on the foot is the proof it ran. */
+ *  in a layout effect, so `of N` on the last foot is the proof it ran (the cover's foot says
+ *  nothing from 2026-11-03, the owner's fully specced quote: "Page 1 of 4" stood on a cover). */
 async function openTheDocument(page: Page, id: string): Promise<void> {
   await written(page)
   await page.goto(`/quote/${id}/document`)
   await expect(page.getByTestId('document')).toBeVisible()
   await expect(page.locator('.doc-page').first()).toBeVisible()
-  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+  await expect(page.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/)
 }
 
 /* ============================================================ */
@@ -724,6 +725,8 @@ test.describe('print', () => {
     const id = await issueAQuote(page)
     await openTheDocument(page, id)
 
+    /* the pictures packed for the printer, as a press of Print waits for them (`usePrinted`) */
+    await expect(page.locator('.doc-sheaf[data-pictures="ready"]')).toBeVisible()
     const onFloor = await page.locator('.doc-page').count()
     expect(onFloor).toBeGreaterThan(1)
 
@@ -755,8 +758,16 @@ test.describe('print', () => {
     expect(pages.length, 'PDF.js and the page tree disagree on the count').toBe(onFloor)
     /* the reference is set in the paper's own face, not a third, mono one (the printed quote's
        critic, 2026-10-31, minor 24) */
-    const reference = (await page.locator('.doc-page__foot .doc-ref').first().innerText()).trim()
+    const reference = (await page.locator('.doc-sheaf .doc-ref').first().innerText()).trim()
     expect(reference).toMatch(/^\d{8}-\d{2}$/)
+    /* ONCE A PAGE, AND NEVER IN A FOOT (the owner's fully specced quote, 2026-11-03: it printed
+       twice on every page and three times on the cover) */
+    await expect(page.locator('.doc-page__foot .doc-ref')).toHaveCount(0)
+    /* A FILE A MAIL SYSTEM TAKES: 13.9 MB for four pages, most of it the cover's photograph
+       handed over as raw pixels; the paper hands its pictures over as JPEGs (`usePrinted`) */
+    expect(statSync(file).size, 'the PDF is too heavy to attach').toBeLessThan(5_000_000)
+    /* AND ITS TRACKED CAPITALS READ AS WORDS: "Q U O T A T I O N" was not found by a search */
+    expect(pages[0], 'the cover’s kind is not a searchable word').toMatch(/QUOTATION/)
     /* THE DEALERSHIP ON PAGE 1 is its own mark once one is held (2026-10-20): a picture, so it
        is read off the floor and off the PDF's image objects, and the name in type is the
        running head of every page after it. With no mark, the name is page 1's text. */
@@ -939,7 +950,7 @@ test('the build and the paper say the motor and the trailer as a person does', a
   await expect(build.getByTestId('given-seal')).toBeVisible()
   await page.getByRole('button', { name: 'Open the printed quote' }).first().click()
   await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
-  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+  await expect(page.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/)
 
   /* THE PAPER: every line the customer reads is a name, never a key */
   /* read as words: a no-break space that keeps a separator with its
@@ -1068,11 +1079,14 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
   await expect(build.getByTestId('given-seal')).toBeVisible()
   await page.getByRole('button', { name: 'Open the printed quote' }).first().click()
   await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
-  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+  await expect(page.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/)
   const shot = page.locator('.doc-shot')
   await expect(shot).toHaveAttribute('data-art', 'photograph')
   const cover = shot.locator('.doc-shot__img')
-  await expect(cover).toHaveAttribute('src', new RegExp(`${escapeRe(hero.file)}$`))
+  /* drawn from the held copy, or from the JPEG of it the printer is handed (`usePrinted`, the
+     owner's fully specced quote, 2026-11-03: 13.9 MB of raw pixels) */
+  await expect(cover).toHaveAttribute('data-held', new RegExp(`${escapeRe(hero.file)}$`))
+  await expect(cover).toHaveAttribute('src', new RegExp(`(${escapeRe(hero.file)}$|^blob:)`))
   expect(await cover.evaluate((el) => getComputedStyle(el).viewTransitionName)).toBe(travels)
   /* its line under the name, on the night's ground (2026-11-02, cover-pick.md: it stood under the
      picture, inside the figure) */
@@ -1163,7 +1177,7 @@ test('a colour kept on Settings after the give never reaches the given paper', a
   await written(page)
 
   await page.goto(documentAt)
-  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/, {
+  await expect(page.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/, {
     timeout: 30_000,
   })
   /* the app wears the new colour; the paper given before it does not */
@@ -1234,7 +1248,9 @@ test('the reference prints on one line beside a full contact line, on screen and
     await openTheDocument(page, id)
     await expect(page.locator('.doc-cover__contact').first()).toContainText('Gympie Road')
     const said = await referenceLines(page)
-    expect(said.length, 'no reference printed').toBeGreaterThan(2)
+    /* the cover's stamp and each later page's running head (REWRITTEN 2026-11-03: the foot of every
+       page printed it too, twice a page under a head that already said it) */
+    expect(said.length, 'no reference printed').toBeGreaterThan(1)
     for (const one of said) expect(one, `at ${width}`).toMatchObject({ lines: 1 })
     /* and the stamp's first line, "QUOTATION · 20261030-01", is one line: the word never stands
        over its number */
@@ -1299,13 +1315,14 @@ async function giveAndOpen(page: Page): Promise<string> {
   return id!
 }
 
-test('a last sheet with room gives it to the boat’s picture, never past its pixels', async ({
+/* REWRITTEN 2026-11-03 to the owner's fully specced quote: "Your price" drew the cover's photograph
+   a second time, which "adds nothing and the composition is unbalanced", so the last sheet's room
+   is no longer the picture's. The price and the signatures stand on it whole, the cover's picture
+   is not drawn there again, and nothing runs past the sheet. */
+test('a last sheet prints the price and the signatures, and never the cover’s picture again', async ({
   page,
-  viewport,
 }) => {
   await throughTheDoor(page)
-  /* the Yamaha F115LB on its own: the cover, then its price and the signatures, about a third of
-     the sheet left over (round 3 measured 52 mm of it between them) */
   await page.goto('/quote/new')
   const shelves = page.getByRole('region', { name: 'Sold on its own' })
   const door = shelves.getByRole('button', { name: /^Yamaha Outboards, / })
@@ -1325,54 +1342,17 @@ test('a last sheet with room gives it to the boat’s picture, never past its pi
   await expect(page.getByTestId('configurator')).toBeVisible()
   await giveAndOpen(page)
 
-  const sheet = (viewport?.width ?? 0) >= 826
-  const read = () =>
-    page.evaluate(() => {
-      const img = document.querySelector<HTMLImageElement>('.doc-sums__img')!
-      const pic = img.getBoundingClientRect()
-      const price = document.querySelector('.doc-atom[data-atom="price"]')!.getBoundingClientRect()
-      const accept = document
-        .querySelector('.doc-atom[data-atom="accept"]')!
-        .getBoundingClientRect()
-      const flow = document
-        .querySelector('.doc-atom[data-atom="accept"]')!
-        .closest('.doc-page__flow')!
-        .getBoundingClientRect()
-      return {
-        fill: document.querySelector('.doc-sums')!.getAttribute('data-fill'),
-        w: pic.width,
-        h: pic.height,
-        held: { w: img.naturalWidth, h: img.naturalHeight },
-        gap: accept.top - price.bottom,
-        under: flow.bottom - accept.bottom,
-        overflow: accept.bottom - flow.bottom,
-      }
-    })
-  await expect.poll(async () => (await read()).held.w).toBeGreaterThan(0)
-  const drawn = await read()
-  /* never past its pixels, never out of its proportion */
-  expect(drawn.w).toBeLessThanOrEqual(drawn.held.w + 0.5)
-  expect(drawn.h).toBeLessThanOrEqual(drawn.held.h + 0.5)
-  expect(Math.abs(drawn.w / drawn.h - drawn.held.w / drawn.held.h)).toBeLessThan(0.02)
-  if (sheet) {
-    /* on a sheet: the picture takes the room, and what is left is the air either side of the
-       signatures (`FILL_AIR`, 40 px), never a band of white */
-    expect(drawn.fill).toMatch(/^(beside|under)$/)
-    expect(drawn.gap).toBeLessThanOrEqual(24)
-    expect(drawn.under).toBeLessThanOrEqual(24)
-    expect(drawn.overflow).toBeLessThanOrEqual(0.5)
-  }
-  /* AND THE PRINTER IS HANDED THE SAME SHEET: the print dialogue hides the gauge, which once
-     unfilled the price on its way to the tray */
-  if ((viewport?.width ?? 0) === 1440) {
-    await page.emulateMedia({ media: 'print' })
-    await page.waitForTimeout(300)
-    const printed = await read()
-    expect(printed.fill).toBe(drawn.fill)
-    expect(printed.h).toBeGreaterThan(200)
-    expect(printed.overflow).toBeLessThanOrEqual(0.5)
-    await page.emulateMedia({ media: 'screen' })
-  }
+  await expect(page.locator('.doc-sums img')).toHaveCount(0)
+  const overflow = await page.evaluate(() => {
+    const accept = document.querySelector('.doc-atom[data-atom="accept"]')!
+    const flow = accept.closest('.doc-page__flow')!.getBoundingClientRect()
+    return accept.getBoundingClientRect().bottom - flow.bottom
+  })
+  expect(overflow).toBeLessThanOrEqual(0.5)
+  /* the price and the signatures share their sheet */
+  const last = page.locator('.doc-page').last()
+  await expect(last.locator('.doc-sums')).toHaveCount(1)
+  await expect(last.locator('.doc-accept')).toHaveCount(1)
 })
 
 test('a hull alone with no picture prints its price beside its head, under the specification', async ({
@@ -1383,7 +1363,7 @@ test('a hull alone with no picture prints its price beside its head, under the s
   await pickAndStart(page, 'boat_highfield', 'PA600')
   await giveAndOpen(page)
   const price = page.locator('.doc-sums')
-  await expect(price).toHaveAttribute('data-bare', '')
+  await expect(price.locator('.doc-sums__body')).toHaveAttribute('data-beside', '')
   /* two sheets, the cover and the specification with the price and the signatures under it */
   await expect(page.locator('.doc-page')).toHaveCount(2)
   const second = page.locator('.doc-page').nth(1)

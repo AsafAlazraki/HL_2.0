@@ -301,7 +301,8 @@ test('the shelf: a copy saved, everything forgotten, and the copy brought back i
 
   /* AND THE QUOTE THAT CAME BACK PRINTS THE PAPER IT WAS GIVEN AS — every word, read whole */
   await page.goto(`/quote/${id}/document`)
-  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/, {
+  /* the last foot: the cover's says nothing from 2026-11-03 (the owner's fully specced quote) */
+  await expect(page.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/, {
     timeout: 30_000,
   })
   const back = page.getByTestId('document').getByTestId('letterhead')

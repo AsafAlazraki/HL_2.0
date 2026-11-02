@@ -7,15 +7,7 @@
    page assignment nobody checks.
    ============================================================ */
 import { describe, expect, it } from 'vitest'
-import {
-  FILL_AIR,
-  FILL_LEAST,
-  LINE_BESIDE,
-  fillOf,
-  paginate,
-  type Atom,
-  type FillReading,
-} from './paginate'
+import { paginate, type Atom } from './paginate'
 
 /** n atoms of one height, named by their index. */
 const rows = (n: number, height: number, from = 0): Atom[] =>
@@ -174,72 +166,95 @@ describe('what an atom gives up where it opens a page (2026-11-03, the Patrol 60
   })
 })
 
-describe('the last sheet’s room goes to the boat (the quote round’s audit, round 3, D2)', () => {
-  /* the Stacer 499's last sheet at 1440, as gauged: the price 280 tall beside its 1,100 × 733
-     photograph drawn 231 × 154, then the signatures, 606 of a room of 934 */
-  const stacer: FillReading = {
-    room: 934,
-    used: 606,
-    atom: 280,
-    above: 76,
-    boat: 8,
-    line: 42,
-    picture: 154,
-    gap: 24,
-    figs: 176,
-    width: 658,
-    inset: 0,
-    held: { width: 1100, height: 733 },
-    beside: true,
-  }
+describe('the sheets are evened (the owner’s fully specced quote, 2026-11-03)', () => {
+  /* the Sport 660 at its shape: the specification opens page 2, the quote's head, the hull and the
+     motor follow it; the trailer and Dealer fit run on to page 3; the price and the signatures
+     open nothing, so they could follow on, but they keep together and do not fit page 3 */
+  const atoms: Atom[] = [
+    { id: 'specs', height: 420, breakBefore: true },
+    { id: 'quote-head', height: 90, keepWithNext: 1 },
+    { id: 'sec:hull', height: 50, keepWithNext: 1 },
+    { id: 'line:hull', height: 70 },
+    { id: 'sec:motor', height: 50, keepWithNext: 1 },
+    { id: 'line:motor', height: 100 },
+    { id: 'sec:trailer', height: 50, keepWithNext: 1 },
+    { id: 'line:trailer', height: 80 },
+    { id: 'sec:fit', height: 50, keepWithNext: 1 },
+    { id: 'line:a', height: 60 },
+    { id: 'line:b', height: 60 },
+    { id: 'line:c', height: 60 },
+    { id: 'price', height: 400, keepWithNext: 1 },
+    { id: 'accept', height: 250 },
+  ]
 
-  it('draws the photograph larger, its line beside it, until the sheet is full but for its air', () => {
-    const fill = fillOf(stacer)
-    expect(fill?.beside).toBe(true)
-    /* the budget: 280 + 328 − 40 − 76 − 8 − 24 − 176 = 284, under the measure's 458 × 305 */
-    expect(fill?.height).toBe(280 + (934 - 606) - FILL_AIR - 76 - 8 - 24 - 176)
-    /* and so the price stands no taller than the room it was given */
-    const drawn = 76 + 8 + fill!.height + 24 + 176
-    expect(drawn).toBeLessThanOrEqual(280 + (934 - 606) - FILL_AIR)
+  it('moves the end of a full sheet on to the next where the two then end nearer even', () => {
+    const pages = paginate(atoms, 800)
+    expect(pages).toEqual([
+      ['specs', 'quote-head', 'sec:hull', 'line:hull'],
+      [
+        'sec:motor',
+        'line:motor',
+        'sec:trailer',
+        'line:trailer',
+        'sec:fit',
+        'line:a',
+        'line:b',
+        'line:c',
+      ],
+      ['price', 'accept'],
+    ])
   })
 
-  it('never draws the picture past its pixels, nor wider than the measure leaves it', () => {
-    const small = fillOf({ ...stacer, held: { width: 300, height: 200 } })
-    expect(small?.height).toBe(200)
-    /* with a sheet of room the photograph takes the whole measure, its line under it */
-    const tall = fillOf({ ...stacer, used: 0, atom: 280 })
-    expect(tall).toEqual({ height: Math.floor((658 * 733) / 1100), beside: false })
-    /* with less, it stands beside its line, at most the measure less the line's column */
-    const mid = fillOf({ ...stacer, used: 550 })
-    expect(mid?.beside).toBe(true)
-    expect(mid?.height).toBe(Math.floor(((658 - LINE_BESIDE) * 733) / 1100))
+  it('never parts a head from what it keeps, never moves across a part that opens its own sheet, and never adds a sheet', () => {
+    const pages = paginate(atoms, 800)
+    for (const page of pages) expect(page.at(-1)).not.toMatch(/^(sec:|quote-head)/)
+    expect(pages[0]![0]).toBe('specs')
+    expect(pages).toHaveLength(3)
+    /* a sheet opening a part of its own is never filled from the one before it */
+    const opened = paginate(
+      [
+        { id: 'a', height: 700 },
+        { id: 'b', height: 100 },
+        { id: 'c', height: 100, breakBefore: true },
+      ],
+      800,
+    )
+    expect(opened).toEqual([['a', 'b'], ['c']])
   })
 
-  it('sets a studio picture on the measure with its line under it', () => {
-    /* the F115LB: Yamaha's 800 × 600 studio picture on its pale panel, 24 px of panel either side */
-    const motor = fillOf({
-      ...stacer,
-      used: 625,
-      atom: 299,
-      above: 99,
-      boat: 24,
-      line: 25,
-      picture: 151,
-      figs: 132,
-      inset: 24,
-      held: { width: 800, height: 600 },
-      beside: false,
-    })
-    expect(motor?.beside).toBe(false)
-    expect(motor?.height).toBe(299 + (934 - 625) - FILL_AIR - 99 - 24 - 24 - 132 - 25)
+  it('leaves two sheets as they are where no break leaves them nearer even by a line', () => {
+    expect(
+      paginate(
+        [
+          { id: 'a', height: 400 },
+          { id: 'b', height: 390 },
+          { id: 'c', height: 380 },
+        ],
+        800,
+      ),
+    ).toEqual([['a', 'b'], ['c']])
   })
+})
 
-  it('leaves a full sheet, and a picture that would grow by less than a line, as they were', () => {
-    /* the Sport 560's last sheet: 911 of 934 */
-    expect(fillOf({ ...stacer, used: 911 })).toBeNull()
-    expect(fillOf({ ...stacer, used: 934 - FILL_AIR - FILL_LEAST + 1 })).toBeNull()
-    expect(fillOf({ ...stacer, held: { width: 0, height: 0 } })).toBeNull()
-    /* a picture already as large as its pixels */
-    expect(fillOf({ ...stacer, picture: 733, held: { width: 1100, height: 733 } })).toBeNull()
+describe('the evening runs until nothing moves', () => {
+  it('lets a sheet that gave its end to the next take from the one before it', () => {
+    /* three sheets of runs: the middle sheet gives its end to the last, and then has room to take
+       the end of the first */
+    const atoms: Atom[] = [
+      { id: 'a', height: 300 },
+      { id: 'b', height: 300 },
+      { id: 'c', height: 150 },
+      { id: 'd', height: 300 },
+      { id: 'e', height: 300 },
+      { id: 'f', height: 150 },
+      { id: 'g', height: 100 },
+    ]
+    const pages = paginate(atoms, 800)
+    expect(pages).toHaveLength(3)
+    const used = pages.map((page) =>
+      page.reduce((n, id) => n + (atoms.find((a) => a.id === id)?.height ?? 0), 0),
+    )
+    /* no sheet ends more than half empty, where filling in turn left the last at 100 of 800 */
+    for (const u of used) expect(u).toBeGreaterThanOrEqual(400)
   })
 })

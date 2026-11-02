@@ -546,7 +546,7 @@ test('the boat chosen in its chapter, and the final package over the window', as
   const paper = pkg.getByTestId('document')
   await expect(paper).toBeVisible()
   await expect(paper.locator('.doc-page').first()).toBeVisible()
-  await expect(paper.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+  await expect(paper.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/)
   await expect(paper.locator('.doc-page').first()).toContainText('Jordan Avery')
   /* never wider than its column: nothing of the page is cut */
   expect(

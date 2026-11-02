@@ -129,6 +129,97 @@ export function soleLine(doc: PrintedQuote): DocumentLine | null {
 export const hasQuantity = (lines: readonly DocumentLine[]): boolean =>
   lines.some((line) => line.qty > 1)
 
+/**
+ * WHERE THE PAPER PRINTS A QUANTITY: every band of parts, and any other where a line is at more than
+ * one. Read as the customer on the owner's fully specced quote (2026-11-03), no part said how many it
+ * was, "so a customer cannot tell whether $209 buys one speaker or a pair". A motor, a trailer and a
+ * hull are one by what they are; a part is counted, so Dealer fit always says how many.
+ */
+export const quantityShown = (band: Pick<PaperBand, 'section' | 'tables'>): boolean =>
+  band.section.id === 'fit' || hasQuantity(band.tables.flatMap((t) => t.lines))
+
+/** "Fusion · Apollo 770 Marine Stereo": a one-word maker parted from its model by the dot. Not a size after
+ *  a dot ("Tube Covers … · 6.6 m", "Battery Box · Large" keep theirs: their first part is no maker). */
+const MAKER_DOT = /^(\p{Lu}[\p{L}\p{N}&'’-]*) · (?=\p{L})/u
+
+/**
+ * EVERY ITEM NAMED IN ONE STYLE (the owner's fully specced quote, 2026-11-03: the chartplotter and
+ * the Fusion stereo were named with a dot between the maker and the model, the transducer and the
+ * speakers without one). The price list writes
+ * some makers "Fusion - Apollo" and some "Garmin GT56"; a person says both the second way, so the
+ * paper does: the maker and its model, a space between. The hull keeps its own " · " (its model,
+ * its material, its colours), and a name whose first part is no one-word maker keeps its dot.
+ */
+export function makerSaid(said: string): string {
+  return said.replace(MAKER_DOT, '$1 ')
+}
+
+/** The document with every item but the hull named as `makerSaid` names it. */
+export function namesOnPaper(doc: PrintedQuote): PrintedQuote {
+  const named = (line: DocumentLine): DocumentLine => {
+    const said = makerSaid(line.said)
+    return said === line.said ? line : { ...line, said }
+  }
+  return {
+    ...doc,
+    sections: doc.sections.map((s) => ({
+      ...s,
+      tables: s.tables.map((t) => (t.subject ? t : { ...t, lines: t.lines.map(named) })),
+    })),
+  }
+}
+
+/** A group of the specification as the two columns weigh it. */
+interface Weighed<T> {
+  group: T
+  weight: number
+}
+
+/** What a group's head weighs against its rows: its caps, its rule and the air over it. */
+const HEAD_WEIGHT = 1.5
+
+/** What a column of groups weighs. */
+const weightOf = (side: ReadonlyArray<{ weight: number }>): number =>
+  side.reduce((n, w) => n + w.weight, 0)
+
+/**
+ * THE SPECIFICATION'S TWO COLUMNS, BALANCED (the owner's fully specced quote, 2026-11-03: the Sport
+ * 660's left column, Size and Power, ended 120 pt below the right, Capacity and Details, "a block
+ * about 120 pt tall and 230 pt wide empty under 'Air chambers'"). The browser's columns flowed the
+ * groups in their order and broke only between groups, so a group of six then one of three stood
+ * against two of three and two. Here every way of parting the groups into two columns is weighed —
+ * a row is one, a head is `HEAD_WEIGHT` — and the most even wins, each column keeping the sheet's
+ * order and the first group heading the left. Pure; a group is never split. A sheet of one list
+ * (`sheetOnPaper`'s unnamed group) is not parted: it sets its own two columns.
+ */
+export function specColumns<T extends { name: string; rows: readonly unknown[] }>(
+  groups: readonly T[],
+): [T[], T[]] {
+  if (groups.length < 2 || groups.some((g) => g.name === '')) return [[...groups], []]
+  const weighed: Weighed<T>[] = groups.map((group) => ({
+    group,
+    weight: group.rows.length + HEAD_WEIGHT,
+  }))
+  let best: { left: T[]; right: T[]; gap: number } | null = null
+  /* the first group always heads the left column, so only the others are placed: 2^(n-1) ways */
+  const ways = 1 << (weighed.length - 1)
+  for (let mask = 0; mask < ways; mask++) {
+    const left: Weighed<T>[] = [weighed[0]!]
+    const right: Weighed<T>[] = []
+    for (let i = 1; i < weighed.length; i++) {
+      if (mask & (1 << (i - 1))) right.push(weighed[i]!)
+      else left.push(weighed[i]!)
+    }
+    if (right.length === 0) continue
+    const gap = Math.abs(weightOf(left) - weightOf(right))
+    /* the most even; on a tie, the left the taller (a page reads down the left first) */
+    if (best === null || gap < best.gap - 1e-9) {
+      best = { left: left.map((w) => w.group), right: right.map((w) => w.group), gap }
+    }
+  }
+  return best === null ? [[...groups], []] : [best.left, best.right]
+}
+
 /** The money cell's word, or '' where a figure prints. Exactly one of
  *  three things, as the engine promises for its own column. */
 export function cellWord(line: DocumentLine): string {
@@ -290,9 +381,30 @@ export const TOTAL_SAID = 'Total, including GST'
  * no rate is set, which prints nothing and invents no rate.
  */
 export function gstSay(doc: PrintedQuote): string {
+  const gst = gstOnPaper(doc)
+  if (gst === null) return ''
+  return `Includes GST of ${money(gst.gst)} at ${gst.rate.toLocaleString('en-AU')}%`
+}
+
+/** The GST in the total and the total before it, as the paper prints them. */
+export interface GstOnPaper {
+  rate: number
+  gst: number
+  before: number
+}
+
+/**
+ * THE GST IN WHOLE DOLLARS, LIKE EVERY OTHER FIGURE ON THE PAPER (the owner's fully specced quote,
+ * read 2026-11-03: "$11,377.91" and "$113,779.09" were the only figures with cents on four pages).
+ * The GST is worked over the whole total as Northside's workbook works it (`totals.ts`), rounded to
+ * the dollar, and "Before GST" is the total less that dollar figure, so the two still add up to the
+ * total printed above them. null where no rate is set: no rate is ever assumed.
+ */
+export function gstOnPaper(doc: Pick<PrintedQuote, 'totals'>): GstOnPaper | null {
   const t = doc.totals
-  if (t.taxRate === null || t.taxAmount === null) return ''
-  return `Includes GST of ${money(t.taxAmount)} at ${t.taxRate.toLocaleString('en-AU')}%`
+  if (t.taxRate === null || t.taxAmount === null) return null
+  const gst = Math.round(t.taxAmount)
+  return { rate: t.taxRate, gst, before: t.total - gst }
 }
 
 /** What a band's item is called inside a sentence: "the motor's pre-delivery". */
@@ -391,6 +503,20 @@ export function offeredOf(doc: PrintedQuote): Offered[] {
       if (table.subject) continue
       if (boatless && table.kind === 'boat') continue
       const took = table.lines.length
+      /* A RIGGING KIT IS COUNTED BY THE MOTOR, AS THE BUILD OFFERS IT (the owner's fully specced
+         quote, 2026-11-03: Dealer fit said "The price list has no rigging kit for the F200XCB" and
+         this note said "Rigging Kits: 7 offered, none taken"). The frozen count is every kit the
+         boat's pairings list, for every motor it may carry; the build offers only the kit for the
+         motor on the quote, so the note says that kit, and never the count. */
+      if (RIGGING_KITS.test(table.title)) {
+        if (took > 0) {
+          if (table.held > 0)
+            out.push({ title: table.title, took, more: 0, held: table.held, say: '' })
+          continue
+        }
+        out.push({ title: table.title, took, more: 0, held: table.held, say: kitsCensus(doc) })
+        continue
+      }
       if (took > 0 && table.optional === 0 && table.held === 0) continue
       out.push({
         title: table.title,
@@ -612,6 +738,29 @@ const factOf = (line: DocumentLine, label: string): string =>
 function modelOf(motor: string): string {
   const model = motor.replace(/^\S+(?:\s+·)?\s+/, '')
   return model === '' ? motor : model
+}
+
+/** The motors on the quote, as the paper prints them. */
+const motorsOf = (doc: PrintedQuote): DocumentLine[] =>
+  doc.sections
+    .flatMap((s) => s.tables)
+    .filter((t) => t.kind === 'motor')
+    .flatMap((t) => t.lines)
+
+/**
+ * WHAT THE NOTE SAYS OF A RIGGING KIT REGISTER THAT PUT NOTHING ON THE QUOTE, by the motor it is
+ * for (`offeredOf`): the kit the motor's own pairing names is not on the quote (the workshop's row
+ * names it), or none was taken for the motor, or the quote has no motor for a kit to be made for.
+ */
+export function kitsCensus(doc: PrintedQuote): string {
+  const motors = motorsOf(doc)
+  if (motors.length === 0) return 'none taken, because this quote has no motor for a kit to fit'
+  const named = motors.filter((m) => factOf(m, 'rigging kit option') !== '')
+  const said = (ms: readonly DocumentLine[]): string =>
+    ms.map((m) => `the ${modelOf(m.said)}`).join(' and ')
+  if (named.length > 0)
+    return `${said(named)}’s own kit is not on this quote; For the workshop names it`
+  return `none taken for ${said(motors)}`
 }
 
 /**

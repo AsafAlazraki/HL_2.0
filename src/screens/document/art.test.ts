@@ -12,6 +12,7 @@ import {
   coverSay,
   groundOf,
   notPrintedSay,
+  pictured,
   spanOf,
   type CoverArt,
 } from './art'
@@ -166,5 +167,28 @@ describe('what the panel where the paper is chosen says of the cover', () => {
     )
     const marked = held({ id: 'h', tier: 'hero', person: true })
     expect(coverAskAct('boat', marked)).not.toMatch(/maker’s photograph is not printed/)
+  })
+})
+
+describe('the line under a maker’s photograph says what this quote’s own is (2026-11-03)', () => {
+  /* the owner's fully specced quote: the Sport 660's photograph is its maker's, another outboard and
+     another colour, on a quote for Light Grey / White / Dark Blue with a Yamaha F200XCB */
+  const hero = held({ tier: 'hero', subject: 'Highfield Sport 660 on the water', differs: [] })
+
+  it('names the finish above and the motor on the quote beside what the picture shows', () => {
+    expect(
+      pictured(hero, 'Highfield Sport 660', true, { finish: true, motor: 'Yamaha F200XCB' }),
+    ).toBe(
+      'Pictured: the Highfield Sport 660 on the water, in its maker’s own finish and rig. Yours is in the finish named above, with the Yamaha F200XCB.',
+    )
+  })
+
+  it('says only what the quote carries, and nothing more where it carries neither', () => {
+    expect(pictured(hero, '', true, { finish: false, motor: 'Yamaha F90LB' })).toBe(
+      'Pictured: the Highfield Sport 660 on the water, in its maker’s own finish and rig. Yours is with the Yamaha F90LB.',
+    )
+    expect(pictured(hero)).toBe(
+      'Pictured: the Highfield Sport 660 on the water, in its maker’s own finish and rig.',
+    )
   })
 })

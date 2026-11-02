@@ -128,91 +128,84 @@ export function paginate(atoms: readonly Atom[], room: number): string[][] {
   /* a page that nothing landed on is a page nobody asked for — it
      happens when the last atom carried `breakBefore` and was the only
      thing left */
-  return pages.filter((page) => page.length > 0)
+  return balanced(
+    pages.filter((page) => page.length > 0),
+    atoms,
+    room,
+  )
 }
 
 /* ============================================================
-   THE LAST SHEET'S ROOM GOES TO THE BOAT (the quote round's audit,
-   round 3, D2, 2026-11-03).
+   AND THEN THE SHEETS ARE EVENED (the owner's fully specced quote, read
+   2026-11-03: "the page breaks leave a lot of blank paper. On page 2 the
+   last content ends at ~690 pt … on page 3 the last line ends at ~598
+   pt, so about 180 pt (22% of the page) is blank").
 
-   A last sheet that holds only "Your price" and the signatures has
-   room left on it, and three rounds placed that room three ways: under
-   the signatures (round 1: "the lower third blank"), between the price
-   and the signatures (round 2: "about 210px of empty page"), and shared
-   above and below them (round 3: "a band of white still stands between
-   them", 52–74 mm). Each was the same white moved about. Where the
-   price carries the cover's own picture, the room is the picture's
-   instead: it is drawn larger, over the figures, until the sheet is
-   full but for `FILL_AIR`, and the signatures follow the figures.
-
-   THE PICTURE IS NEVER ENLARGED AND NEVER CROPPED. It grows only up to
-   the pixels held (`held`), and only as wide as the sheet's measure;
-   where that stops it short of the room, the rest of the room stays as
-   it was. A picture that would grow by less than a line is left as it
-   was too: a sheet a few millimetres short of full is a sheet, and a
-   picture that moves for nothing is a picture that moves.
-
-   PURE, LIKE `paginate`: the screen measures the price in the paper's
-   own geometry (`data-gauging`, where the picture is always drawn as it
-   was) and hands the numbers in, so a fill can never feed back into the
-   page assignment it was read from.
+   Filling each sheet in turn fills the first to its foot and leaves the
+   white on the next. Where two sheets run on into each other — the
+   second does not open a part of its own (`breakBefore`) — the end of
+   the first may move over to the second, at a break the rules above
+   allow, wherever that leaves the two sheets nearer even: the most white
+   either of them then shows is less than before. Nothing moves onto a
+   sheet it does not fit, nothing parts a head from what it keeps, and
+   the number of sheets never changes. The pairs are evened from the last
+   to the first, so a sheet that has taken from the one before it is not
+   then emptied into the one after.
    ============================================================ */
 
-/** The air, in CSS px, a filled sheet keeps between the figures and the signatures, about 10 mm,
- *  shared above and below them by the signatures' own margins. */
-export const FILL_AIR = 40
+/** The least a move must take off the most white either sheet shows, in CSS px: a line's worth.
+ *  Sheets a few pixels from even are even. */
+const EVEN_ENOUGH = 24
 
-/** The least a picture grows by before it is grown at all, in CSS px: a line of the paper. */
-export const FILL_LEAST = 32
-
-/** The narrowest the picture's own line (its name and finish) stands beside it, gap included. */
-export const LINE_BESIDE = 200
-
-/** The price as the paper's geometry drew it, and the sheet it stands on. */
-export interface FillReading {
-  /** the page's own content box, and the height of every atom on the price's page */
-  room: number
-  used: number
-  /** the price's whole height, and what of it is not its body: its head and its own padding */
-  atom: number
-  above: number
-  /** the picture's figure without the picture and its line: its padding */
-  boat: number
-  /** the picture's line (its name and finish) and the picture, as drawn beside the figures */
-  line: number
-  picture: number
-  /** the room between the picture and the figures once they stand one over the other */
-  gap: number
-  /** the figures' own height */
-  figs: number
-  /** the sheet's measure, and what the figure keeps either side of the picture (a studio panel) */
-  width: number
-  inset: number
-  /** the pixels held: never drawn past them */
-  held: { width: number; height: number }
-  /** the line may stand beside the picture: a photograph's ground, not a studio panel */
-  beside: boolean
+/** How full a sheet holding these atoms is, as the packer counts it. */
+function usedOf(ids: readonly string[], byId: ReadonlyMap<string, Atom>): number {
+  const first = byId.get(ids[0] ?? '')
+  const carry = first?.carry ?? 0
+  return ids.reduce(
+    (n, id, k) =>
+      n + (byId.get(id)?.height ?? 0) - (k === 0 && carry === 0 ? (byId.get(id)?.lead ?? 0) : 0),
+    carry,
+  )
 }
 
-/** How the price's picture fills its sheet: its height in CSS px, and whether its line stands
- *  beside it or under it. */
-export interface Fill {
-  height: number
-  beside: boolean
+/** True where a page may break before the atom at `cut` of this sheet: no atom before it keeps it. */
+function breaksAt(ids: readonly string[], cut: number, byId: ReadonlyMap<string, Atom>): boolean {
+  if (cut <= 0 || cut >= ids.length) return false
+  return ids.slice(0, cut).every((id, k) => k + (byId.get(id)?.keepWithNext ?? 0) < cut)
 }
 
-/** THE PICTURE'S HEIGHT ON A SHEET WITH ROOM LEFT, or null where the price stays as drawn. */
-export function fillOf(r: FillReading): Fill | null {
-  const left = r.room - r.used
-  if (!(left > FILL_AIR + FILL_LEAST) || r.held.width <= 0 || r.held.height <= 0) return null
-  const ratio = r.held.height / r.held.width
-  const budget = r.atom + left - FILL_AIR - r.above - r.boat - r.gap - r.figs
-  const under = Math.min(budget - r.line, (r.width - r.inset) * ratio, r.held.height)
-  const beside = r.beside
-    ? Math.min(budget, (r.width - r.inset - LINE_BESIDE) * ratio, r.held.height)
-    : -1
-  const besideFits = beside >= r.line && beside >= under
-  const height = Math.floor(besideFits ? beside : under)
-  if (height < r.picture + FILL_LEAST) return null
-  return { height, beside: besideFits }
+function balanced(pages: string[][], atoms: readonly Atom[], room: number): string[][] {
+  const byId = new Map(atoms.map((a) => [a.id, a]))
+  const out = pages.map((page) => [...page])
+  /* AGAIN, UNTIL NOTHING MOVES: a sheet that gave its end to the next has room to take from the
+     one before it. Every move takes a line's worth off the most white of a pair, so it ends. */
+  let passes = 0
+  while (passes < out.length * 2 && evenOnce(out, byId, room)) passes += 1
+  return out
+}
+
+/** One pass over the pairs, from the last to the first; true where anything moved. */
+function evenOnce(out: string[][], byId: ReadonlyMap<string, Atom>, room: number): boolean {
+  let moved = false
+  for (let p = out.length - 2; p >= 0; p -= 1) {
+    const here = out[p]!
+    const next = out[p + 1]!
+    if (byId.get(next[0] ?? '')?.breakBefore === true) continue
+    const worst = Math.max(room - usedOf(here, byId), room - usedOf(next, byId))
+    let best: { cut: number; worst: number } | null = null
+    for (let cut = 1; cut < here.length; cut += 1) {
+      if (!breaksAt(here, cut, byId)) continue
+      const kept = here.slice(0, cut)
+      const onNext = [...here.slice(cut), ...next]
+      if (usedOf(onNext, byId) > room) continue
+      const after = Math.max(room - usedOf(kept, byId), room - usedOf(onNext, byId))
+      if (best === null || after < best.worst) best = { cut, worst: after }
+    }
+    if (best !== null && best.worst <= worst - EVEN_ENOUGH) {
+      out[p] = here.slice(0, best.cut)
+      out[p + 1] = [...here.slice(best.cut), ...next]
+      moved = true
+    }
+  }
+  return moved
 }

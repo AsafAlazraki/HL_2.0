@@ -1639,9 +1639,13 @@ export const RIG_KITS = 'rig_kits'
  * a kit already on the quote is never taken out of sight. With no motor on the quote no kit is
  * offered, and the list says why once (`KITS_WAIT`).
  */
-/** The words of a kit's name, each a whole token, so the F90LB is not the F90LB2. */
+/** The words of a kit's name, each a whole token, so the F90LB is not the F90LB2. THE NAME'S TWO
+ *  PARTS ARE TWO WORDS: a list of kits shares the stem "Rigging kit for the" and each keeps its
+ *  motor as its own part, and read run together they were "THEF200XCB", so Dealer fit said "The
+ *  price list has no rigging kit for the F200XCB" over the seven it held (the owner's fully specced
+ *  quote, 2026-11-03). */
 const kitWords = (row: OptionRow): Set<string> =>
-  new Set(`${row.stem}${row.tail} ${row.listed}`.toUpperCase().split(/[^A-Z0-9.]+/))
+  new Set(`${row.stem} ${row.tail} ${row.listed}`.toUpperCase().split(/[^A-Z0-9.]+/))
 
 export function kitsForMotors(rows: readonly OptionRow[], motors: readonly string[]): OptionRow[] {
   const codes = motors.map((m) => m.trim().toUpperCase()).filter((m) => m !== '')

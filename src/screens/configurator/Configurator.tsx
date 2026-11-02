@@ -214,6 +214,7 @@ import { boatTravel, levelGlyph } from './glyphs'
 import { acrossTheSheet } from './sheet'
 import { coverArt, coverAskAct, coverAskSay } from '@/screens/document/art'
 import { specsSaid } from '@/domain/quote/specSay'
+import { isSpecFact } from '@/domain/quote/specSheet'
 import { nameOnPaper, paperFacts } from '@/domain/quote/paperWords'
 import { goodsSpecs, quoteSells } from '@/domain/quote/sells'
 import './configurator.css'
@@ -3262,11 +3263,17 @@ function specsOf(
   ctx: CatalogueCtx,
   quote: QuoteDef,
 ): { lead: readonly SpecLine[]; rest: readonly SpecLine[] } {
+  /* THE SAME FACTS THE PAPER PRINTS (`isSpecFact`): never the registration band a boat is filed
+     under, which the paper leaves off as no fact about the boat */
   const all = specsSaid(
-    ownSpecs(ctx, quote, allSpecsOf(ctx, quote)).map((spec) => measured(quote.rootTableId, spec)),
+    ownSpecs(ctx, quote, allSpecsOf(ctx, quote))
+      .filter((spec) => isSpecFact(spec.label))
+      .map((spec) => measured(quote.rootTableId, spec)),
   )
   const frozen = specsSaid(
-    ownSpecs(ctx, quote, quote.subjectSpecs).map((spec) => measured(quote.rootTableId, spec)),
+    ownSpecs(ctx, quote, quote.subjectSpecs)
+      .filter((spec) => isSpecFact(spec.label))
+      .map((spec) => measured(quote.rootTableId, spec)),
   )
   const own: readonly SpecLine[] = quoteSells(ctx, quote).boat
     ? []

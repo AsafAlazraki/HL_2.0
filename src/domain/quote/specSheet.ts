@@ -65,6 +65,12 @@ const ASKED = [...GROUPS.filter((g) => g.id === 'power'), ...GROUPS.filter((g) =
 const NOT_A_FACT =
   /supplier|code|discontinued|dealer|operation|matrix|source|price|cost|sell|rrp|nett|landed|freight|rego|registration|margin|\bmu\b|gp\b|warranty|cash|trade/i
 
+/** A fact about the boat, by its label: not the file's own record fields, a money column, or the
+ *  registration band it is filed under. The build's specification asks this too, so the build and
+ *  the paper print the same facts (the owner's fully specced quote, 2026-11-03: the build showed
+ *  "Boat registration 6.01 m to 10.00 m" as a fifteenth measure and the paper fourteen). */
+export const isSpecFact = (label: string): boolean => !NOT_A_FACT.test(label)
+
 /** A length in centimetres of a metre or more, said in metres; anything else as it is. */
 function inMetres(label: string, value: string): string {
   if (/diameter|tube/i.test(label)) return value

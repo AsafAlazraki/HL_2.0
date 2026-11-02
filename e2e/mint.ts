@@ -341,8 +341,8 @@ export async function openTheDocument(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
   await expect(page.getByTestId('document')).toBeVisible()
   /* the page assignment is made in a layout effect, so `of N` on the
-     foot is the proof it ran */
-  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+     last foot is the proof it ran (the cover's foot says nothing from 2026-11-03) */
+  await expect(page.locator('.doc-page__foot').last()).toContainText(/Page \d+ of \d+/)
 }
 
 /**

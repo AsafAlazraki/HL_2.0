@@ -86,7 +86,7 @@ import { orderBands, type BandId } from './bands'
 import { buildSteps, type BuildStep } from './steps'
 import { chargeAlreadyIn, quoteLevelChoices } from './pricing'
 import { lineAmount, looseLines, quoteTotals, type QuoteTotals } from './totals'
-import { boatOfQuote, lineSaid, measured, nameFirst, saidOnQuote } from './spoken'
+import { boatOfQuote, lineSaid, measured, nameFirst, saidOnQuote, spokenBoat } from './spoken'
 import { boatTitle } from './title'
 import { levelWord, lineLevelSaid } from './levelSaid'
 import type { Colourway } from './colourway'
@@ -426,6 +426,8 @@ export interface PrintedQuote {
     detail: string
     /** the colourway, for a swatch the paper may draw; null when none */
     colour: Colourway | null
+    /** ITS MATERIAL IN WORDS — "Hypalon", "PVC" — for the hull's own line; '' when the file names none */
+    material: string
     /** THE EXACT MODEL AS THE PAPER HEADS IT (`boatTitle`): the name,
      *  with a bracket that names which model it is kept in its brackets
      *  — "Stacer 529 Assault Pro (Tournament)" */
@@ -571,6 +573,7 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
       name: boat.name,
       detail: boat.detail,
       colour: boat.colour,
+      material: spokenBoat(quote.rootTableId, quote.subjectLabel).material,
       title: titled.title,
       finish: titled.finish,
       specs: specs.filter((spec) => !unitlessMeasure(spec.value)),

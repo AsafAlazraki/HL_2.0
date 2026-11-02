@@ -57,7 +57,6 @@ import {
   letterheadOf,
   lineOf,
   pictureOfQuote,
-  srcSetOf,
   type HeldPicture,
 } from '@/data/pictures'
 import {
@@ -73,7 +72,7 @@ import {
   type CoverArt,
 } from './art'
 import { DESK_GLYPH, boatTravel, pricedAtGlyph } from './glyphs'
-import { fillOf, paginate, type Atom, type Fill, type FillReading } from './paginate'
+import { paginate, type Atom } from './paginate'
 import {
   ADJUSTMENTS,
   OTHER_ITEMS,
@@ -82,11 +81,15 @@ import {
   cellWord,
   codeGap,
   codesOf,
+  gstOnPaper,
   gstSay,
   hasQuantity,
   includesSay,
   kitsOnPaper,
+  namesOnPaper,
   noteOnPaper,
+  quantityShown,
+  specColumns,
   offeredOf,
   offeredSay,
   paperTitle,
@@ -273,6 +276,64 @@ export function preparerSay(doc: Pick<PrintedQuote, 'preparedBy' | 'preparer'>):
         ? 'leaves it out'
         : 'leaves them out'
   return `No ${orList(missing)} is set on Settings for ${name}, so the printed quote ${left}.`
+}
+
+/** One thing the printed quote leaves off because Settings does not hold it, with where it is set. */
+export interface Unset {
+  /** what it is, as the panel names it */
+  what: string
+  /** what the paper does without it */
+  so: string
+  /** the press that opens it on Settings */
+  act: string
+  /** where Settings opens it: a letterhead line, or the person who prepared the quote */
+  at: { line: string } | { person: string }
+}
+
+/**
+ * WHAT THE PRINTED QUOTE LEAVES OFF BECAUSE NOBODY HAS WRITTEN IT, said where the paper is chosen,
+ * each with where it is set (the owner's fully specced quote, read 2026-11-03: no way to reach
+ * Northside, no terms, no deposit, no days a quote stands for, and "Prepared by Asaf" with no title,
+ * phone or email). None of it is Northside's to be invented here, so the paper leaves each one off
+ * and this says which, why it matters on the paper, and the one press that opens its field on
+ * Settings. Northside's own contact details are said by `unreachableSay`, above these. [] where
+ * Settings holds everything the paper prints.
+ */
+export function unsetOn(
+  doc: Pick<PrintedQuote, 'letterhead' | 'terms' | 'preparer' | 'preparedBy'>,
+): Unset[] {
+  const lh = doc.letterhead
+  const out: Unset[] = []
+  if (!lh?.validDays && !lh?.validUntil)
+    out.push({
+      what: 'How many days a quote stands for',
+      so: 'so no date it stands until prints',
+      act: 'Set the days',
+      at: { line: 'validDays' },
+    })
+  if (doc.terms === null)
+    out.push({
+      what: 'Northside’s terms',
+      so: 'so the customer signs under the total with no terms above it',
+      act: 'Write the terms',
+      at: { line: 'quoteTerms' },
+    })
+  if (!lh?.deposit?.trim())
+    out.push({
+      what: 'The deposit wording',
+      so: 'so nothing under the total says what secures the order',
+      act: 'Write the deposit wording',
+      at: { line: 'deposit' },
+    })
+  const name = doc.preparer?.name ?? doc.preparedBy
+  if (name && preparerSay(doc) !== '')
+    out.push({
+      what: `${name}’s title, phone and email`,
+      so: 'so “Prepared by” prints the name and nothing to reach them by',
+      act: `Set ${name}’s details`,
+      at: { person: name },
+    })
+  return out
 }
 
 /** Why this note exists, said on the note itself, in one line. */
@@ -508,7 +569,7 @@ function Sheaf({
   const org = useCatalogue((s) => s.org)
   const business = useCatalogue((s) => s.business)
   const drawn = useMemo(() => withToday(quote, { org, business }), [quote, org, business])
-  const doc = useMemo(() => kitsOnPaper(readDocument(drawn)), [drawn])
+  const doc = useMemo(() => namesOnPaper(kitsOnPaper(readDocument(drawn))), [drawn])
   /* THE BOAT'S PICTURE, READ BY THE ONE READER THE BUILD'S STAGE READS BY (`@/data/pictures`):
      the model on the water, then the row's own copy, then the maker's mark — asked with the
      quote alone, because the paper renders with no catalogue at all. Read again when Northside's
@@ -538,11 +599,14 @@ function Sheaf({
      drawn that much shorter, whole and in its own proportion. null where the cover fits. */
   const [fitted, setFit] = useState<{ of: string; px: number } | null>(null)
   const fit = fitted?.of === doc.reference ? fitted.px : null
-  /* THE LAST SHEET'S ROOM GOES TO THE BOAT (`fillOf`): the price's picture drawn larger where its
-     sheet has room left, read in the paper's geometry with the picture as it was drawn */
-  const [filled, setFill] = useState<{ of: string; fill: Fill } | null>(null)
-  const fill = filled?.of === doc.reference ? filled.fill : null
-  const blocks = useMemo(() => blocksOf(doc, art, travel, fit, fill), [doc, art, travel, fit, fill])
+  /* THE PICTURES AS THE PRINTER IS HANDED THEM (`usePrinted`): each held picture drawn once as a
+     JPEG no wider than the sheet needs, so the saved PDF carries a photograph and not its pixels
+     unpacked */
+  const { printed, ready } = usePrinted(doc, art)
+  const blocks = useMemo(
+    () => blocksOf(doc, art, travel, fit, printed),
+    [doc, art, travel, fit, printed],
+  )
 
   /* THE SAVED PDF IS NAMED FOR THE QUOTE, NOT THE APP. The print window
      proposes the page's title as the file's name, so the title is the
@@ -623,21 +687,7 @@ function Sheaf({
         coverBox.getBoundingClientRect().top
       : 0
     const laid = room > 0 && !atoms.every((a) => a.height === 0) ? paginate(atoms, room) : null
-    const reading = laid ? priceReading(laid, atoms, room, held.current) : null
     delete element.dataset.gauging
-    const wanted = reading ? fillOf(reading) : null
-    /* A BROWSER WITH NO LAYOUT KEEPS WHAT IT HAD, as the pages do: the print dialogue hides the
-       gauge, and a reading of nothing there unfilled the sheet the printer was handed */
-    if (laid !== null)
-      setFill((was) => {
-        const of = doc.reference
-        if (wanted === null) return was === null ? was : null
-        return was?.of === of &&
-          was.fill.height === wanted.height &&
-          was.fill.beside === wanted.beside
-          ? was
-          : { of, fill: wanted }
-      })
     /* a cover taller than its room, with a line's air above the foot's rule, takes the
        difference off the picture, never below half of it */
     if (shot && room > 0 && cover + COVER_AIR > room) {
@@ -701,15 +751,30 @@ function Sheaf({
         root.current = element
       }}
     >
-      <Chrome doc={doc} pages={settled ? sheets.length : null} goBack={goBack} print={print} />
+      <Chrome
+        doc={doc}
+        pages={settled ? sheets.length : null}
+        goBack={goBack}
+        print={print}
+        ready={ready}
+      />
 
       <div className="doc-floor">
         {/* WHAT GOES ON THE PAPER, chosen beside it: first in the reading order, so a salesperson
             on a phone meets the switches before the pages they change */}
-        <SectionsPanel doc={doc} apply={apply} quote={quote} art={art} shown={shown} />
+        <SectionsPanel
+          doc={doc}
+          apply={apply}
+          quote={quote}
+          art={art}
+          shown={shown}
+          people={org?.people ?? []}
+        />
         <article
           className="doc-sheaf"
           data-settled={settled ? 'yes' : 'no'}
+          /* the pictures as the printer is handed them are made (`usePrinted`) */
+          data-pictures={ready ? 'ready' : 'packing'}
           /* A GIVEN QUOTE PRINTS IN THE COLOUR IT WAS GIVEN IN. The paper's rules, reference and
              band numbers read `--color-accent`; on a given quote it is pinned here, on the paper,
              to the colour frozen at the give, so a brand colour kept tomorrow repaints every
@@ -747,8 +812,8 @@ function Sheaf({
               {/* THE RUNNING HEAD CARRIES THE LETTERHEAD AND THE
                   REFERENCE — `porsche-pdf-1..6` repeats its code on
                   every page and `govuk-confirmation` asks for the
-                  reference to be findable, so it is here and in the
-                  foot. A quote that froze no name hangs nothing: a
+                  reference to be findable, so it is here, once a page,
+                  and not again in the foot. A quote that froze no name hangs nothing: a
                   placeholder repeated on every page would be the
                   loudest thing on the document, and the absence is the
                   dealer's to know — the note beside the sheet says it. */}
@@ -796,12 +861,18 @@ function Sheaf({
                   )
                 })}
               </div>
-              <footer className="doc-page__foot">
-                <span className="doc-ref">{doc.reference}</span>
-                <span>
-                  Page {i + 1}
-                  {settled ? ` of ${sheets.length}` : ''}
-                </span>
+              {/* THE FOOT CARRIES THE PAGE'S NUMBER ALONE, AND THE COVER'S CARRIES NOTHING (the
+                  owner's fully specced quote, read 2026-11-03): the reference printed in every foot
+                  right under a running head that already says it, so it stood twice on every page
+                  and three times on the cover, which also said "Page 1 of 4" under its own
+                  stamp. The reference is the cover's stamp and every later page's running head. */}
+              <footer className="doc-page__foot" data-cover={i === 0 ? '' : undefined}>
+                {i === 0 ? null : (
+                  <span>
+                    Page {i + 1}
+                    {settled ? ` of ${sheets.length}` : ''}
+                  </span>
+                )}
               </footer>
             </section>
           ))}
@@ -822,56 +893,126 @@ function Sheaf({
   )
 }
 
-/**
- * THE PRICE AS THE PAPER'S GEOMETRY DREW IT, and the sheet it stands on, for `fillOf`: read while
- * the sheaf is gauging, where the price's picture always stands as it was drawn beside the figures.
- * null where the price carries no picture.
- */
-function priceReading(
-  pages: string[][],
-  atoms: readonly Atom[],
-  room: number,
-  held: ReadonlyMap<string, HTMLElement>,
-): FillReading | null {
-  const page = pages.find((ids) => ids.includes('price'))
-  const atom = held.get('price')
-  const body = atom?.querySelector<HTMLElement>('.doc-sums__body')
-  const boat = atom?.querySelector<HTMLElement>('.doc-sums__boat')
-  const img = boat?.querySelector<HTMLImageElement>('.doc-sums__img')
-  const line = boat?.querySelector<HTMLElement>('.doc-sums__name')
-  const figs = atom?.querySelector<HTMLElement>('.doc-sums__figs')
-  if (!page || !atom || !body || !boat || !img || !line || !figs) return null
-  const height = new Map(atoms.map((a) => [a.id, a]))
-  const first = height.get(page[0] ?? '')
-  /* a page a band runs onto opens with its head said again; one that does not, with its first
-     part's head drawn without the air over it (`lead`) */
-  const carried = pages.indexOf(page) > 0 ? (first?.carry ?? 0) : 0
-  const opened = carried === 0 ? (first?.lead ?? 0) : 0
-  const used = page.reduce((n, id) => n + (height.get(id)?.height ?? 0), carried) - opened
-  const box = getComputedStyle(boat)
-  const w = Number(img.getAttribute('width'))
-  const h = Number(img.getAttribute('height'))
-  return {
-    room,
-    used,
-    atom: atom.offsetHeight,
-    above: atom.offsetHeight - body.offsetHeight,
-    boat: boat.offsetHeight - img.offsetHeight - line.offsetHeight,
-    line: line.offsetHeight,
-    picture: img.offsetHeight,
-    gap: parseFloat(getComputedStyle(body).rowGap) || 0,
-    figs: figs.offsetHeight,
-    width: atom.clientWidth,
-    inset: (parseFloat(box.paddingLeft) || 0) + (parseFloat(box.paddingRight) || 0),
-    held: { width: w, height: h },
-    beside: boat.dataset.ground === 'photo',
+/* ---------------------------------------------------------- */
+/* The pictures as the printer is handed them                   */
+/* ---------------------------------------------------------- */
+
+/** The widest a picture is handed to the printer, in its own pixels: the cover runs the sheet's
+ *  210 mm, which this is at 240 dpi; a line's picture stands in 28 mm, which `LINE_PX` is at 500. */
+const COVER_PX = 2000
+const LINE_PX = 560
+
+/** How long a press of Print waits for the pictures to be packed, in ms, before it prints anyway. */
+const PACK_WAIT = 3000
+
+/** The pictures the printer is handed, by the held address and the width asked: a JPEG's address. */
+type Printed = ReadonlyMap<string, string>
+
+/** Where a held picture is drawn from on the paper: its JPEG where one is made, else itself. */
+const printedSrc = (printed: Printed, src: string, px: number): string =>
+  printed.get(`${src}@${px}`) ?? src
+
+/** Every held picture this paper prints, with the width it is handed at. */
+function picturesOn(doc: PrintedQuote, art: CoverArt): Array<{ src: string; px: number }> {
+  const out: Array<{ src: string; px: number }> = []
+  if (art.kind === 'photograph') {
+    out.push({ src: art.held.src, px: COVER_PX })
+    /* the hull's line carries the cover's own picture, small */
+    out.push({ src: art.held.src, px: LINE_PX })
   }
+  for (const band of bandsOnPaper(doc))
+    for (const table of band.tables)
+      for (const line of table.lines) {
+        const held = table.subject ? null : heldFor(line)
+        if (held) out.push({ src: held.src, px: LINE_PX })
+      }
+  return out
+}
+
+/**
+ * ONE HELD PICTURE AS A JPEG, no wider than `px`, on white — or null where this browser cannot draw
+ * one (a test's DOM, a picture that will not decode), and the paper keeps the held file.
+ */
+async function jpegOf(src: string, px: number): Promise<string | null> {
+  try {
+    const img = new Image()
+    img.decoding = 'async'
+    img.src = src
+    await img.decode()
+    const scale = Math.min(1, px / img.naturalWidth)
+    const w = Math.max(1, Math.round(img.naturalWidth * scale))
+    const h = Math.max(1, Math.round(img.naturalHeight * scale))
+    const canvas = globalThis.document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const pen = canvas.getContext('2d')
+    if (!pen) return null
+    /* A CUT-OUT ON WHITE STAYS ON WHITE: a JPEG holds no transparency, and a part's clear ground
+       would print black. The sheet is white, so its white is the sheet's. */
+    pen.fillStyle = getComputedStyle(globalThis.document.documentElement)
+      .getPropertyValue('--color-white')
+      .trim()
+    pen.fillRect(0, 0, w, h)
+    pen.drawImage(img, 0, 0, w, h)
+    const blob = await new Promise<Blob | null>((done) => {
+      canvas.toBlob(done, 'image/jpeg', 0.86)
+    })
+    return blob ? URL.createObjectURL(blob) : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * THE SAVED PDF IS A FILE A MAIL SYSTEM TAKES (the owner's fully specced quote, read 2026-11-03: 13.9
+ * MB for four pages, "most of it the cover photograph", against an app whose own flow is "Email it"
+ * with the PDF attached). A browser hands a WebP to its PDF as raw pixels — the Sport 660's 2,560 x
+ * 1,918 photograph came to most of that — and hands a JPEG over as the JPEG it is. So each held
+ * picture the paper prints is drawn once here as a JPEG, no wider than the sheet needs it
+ * (`COVER_PX`, `LINE_PX`), and the paper draws that. It is the same picture, of the same model, only
+ * packed for paper: nothing is cropped, and nothing is drawn larger than its own pixels.
+ * Until a JPEG is made, and in a browser that cannot make one, the held file is drawn.
+ */
+function usePrinted(doc: PrintedQuote, art: CoverArt): { printed: Printed; ready: boolean } {
+  const wanted = useMemo(() => picturesOn(doc, art), [doc, art])
+  const key = wanted.map((w) => `${w.src}@${w.px}`).join('|')
+  const [made, setMade] = useState<{ of: string; urls: Printed }>(() => ({
+    of: '',
+    urls: new Map(),
+  }))
+  const all = useRef<string[]>([])
+  useEffect(() => {
+    let alive = true
+    void Promise.all(
+      wanted.map(async (w): Promise<[string, string | null]> => [
+        `${w.src}@${w.px}`,
+        await jpegOf(w.src, w.px),
+      ]),
+    ).then((pairs) => {
+      const urls = new Map<string, string>()
+      for (const [at, url] of pairs) if (url !== null) urls.set(at, url)
+      all.current.push(...urls.values())
+      /* MADE, OR TRIED: a browser that could not make one keeps the held file, and is ready too */
+      if (alive) setMade((was) => ({ of: key, urls: urls.size > 0 ? urls : was.urls }))
+    })
+    return () => {
+      alive = false
+    }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the key is what the list holds
+  }, [key])
+  useEffect(
+    () => () => {
+      for (const url of all.current) URL.revokeObjectURL(url)
+    },
+    [],
+  )
+  return { printed: made.urls, ready: key === '' || made.of === key }
 }
 
 /** What an atom gives up where it opens a sheet (`Atom.lead`), read while gauging, where no atom
  *  opens one: its height drawn as the first on a sheet, taken from its height drawn after another.
  *  Measured rather than read off the head's padding, because a head beside taller figures gives up
- *  nothing (`.doc-sums__body[data-bare]`). */
+ *  nothing (`.doc-sums__body[data-beside]`). */
 function leadOf(atom: HTMLElement | undefined): number {
   if (!atom?.querySelector('.doc-part')) return 0
   const after = atom.offsetHeight
@@ -928,11 +1069,14 @@ function Chrome({
   pages,
   goBack,
   print,
+  ready = true,
 }: {
   doc: PrintedQuote
   pages: number | null
   goBack?: () => void
   print?: () => void
+  /** the pictures are packed for the printer (`usePrinted`) */
+  ready?: boolean
 }) {
   const fire = useCallback(() => {
     if (print) {
@@ -941,6 +1085,31 @@ function Chrome({
     }
     globalThis.print?.()
   }, [print])
+  /* A PRESS BEFORE THE PICTURES ARE PACKED WAITS FOR THEM, for a moment and no longer: the printer
+     is handed the JPEGs the saved PDF should carry, or, past `PACK_WAIT`, the held files */
+  const waiting = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fireOnce = useCallback(() => {
+    if (waiting.current === null) return
+    clearTimeout(waiting.current)
+    waiting.current = null
+    fire()
+  }, [fire])
+  useEffect(() => {
+    if (ready) fireOnce()
+  }, [ready, fireOnce])
+  useEffect(
+    () => () => {
+      if (waiting.current !== null) clearTimeout(waiting.current)
+    },
+    [],
+  )
+  const press = useCallback(() => {
+    if (ready) {
+      fire()
+      return
+    }
+    if (waiting.current === null) waiting.current = setTimeout(fireOnce, PACK_WAIT)
+  }, [ready, fire, fireOnce])
 
   return (
     <div className="doc-chrome">
@@ -981,7 +1150,7 @@ function Chrome({
           </Button>
         ) : null}
         {/* THE ONE THING PRESSED HERE, ending on the printer in its dark disc */}
-        <Button intent="act" icon={PrinterIcon} onClick={fire}>
+        <Button intent="act" icon={PrinterIcon} onClick={press}>
           Print
         </Button>
       </div>
@@ -1026,6 +1195,20 @@ export const NO_SPECS =
  *  the exact item, so the customer's copy carries only one a person checked or Northside added. */
 export const NO_LINE_PICTURES =
   'No item on this quote has a picture checked as that exact item yet. A picture Northside adds to an item on the build prints beside it.'
+
+/** Why an item on the paper has no picture beside it, and what puts one there. */
+export const NO_LINE_PICTURE =
+  'No picture of these exact items has been checked, so none prints beside them. A picture Northside adds to one on the build prints beside it.'
+
+/** The items the paper prints with no picture beside them, by the names it prints them under: every
+ *  item but the hull (whose picture is the cover's) that holds no picture checked as itself. */
+export function unpicturedOf(doc: PrintedQuote): string[] {
+  return bandsOnPaper(doc)
+    .flatMap((band) => band.tables.filter((t) => !t.subject))
+    .flatMap((t) => t.lines)
+    .filter((line) => heldFor(line) === null)
+    .map((line) => line.said)
+}
 
 /** Why Northside's terms cannot be printed. */
 export const NO_TERMS_SET = 'No terms are written on Settings yet.'
@@ -1177,18 +1360,27 @@ function SectionsPanel({
   quote,
   art,
   shown,
+  people,
 }: {
   doc: PrintedQuote
   apply: (quoteId: string, command: ReturnType<typeof setPaperSection>) => unknown
   quote: QuoteDef
   art: CoverArt
   shown: HeldPicture | null
+  /** Northside's people as Settings holds them, so a person's own details open by their id */
+  people: ReadonlyArray<{ id: string; name: string }>
 }) {
   const quoteId = quote.id
   const choices = choicesOf(doc)
   const noun = subjectNoun(doc)
   const cover = coverAskSay(art, shown, noun)
   const unreachable = unreachableSay(doc.letterhead, doc.preparer, doc.chosen.details)
+  const unset = unsetOn(doc)
+  /* where Settings opens each: its line, or the person by their id (one not held yet is added) */
+  const hrefOf = (at: Unset['at']): string =>
+    'line' in at
+      ? `/manage?line=${at.line}`
+      : `/manage?person=${people.find((p) => p.name.toLowerCase() === at.person.toLowerCase())?.id ?? 'new'}`
   const set = (section: PaperSection) => (on: boolean) => {
     apply(quoteId, setPaperSection(section, on))
   }
@@ -1198,7 +1390,7 @@ function SectionsPanel({
         <div className="doc-pick__in">
           <p className="doc-desk__lab">On the printed quote</p>
           <p className="doc-desk__say">{ALWAYS_IN}</p>
-          {unreachable === '' && cover === '' ? null : (
+          {unreachable === '' && cover === '' && unset.length === 0 ? null : (
             <div className="doc-pick__asks">
               {/* NOTHING ON THIS PAPER REACHES NORTHSIDE, said where the paper is chosen and given
                 (quote-spec §0, rule 5), with the way to put it right on a draft; the customer's
@@ -1216,6 +1408,30 @@ function SectionsPanel({
                       Open Settings
                     </Button>
                   )}
+                </div>
+              )}
+              {/* AND EVERYTHING ELSE THE PAPER LEAVES OFF FOR WANT OF A WORD ON SETTINGS, each with the
+                  press that opens its field (`unsetOn`); a given quote says what it was given
+                  without, and offers nothing, since Settings no longer reaches it */}
+              {unset.length === 0 ? null : (
+                <div className="doc-pick__reach" data-testid="document-unset">
+                  <p className="doc-desk__lab">
+                    {doc.issued ? 'Not set when it was given' : 'Not set on Settings'}
+                  </p>
+                  <ul className="doc-pick__unset">
+                    {unset.map((u) => (
+                      <li key={u.what}>
+                        <span className="doc-pick__unset-say">
+                          <b>{u.what}</b>: {doc.issued ? 'none was set' : 'none is set'}, {u.so}.
+                        </span>
+                        {doc.issued ? null : (
+                          <Button intent="veiled" size="sm" href={hrefOf(u.at)} icon={GearSixIcon}>
+                            {u.act}
+                          </Button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
               {/* WHY THE COVER IS NOT THE BOAT'S PHOTOGRAPH, said where the paper is chosen, with the one
@@ -1374,6 +1590,7 @@ function DeskNote({
 
   const unitless = unitlessOf(doc)
   const unsaid = unsaidOf(doc)
+  const unpictured = unpicturedOf(doc)
   const noun = subjectNoun(doc)
   /* WHAT THE PICTURE SHOWS AND WHOSE IT IS, and not how it is drawn (the refine critique, 18;
      docs/WORDS.md rule 1): it led with "1,917 × 845 pixels, printed whole at 658 × 290, never
@@ -1419,6 +1636,16 @@ function DeskNote({
             {reasons.length > 0 ? (
               <DeskRow word="Why an item reads as it does" glyph={DESK_GLYPH.why}>
                 <DeskItems items={reasons.map((r) => asLine(`${r.said}: ${r.why}`))} />
+              </DeskRow>
+            ) : null}
+            {/* WHICH ITEMS PRINT WITH NO PICTURE BESIDE THEM, AND WHY (the owner's fully specced quote,
+                2026-11-03: "only 4 of the 9 lines are pictured, and the two largest items after the
+                hull are not among them"). Only a picture a person checked as that exact item, or
+                one Northside added, prints beside it; the maker's picture on the build is neither. */}
+            {doc.chosen.pictures && unpictured.length > 0 ? (
+              <DeskRow word="Printed without a picture" glyph={DESK_GLYPH.picture}>
+                <DeskItems items={unpictured.map(asLine)} />
+                {NO_LINE_PICTURE}
               </DeskRow>
             ) : null}
             <DeskRow word="Priced at" glyph={pricedAtGlyph(doc.rung?.key)}>
@@ -1554,7 +1781,7 @@ function blocksOf(
   art: CoverArt,
   travel: string,
   fit: number | null,
-  fill: Fill | null,
+  printed: Printed,
 ): Block[] {
   const out: Block[] = []
   /* A SHORT SPECIFICATION IS THE COVER'S (the printed quote's critic, 2026-10-31: a repower's
@@ -1565,7 +1792,16 @@ function blocksOf(
   out.push({
     id: 'cover',
     breakBefore: true,
-    node: <Cover doc={doc} art={art} travel={travel} fit={fit} facts={coverFacts(doc)} />,
+    node: (
+      <Cover
+        doc={doc}
+        art={art}
+        travel={travel}
+        fit={fit}
+        facts={coverFacts(doc)}
+        src={art.kind === 'photograph' ? printedSrc(printed, art.held.src, COVER_PX) : ''}
+      />
+    ),
   })
 
   /* THE SPECIFICATION, WHERE IT IS CHOSEN AND THE FILE HOLDS MORE THAN THE COVER CAN SET (quote-spec
@@ -1605,8 +1841,20 @@ function blocksOf(
     const from = out.length
     const num = numbered ? band.num : ''
     /* ONE QUANTITY DECISION PER BAND, so the figures in a band stand in
-       one column whichever register they came from. */
-    const qty = hasQuantity(band.tables.flatMap((t) => t.lines))
+       one column whichever register they came from: every band of parts, and any other with a
+       line at more than one (`quantityShown`) */
+    const qty = quantityShown(band)
+    /* ONE LEFT EDGE PER BAND (the owner's fully specced quote, 2026-11-03: pictured parts started
+       their names at x 139 pt and the Tube Covers and the batteries at x 51 pt, one band, two
+       edges). Where any item in a band prints its picture, every item in it keeps the picture's
+       column, empty where it has none, so every name in the band starts at one x. */
+    const well =
+      doc.chosen.pictures &&
+      band.tables.some((table) =>
+        table.lines.some((line) =>
+          table.subject ? art.kind === 'photograph' : heldFor(line) !== null,
+        ),
+      )
     const head = `sec:${section.id}`
     const under = {
       head,
@@ -1624,17 +1872,34 @@ function blocksOf(
         })
       }
       for (const line of table.lines) {
+        const held = table.subject ? null : heldFor(line)
         out.push({
           id: `line:${line.id}`,
           under,
-          node: (
+          node: table.subject ? (
+            <HullLine
+              doc={doc}
+              line={line}
+              qty={qty}
+              well={well}
+              picture={
+                doc.chosen.pictures && art.kind === 'photograph'
+                  ? { held: art.held, src: printedSrc(printed, art.held.src, LINE_PX) }
+                  : null
+              }
+            />
+          ) : (
             <Line
               line={line}
               qty={qty}
-              /* the subject's own facts are the specification's and the cover's; a motor's and a
-                 trailer's print where their sections are chosen */
-              facts={!table.subject && factsChosen(doc, table.kind)}
-              pictures={doc.chosen.pictures && !table.subject}
+              well={well}
+              /* a motor's and a trailer's own facts print where their sections are chosen */
+              facts={factsChosen(doc, table.kind)}
+              picture={
+                doc.chosen.pictures && held
+                  ? { held, src: printedSrc(printed, held.src, LINE_PX) }
+                  : null
+              }
             />
           ),
         })
@@ -1662,7 +1927,7 @@ function blocksOf(
       out.push({
         id: `line:${line.id}`,
         under,
-        node: <Line line={line} qty={qty} facts={false} pictures={false} />,
+        node: <Line line={line} qty={qty} facts={false} picture={null} well={false} />,
       })
     }
   }
@@ -1696,7 +1961,7 @@ function blocksOf(
     keepWithNext: 1,
     /* the price opens the page after the cover where nothing stands between them */
     ...(sole && !specPage ? { breakBefore: true } : {}),
-    node: <YourPrice doc={doc} art={art} sub={sole ? quoteSub(doc) : undefined} fill={fill} />,
+    node: <YourPrice doc={doc} sub={sole ? quoteSub(doc) : undefined} />,
   })
   /* THE TERMS PRINT ONLY WHERE THE DEALERSHIP WROTE THEM AND THEY ARE KEPT ON. A section whose
      whole content was a sentence saying it had none was the app explaining itself to the buyer;
@@ -1743,6 +2008,15 @@ export function factsChosen(doc: PrintedQuote, kind: TableKind): boolean {
   return true
 }
 
+/** The motor on the quote, by the name its line prints ('' where it carries none, or more than one). */
+function motorOn(doc: PrintedQuote): string {
+  const motors = doc.sections
+    .filter((s) => s.kind === 'motor')
+    .flatMap((s) => s.tables.filter((t) => !t.subject))
+    .flatMap((t) => t.lines)
+  return motors.length === 1 ? motors[0]!.said : ''
+}
+
 /** What "Your quote" is a quote for, said under its head: the item and who it is for. */
 function quoteSub(doc: PrintedQuote): string {
   const name = doc.customer.name.trim()
@@ -1773,8 +2047,8 @@ function quoteSub(doc: PrintedQuote): string {
  *
  * THE PRICE STANDS BESIDE WHO IT IS FOR, which is this screen's own requirement since Porsche's
  * cover (`porsche-pdf-1`) was answered for a dealer: a configuration belongs to a code, a quote
- * belongs to a person. The reference is in the stamp and in the foot of every page
- * (`govuk-confirmation`).
+ * belongs to a person. The reference is in the stamp, and in the running head of every page after
+ * it (`govuk-confirmation`).
  */
 function Cover({
   doc,
@@ -1782,10 +2056,13 @@ function Cover({
   travel,
   fit,
   facts,
+  src,
 }: {
   doc: PrintedQuote
   art: CoverArt
   travel: string
+  /** where the photograph is drawn from: its JPEG for the printer where one is made (`usePrinted`) */
+  src: string
   /** the picture's height in px where the cover would not fit its page at its ceiling */
   fit: number | null
   /** the facts the strip sets: all of them where they fit, else the four key ones */
@@ -1797,7 +2074,13 @@ function Cover({
   const includes = includesSay(doc)
   const gst = gstSay(doc)
   const boat = doc.subject.kind === 'boat' || doc.subject.kind === null
-  const caption = art.kind === 'photograph' ? pictured(art.held, doc.subject.title, boat) : null
+  const caption =
+    art.kind === 'photograph'
+      ? pictured(art.held, doc.subject.title, boat, {
+          finish: doc.subject.finish !== '',
+          motor: motorOn(doc),
+        })
+      : null
   const by = doc.preparedBy ? (doc.preparer?.name ?? doc.preparedBy) : null
   /* THE GROUND THE TOP OF THE PAGE IS: the photograph itself, or the studio's panel (`groundOf`) */
   const ground = groundOf(art)
@@ -1841,7 +2124,9 @@ function Cover({
           {art.kind === 'photograph' ? (
             <img
               className="doc-shot__img"
-              src={art.held.src}
+              src={src}
+              /* the held picture it is drawn from, where `src` is its JPEG for the printer */
+              data-held={art.held.src}
               alt={
                 doc.subject.finish === ''
                   ? doc.subject.title
@@ -1890,8 +2175,10 @@ function Cover({
         </Heading>
         {doc.subject.finish === '' ? null : (
           <p className="doc-cover__detail">
-            {/* round, shaded chips: a white one is a white dot and never a box to tick */}
-            <Swatches colour={doc.subject.colour} shape="chips" />
+            {/* THE SAME SQUARES THE BUILD DRAWS THE COLOURWAY IN (the owner's fully specced quote,
+                2026-11-03: the build and the package drew three squares and the paper three
+                overlapping circles, so one colourway had two pictures) */}
+            <Swatches colour={doc.subject.colour} />
             {doc.subject.finish}
           </p>
         )}
@@ -2019,30 +2306,52 @@ export function eyebrowOf(doc: Pick<PrintedQuote, 'subject'>): string {
  * something a buyer can find a figure in.
  */
 function SpecPage({ doc }: { doc: PrintedQuote }) {
+  /* TWO COLUMNS, EACH A STACK OF WHOLE GROUPS, PARTED AS EVENLY AS THE GROUPS ALLOW (`specColumns`),
+     so neither column ends 120 pt above the other; a sheet of one list sets its own two columns */
+  const [left, right] = specColumns(doc.subject.sheet)
   return (
     <section className="doc-sheet" aria-label="Specifications">
       <PartHead word="Specifications" sub={doc.subject.title} />
-      <div className="doc-sheet__groups">
-        {doc.subject.sheet.map((group) => (
-          <div
-            className="doc-sheet__group"
-            key={group.id}
-            /* ONE LIST, NO HEADING: a sheet whose groups would each hold one fact (`sheetOnPaper`) */
-            data-flat={group.name === '' ? '' : undefined}
-          >
-            {group.name === '' ? null : <p className="doc-sheet__name">{group.name}</p>}
-            <dl className="doc-specs">
-              {group.rows.map((spec) => (
-                <div className="doc-spec" key={spec.label}>
-                  <dt className="doc-spec__lab">{spec.label}</dt>
-                  <dd className="doc-spec__val">{spec.value}</dd>
-                </div>
+      <div className="doc-sheet__groups" data-parted={right.length > 0 ? '' : undefined}>
+        {right.length > 0 ? (
+          <>
+            <div className="doc-sheet__col">
+              {left.map((g) => (
+                <SpecGroupBlock group={g} key={g.id} />
               ))}
-            </dl>
-          </div>
-        ))}
+            </div>
+            <div className="doc-sheet__col">
+              {right.map((g) => (
+                <SpecGroupBlock group={g} key={g.id} />
+              ))}
+            </div>
+          </>
+        ) : (
+          left.map((g) => <SpecGroupBlock group={g} key={g.id} />)
+        )}
       </div>
     </section>
+  )
+}
+
+/** One group of the specification: its head in the accent over its hairline rows. */
+function SpecGroupBlock({ group: g }: { group: PrintedQuote['subject']['sheet'][number] }) {
+  return (
+    <div
+      className="doc-sheet__group"
+      /* ONE LIST, NO HEADING: a sheet whose groups would each hold one fact (`sheetOnPaper`) */
+      data-flat={g.name === '' ? '' : undefined}
+    >
+      {g.name === '' ? null : <p className="doc-sheet__name">{g.name}</p>}
+      <dl className="doc-specs">
+        {g.rows.map((spec) => (
+          <div className="doc-spec" key={spec.label}>
+            <dt className="doc-spec__lab">{spec.label}</dt>
+            <dd className="doc-spec__val">{spec.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   )
 }
 
@@ -2326,62 +2635,142 @@ function Line({
   line,
   qty,
   facts,
-  pictures,
+  picture,
+  well,
 }: {
   line: DocumentLine
   qty: boolean
   /** print the item's own facts under its name (never the subject's: those are the cover's) */
   facts: boolean
-  /** print its picture beside it, where one is held of this exact item and the section is chosen */
-  pictures: boolean
+  /** THE PICTURE OF THIS EXACT ITEM, where one is held and the section is chosen (`heldFor`), with
+   *  the address the paper draws it from (`usePrinted`); null for none */
+  picture: { held: HeldPicture; src: string } | null
+  /** the band keeps a picture's column, so a line with none still starts its name at its edge */
+  well: boolean
 }) {
   /* ONE LINE UNDER THE NAME, IN THE BUYER'S WORDS (`noteOnPaper`): the
      arithmetic of a quantity, what the figure already includes, and a
      price agreed by hand with its reason. The workshop's facts — the prop
      part, the engine hole, the slot — are the dealer's, on the note. */
   const under = noteOnPaper(line)
-  const word = cellWord(line)
-  /* THE PICTURE OF THIS EXACT ITEM, or none (quote-spec §5): only one a person marked as this
-     item (`lineOf`, the imagery round's one reader for a line), so a maker's logo or a sister
-     model never stands beside a line. Asked by the ids the line kept for exactly this. */
-  const picture = pictures ? heldFor(line) : null
   const own = facts ? line.own : []
+  return (
+    <Row line={line} qty={qty} well={well} picture={picture}>
+      <span className="doc-row__said">{line.said}</span>
+      {own.length > 0 ? (
+        /* THE ITEM'S OWN FACTS, as the price list states them and a person asks for them —
+           "Power 90 hp · Weight 166 kg · Shaft 25″" — frozen with the line at the pick */
+        <span className="doc-row__own">
+          {own.map((fact) => (
+            <span className="doc-row__fact" key={fact.label}>
+              <span className="doc-row__fact-lab">{fact.label}</span> {fact.value}
+            </span>
+          ))}
+        </span>
+      ) : null}
+      {under !== '' ? <span className="doc-row__facts">{under}</span> : null}
+    </Row>
+  )
+}
 
+/**
+ * THE HULL'S LINE, THE BIGGEST ON THE QUOTE, SET AS THE BIGGEST (the owner's fully specced quote,
+ * read 2026-11-03: "one bare row … no picture beside it and no line about the Hypalon or the colour
+ * choice. It is the biggest line on the quote ($72,170) and it reads like the smallest"). Its name is
+ * the exact model, as the cover heads it; under it, its material and its colours with the same
+ * squares the cover and the build draw them in; beside it, the cover's own photograph of the model,
+ * small, where the pictures are chosen — never another picture, so nothing the cover may not print
+ * stands here. A quote that is not for a boat sets its item's name as it always did.
+ */
+function HullLine({
+  doc,
+  line,
+  qty,
+  well,
+  picture,
+}: {
+  doc: PrintedQuote
+  line: DocumentLine
+  qty: boolean
+  well: boolean
+  picture: { held: HeldPicture; src: string } | null
+}) {
+  const under = noteOnPaper(line)
+  const material = doc.subject.material
+  const colour = doc.subject.colour
+  const finished = doc.subject.finish !== ''
+  return (
+    <Row line={line} qty={qty} well={well} picture={picture} hull>
+      <span className="doc-row__said">{finished ? doc.subject.title : line.said}</span>
+      {finished ? (
+        <span className="doc-row__own">
+          {material === '' ? null : (
+            <span className="doc-row__fact">
+              <span className="doc-row__fact-lab">Material</span> {material}
+            </span>
+          )}
+          {colour === null ? null : (
+            <span className="doc-row__fact doc-row__fact--colour">
+              <span className="doc-row__fact-lab">Colours</span>
+              <Swatches colour={colour} size="sm" />
+              {colour.say}
+            </span>
+          )}
+        </span>
+      ) : null}
+      {under !== '' ? <span className="doc-row__facts">{under}</span> : null}
+    </Row>
+  )
+}
+
+/** A row of the paper: the picture's column where the band keeps one, the name and what is said
+ *  under it, the quantity where the band counts, and the money column's figure or word. */
+function Row({
+  line,
+  qty,
+  well,
+  picture,
+  hull = false,
+  children,
+}: {
+  line: DocumentLine
+  qty: boolean
+  well: boolean
+  picture: { held: HeldPicture; src: string } | null
+  hull?: boolean
+  children: ReactNode
+}) {
+  const word = cellWord(line)
   return (
     <div
       className="doc-row"
       data-state={line.state}
       data-qty={qty ? '' : undefined}
-      data-pictured={picture ? '' : undefined}
+      data-pictured={well ? '' : undefined}
+      data-hull={hull ? '' : undefined}
     >
-      {picture ? (
-        /* never drawn wider than its held pixels, nor taller than 32 mm (the original's own
-           enlarged band image, RELEASE_NOTES v1.16) */
-        <img
-          className="doc-row__pic"
-          src={picture.src}
-          alt=""
-          width={picture.width}
-          height={picture.height}
-          style={{ '--held-w': picture.width, '--held-h': picture.height } as CSSProperties}
-          decoding="async"
-        />
+      {well ? (
+        <span className="doc-row__well" data-ground={hull ? 'photo' : undefined}>
+          {picture ? (
+            /* never drawn wider than its held pixels, nor past its well */
+            <img
+              className="doc-row__pic"
+              src={picture.src}
+              alt=""
+              width={picture.held.width}
+              height={picture.held.height}
+              style={
+                {
+                  '--held-w': picture.held.width,
+                  '--held-h': picture.held.height,
+                } as CSSProperties
+              }
+              decoding="async"
+            />
+          ) : null}
+        </span>
       ) : null}
-      <span className="doc-row__name">
-        <span className="doc-row__said">{line.said}</span>
-        {own.length > 0 ? (
-          /* THE ITEM'S OWN FACTS, as the price list states them and a person asks for them —
-             "Power 90 hp · Weight 166 kg · Shaft 25″" — frozen with the line at the pick */
-          <span className="doc-row__own">
-            {own.map((fact) => (
-              <span className="doc-row__fact" key={fact.label}>
-                <span className="doc-row__fact-lab">{fact.label}</span> {fact.value}
-              </span>
-            ))}
-          </span>
-        ) : null}
-        {under !== '' ? <span className="doc-row__facts">{under}</span> : null}
-      </span>
+      <span className="doc-row__name">{children}</span>
       {qty ? (
         <span className="doc-row__qty doc-fig">{line.qty.toLocaleString('en-AU')}</span>
       ) : null}
@@ -2430,18 +2819,7 @@ function AdjustmentHead() {
  * sheet. And the bands above the total are what make the page add up
  * where a reader can see it do so, which the lone total did not.
  */
-function YourPrice({
-  doc,
-  art,
-  sub,
-  fill,
-}: {
-  doc: PrintedQuote
-  art: CoverArt
-  sub?: string
-  /** the last sheet's room, given to the picture (`fillOf`); null where it stands as drawn */
-  fill: Fill | null
-}) {
+function YourPrice({ doc, sub }: { doc: PrintedQuote; sub?: string }) {
   const t = doc.totals
   /* A PRICE OF ONE ROW IS ITS TOTAL (the printed quote's critic, 2026-10-31: a one-motor quote
      printed $16,667 four times): the row that would say the motor's figure over the total that is
@@ -2449,49 +2827,21 @@ function YourPrice({
   const all = priceRows(doc)
   const rows = all.length === 1 && !all[0]!.signed && all[0]!.amount === t.total ? [] : all
   const includes = includesSay(doc)
-  /* WHAT THE PRICE IS FOR, BESIDE IT (the quote round's audit, 2026-11-02, D2): the figures stood
-     in the right 60% of the sheet over an empty left column, and on a last sheet of only the price
-     and the signatures the page read as an L of white. Porsche's summary sets the car beside its
-     price; this sets the very picture the cover printed — never another, so nothing the cover may
-     not print stands here — with the name and finish under it. A cover with no picture leaves the
-     column to the air, as it was. */
-  const pic = art.kind === 'photograph' ? art.held : null
-  /* WHERE NOTHING IS PICTURED, THE HEAD STANDS BESIDE THE FIGURES (the quote round's audit, round
-     3, D5): the hull-only Patrol 600 printed "Total, including GST $30,190" in the right column over
-     an empty left one. What the price is for now holds the left column itself, as an invoice's
-     summary does, and the price takes one line of the sheet less. */
-  const head = <PartHead word="Your price" {...(sub ? { sub } : {})} />
+  const gst = gstOnPaper(doc)
+  /* WHAT THE PRICE IS FOR HOLDS THE LEFT COLUMN, THE FIGURES THE RIGHT (the quote round's audit,
+     round 3, D5), as an invoice's summary sets them. THE COVER'S PHOTOGRAPH IS NOT DRAWN HERE AGAIN
+     (the owner's fully specced quote, read 2026-11-03: "the photograph is the cover's photograph
+     again … The second copy adds nothing and the composition is unbalanced", its name and finish at
+     its foot under a 200 x 130 pt block of air). The boat is the cover's, and the hull's own line
+     carries it small. Lost: the picture beside the price, and the sheet's room given to it.
+     A PRICE OF A ROW OR TWO STANDS BESIDE ITS HEAD; one of four bands and the GST stands under it,
+     the measure's width, as an invoice's summary does, so its rows do not stand over the head's
+     own air (the same read's page 4). */
+  const beside = rows.length <= 1
   return (
-    <section
-      className="doc-sums"
-      aria-label="Your price"
-      data-bare={pic ? undefined : ''}
-      data-fill={pic && fill ? (fill.beside ? 'beside' : 'under') : undefined}
-      style={pic && fill ? ({ '--fill-h': `${fill.height}px` } as CSSProperties) : undefined}
-    >
-      {pic ? head : null}
-      <div className="doc-sums__body" data-bare={pic ? undefined : ''}>
-        {pic ? null : head}
-        {pic ? (
-          <figure className="doc-sums__boat" data-ground={groundOf(art)}>
-            <img
-              className="doc-sums__img"
-              src={pic.src}
-              {...(pic.widths.length > 1 ? { srcSet: srcSetOf(pic), sizes: '72mm' } : {})}
-              alt=""
-              width={pic.width}
-              height={pic.height}
-              style={{ '--held-w': pic.width, '--held-h': pic.height } as CSSProperties}
-              decoding="async"
-            />
-            <figcaption className="doc-sums__name">
-              <span className="doc-sums__title">{doc.subject.title}</span>
-              {doc.subject.finish === '' ? null : (
-                <span className="doc-sums__finish">{doc.subject.finish}</span>
-              )}
-            </figcaption>
-          </figure>
-        ) : null}
+    <section className="doc-sums" aria-label="Your price">
+      <div className="doc-sums__body" data-beside={beside ? '' : undefined}>
+        <PartHead word="Your price" {...(sub ? { sub } : {})} />
         <div className="doc-sums__figs">
           <dl className="doc-sums__list">
             {rows.map((row) => (
@@ -2510,19 +2860,19 @@ function YourPrice({
                 <PriceFigure amount={t.total} />
               </dd>
             </div>
-            {/* THE GST IN IT, ONCE NORTHSIDE'S RATE IS ON THE QUOTE (quote-spec §8): worked over the
-            whole total, as Northside's own workbook works it (`totals.ts`), under the total
-            rather than above it, because every figure above already includes it. Absent where no
-            rate is set: no rate is ever assumed. */}
-            {t.totalExcludingTax !== null ? (
+            {/* THE GST IN IT, ONCE NORTHSIDE'S RATE IS ON THE QUOTE (quote-spec §8), in whole
+            dollars as every figure on the paper is (`gstOnPaper`), under the total rather than
+            above it, because every figure above already includes it. Absent where no rate is set:
+            no rate is ever assumed. */}
+            {gst !== null ? (
               <>
                 <div className="doc-sum doc-sum--tax">
-                  <dt>GST at {t.taxRate?.toLocaleString('en-AU')}%, included</dt>
-                  <dd className="doc-fig">{money(t.taxAmount ?? 0)}</dd>
+                  <dt>GST at {gst.rate.toLocaleString('en-AU')}%, included</dt>
+                  <dd className="doc-fig">{money(gst.gst)}</dd>
                 </div>
                 <div className="doc-sum doc-sum--tax">
                   <dt>Before GST</dt>
-                  <dd className="doc-fig">{money(t.totalExcludingTax)}</dd>
+                  <dd className="doc-fig">{money(gst.before)}</dd>
                 </div>
               </>
             ) : null}
@@ -2620,15 +2970,21 @@ function heldFor(line: DocumentLine): HeldPicture | null {
   return found.held ? found.picture : null
 }
 
-/** One signature block: three lines to write on, each with its word under it. */
+/**
+ * One signature block: the lines to write on, each with its word under it. A NAME PRINTED IS NOT
+ * ASKED FOR AGAIN (the owner's fully specced quote, read 2026-11-03: "the name 'Asaf Alazraki' is
+ * printed, then a blank 'Name' line asks for it again"): where the block names its signer, the
+ * signature and the date stand side by side under the name; where it names nobody, a line for the
+ * name is kept, as a printed form keeps one.
+ */
 function SignBlock({ title, who }: { title: string; who: string }) {
+  const fields = who === '' ? ['Signature', 'Name', 'Date'] : ['Signature', 'Date']
   return (
-    <div className="doc-sign__block">
+    <div className="doc-sign__block" data-named={who === '' ? undefined : ''}>
       <p className="doc-lab">{title}</p>
       {/* whose block it is, on its own line so the two blocks' lines stand level */}
       <p className="doc-sign__who">{who === '' ? ' ' : who}</p>
-      {/* the signature across the block, the name and the date under it side by side */}
-      {['Signature', 'Name', 'Date'].map((word) => (
+      {fields.map((word) => (
         <p className="doc-sign__field" data-word={word} key={word}>
           <span className="doc-sign__rule" />
           <span className="doc-sign__word">{word}</span>
