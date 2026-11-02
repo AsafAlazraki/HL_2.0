@@ -1,5 +1,7 @@
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -45,7 +47,7 @@ import type { QuoteDef } from '@/domain/model'
 import { DOORS, NO_WAYS, type Way } from '@/app/ways'
 import { glyphOfWay } from '@/screens/shell/glyphs'
 import { itemOf, letterheadOf, lineOf, type HeldPicture } from '@/data/pictures'
-import { coverArt, hostOf, pictured, type CoverArt } from './art'
+import { coverArt, groundOf, hostOf, nightMarkOf, pictured, spanOf, type CoverArt } from './art'
 import { DESK_GLYPH, boatTravel, pricedAtGlyph } from './glyphs'
 import { paginate, type Atom } from './paginate'
 import {
@@ -69,6 +71,7 @@ import {
   pricedAtSay,
   reasonsOf,
   rowFigure,
+  soleLine,
   totalLabel,
   unitlessOf,
   unsaidOf,
@@ -122,11 +125,14 @@ import './document.css'
      configuration, so the meaning — green reads included, grey reads
      inert — did not survive the print. Ours prints from these nodes,
      so there is nothing for a second renderer to lose.
-   · THE COVER PICTURE IS A BAND, NOT A BLEED, and that is arithmetic
-     rather than taste. A4 at 300 dpi is 2480 × 3508 px and not one
-     held picture in this repository is 3508 px tall (the sweep's §6).
-     A full-page bleed would be an enlargement, and nothing in this
-     app is enlarged past its own pixels.
+   · THE COVER IS THE BOAT (2026-11-02, direction A of
+     docs/directions/quote-3/cover-boards, picked in cover-pick.md). The
+     page is the night's ink and the photograph runs off its top and both
+     sides, whole and never past its own pixels in CSS px, its water
+     melting into the dark; a studio picture stands on a pale panel that
+     bleeds the same three edges. It reverses the band of 2026-09-25
+     ("a full-page bleed would be an enlargement"): nothing here fills
+     the page, so nothing is enlarged to.
    · THE PAGE COUNT IS MEASURED, NOT GUESSED. `paginate.ts` packs
      measured atoms into pages, so the page boxes on the floor are the
      pages that come out of the printer — asserted in
@@ -168,13 +174,24 @@ export const LETTERHEAD_MARK = 'Northside Marine’s own mark, from northsidemar
  *  (built-critique-m4.md, major 6: the note said the website's for both). */
 export const LETTERHEAD_MARK_ADDED = 'Northside Marine’s own mark, as added on Settings.'
 
-/** Which mark the letterhead prints, said truly: the same choice `Letterhead` makes. */
-export function letterheadSay(doc: Pick<PrintedQuote, 'business' | 'letterhead'>): string {
+/** The cover stands on a photograph and the mark printed has no light ink: said to the dealer. */
+export const NIGHT_MARK_IN_TYPE =
+  'The cover stands on its photograph, and the mark added on Settings is in dark ink only, so the cover sets the name in type there.'
+
+/** Which mark the letterhead prints, said truly: the same choice `Letterhead` makes, and on a
+ *  cover that stands on its photograph, the light ink it is set in there. */
+export function letterheadSay(
+  doc: Pick<PrintedQuote, 'business' | 'letterhead'>,
+  onPhoto = false,
+): string {
   if (!doc.business) return NO_NAME_FROZEN
   const held = letterheadOf(doc.business)
   const printed = doc.letterhead?.mark ?? (held.drawn ? held.mark : null)
   if (!printed) return NO_LETTERHEAD
-  return held.drawn && held.mark.src === printed.src ? LETTERHEAD_MARK : LETTERHEAD_MARK_ADDED
+  const said = held.drawn && held.mark.src === printed.src ? LETTERHEAD_MARK : LETTERHEAD_MARK_ADDED
+  return onPhoto && nightMarkOf(doc.business, doc.letterhead) === null
+    ? `${said} ${NIGHT_MARK_IN_TYPE}`
+    : said
 }
 
 /** A quote whose letterhead froze no name — raised before the file's own
@@ -196,7 +213,43 @@ export function missingDetails(letterhead: FrozenLetterhead): string[] {
 
 /** Said on the note of the details nobody has set, which print nowhere until they are. */
 export const NO_DETAILS = (missing: readonly string[]): string =>
-  `No ${missing.length === 1 ? missing[0] : `${missing.slice(0, -1).join(', ')} or ${missing[missing.length - 1]}`} is set on Settings, so the printed quote carries none.`
+  `No ${orList(missing)} is set on Settings, so the printed quote carries none.`
+
+/** "phone", "phone or email", "title, phone or email". */
+const orList = (items: readonly string[]): string =>
+  items.length === 1
+    ? (items[0] ?? '')
+    : `${items.slice(0, -1).join(', ')} or ${items[items.length - 1]}`
+
+/**
+ * WHAT THE SALESPERSON'S LINE LEAVES OUT, said to the dealer (the quote round, 2026-11-02:
+ * "Northside's contact details … the salesperson's line … where one is not set the paper leaves it
+ * out and the desk note beside the paper says which"). The paper prints under "Prepared by" and on
+ * the last page only the title, phone and email Settings holds for this person; '' where all three
+ * are set, or where nobody prepared the quote (the note says so elsewhere).
+ */
+export function preparerSay(doc: Pick<PrintedQuote, 'preparedBy' | 'preparer'>): string {
+  const name = doc.preparer?.name ?? doc.preparedBy
+  if (!name) return ''
+  const p = doc.preparer
+  const missing = (
+    [
+      ['title', p?.title],
+      ['phone', p?.phone],
+      ['email', p?.email],
+    ] as const
+  )
+    .filter(([, v]) => v === undefined || v.trim() === '')
+    .map(([word]) => word)
+  if (missing.length === 0) return ''
+  const left =
+    missing.length === 3
+      ? 'prints the name alone'
+      : missing.length === 1
+        ? 'leaves it out'
+        : 'leaves them out'
+  return `No ${orList(missing)} is set on Settings for ${name}, so the printed quote ${left}.`
+}
 
 /** Why this note exists, said on the note itself, in one line. */
 export const THE_DESK_NOTE = 'For you, not the customer.'
@@ -244,17 +297,55 @@ export interface DocumentProps {
   /** follow a way without a page load; without it the links are still
    *  links and the browser follows them itself */
   go?: (href: string) => void
+  /**
+   * DRAWN INSIDE ANOTHER SCREEN, as the build page's final package draws it (the quote round,
+   * 2026-11-02: the package's own `<main>` held this one's, so the page had two main landmarks).
+   * Embedded, the paper is a plain block with no landmark of its own, and its headings step down
+   * under the host's h3: the cover's name is an h4 and each part's word an h5. On its own address
+   * it is the page's `<main>` and the cover's name its h1.
+   */
+  embedded?: boolean
 }
 
-export function Document({ quoteId, goBack, print, ways = NO_WAYS, go }: DocumentProps) {
+/** THE LEVEL THE PAPER'S HEADINGS START AT: 1 on its own address, 4 drawn inside the package. */
+const HeadAt = createContext<1 | 4>(1)
+
+/** A heading of the paper, `at` steps under the cover's name. */
+function Heading({
+  at,
+  className,
+  children,
+}: {
+  at: 0 | 1
+  className: string
+  children: ReactNode
+}) {
+  const base = useContext(HeadAt)
+  const Tag = `h${base + at}` as 'h1' | 'h2' | 'h4' | 'h5'
+  return <Tag className={className}>{children}</Tag>
+}
+
+export function Document({
+  quoteId,
+  goBack,
+  print,
+  ways = NO_WAYS,
+  go,
+  embedded = false,
+}: DocumentProps) {
   const filed = useQuotes((s) => s.quotes)
   const apply = useQuotes((s) => s.apply)
   const read = useQuotes((s) => s.loaded)
   const problem = useQuotes((s) => s.problem)
   const quote = filed.find((q) => q.id === quoteId)
 
-  if (!quote) return <Missing read={read} problem={problem} ways={ways} go={go} />
-  return <Sheaf quote={quote} goBack={goBack} print={print} apply={apply} />
+  if (!quote)
+    return <Missing read={read} problem={problem} ways={ways} go={go} embedded={embedded} />
+  return (
+    <HeadAt.Provider value={embedded ? 4 : 1}>
+      <Sheaf quote={quote} goBack={goBack} print={print} apply={apply} embedded={embedded} />
+    </HeadAt.Provider>
+  )
 }
 
 /**
@@ -315,14 +406,17 @@ function Missing({
   problem,
   ways,
   go,
+  embedded,
 }: {
   read: boolean
   problem: string | null
   ways: readonly Way[]
   go?: (href: string) => void
+  embedded: boolean
 }) {
+  const Root = embedded ? 'div' : 'main'
   return (
-    <main className="doc doc--blank" data-testid="document">
+    <Root className="doc doc--blank" data-testid="document">
       {/* the kit's white plate on the room: a glyph for a paper that is not here, the
           sentence, and the ways out */}
       <Plate as="section" pad="lg" label="No quote here">
@@ -355,7 +449,7 @@ function Missing({
           <Ways ways={ways} go={go} />
         </div>
       </Plate>
-    </main>
+    </Root>
   )
 }
 
@@ -377,11 +471,13 @@ function Sheaf({
   goBack,
   print,
   apply,
+  embedded,
 }: {
   quote: QuoteDef
   goBack?: () => void
   print?: () => void
   apply: (quoteId: string, command: ReturnType<typeof setPaperSection>) => unknown
+  embedded: boolean
 }) {
   /* A DRAFT PRINTS NORTHSIDE'S LETTERHEAD AS IT STANDS TODAY; a given quote prints the one it was
      given with, and nothing on /manage reaches it (Milestone 4) */
@@ -537,9 +633,18 @@ function Sheaf({
   const settled = pages !== null
   const sheets = pages ?? [blocks.map((b) => b.id)]
   const byId = new Map(blocks.map((b) => [b.id, b]))
+  /* ON ITS OWN ADDRESS THE PAPER IS THE PAGE'S MAIN; inside the package it is a block of the
+     host's, which already has one */
+  const Root = embedded ? 'div' : 'main'
 
   return (
-    <main className="doc" data-testid="document" ref={root}>
+    <Root
+      className="doc"
+      data-testid="document"
+      ref={(element: HTMLElement | null) => {
+        root.current = element
+      }}
+    >
       <Chrome doc={doc} pages={settled ? sheets.length : null} goBack={goBack} print={print} />
 
       <div className="doc-floor">
@@ -562,6 +667,9 @@ function Sheaf({
               className="doc-page"
               key={ids[0] ?? i}
               data-page={i + 1}
+              /* THE COVER IS THE NIGHT'S PAGE: its ground, its foot and its letterhead in light ink
+                 (document.css, "the boat is the page") */
+              data-night={i === 0 && ids[0] === 'cover' ? '' : undefined}
               /* its place in the sheaf, for the few frames it waits before it is fed out */
               style={{ '--i': Math.min(i, 4) } as CSSProperties}
               aria-label={`Page ${i + 1}${settled ? ` of ${sheets.length}` : ''}`}
@@ -654,7 +762,7 @@ function Sheaf({
             where it is read. */}
         <DeskNote doc={doc} art={art} />
       </div>
-    </main>
+    </Root>
   )
 }
 
@@ -1168,12 +1276,15 @@ function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
               {doc.issued ? ' Make a new version to change it.' : ' Giving it makes it final.'}
             </DeskRow>
             <DeskRow word="The letterhead" glyph={DESK_GLYPH.letterhead}>
-              {letterheadSay(doc)}
+              {letterheadSay(doc, groundOf(art) === 'photo')}
               {/* WHAT IS NOT ON IT, said to the dealer where the customer's copy simply leaves it
                   out (paper-handoff.md, item 6) */}
               {doc.letterhead && missingDetails(doc.letterhead).length > 0
                 ? ` ${NO_DETAILS(missingDetails(doc.letterhead))}`
                 : ''}
+              {/* AND THE SALESPERSON'S LINE, which prints under "Prepared by" and on the last
+                  page: what of it Settings does not hold (the quote round, 2026-11-02) */}
+              {preparerSay(doc) === '' ? '' : ` ${preparerSay(doc)}`}
             </DeskRow>
             <DeskRow word="The cover picture" glyph={DESK_GLYPH.picture}>
               {picture}
@@ -1269,18 +1380,25 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
     })
   }
 
+  /* A QUOTE FOR ONE THING ALONE SAYS ITS PRICE ONCE (the owner's round, 2026-11-02: "a one-motor
+     quote fits the fewest pages the spec allows, the price said once where it belongs"). Its
+     cover names it, sets its facts and its picture, so "Your quote" would be one line repeating
+     the cover's name over the figure "Your price" says again under it; the price page names what
+     it is for under its head instead, and the figure prints once, as the total. */
+  const sole = soleLine(doc)
   /* YOUR QUOTE: the lines, band by band. THE BANDS THE CUSTOMER'S COPY PRINTS, and only those: a
      register that put nothing on the quote is off the paper, and a band left with no register is
      off it whole (`bandsOnPaper`); what was offered and not taken is the dealer's, on the note. */
-  const bands = bandsOnPaper(doc)
+  const bands = sole ? [] : bandsOnPaper(doc)
   /* A NUMBER ONLY WHERE THERE IS A SECOND: "01" over a quote's only band numbers nothing */
   const numbered = bands.length + (doc.typed.length > 0 ? 1 : 0) > 1
-  out.push({
-    id: 'quote-head',
-    keepWithNext: 1,
-    ...(specPage ? {} : { breakBefore: true }),
-    node: <PartHead word="Your quote" sub={quoteSub(doc)} />,
-  })
+  if (!sole)
+    out.push({
+      id: 'quote-head',
+      keepWithNext: 1,
+      ...(specPage ? {} : { breakBefore: true }),
+      node: <PartHead word="Your quote" sub={quoteSub(doc)} />,
+    })
   for (const band of bands) {
     const { section } = band
     const from = out.length
@@ -1372,7 +1490,13 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
 
   /* YOUR PRICE STANDS WITH WHAT IS SIGNED FOR: it keeps the next part on its page, so the
      last page is the figure and the signatures under it, never a signature page on its own */
-  out.push({ id: 'price', keepWithNext: 1, node: <YourPrice doc={doc} /> })
+  out.push({
+    id: 'price',
+    keepWithNext: 1,
+    /* the price opens the page after the cover where nothing stands between them */
+    ...(sole && !specPage ? { breakBefore: true } : {}),
+    node: <YourPrice doc={doc} sub={sole ? quoteSub(doc) : undefined} />,
+  })
   /* THE TERMS PRINT ONLY WHERE THE DEALERSHIP WROTE THEM AND THEY ARE KEPT ON. A section whose
      whole content was a sentence saying it had none was the app explaining itself to the buyer;
      the dealer is told on the note. */
@@ -1429,26 +1553,27 @@ function quoteSub(doc: PrintedQuote): string {
 /* ---------------------------------------------------------- */
 
 /**
- * PORSCHE'S COVER, READ OFF `porsche-pdf-1` AND THEN ANSWERED FOR A
- * DEALER. Theirs is a render on a pale panel, the name centred under
- * it, a code, a resolvable link, a date — then a rule, `Summary`, ONE
- * money row reading `Price for equipment`, and a six-point footnote,
- * with the lower 35% of the page deliberately empty.
+ * THE BOAT IS THE PAGE (2026-11-02; direction A of docs/directions/quote-3/cover-boards, picked in
+ * docs/directions/quote-3/cover-pick.md). The owner: "the quote pdf is BORING … pdf quote needs to
+ * be insane with cover page … using boats photo". The cover is the one page of the paper on the
+ * night's ink, and the boat's photograph is its top: it runs off the sheet's top and both sides,
+ * whole, as wide as the sheet where its own pixels allow and never wider in CSS px than they are,
+ * and the water under the boat melts into the dark. A studio picture — a motor on white, a
+ * maker's render — has no water to melt, so it stands on a pale studio panel that bleeds the same
+ * three edges; a maker's mark or the name in type stands there too. Every word the customer reads
+ * stands on the dark, at least 18 mm inside the edge: what it is, its name, its finish and the
+ * line a picture owes, the key facts, and the price beside who it is for at the foot (quote-spec
+ * §3.5 keeps them in those places, and `club-marine-cover` and `rmsothebys-auctions` are the
+ * frames: a headline on the boat's own water, one object lit on black).
  *
- * Ours keeps the order and changes one thing, because the sweep names
- * it as this screen's own requirement: THE PRICE STANDS BESIDE WHO IT
- * IS FOR. A configuration belongs to a code; a quote belongs to a
- * person, and a document whose total is not next to the name it is
- * addressed to is a price list. So the summary is two columns —
- * prepared for, and what it comes to — and `govuk-confirmation`'s
- * rule about a reference is kept: it is in the panel AND in the foot
- * of every page.
+ * NOTHING IS CROPPED OR GUESSED. The board cropped each photograph by hand and set the name under
+ * the boat's lowest point; neither value is held for a picture, so the photograph is drawn whole
+ * and the name starts under its foot, never on the water.
  *
- * THE PRICE SAYS WHAT IT IS A PRICE FOR. Porsche writes `Price for
- * equipment*` and Saxdor names the exact engines behind its starting
- * figure; ours prints the rung in the dealer's own word and the tax
- * convention, always, because a figure with no configuration named is
- * `live/yachtworld-boat-detail` — three prices and a town.
+ * THE PRICE STANDS BESIDE WHO IT IS FOR, which is this screen's own requirement since Porsche's
+ * cover (`porsche-pdf-1`) was answered for a dealer: a configuration belongs to a code, a quote
+ * belongs to a person. The reference is in the stamp and in the foot of every page
+ * (`govuk-confirmation`).
  */
 function Cover({
   doc,
@@ -1460,7 +1585,7 @@ function Cover({
   doc: PrintedQuote
   art: CoverArt
   travel: string
-  /** the picture's height in px where the cover would not fit its page at `--shot-max` */
+  /** the picture's height in px where the cover would not fit its page at its ceiling */
   fit: number | null
   /** the facts the strip sets: all of them where they fit, else the four key ones */
   facts: ReadonlyArray<{ label: string; value: string }>
@@ -1473,35 +1598,45 @@ function Cover({
   const boat = doc.subject.kind === 'boat' || doc.subject.kind === null
   const caption = art.kind === 'photograph' ? pictured(art.held, doc.subject.title, boat) : null
   const by = doc.preparedBy ? (doc.preparer?.name ?? doc.preparedBy) : null
+  /* THE GROUND THE TOP OF THE PAGE IS: the photograph itself, or the studio's panel (`groundOf`) */
+  const ground = groundOf(art)
+  const span = art.kind === 'photograph' && ground === 'photo' ? spanOf(art.held) : null
 
   return (
-    <div className="doc-cover" data-kind={doc.subject.kind ?? 'boat'}>
-      <Letterhead
-        business={doc.business}
-        letterhead={doc.letterhead}
-        reference={doc.reference}
-        kind={doc.issued ? 'Quotation' : 'Quotation · draft'}
-        when={
-          doc.issued ? (doc.issuedAt ? `Issued ${day(doc.issuedAt)}` : 'Issued') : 'Not issued yet'
-        }
-        details={doc.chosen.details}
-      />
-
-      {/* THE PICTURE OF WHAT IS SOLD, ON ONE PLATE ACROSS THE WHOLE MEASURE (the owner, 2026-10-30:
-          "a cover page … using boats photo"; the printed quote's critic, 2026-10-31: three frame
-          treatments, and edges that missed the 68–726 the title and rules stand on). Every cover
-          draws the same plate: the measure's full width, a pale studio ground, the picture on it
-          as large as its own pixels and `--shot-max` allow — whole, never cut, never enlarged,
-          never a bleed (no held picture is 3,508 px tall, art.ts). A photograph on the water fills
-          the plate's width; a cut-out on white sits on the ground as if photographed on it. The
-          held size rides on the element as numbers, so the box is the picture's before a byte has
-          loaded and the page's height does not move when it lands. */}
-      <figure
-        className="doc-shot"
-        data-art={art.kind}
-        data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
-      >
-        <div className="doc-shot__plate">
+    <div
+      className="doc-cover"
+      data-kind={doc.subject.kind ?? 'boat'}
+      data-ground={ground}
+      data-long={longTitle(doc.subject.title) ? '' : undefined}
+    >
+      {/* THE TOP OF THE PAGE, OFF ITS THREE EDGES: the letterhead over the photograph's veil, or
+          over the studio's panel above the picture */}
+      <div className="doc-night">
+        <Letterhead
+          business={doc.business}
+          letterhead={doc.letterhead}
+          reference={doc.reference}
+          kind={doc.issued ? 'Quotation' : 'Quotation · draft'}
+          when={
+            doc.issued
+              ? doc.issuedAt
+                ? `Issued ${day(doc.issuedAt)}`
+                : 'Issued'
+              : 'Not issued yet'
+          }
+          details={doc.chosen.details}
+          ink={ground === 'photo' ? 'night' : 'paper'}
+        />
+        {/* THE PICTURE OF WHAT IS SOLD. The held size rides on the element as numbers, so the box
+            is the picture's before a byte has loaded and the page's height does not move when it
+            lands. */}
+        <figure
+          className="doc-shot"
+          data-art={art.kind}
+          data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
+          data-span={span ?? undefined}
+          data-fit={fit === null ? undefined : ''}
+        >
           {art.kind === 'photograph' ? (
             <img
               className="doc-shot__img"
@@ -1539,21 +1674,19 @@ function Cover({
           ) : (
             <span className="doc-shot__word">{register}</span>
           )}
-        </div>
-        {/* WHAT THE PICTURE SHOWS THAT THE QUOTE DOES NOT SELL, in a line a brochure would print
-            ("shown with optional equipment"): the model in its maker's finish, a different
-            outboard, or more outboards than the line sells. The exact item needs no line. */}
-        {caption ? <figcaption className="doc-shot__say">{caption}</figcaption> : null}
-      </figure>
+        </figure>
+      </div>
 
       {/* WHAT IS SOLD, AS A PERSON SAYS IT: what kind of thing it is over its name — "Your boat",
           "Your motor", the same on every cover and never the file's heading — the exact model
-          whole, "(Tournament)" kept, and its finish with a swatch of each colour the decode names */}
+          whole, "(Tournament)" kept, its finish with a swatch of each colour the decode names, and
+          the line a brochure prints where the picture shows what the quote does not sell ("shown
+          with optional equipment"): the maker's finish, another outboard, more outboards. */}
       <div className="doc-cover__title">
         <p className="doc-cover__over">{over}</p>
-        <h1 className="doc-cover__name">
+        <Heading at={0} className="doc-cover__name">
           <TitleSaid title={doc.subject.title} />
-        </h1>
+        </Heading>
         {doc.subject.finish === '' ? null : (
           <p className="doc-cover__detail">
             {/* round, shaded chips: a white one is a white dot and never a box to tick */}
@@ -1561,6 +1694,7 @@ function Cover({
             {doc.subject.finish}
           </p>
         )}
+        {caption ? <p className="doc-shot__say">{caption}</p> : null}
       </div>
 
       {/* THE FACTS A BROCHURE SETS UNDER THE NAME, large: the whole specification where it fits
@@ -1596,22 +1730,22 @@ function Cover({
               {line}
             </p>
           ))}
+          {by ? (
+            <div className="doc-money__by">
+              <p className="doc-lab">Prepared by</p>
+              <p className="doc-money__who-by">{by}</p>
+              {/* HOW TO REACH THEM, as Northside set them on Settings: the title, the phone and
+                  the email, each only where it was given */}
+              {[doc.preparer?.title, doc.preparer?.phone, doc.preparer?.email]
+                .filter((line): line is string => line !== undefined && line !== '')
+                .map((line) => (
+                  <p className="doc-money__line" key={line}>
+                    {line}
+                  </p>
+                ))}
+            </div>
+          ) : null}
         </div>
-        {by ? (
-          <div className="doc-money__by">
-            <p className="doc-lab">Prepared by</p>
-            <p className="doc-money__who-by">{by}</p>
-            {/* HOW TO REACH THEM, as Northside set them on Settings: the title, the phone and
-                the email, each only where it was given */}
-            {[doc.preparer?.title, doc.preparer?.phone, doc.preparer?.email]
-              .filter((line): line is string => line !== undefined && line !== '')
-              .map((line) => (
-                <p className="doc-money__line" key={line}>
-                  {line}
-                </p>
-              ))}
-          </div>
-        ) : null}
 
         <div className="doc-money__sum">
           <p className="doc-lab">{totalLabel(doc)}</p>
@@ -1632,6 +1766,15 @@ function Cover({
     </div>
   )
 }
+
+/** THE LONGEST NAME SET AT THE COVER'S FULL SIZE: "Highfield Sport 560" is 19 characters and fits
+ *  the measure on one line at 64px; a longer name, or one with a bracket ("Stacer 499 Sea Ranger
+ *  SDF (Centre Console)"), is set a step down on two balanced lines. */
+const FULL_TITLE = 20
+
+/** True where the cover sets the name a step down (`FULL_TITLE`). */
+export const longTitle = (title: string): boolean =>
+  title.length > FULL_TITLE || /\([^()]+\)$/.test(title)
 
 /** A model's name with its closing bracket as one piece, so a line breaks before the bracket and
  *  never inside the name: "Stacer 499 Sea Ranger SDF" over "(Centre Console)". */
@@ -1706,7 +1849,9 @@ function SpecPage({ doc }: { doc: PrintedQuote }) {
 function PartHead({ word, sub }: { word: string; sub?: string }) {
   return (
     <header className="doc-part">
-      <h2 className="doc-part__word">{word}</h2>
+      <Heading at={1} className="doc-part__word">
+        {word}
+      </Heading>
       {sub ? <p className="doc-part__sub">{sub}</p> : null}
     </header>
   )
@@ -1742,6 +1887,12 @@ export interface LetterheadProps {
    *  salesperson took them off this quote (quote-spec §7a). Settings always shows them. */
   details?: boolean
   /**
+   * THE GROUND IT STANDS ON: paper (Settings, a studio panel) in dark ink, or the cover's
+   * photograph, in light — the white ink of the same mark where it is held (`nightMarkOf`), else
+   * the name in type, which the note beside the paper says.
+   */
+  ink?: 'paper' | 'night'
+  /**
    * WHERE A LINE IS SET RATHER THAN PRINTED (/manage, Milestone 4): handed each line of the
    * letterhead in order — the mark first — with what it prints, and returns what stands there.
    * The printed quote passes nothing and prints only the lines that hold something.
@@ -1766,11 +1917,15 @@ export function Letterhead({
   kind,
   when,
   details = true,
+  ink = 'paper',
   renderLine: setting,
 }: LetterheadProps) {
   const held = letterheadOf(business)
   const name = letterhead?.name ?? business
-  const mark = letterhead?.mark ?? (held.drawn ? held.mark : null)
+  const mark =
+    ink === 'night'
+      ? nightMarkOf(business, letterhead)
+      : (letterhead?.mark ?? (held.drawn ? held.mark : null))
   const printedMark = mark ? (
     <p className="doc-cover__house" data-named="" data-mark="">
       <img
@@ -1793,7 +1948,7 @@ export function Letterhead({
       ? `Valid for ${letterhead.validDays} ${letterhead.validDays === 1 ? 'day' : 'days'} from the day it is given`
       : null
   return (
-    <div className="doc-cover__mast" data-testid="letterhead">
+    <div className="doc-cover__mast" data-testid="letterhead" data-ink={ink}>
       <div className="doc-cover__who">
         {setting ? setting('mark', printedMark) : printedMark}
         {setting ? (
@@ -2074,7 +2229,7 @@ function AdjustmentHead() {
  * sheet. And the bands above the total are what make the page add up
  * where a reader can see it do so, which the lone total did not.
  */
-function YourPrice({ doc }: { doc: PrintedQuote }) {
+function YourPrice({ doc, sub }: { doc: PrintedQuote; sub?: string }) {
   const t = doc.totals
   /* A PRICE OF ONE ROW IS ITS TOTAL (the printed quote's critic, 2026-10-31: a one-motor quote
      printed $16,667 four times): the row that would say the motor's figure over the total that is
@@ -2084,7 +2239,7 @@ function YourPrice({ doc }: { doc: PrintedQuote }) {
   const includes = includesSay(doc)
   return (
     <section className="doc-sums" aria-label="Your price">
-      <PartHead word="Your price" />
+      <PartHead word="Your price" {...(sub ? { sub } : {})} />
       <dl className="doc-sums__list">
         {rows.map((row) => (
           <div className="doc-sum" key={row.key} data-word={row.included ? 'included' : undefined}>

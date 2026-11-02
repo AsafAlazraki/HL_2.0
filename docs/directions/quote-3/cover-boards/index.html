@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quote cover directions</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ============================================================
+   THE THREE COVERS SIDE BY SIDE, for the owner to pick by eye.
+   Each cover is its 1:1 PNG (794 × 1123), drawn smaller here and
+   never larger than its own pixels. Each board's page has the
+   working sheet, its reflow and its notes.
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink);
+  background: var(--color-ground);
+  -webkit-font-smoothing: antialiased;
+}
+img {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+}
+.wrap {
+  inline-size: min(100% - 2 * var(--spacing) * 4, 120rem);
+  margin-inline: auto;
+  padding-block: calc(var(--spacing) * 8) calc(var(--spacing) * 16);
+  display: grid;
+  gap: calc(var(--spacing) * 10);
+}
+.head {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  max-inline-size: 72ch;
+}
+.head p,
+.head h1 {
+  margin: 0;
+}
+.kicker,
+.dir-kicker {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.head h1 {
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+}
+.say {
+  margin: 0;
+  color: var(--color-ink-2);
+  max-inline-size: 72ch;
+}
+.dirs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--spacing) * 10);
+}
+.dir {
+  display: grid;
+  align-content: start;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 5);
+  border-radius: var(--radius-plate);
+  background: var(--color-white);
+  box-shadow: var(--shadow-plate);
+}
+.dir[data-pick] {
+  box-shadow: var(--shadow-plate), 0 0 0 2px var(--color-accent);
+}
+.dir h2 {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+}
+.dir h2 a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+.dir h2 a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.pick {
+  justify-self: start;
+  padding: calc(var(--spacing) * 0.5) calc(var(--spacing) * 2.5);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-white);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+.dir p {
+  margin: 0;
+  color: var(--color-ink-2);
+}
+.dir p b {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 3);
+  padding-block-start: calc(var(--spacing) * 2);
+}
+.pair figure {
+  margin: 0;
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+.pair img {
+  inline-size: 100%;
+  max-inline-size: 794px;
+  box-shadow: var(--shadow-plate);
+}
+.pair figcaption,
+.study figcaption {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-3);
+}
+.study {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+.study h2 a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+.study h2 {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 300;
+}
+.study-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 4);
+}
+.study figure {
+  margin: 0;
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+.study img {
+  inline-size: 100%;
+  max-inline-size: 794px;
+  box-shadow: var(--shadow-plate);
+}
+@media (min-width: 1240px) {
+  .dirs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: calc(var(--spacing) * 6);
+  }
+}
+@media (max-width: 639.98px) {
+  .study-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="head">
+    <p class="kicker">Northside Marine’s printed quote · the cover · three directions</p>
+    <h1>Three covers, drawn on the given quotes</h1>
+    <p class="say">The owner: “the quote pdf is BORING … pdf quote needs to be insane with cover page”. The critic of 2026-10-31 called today’s cover “a letterhead with a framed picture” (the picture 37% of the page). Each cover below is drawn on the real Highfield Sport 560 and Stacer 499 quotes given on 31 October, with the customer’s name and the total where the spec keeps them: who it is for on the left, the total on the right, at the foot.</p>
+  </header>
+
+  <div class="dirs">
+    <section class="dir" data-pick aria-labelledby="dir-a">
+      <p class="dir-kicker">A</p>
+      <h2 id="dir-a"><a href="a-the-boat-is-the-page.html">The boat is the page</a></h2>
+      <span class="pick">Recommended</span>
+      <p>The photograph runs off three edges and every word stands on its water and the night it melts into. <b>Only A</b> makes the picture the page: 68% of the SP560’s sheet, 53% of the Stacer’s. Its cost: it needs a scene, its ground takes toner, and a 1,024 px picture prints at 96 dpi.</p>
+      <div class="pair">
+        <figure><img src="png/a-sp560.png" width="794" height="1123" alt="Cover A on the Highfield Sport 560 quote"><figcaption>Highfield Sport 560 · $73,992</figcaption></figure>
+        <figure><img src="png/a-stacer.png" width="794" height="1123" alt="Cover A on the Stacer 499 Sea Ranger quote"><figcaption>Stacer 499 Sea Ranger SDF · $30,243</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="dir" aria-labelledby="dir-b">
+      <p class="dir-kicker">B</p>
+      <h2 id="dir-b"><a href="b-the-configuration-book.html">The configuration book</a></h2>
+      <p>The boat’s own digits ghosted over a print of the photograph, and everything the quote is, by kind, on the cover. <b>Only B</b> lists the motor, the trailer and each dealer-fit item on page 1 and keeps the band ruling: nothing bleeds. Its cost: the picture is 27% of the page.</p>
+      <div class="pair">
+        <figure><img src="png/b-sp560.png" width="794" height="1123" alt="Cover B on the Highfield Sport 560 quote"><figcaption>Highfield Sport 560 · $73,992</figcaption></figure>
+        <figure><img src="png/b-stacer.png" width="794" height="1123" alt="Cover B on the Stacer 499 Sea Ranger quote"><figcaption>Stacer 499 Sea Ranger SDF · $30,243</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="dir" aria-labelledby="dir-c">
+      <p class="dir-kicker">C</p>
+      <h2 id="dir-c"><a href="c-northsides-water.html">Northside’s water</a></h2>
+      <p>The app’s own band and water across the top, Northside’s white mark at 420px, and the boat handed over the band’s foot on the kit’s plate. <b>Only C</b> makes the dealership the showpiece, on a drawn ground that never runs out of pixels. Its cost: the boat comes second.</p>
+      <div class="pair">
+        <figure><img src="png/c-sp560.png" width="794" height="1123" alt="Cover C on the Highfield Sport 560 quote"><figcaption>Highfield Sport 560 · $73,992</figcaption></figure>
+        <figure><img src="png/c-stacer.png" width="794" height="1123" alt="Cover C on the Stacer 499 Sea Ranger quote"><figcaption>Stacer 499 Sea Ranger SDF · $30,243</figcaption></figure>
+      </div>
+    </section>
+  </div>
+
+  <section class="study" aria-labelledby="study-h">
+    <h2 id="study-h"><a href="the-1024-photograph.html">With a 1,024 px photograph</a></h2>
+    <p class="say">The dealership’s mirror holds its Stacer photographs at 1,024 px; the 529 Assault Pro’s is 1,024 × 676. Each direction’s rule, drawn on it at 1:1 on A4. These are measurements, not covers.</p>
+    <div class="study-row">
+      <figure><img src="png/a-1024.png" width="794" height="1123" alt="Direction A's rule on a 1,024 by 676 photograph"><figcaption>A · 794 × 676, one to one · 96 dpi</figcaption></figure>
+      <figure><img src="png/b-1024.png" width="794" height="1123" alt="Direction B's rule on a 1,024 by 676 photograph"><figcaption>B · 658 × 370 · 149 dpi</figcaption></figure>
+      <figure><img src="png/c-1024.png" width="794" height="1123" alt="Direction C's rule on a 1,024 by 676 photograph"><figcaption>C · 658 × 370 on the plate · 149 dpi</figcaption></figure>
+    </div>
+  </section>
+</main>
+</body>
+</html>

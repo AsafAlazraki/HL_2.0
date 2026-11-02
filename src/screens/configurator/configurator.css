@@ -1014,6 +1014,31 @@
   z-index: 1;
   inset-block-start: --spacing(3);
   inset-inline-end: --spacing(3);
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+/* HOW MANY PICTURES OF THE BOAT THE PRESS OPENS, where it opens more than one: a pill of the
+   press's own plate and height beside it, so the corner reads "3 pictures, open them" and not
+   one picture (the galleries, 2026-11-02). Its words stand on their own ground, never on the
+   photograph. */
+.cfg-shot__many {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  block-size: --spacing(9);
+  padding: 0 --spacing(3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  background: --alpha(var(--color-plate) / 92%);
+  box-shadow:
+    0 0 0 1px var(--color-rule-strong),
+    var(--shadow-lift);
+  pointer-events: none;
 }
 
 /* THE STAGE'S WORDS, AS ONE BLOCK: the boat's facts and where its picture came from, under the
@@ -1204,6 +1229,11 @@
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
+}
+/* and the way to give it one, under that sentence at its start */
+.cfg-stage__add {
+  display: flex;
+  margin-block-start: --spacing(1);
 }
 
 /* ---- the rung, and the way to another one ----------------------------------------- */

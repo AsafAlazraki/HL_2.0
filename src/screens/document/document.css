@@ -812,106 +812,184 @@
   color: var(--color-accent);
 }
 
-/* THE PICTURE IS A BAND AND NEVER A BLEED. §6 of the sweep: A4 at
-   300 dpi is 2480 x 3508 px, and not one held picture in this
-   repository is 3508 px tall — so a full-page cover would be an
-   enlargement.
+/* ====================================================================================
+   THE BOAT IS THE PAGE (2026-11-02; direction A of docs/directions/quote-3/cover-boards, picked
+   in cover-pick.md). The cover is the one sheet on the night's ink. Its top is the boat: a
+   photograph runs off the sheet's top and both sides and its water melts into the dark, or a
+   studio picture stands on a pale panel that bleeds the same three edges. Every word stands on
+   the dark under it, 18 mm inside the sheet's edge.
 
-   AND IT IS THE WHOLE BOAT (2026-09-25). Until this date the band was
-   72 mm tall and the picture was `object-fit: cover` inside it, which
-   cut the top and the bottom off any picture less wide than the band's
-   own shape: the ADV7's 1,100 × 619 render lost 27% of its height, the
-   T-top sat on the frame's edge and the antenna above it was gone
-   (m2-last-critique-2.md, major 2). A boat's photograph on the customer's
-   paper now shows all of it. The picture is drawn at the smallest of
-   three ceilings, in its own proportion:
+   UNTIL THIS DATE THE PICTURE WAS A BAND AND NEVER A BLEED, argued at 300 dpi: no held picture is
+   3,508 px tall, so a cover that FILLED the page would be an enlargement. This cover does not fill
+   the page. A photograph is drawn whole, at the sheet's width where its held pixels reach it and
+   never wider in CSS px than they are (`--held-w`), no taller than `--night-max`, and it stops
+   where its pixels stop. Measured on the three quotes of 2026-11-02 in the round's report.
 
-     - its held width in CSS px (`--held-w`), so it is never enlarged;
-     - the measure, 174 mm;
-     - `--shot-max` tall — 100 mm (378 px). Measured on 2026-09-25 on four
-       given quotes, gauged in the paper's geometry at 1440: page 1's room
-       is 934 px, and the cover's content came to 831 (the 529), 844 (the
-       ADV7: five specification rows, its finish line and a sentence under
-       the total), 811 (the Surtees 770 XL) and 730 (the Merry Fisher
-       605). A title that wraps to a second line adds 38 px and still ends
-       inside the room.
+   NOTHING IS CROPPED TO REACH AN EDGE, AND NOTHING STANDS ON THE WATER. The board cropped each
+   photograph by hand and set the name under the boat's lowest point; neither value is held for a
+   picture, so the name starts under the photograph's foot, on the solid dark, where every line of
+   it measures against one ground.
+   ==================================================================================== */
+.doc {
+  /* THE NIGHT'S INK AND WHAT STANDS ON IT, all of them tokens: the room's own darkest neutral as
+     the ground (white on it 18.44 : 1, neutral-300 8.74 : 1, neutral-100 14.95 : 1 in tokens.css),
+     a veil of it for the letterhead over a photograph's sky, and a hairline of white at a fifth */
+  --night: var(--color-neutral-950);
+  --night-veil: color-mix(in oklch, var(--color-neutral-950) 80%, transparent);
+  --night-rule: color-mix(in oklch, var(--color-white) 20%, transparent);
+  --night-ink: var(--color-white);
+  --night-ink-1: var(--color-neutral-100);
+  --night-ink-2: var(--color-neutral-300);
+  /* NORTHSIDE'S COLOUR ON THE NIGHT: the accent itself for the rule over the price (the paper's
+     one stroke of it, as on every page), and a light tint of it for the small capitals over the
+     name, so any colour Settings keeps reads on the dark */
+  --night-tint: color-mix(in oklch, var(--color-accent) 28%, var(--color-white));
+  /* THE NAME AND THE TOTAL ON A COVER: the ramp stops at 40px (`--text-6xl`), and the cover sets
+     the boat's name a step and a half over it, a long name a half step, the total at the long
+     name's size (the board's 64, 48 and 48) */
+  --cover-name: calc(var(--text-6xl) * 1.6);
+  --cover-name-long: calc(var(--text-6xl) * 1.2);
+  --cover-figure: calc(var(--text-6xl) * 1.2);
+  /* the tallest a photograph is drawn (170 mm, 642 px: 57% of the sheet; a 3 : 2 photograph at
+     the sheet's width is 529 px, 47%), and the tallest a studio picture stands on its panel */
+  --night-max: 170mm;
+  --studio-max: 98mm;
+  /* WHERE THE TOP OF THE COVER STARTS AND HOW FAR IT REACHES OUT: from the sheet's own top edge
+     (the page's top margin and the empty running head above the flow) and over both side
+     margins. A hand's column sets its own (the ladder, below). */
+  --bleed-top: calc(var(--page-pad-top) + var(--head-h));
+  --bleed-x: var(--page-pad-x);
+  --mast-top: var(--page-pad-top);
+}
 
-   So the ADV7 prints whole at the full measure (658 × 370 of its 1,100 ×
-   619), and the 529's 1,024 × 676 photograph whole at 100 mm tall
-   (573 × 378) — the band's height is the picture's, never a crop of it.
+/* THE NIGHT'S PAGE: the ground, and the foot's reference, page number and rule in its inks. It
+   prints as it is drawn (`print-color-adjust` on `.doc-page`), and print's white ground below is
+   the other sheets'. */
+.doc-page[data-night] {
+  background: var(--night);
+  color: var(--night-ink);
+}
+.doc-page[data-night] .doc-page__foot {
+  border-block-start-color: var(--night-rule);
+  color: var(--night-ink-2);
+}
 
-   A maker's mark or the name in type has no proportion of its own to
-   keep, so it still stands in the 72 mm band it always did. */
+/* THE TOP OF THE COVER, OFF THREE EDGES: pulled up over the sheet's top margin and out over its
+   side margins, so its edges are the sheet's */
+.doc-night {
+  position: relative;
+  margin: calc(-1 * var(--bleed-top)) calc(-1 * var(--bleed-x)) 0;
+}
+
+/* ---- a photograph is the top ---------------------------------------------------------- */
+
+/* THE LETTERHEAD STANDS ON THE PHOTOGRAPH, ON ITS OWN VEIL: the night at 80%, held over the top
+   third of the veil and gone by its foot, so a pale sky never stands behind the reference (the
+   board measured "Issued 31 October 2026" at 2.48 : 1 on the SP560's sky without it). The veil is
+   the letterhead's own ground and runs the sheet's width; its words keep the sheet's margins. */
+.doc-cover[data-ground='photo'] .doc-cover__mast {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  box-sizing: border-box;
+  min-block-size: min(70mm, 60%);
+  align-items: start;
+  margin: 0;
+  padding: var(--mast-top) var(--bleed-x) 0;
+  border: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--night-veil) 0,
+    var(--night-veil) 38%,
+    transparent 100%
+  );
+}
 .doc-shot {
   margin: 0;
   display: flex;
-  /* a column, so a photograph of the model carries its line under it (`.doc-shot__say`) */
-  flex-direction: column;
-}
-/* ONE PLATE ON EVERY COVER (the printed quote's critic, 2026-10-31: three frame treatments, and
-   picture edges at 68–725, 85–708 and 120–673 against the 68–726 the title and the rules stand
-   on). The plate is the measure's full width on a pale studio ground, so its edges are the
-   page's edges whatever it holds: a photograph on the water fills its width, a cut-out on white
-   stands on the ground as if photographed there, and a mark or a name in type sits in its
-   middle. Never a bleed and never a crop. */
-.doc-shot__plate {
-  display: flex;
-  align-items: center;
   justify-content: center;
-  inline-size: 100%;
-  background: var(--color-neutral-50);
-  print-color-adjust: exact;
-}
-.doc-shot:not([data-art='photograph']) .doc-shot__plate {
-  block-size: 72mm;
-  overflow: hidden;
 }
 .doc-shot__img {
-  /* the held size, in pixels, as numbers: set on the element by the cover
-     from the image ledger (`Document.tsx`), so these are only the names */
+  /* the held size, in pixels, as numbers: set on the element by the cover from the image ledger
+     (`Document.tsx`), so these are only the names */
   --held-w: 0;
   --held-h: 1;
-  /* THE NAME THE BUILD'S PHOTOGRAPH LANDS UNDER, handed in by the cover (`boatTravel`);
-     nothing travels until it is, and print draws no transition at all */
+  /* THE NAME THE BUILD'S PHOTOGRAPH LANDS UNDER, handed in by the cover (`boatTravel`); nothing
+     travels until it is, and print draws no transition at all */
   --doc-travel: none;
-  /* THE PICTURE'S CEILING ON THIS COVER: `--shot-max`, or less where the cover would otherwise
-     be taller than its page (`fit` in Document.tsx sets it on the element) */
-  --shot-fit: var(--shot-max);
   view-transition-name: var(--doc-travel);
   display: block;
+  block-size: auto;
+  aspect-ratio: var(--held-w) / var(--held-h);
+  object-fit: cover;
+}
+/* WHOLE, AS WIDE AS THE SHEET WHERE ITS PIXELS REACH, never past them, no taller than its
+   ceiling; and the water under the boat melts into the night over the photograph's last 30% */
+.doc-cover[data-ground='photo'] .doc-shot__img {
+  inline-size: min(
+    100%,
+    calc(var(--held-w) * 1px),
+    calc(var(--night-max) * var(--held-w) / var(--held-h))
+  );
+  mask-image: linear-gradient(to bottom, var(--color-white) 70%, transparent 100%);
+}
+/* A PHOTOGRAPH NARROWER THAN THE SHEET stands centred and its sides melt into the night too, so it
+   never ends on a hard edge in the dark */
+.doc-shot[data-span='narrow'] .doc-shot__img {
+  mask-image:
+    linear-gradient(to bottom, var(--color-white) 70%, transparent 100%),
+    linear-gradient(
+      to right,
+      transparent 0,
+      var(--color-white) 12%,
+      var(--color-white) 88%,
+      transparent 100%
+    );
+  mask-composite: intersect;
+}
+/* A COVER THAT WOULD NOT FIT ITS SHEET takes the difference off the photograph's sky, never its
+   foot, where the boat is (`fit` in Document.tsx) */
+.doc-cover[data-ground='photo'] .doc-shot[data-fit] .doc-shot__img {
+  block-size: var(--shot-fit);
+  aspect-ratio: auto;
+  object-position: 50% 100%;
+}
+
+/* ---- a studio picture, a mark or a name stands on a pale panel ------------------------- */
+
+.doc-cover[data-ground='studio'] .doc-night {
+  padding: var(--mast-top) var(--bleed-x) --spacing(8);
+  background: var(--color-neutral-50);
+}
+/* the letterhead as Settings draws it, in dark ink on the panel, without its rule: the panel's
+   foot is the line between who is writing and what they wrote */
+.doc-cover[data-ground='studio'] .doc-cover__mast {
+  margin-block-end: --spacing(6);
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+/* THE PICTURE WHOLE, AT ITS OWN SIZE, NO TALLER THAN ITS CEILING, ITS WHITE THE PANEL'S: a
+   cut-out's white is multiplied into the ground, so the item stands on the panel as if
+   photographed there */
+.doc-cover[data-ground='studio'] .doc-shot__img {
+  --shot-fit: var(--studio-max);
   inline-size: min(
     100%,
     calc(var(--held-w) * 1px),
     calc(var(--shot-fit) * var(--held-w) / var(--held-h))
   );
-  block-size: auto;
-  aspect-ratio: var(--held-w) / var(--held-h);
   object-fit: contain;
-}
-/* A RENDER CUT OUT ON WHITE TAKES THE PLATE'S GROUND: its white is multiplied into the ground, so
-   the item stands on the plate and no white box stands inside it. A scene on the water is drawn
-   as it is. */
-.doc-shot[data-verdict='studio'] .doc-shot__img,
-.doc-shot[data-verdict='unknown'] .doc-shot__img {
   mix-blend-mode: multiply;
 }
-/* THE LINE UNDER A PHOTOGRAPH OF THE MODEL, in the paper's quiet ink, the size of the issue
-   date: read by a buyer who looks for it, never competing with the boat's name under it */
-.doc-shot__say {
-  margin: 0;
-  padding-block-start: --spacing(2);
-  text-align: start;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-500);
-  text-wrap: pretty;
-}
 .doc-shot__mark {
+  display: block;
   max-inline-size: 60%;
-  max-block-size: 40%;
+  max-block-size: 40mm;
   object-fit: contain;
 }
 .doc-shot__word {
+  display: block;
+  padding-block: --spacing(12);
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
   letter-spacing: var(--tracking-caps);
@@ -919,10 +997,30 @@
   color: var(--color-neutral-500);
 }
 
-/* WHAT IS SOLD, UNDER ITS PICTURE: the maker and series in the accent's small capitals, the
-   exact model set large and light, its finish with a swatch of each colour */
+/* ---- the letterhead in light ink, on the photograph ------------------------------------- */
+
+.doc-cover__mast[data-ink='night'] .doc-cover__mark {
+  block-size: 12mm;
+}
+.doc-cover__mast[data-ink='night'] .doc-cover__house[data-named] {
+  color: var(--night-ink);
+}
+.doc-cover__mast[data-ink='night'] .doc-cover__contact,
+.doc-cover__mast[data-ink='night'] .doc-cover__when {
+  color: var(--night-ink-1);
+}
+.doc-cover__mast[data-ink='night'] .doc-cover__kind,
+.doc-cover__mast[data-ink='night'] .doc-cover__valid {
+  color: var(--night-ink);
+}
+
+/* ---- the words on the night ------------------------------------------------------------ */
+
+/* WHAT IS SOLD, UNDER ITS PICTURE: what kind of thing it is in a light tint of Northside's colour's
+   small capitals, the exact model set large and light in white, its finish with a swatch of each
+   colour, and the line the picture owes. On the night's solid ground, never on the water. */
 .doc-cover__title {
-  padding-block-start: --spacing(5);
+  padding-block-start: --spacing(4);
 }
 .doc-cover__over {
   margin: 0;
@@ -931,7 +1029,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-accent);
+  color: var(--night-tint);
 }
 /* "(Centre Console)" breaks onto its own line whole, never "Sea Ranger" over "SDF (Centre…" */
 .doc-cover__bracket {
@@ -939,43 +1037,57 @@
 }
 .doc-cover__name {
   margin: 0;
-  padding-block-start: --spacing(1);
-  font-size: var(--text-6xl);
-  line-height: var(--text-6xl--line-height);
+  padding-block-start: --spacing(2);
+  font-size: var(--cover-name);
+  line-height: 1.04;
   font-weight: 300;
   letter-spacing: var(--tracking-display);
-  color: var(--color-neutral-900);
-  text-wrap: pretty;
+  color: var(--night-ink);
+  text-wrap: balance;
+}
+.doc-cover[data-long] .doc-cover__name {
+  font-size: var(--cover-name-long);
+  line-height: 1.08;
 }
 
 /* THE BOAT'S MATERIAL AND COLOUR under its name, in words, with a swatch of each colour the
-   decode names — the paper's own ink, which does not change with the room's theme */
+   decode names */
 .doc-cover__detail {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: --spacing(2);
   margin: --spacing(2) 0 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-neutral-700);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--night-ink-1);
+}
+/* THE LINE UNDER A PHOTOGRAPH OF THE MODEL: read by a buyer who looks for it, never competing with
+   the name over it */
+.doc-shot__say {
+  margin: 0;
+  padding-block-start: --spacing(1.5);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--night-ink-2);
+  text-wrap: pretty;
 }
 
-/* THE FOUR FACTS, A BROCHURE'S STRIP: each figure set large over its word, four to the measure,
-   parted by hairlines. The figure leads because it is what is read; the word says what it is. */
+/* THE FACTS, A BROCHURE'S STRIP: each figure set large over its word, four to the measure, parted
+   by hairlines of the night's rule. The figure leads because it is what is read. */
 .doc-keys {
   margin: --spacing(6) 0 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-block: 1px solid var(--color-neutral-200);
+  border-block: 1px solid var(--night-rule);
 }
 .doc-key {
   display: flex;
   flex-direction: column-reverse;
   justify-content: start;
-  gap: --spacing(0.5);
+  gap: --spacing(1);
   padding: --spacing(3) --spacing(3);
-  border-inline-start: 1px solid var(--color-neutral-200);
+  border-inline-start: 1px solid var(--night-rule);
 }
 .doc-key:first-child {
   padding-inline-start: 0;
@@ -1019,13 +1131,13 @@
 }
 .doc-keys:is([data-count='5'], [data-count='6']) .doc-key:nth-child(n + 4),
 .doc-keys:is([data-count='7'], [data-count='8']) .doc-key:nth-child(n + 5) {
-  border-block-start: 1px solid var(--color-neutral-200);
+  border-block-start: 1px solid var(--night-rule);
 }
 .doc-key__val {
   margin: 0;
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
-  color: var(--color-neutral-900);
+  color: var(--night-ink);
   font-variant-numeric: tabular-nums lining-nums;
 }
 .doc-key__lab {
@@ -1034,19 +1146,19 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-500);
+  color: var(--night-ink-2);
 }
 
-/* THE PRICE BESIDE WHO IT IS FOR, which is this screen's own
-   requirement and the one place it leaves `porsche-pdf-1`'s order: a
-   configuration belongs to a code, a quote belongs to a person. It opens
-   under a rule in the dealership's own colour, the cover's one stroke of it. */
+/* THE PRICE BESIDE WHO IT IS FOR, which is this screen's own requirement and the one place it
+   leaves `porsche-pdf-1`'s order: a configuration belongs to a code, a quote belongs to a person.
+   It opens under a rule in the dealership's own colour, the cover's one stroke of it: who it is
+   for over who prepared it at the start, the total at the end. */
 .doc-money {
   display: flex;
   gap: --spacing(6);
-  align-items: start;
+  align-items: end;
   margin-block-start: --spacing(8);
-  padding-block-start: --spacing(4);
+  padding-block-start: --spacing(5);
   border-block-start: var(--mark) solid var(--color-accent);
 }
 .doc-lab {
@@ -1058,12 +1170,15 @@
   text-transform: uppercase;
   color: var(--color-neutral-500);
 }
+.doc-cover .doc-lab {
+  color: var(--night-ink-2);
+}
 .doc-money__name {
   margin: 0;
-  padding-block-start: --spacing(1);
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  color: var(--color-neutral-900);
+  padding-block: --spacing(1) --spacing(1);
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+  color: var(--night-ink);
 }
 .doc-money__line {
   margin: 0;
@@ -1071,20 +1186,24 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-500);
 }
+.doc-cover .doc-money__line {
+  color: var(--night-ink-2);
+}
 /* A NAME NOBODY HAS TYPED IS A LINE TO WRITE ON, the way a printed form
    leaves one: the height of the name it stands for, a hairline under it,
    and nothing said. */
 .doc-money__blank {
   inline-size: min(100%, --spacing(64));
-  block-size: var(--text-2xl--line-height);
-  border-block-end: 1px solid var(--color-neutral-400);
+  block-size: 1.15em;
+  border-block-end: 1px solid var(--night-ink-2);
 }
-/* who it is for and who prepared it, side by side, and the total at the right: one row across the
-   foot of the cover */
-.doc-money__who,
-.doc-money__by {
+/* who it is for over who prepared it, and the total at the end: one row across the foot */
+.doc-money__who {
   flex: 1 1 0;
   min-inline-size: 0;
+}
+.doc-money__by {
+  padding-block-start: --spacing(4);
 }
 .doc-money__who-by {
   margin: 0;
@@ -1092,6 +1211,9 @@
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   color: var(--color-neutral-900);
+}
+.doc-cover .doc-money__who-by {
+  color: var(--night-ink);
 }
 .doc-money__sum {
   flex: none;
@@ -1104,12 +1226,12 @@
 }
 .doc-money__fig {
   margin: 0;
-  padding-block: --spacing(1);
-  font-size: var(--text-6xl);
-  line-height: var(--text-6xl--line-height);
+  padding-block: --spacing(2);
+  font-size: var(--cover-figure);
+  line-height: 1;
   font-weight: 300;
   letter-spacing: var(--tracking-display);
-  color: var(--color-neutral-900);
+  color: var(--night-ink);
 }
 
 /* ONE FACE FOR MONEY (paper-handoff.md, item 13: line prices were set in the mono and the total in
@@ -1814,7 +1936,7 @@
     border-inline-start: 0;
   }
   .doc:not([data-gauging]) .doc-key:nth-child(n + 3) {
-    border-block-start: 1px solid var(--color-neutral-200);
+    border-block-start: 1px solid var(--night-rule);
   }
   .doc:not([data-gauging]) .doc-sheet__groups {
     column-count: 1;
@@ -1853,13 +1975,50 @@
     justify-items: start;
     text-align: start;
   }
-  /* a mark or a name in type keeps a short band; a photograph is already
-     no wider than the column and no taller than its own proportion */
-  .doc:not([data-gauging]) .doc-shot:not([data-art='photograph']) .doc-shot__plate {
-    block-size: 200px;
+  /* THE NIGHT'S PAGE IN A HAND: a page as tall as what it holds, its top off the column's three
+     edges as off the sheet's. Its own head and its page label go: the dark block is the page,
+     and its foot says which. */
+  .doc:not([data-gauging]) .doc-page[data-night] {
+    --bleed-top: --spacing(5);
+    --bleed-x: --spacing(5);
+    --mast-top: --spacing(5);
+  }
+  .doc:not([data-gauging]) .doc-page[data-night] .doc-page__head,
+  .doc:not([data-gauging]) .doc-page[data-night] .doc-page__label {
+    display: none;
+  }
+  /* the letterhead over the photograph a step smaller, and the veil deeper, a hand's photograph
+     being a band rather than half a sheet */
+  .doc:not([data-gauging]) .doc-cover__mast[data-ink='night'] .doc-cover__mark {
+    block-size: 8mm;
+  }
+  /* the letterhead wraps under the mark in a hand, so its veil holds over every line of it: over
+     70% of its height, not a third (measured 2026-11-02 at 390: "Not issued yet" at 3.37 : 1 on a
+     pale sky with the sheet's veil) */
+  .doc:not([data-gauging]) .doc-cover[data-ground='photo'] .doc-cover__mast {
+    min-block-size: 75%;
+    background: linear-gradient(
+      to bottom,
+      var(--night-veil) 0,
+      var(--night-veil) 70%,
+      transparent 100%
+    );
+  }
+  .doc:not([data-gauging]) .doc-cover[data-ground='studio'] .doc-shot__img {
+    --shot-fit: 60mm;
+  }
+  .doc:not([data-gauging]) .doc-cover__name,
+  .doc:not([data-gauging]) .doc-cover[data-long] .doc-cover__name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .doc:not([data-gauging]) .doc-cover__detail {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
   }
   .doc:not([data-gauging]) .doc-money {
     flex-direction: column;
+    align-items: stretch;
   }
   .doc:not([data-gauging]) .doc-money__sum {
     margin-inline-start: 0;
@@ -1921,13 +2080,14 @@
   .doc:not([data-gauging]) .doc-page {
     padding: --spacing(4);
   }
-  .doc:not([data-gauging]) .doc-cover__name {
-    font-size: var(--text-3xl);
-    line-height: var(--text-3xl--line-height);
+  .doc:not([data-gauging]) .doc-page[data-night] {
+    --bleed-top: --spacing(4);
+    --bleed-x: --spacing(4);
+    --mast-top: --spacing(4);
   }
   .doc:not([data-gauging]) .doc-money__fig {
-    font-size: var(--text-4xl);
-    line-height: var(--text-4xl--line-height);
+    font-size: var(--text-6xl);
+    line-height: var(--text-6xl--line-height);
   }
   .doc:not([data-gauging]) .doc-part__word {
     font-size: var(--text-3xl);

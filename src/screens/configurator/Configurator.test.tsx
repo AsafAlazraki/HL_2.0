@@ -30,6 +30,8 @@ import { Configurator, LINE_PRICE_REASON, LINE_UNCHOSEN_REASON, PUT_A_PRICE } fr
 import { namePrice } from '@/domain/catalogue/priceCommands'
 import { readRail } from './chapters'
 import { hullHero } from './stage'
+import { galleryOf, itemOfQuote } from '@/data/pictures'
+import { isDone } from '@/domain/catalogue/commands'
 import { boatTravel } from './glyphs'
 import { engineWordsIn, giveWaitsLead, totalNoteSay } from './say'
 import { saidOnQuote, spokenBoat } from '@/domain/quote/spoken'
@@ -1508,12 +1510,21 @@ describe('the stage draws the model’s own photograph where the ledger holds on
      document carries, read off its own lines — under the picture drawn
      large now, with where it came from (the owner, 2026-10-30: "We dont
      need that little text under the photo on the left"). */
+  /* REWRITTEN 2026-11-02 (the owner, 2026-10-31: "per boat and product the ability to have more
+     than one image and cover image"): the press opens the boat's whole gallery and says how many
+     pictures it holds, so its name is "See the boat’s 3 pictures larger" where the SP560 holds
+     three; the caption under the cover is the one it always was */
   it('captions the photograph, drawn large, with whose rig it is, this quote’s own motor and where it came from', async () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     const hero = hullHero(sheetCtx(), quote)!
+    const many = galleryOf(itemOfQuote(quote)).length
     render(<Configurator quoteId={quote.id} at="hull" />)
     expect(screen.queryByTestId('stage-caption')).toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: 'See the boat larger' }))
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: many > 1 ? `See the boat’s ${many} pictures larger` : 'See the boat larger',
+      }),
+    )
     const caption = await screen.findByRole('dialog')
     expect(caption).toHaveTextContent(/Photograph from /)
     expect(caption).toHaveTextContent(hero.subject)
@@ -1933,5 +1944,114 @@ describe('a rule that refuses a boat’s starred motor', () => {
     } finally {
       catalogue.setState({ constraintDefs: [] })
     }
+  })
+})
+
+/* ============================================================
+   EVERY ROW'S GALLERY, FROM THE BUILD (the owner, 2026-10-31: "per
+   boat and product the ability to have more than one image and cover
+   image and whatnot"; the galleries, 2026-11-02). The stage draws the
+   boat's cover and opens every picture of it; a motor's press opens
+   that motor's pictures and never the chapter's other motors; a cover
+   chosen in the build is the one the stage draws at once; and a tile
+   the build draws without a picture offers one in the same place.
+   Every count is read off the one reader (`galleryOf`), never typed.
+   ============================================================ */
+describe('a row’s gallery on the build', () => {
+  it('opens the boat’s whole gallery from the stage, the cover first, with the dealer’s acts, and a cover chosen there is the stage’s at once', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const gallery = galleryOf(itemOfQuote(quote))
+    const n = gallery.length
+    expect(n, 'the SP560 holds more than one picture').toBeGreaterThan(1)
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const stage = document.querySelector('.cfg-shot__img') as HTMLImageElement
+    expect(stage.getAttribute('src')).toBe(gallery[0]!.src)
+    /* the count over the corner, said to a reader in the press's own name */
+    expect(document.querySelector('.cfg-shot__many')).toHaveTextContent(String(n))
+    await userEvent.click(
+      screen.getByRole('button', { name: `See the boat’s ${n} pictures larger` }),
+    )
+    const large = await screen.findByRole('dialog')
+    expect(large).toHaveTextContent(new RegExp(`1 of ${n} · `))
+    expect(large).toHaveTextContent('Cover')
+    expect(within(large).getAllByRole('button', { name: /^Picture \d+ of / })).toHaveLength(n)
+    expect(within(large).getByRole('button', { name: 'Add pictures' })).toBeInTheDocument()
+    /* the cover is not offered to itself */
+    expect(within(large).queryByRole('button', { name: 'Make it the cover' })).toBeNull()
+
+    /* THE SECOND PICTURE MADE THE COVER, FROM THE BUILD: the stage draws it */
+    await userEvent.click(within(large).getByRole('button', { name: `Picture 2 of ${n}` }))
+    await userEvent.click(within(large).getByRole('button', { name: 'Make it the cover' }))
+    await waitFor(() =>
+      expect(
+        (document.querySelector('.cfg-shot__img') as HTMLImageElement).getAttribute('src'),
+      ).toBe(gallery[1]!.src),
+    )
+    expect(galleryOf(itemOfQuote(quote))[0]!.src).toBe(gallery[1]!.src)
+    /* and back as it was, so no other case sees the arrangement */
+    expect(isDone(catalogue.getState().undo())).toBe(true)
+    expect(galleryOf(itemOfQuote(quote))[0]!.src).toBe(gallery[0]!.src)
+  })
+
+  it('opens a motor’s own pictures from the press under its tile, never the chapter’s other motors', async () => {
+    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    const table = railFor(quote).chapters.find((c) => c.id === 'motor')!.tables[0]!
+    const pictured = table.rows.filter((r) => r.picture !== null)
+    expect(pictured.length, 'more than one motor is pictured').toBeGreaterThan(1)
+    const row = pictured[0]!
+    const n = galleryOf(row.item).length
+    render(<Configurator quoteId={quote.id} at="motor" />)
+    const option = screen
+      .getByRole('button', { name: new RegExp(`^${escape(row.tail)}\\b`) })
+      .closest('.cfg-opt') as HTMLElement
+    await userEvent.click(
+      within(option).getByRole('button', {
+        name: n > 1 ? `See its ${n} pictures larger` : 'See its picture larger',
+      }),
+    )
+    const large = await screen.findByRole('dialog')
+    expect(large).toHaveTextContent(row.listed === '' ? row.tail : row.listed)
+    /* one row's pictures: no count of the chapter's motors, and no other motor's name */
+    expect(large).not.toHaveTextContent(/ · Motor$/)
+    for (const other of pictured.slice(1)) expect(large).not.toHaveTextContent(other.tail)
+    if (n === 1) expect(large).not.toHaveTextContent(/1 of \d+/)
+  })
+
+  /* THE STACER 429 OUTLAW (TILLER STEER)'S TRAILER: the price list names a trailer for it that no
+     picture is held for, on a list of trailers that are pictured — so its tile's well holds the
+     trailer's glyph, and the press under it, where every other tile's "See its picture larger"
+     stands, opens the kit's own control for one option's pictures. Found off the engine's rail. */
+  it('offers a picture where a tile is drawn without one, in the kit’s own control for it', async () => {
+    const quote = fileAQuote('boat_stacer', '429 Outlaw (Tiller Steer)')
+    const trailers = railFor(quote).chapters.find((c) => c.id === 'trailer')!
+    const table = trailers.tables.find((t) => t.pictured && t.rows.some((r) => r.picture === null))
+    expect(table, 'a pictured list of trailers with one no picture is held for').toBeDefined()
+    const bare = table!.rows.find((r) => r.picture === null)!
+    expect(galleryOf(bare.item)).toHaveLength(0)
+    render(<Configurator quoteId={quote.id} at="trailer" />)
+    const option = screen
+      .getByRole('button', { name: new RegExp(`^${escape(bare.tail)}\\b`) })
+      .closest('.cfg-opt') as HTMLElement
+    expect(within(option).queryByRole('button', { name: /^See its/ })).toBeNull()
+    await userEvent.click(within(option).getByRole('button', { name: 'Add a picture' }))
+    const dialog = await screen.findByRole('dialog', { name: /^Pictures of the / })
+    expect(
+      within(dialog).getByRole('button', { name: /^Add a picture of the / }),
+    ).toBeInTheDocument()
+  })
+
+  /* THE STACER 359 SKIMMA (HS): no picture of it is held, so the stage draws Stacer's mark and says
+     why — and, under that sentence, offers the dealer's own picture of this boat */
+  it('offers a picture of the boat where the stage has only its maker’s mark', async () => {
+    const quote = fileAQuote('boat_stacer', '359 Skimma (HS)')
+    expect(galleryOf(itemOfQuote(quote))).toHaveLength(0)
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    expect(document.querySelector('.cfg-shot')).toHaveAttribute('data-art', 'mark')
+    expect(screen.queryByRole('button', { name: /^See the boat/ })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Add a picture of this boat' }))
+    const dialog = await screen.findByRole('dialog', { name: /^Pictures of the / })
+    expect(
+      within(dialog).getByRole('button', { name: /^Add a picture of the / }),
+    ).toBeInTheDocument()
   })
 })

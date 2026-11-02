@@ -1,0 +1,228 @@
+/* ============================================================
+   THE BOARD AROUND A COVER — not the cover. The floor the paper
+   lies on, as the app's paper view lays it (document.css): from
+   826px wide the sheet is A4 at 1:1 on the floor, and below that
+   it is a page as tall as what it holds. The notes stand beside
+   the sheets from 1240px, as the dealer's note does, and under
+   them below that. In print only the sheets go to the printer.
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink);
+  background: var(--color-ground);
+  -webkit-font-smoothing: antialiased;
+}
+img {
+  display: block;
+}
+
+.floor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: calc(var(--spacing) * 8);
+  padding: calc(var(--spacing) * 8) calc(var(--spacing) * 4) calc(var(--spacing) * 16);
+}
+.board-head {
+  inline-size: min(100%, var(--page-w));
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+}
+.board-head p {
+  margin: 0;
+}
+.board-kicker {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.board-head h1 {
+  margin: 0;
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+}
+.board-say {
+  color: var(--color-ink-2);
+  max-inline-size: 62ch;
+}
+.sheaf {
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--spacing) * 10);
+  inline-size: 100%;
+}
+.sheaf-label {
+  margin: 0 0 calc(var(--spacing) * 2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+/* the wrap is the sheet's container, so a cover can measure itself in A4 pixels at any width:
+   100cqi is 210mm on the sheet and the phone's width in a hand */
+.sheet-wrap {
+  display: grid;
+  justify-items: start;
+  inline-size: var(--page-w);
+  container-type: inline-size;
+}
+/* THE SHEET: A4 at 1:1 wherever 826px of window holds it */
+.sheet {
+  position: relative;
+  inline-size: var(--page-w);
+  block-size: var(--page-h);
+  overflow: hidden;
+  box-shadow: var(--shadow-plate);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.notes {
+  inline-size: min(100%, var(--page-w));
+  display: grid;
+  gap: calc(var(--spacing) * 5);
+  align-content: start;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.notes section {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+  border-radius: var(--radius-plate);
+  background: var(--color-white);
+  box-shadow: var(--shadow-plate);
+}
+.notes h2 {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.notes p,
+.notes ul {
+  margin: 0;
+}
+.notes ul {
+  padding-inline-start: 1.1em;
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+}
+.notes b {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.notes code {
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+.notes table {
+  border-collapse: collapse;
+  inline-size: 100%;
+  font-variant-numeric: tabular-nums;
+}
+.notes th,
+.notes td {
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2) calc(var(--spacing) * 1) 0;
+  border-block-end: 1px solid var(--color-rule);
+  text-align: start;
+  vertical-align: top;
+}
+.notes th {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.notes td + td {
+  white-space: nowrap;
+}
+
+/* THE DESK: the notes beside the sheets, as the dealer's note stands beside the paper */
+@media screen and (min-width: 1240px) {
+  .floor {
+    grid-template-columns: var(--page-w) minmax(20rem, 26rem);
+    justify-content: center;
+    align-items: start;
+    column-gap: calc(var(--spacing) * 10);
+    padding-inline: calc(var(--spacing) * 6);
+  }
+  .board-head {
+    grid-column: 1 / -1;
+    inline-size: 100%;
+  }
+  .notes {
+    inline-size: 100%;
+    position: sticky;
+    top: calc(var(--spacing) * 6);
+  }
+}
+@media screen and (min-width: 1800px) {
+  .floor {
+    grid-template-columns: var(--page-w) minmax(24rem, 30rem);
+  }
+}
+
+/* IN A HAND the sheet is a page as tall as what it holds (document.css, max-width 825.98px) */
+@media screen and (max-width: 825.98px) {
+  .floor {
+    padding-inline: 0;
+  }
+  .board-head,
+  .notes {
+    padding-inline: calc(var(--spacing) * 4);
+  }
+  .sheet-wrap,
+  .sheet {
+    inline-size: 100%;
+  }
+  .sheet {
+    block-size: auto;
+    box-shadow: none;
+  }
+  .sheaf-label {
+    padding-inline: calc(var(--spacing) * 4);
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+@media print {
+  body {
+    background: var(--color-white);
+  }
+  .board-head,
+  .notes,
+  .sheaf-label {
+    display: none;
+  }
+  .floor,
+  .sheaf {
+    display: block;
+    padding: 0;
+    gap: 0;
+  }
+  .sheet {
+    box-shadow: none;
+    break-after: page;
+  }
+}

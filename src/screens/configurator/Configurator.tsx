@@ -23,6 +23,7 @@ import {
   ArrowRightIcon,
   ArrowsLeftRightIcon,
   ArrowsOutSimpleIcon,
+  CameraPlusIcon,
   CaretDownIcon,
   CheckIcon,
   CoinsIcon,
@@ -32,6 +33,7 @@ import {
   FileTextIcon,
   FlagCheckeredIcon,
   FolderOpenIcon,
+  ImagesIcon,
   InfoIcon,
   LockSimpleIcon,
   MagnifyingGlassIcon,
@@ -50,12 +52,14 @@ import {
   WrenchIcon,
 } from '@phosphor-icons/react'
 import {
+  AddPicture,
   Button,
   Chip,
   Dashes,
   Dialog,
   ExpandPicture,
   Field,
+  GalleryActs,
   Icon,
   Input,
   Kbd,
@@ -73,9 +77,10 @@ import {
   transition,
   useStill,
   kindInk,
+  largeOf,
+  unsayElsewhere,
   type DashesProps,
   type Glyph,
-  type LightboxPicture,
 } from '@/ui'
 import { useChapterProgress, useSmoothScroll } from '@/ui/scroll'
 import type { TableKind } from '@/domain/model'
@@ -152,7 +157,20 @@ import {
 import type { Finish, Finishes } from './finishes'
 import type { DrawnAxis, DrawnChoices, DrawnOption } from './boat'
 import { hullHero, stageArt, type Held, type StageArt } from './stage'
-import { copyOf, creditOf, itemOfQuote, markOnDark, markOnPaper, srcSetOf } from '@/data/pictures'
+import {
+  copyOf,
+  creditOf,
+  galleryOf,
+  itemOfQuote,
+  markOnDark,
+  markOnPaper,
+  placeIn,
+  srcSetOf,
+  type HeldPicture,
+  type Item,
+} from '@/data/pictures'
+/* A ROW'S GALLERY, BOUND TO THE CATALOGUE'S OWN COMMANDS: the one hand every screen opens one by */
+import { useGallery, useOptionPicture } from '@/app/optionPicture'
 import { kindOfAct, kindOfBoat, wayBack, type Step } from './step'
 import { flushSync } from 'react-dom'
 import { GivenSeal, readyTheStamp } from './GivenSeal'
@@ -162,6 +180,7 @@ import {
   allSay,
   cappedSay,
   choiceSay,
+  gallerySay,
   giveWaitsLead,
   inSentence,
   insteadSay,
@@ -522,18 +541,16 @@ function Build({
      scrolls away with it; what sticks at a desk sticks under the shell's pill
      (`--shell-inset`, configurator.css). */
 
-  /* THE PICTURE DRAWN LARGE, and the set it is one of: a chapter's pictures, or the boat's
-     (`Lightbox`). Nothing about it is a position worth an address, so it is state. */
-  const [large, setLarge] = useState<{
-    set: readonly LightboxPicture[]
-    at: number
-    title: string
-  } | null>(null)
+  /* THE ROW WHOSE GALLERY STANDS OPEN, LARGE, and the picture it is at (`RowLarge`): the boat's
+     or one option's, every picture of that one row, the cover first. Nothing about it is a
+     position worth an address, so it is state; the row is kept after it shuts, so the plate's own
+     exit is seen. */
+  const [large, setLarge] = useState<Shown | null>(null)
   /* a picture opened large ends the step: it belongs to what the reader was doing (`endStep`) */
-  const showLarge = useCallback((set: readonly LightboxPicture[], index: number, title: string) => {
+  const showLarge = useCallback((open: GalleryOpen) => {
     setStep(null)
     setRefused(null)
-    setLarge({ set, at: index, title })
+    setLarge({ open, at: open.at })
   }, [])
 
   /* TWO FACTS ABOUT WHERE THE PAGE IS, written on the screen as attributes and never through a
@@ -840,6 +857,17 @@ function Build({
         : null,
     [ctx, quote],
   )
+  /* WHAT EACH PICTURE OF THE BOAT SHOWS THAT THIS QUOTE MAY NOT, under it large: the maker's finish
+     and rig, and the motor this quote carries (`pictureSays`) — the stage's caption, said of every
+     picture of its gallery and not only the cover */
+  const boatNote = useCallback(
+    (held: HeldPicture): string => {
+      if (!quote) return ''
+      const said = pictureSays({ kind: 'photograph', held }, quote, rail, ctx)
+      return said ? [said.shows, said.ours].filter((s) => s !== '').join(' ') : ''
+    },
+    [quote, rail, ctx],
+  )
 
   /* ONE REF PER CHAPTER, made once for a set of chapters, so the reading
      light's triggers are made once and killed once (`useChapterProgress`
@@ -965,6 +993,11 @@ function Build({
        the window's scroll was the page with the step on it, and back at the shorter page it landed
        46px off at 390 and 41px at 834 */
     flushSync(endStep)
+    /* AND A PICTURE'S STEP SAID IN THE KIT'S TOAST GOES WITH IT (the galleries, 2026-11-02): a cover
+       chosen in a gallery a moment before stood over the package's "Print or save the PDF" at 1440
+       and 1920. The package is a view of its own over the whole window; the step belonged to the
+       gallery, which a person can open again from the build */
+    unsayElsewhere('')
     before.current = {
       at: at === 'finale' ? firstBand : at,
       y: window.scrollY,
@@ -1074,7 +1107,7 @@ function Build({
             measure, and the tally at the column's foot (configurator.css, "the side") */}
             <div className="cfg-side">
               <div className="cfg-side__in">
-                <Stage quote={quote} ctx={ctx} art={art!} rail={rail} onLarge={showLarge} />
+                <Stage quote={quote} ctx={ctx} art={art!} onLarge={showLarge} />
                 <Tally
                   desk={desk}
                   quote={quote}
@@ -1263,12 +1296,15 @@ function Build({
           setRefused={setRefused}
         />
       ) : null}
-      <Lightbox
-        pictures={large?.set ?? []}
-        at={large?.at ?? null}
-        title={large?.title ?? ''}
-        onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
-      />
+      {/* THE GALLERY OF THE ROW OPENED LARGE: the boat's, each picture said with what this quote
+          carries that it may not show, or one option's (`RowLarge`) */}
+      {large ? (
+        <RowLarge
+          shown={large}
+          onAt={(next) => setLarge((was) => (was ? { ...was, at: next } : null))}
+          noteOf={large.open.boat ? boatNote : undefined}
+        />
+      ) : null}
     </main>
   )
 }
@@ -1403,7 +1439,7 @@ function RangeSheet({
   onClose: () => void
   /** the list's block on the quote */
   tableId: string
-  /** the chapter it is a list of, for the pictures' set */
+  /** the chapter it is a list of, the sheet's name until its list is read */
   chapter: string
   ctx: CatalogueCtx
   quote: QuoteDef
@@ -1418,7 +1454,8 @@ function RangeSheet({
 }) {
   const [find, setFind] = useState('')
   const typed = useDeferredValue(find.trim())
-  const [large, setLarge] = useState<{ set: readonly LightboxPicture[]; at: number } | null>(null)
+  /* A TILE'S GALLERY, LARGE, over the sheet (`RowLarge`) */
+  const [large, setLarge] = useState<Shown | null>(null)
   const read = useMemo(
     () =>
       tableId === ''
@@ -1478,7 +1515,7 @@ function RangeSheet({
             query={typed.length >= 2 ? typed : ''}
             level={level}
             onPress={onPress}
-            onLarge={(set, at) => setLarge({ set, at })}
+            onGallery={(opened) => setLarge({ open: opened, at: opened.at })}
             onShowAll={() => {}}
             motors={quote.lines
               .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
@@ -1492,12 +1529,9 @@ function RangeSheet({
           />
         ) : null}
       </div>
-      <Lightbox
-        pictures={large?.set ?? []}
-        at={large?.at ?? null}
-        title={chapter}
-        onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
-      />
+      {large ? (
+        <RowLarge shown={large} onAt={(at) => setLarge((was) => (was ? { ...was, at } : null))} />
+      ) : null}
     </Dialog>
   )
 }
@@ -1581,11 +1615,8 @@ function ChandlerySheet({
   onPress: (act: Act) => void
   go?: ((href: string) => void) | undefined
 }) {
-  const [large, setLarge] = useState<{
-    set: readonly LightboxPicture[]
-    at: number
-    title: string
-  } | null>(null)
+  /* A PART'S GALLERY, LARGE, over the sheet, with the dealer's acts on it (`RowLarge`) */
+  const [large, setLarge] = useState<Shown | null>(null)
   const shutId = 'cfg-chandlery-shut'
   return (
     <Dialog
@@ -1615,17 +1646,19 @@ function ChandlerySheet({
           aisle={aisle}
           maker={maker}
           onAisle={(a, m) => goAisle?.(a, m)}
-          onLarge={(set, at, title) => setLarge({ set, at, title })}
+          /* A PART'S PRESS OPENS ITS OWN GALLERY, where a picture is added to it and its cover set,
+             as on /catalogue; `onLarge` is the chandlery's way for a page without them */
+          onGallery={(item, name, at) =>
+            setLarge({ open: { item, name, kind: 'accessory', at }, at })
+          }
+          onLarge={() => {}}
           go={go}
           fitting={fittingOf(quote, table, onPress, refusal === undefined ? undefined : shutId)}
         />
       </div>
-      <Lightbox
-        pictures={large?.set ?? []}
-        at={large?.at ?? null}
-        title={large?.title ?? ''}
-        onAt={(next) => setLarge((was) => (was && next !== null ? { ...was, at: next } : null))}
-      />
+      {large ? (
+        <RowLarge shown={large} onAt={(at) => setLarge((was) => (was ? { ...was, at } : null))} />
+      ) : null}
     </Dialog>
   )
 }
@@ -2468,12 +2501,15 @@ function Tally({
   onPackage?: () => void
   raise: (fix: string) => void
   refusal: string | undefined
-  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+  /** opens the boat's gallery large, at the picture drawn here (`RowLarge`) */
+  onLarge: (open: GalleryOpen) => void
 }) {
   const made = tallyOf(tallyParts(rail?.chapters ?? []))
   const notYet = openSay(made.open)
   const photo = art?.kind === 'photograph' ? art.held : null
   const boat = boatOfQuote(quote)
+  /* THE BOAT'S GALLERY, so the small photograph opens every picture of it and says how many */
+  const gallery = useGallery(itemOfQuote(quote))
   const heard = made.shares.map((s) => `${s.name} ${money(s.amount)}`).join(', ')
   /* THE TOTAL IS WHERE A PART IS DROPPED (the chandlery's tray, made the total itself): while a
      part is carried it says so at its head, and it lights while the part is over it */
@@ -2503,8 +2539,19 @@ function Tally({
         <button
           type="button"
           className="cfg-tally__boat"
-          aria-label="The boat, larger"
-          onClick={() => onLarge([largeOf(photo, boat.name, boat.say)], 0, 'The boat')}
+          aria-label={
+            gallery.length > 1
+              ? `The boat’s ${gallery.length.toLocaleString('en-AU')} pictures, larger`
+              : 'The boat, larger'
+          }
+          onClick={() =>
+            onLarge({
+              item: itemOfQuote(quote),
+              name: boat.name,
+              at: placeIn(gallery, photo),
+              boat: true,
+            })
+          }
         >
           <img
             className="cfg-tally__img"
@@ -2605,32 +2652,153 @@ function Tally({
   )
 }
 
-/** One held picture, as the lightbox draws it large. */
-function largeOf(held: Held, caption: string, alt: string, note = ''): LightboxPicture {
-  const srcSet = srcSetOf(held)
-  return {
-    src: held.src,
-    width: held.width,
-    height: held.height,
-    ...(srcSet ? { srcSet } : {}),
-    alt: held.subject === '' ? alt : held.subject,
-    caption,
-    credit: creditOf(held),
-    ...(note === '' ? {} : { note }),
-  }
+/* ---------------------------------------------------------- */
+/* One row's gallery, from the build                            */
+/* ---------------------------------------------------------- */
+
+/** ONE ROW'S GALLERY, OPENED FROM THE BUILD: the row, as the build says it, and the picture it
+ *  opens on — the one the press drew. */
+interface GalleryOpen {
+  item: Item
+  /** the row as the build says it: "Highfield Sport 560", "Yamaha F90XB" */
+  name: string
+  kind?: TableKind | undefined
+  /** where it opens: the picture the press drew (`placeIn`) */
+  at: number
+  /** the boat this quote is for: each of its pictures is said with what the quote carries that
+   *  the picture may not show */
+  boat?: true
 }
 
-/** One option's picture, as the lightbox draws it large. */
-function largeOfRow(picture: NonNullable<OptionRow['picture']>, caption: string): LightboxPicture {
-  return {
-    src: picture.src,
-    width: picture.width,
-    height: picture.height,
-    ...(picture.srcSet ? { srcSet: picture.srcSet } : {}),
-    alt: caption,
-    caption,
-    credit: picture.credit,
-  }
+/** WHERE THE PICTURE A TILE DRAWS STANDS IN ITS ROW'S GALLERY, so the gallery opens on the picture
+ *  that was pressed; the cover where it is not in it. */
+const drawnIn = (gallery: readonly HeldPicture[], drawn: { src: string } | null): number =>
+  placeIn(gallery, drawn ? { id: '', src: drawn.src } : null)
+
+/** The gallery opened, and the picture it stands at: null once it shuts, the row kept so the
+ *  plate's own exit is seen. */
+interface Shown {
+  open: GalleryOpen
+  at: number | null
+}
+
+/**
+ * ONE ROW'S GALLERY, LARGE (the owner, 2026-10-31: "per boat and product the ability to have more
+ * than one image and cover image and whatnot"). The kit's lightbox with every picture of the one
+ * row a press opened it from — the boat on the stage, a motor's tile, a trailer, a finish, a part —
+ * held and Northside's alike, the cover first and marked, with the arrows, a swipe, the count and
+ * the strip of them all (`galleryOf`). Never the chapter's other options: a press under the Yamaha
+ * F90XB opens the F90XB's pictures and nothing else (it walked the chapter's four motors until
+ * 2026-11-02, when an option came to have more than one picture).
+ *
+ * THE DEALER'S ACTS STAND UNDER THE PICTURE OPEN (`GalleryActs`): Add pictures, Make it the cover,
+ * Earlier, Later, and Take it off for one of Northside's — each one step on the catalogue's stack
+ * with its Undo, through the same commands /catalogue and the price list's details act by
+ * (`useOptionPicture`). The build is the dealer's own screen; what the customer is shown is the
+ * final package and the paper, which open nothing. A cover chosen here is the one the stage, the
+ * tile, a shut chapter's head, the final package and the paper draw at once.
+ *
+ * The BOAT'S pictures each say under them what this quote carries that the picture may not show
+ * (`noteOf`, the stage's own caption); an option's say what a held picture shows that is not
+ * exactly it (`standingOf`), or nothing.
+ */
+function RowLarge({
+  shown,
+  onAt,
+  noteOf,
+}: {
+  shown: Shown
+  onAt: (at: number | null) => void
+  /** the words under each picture, where the screen has its own sentence for it */
+  noteOf?: ((held: HeldPicture) => string) | undefined
+}) {
+  const { item, name, kind } = shown.open
+  const held = useGallery(item)
+  const bound = useOptionPicture(item, name, kind)
+  const n = bound.gallery.length
+  const at = shown.at === null || n === 0 ? null : Math.min(shown.at, n - 1)
+  const pictures = useMemo(() => {
+    const large = largeOf(name, bound.gallery)
+    if (!noteOf) return large
+    return large.map((picture, i) => {
+      const said = held[i] ? noteOf(held[i]) : ''
+      return said === '' ? picture : { ...picture, note: said }
+    })
+  }, [name, bound.gallery, held, noteOf])
+  return (
+    <Lightbox
+      pictures={pictures}
+      at={at}
+      onAt={onAt}
+      title={name}
+      strip
+      acts={
+        at === null ? undefined : (
+          <GalleryActs
+            {...bound}
+            at={at}
+            moved={(place) =>
+              /* JUST AFTER AN ADD the new picture is the one shown: the store has handed the reader
+                 the gallery that holds it before this is told */
+              onAt(place === 'last' ? Math.max(0, galleryOf(item).length - 1) : place)
+            }
+          />
+        )
+      }
+    />
+  )
+}
+
+/**
+ * A PICTURE FOR AN OPTION THE BUILD DRAWS WITHOUT ONE (the galleries, 2026-11-02): a tile whose well
+ * holds only its kind's glyph, or a boat with only its maker's mark on the stage. One quiet press,
+ * at the place every other tile has its "See its picture larger", opens the kit's own control for
+ * one option's pictures (`AddPicture`) in a dialog: drop pictures on it, paste one, or choose them;
+ * the first is its cover. The step is the catalogue's, with its Undo, and the moment it is taken
+ * the tile, the stage and the paper draw it.
+ */
+function PictureDoor({
+  item,
+  name,
+  kind,
+  label = 'Add a picture',
+}: {
+  item: Item
+  /** the option as the build says it: "Yamaha F25SMHB" */
+  name: string
+  kind?: TableKind | undefined
+  label?: string
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      title={`Pictures of the ${name}`}
+      description="A picture you add here is Northside’s own, kept with who added it and when. The first one is its cover."
+      trigger={
+        <Button intent="quiet" size="sm" icon={CameraPlusIcon} aria-haspopup="dialog">
+          {label}
+        </Button>
+      }
+    >
+      <OwnPictures item={item} name={name} kind={kind} />
+    </Dialog>
+  )
+}
+
+/** The kit's control for one option's pictures, bound to the catalogue's commands; drawn only
+ *  while its dialog is open, so a list of two hundred tiles binds none. */
+function OwnPictures({
+  item,
+  name,
+  kind,
+}: {
+  item: Item
+  name: string
+  kind?: TableKind | undefined
+}) {
+  return <AddPicture {...useOptionPicture(item, name, kind)} />
 }
 
 /** What a chapter is a chapter of, for its ink and its glyph: the hull is the boat, and a motor
@@ -2661,23 +2829,25 @@ function Stage({
   quote,
   ctx,
   art,
-  rail,
   onLarge,
 }: {
   quote: QuoteDef
   ctx: CatalogueCtx
-  rail: Rail | null
   /** the boat's picture, read by the build (`stage.ts`) */
   art: StageArt
-  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+  /** opens the boat's gallery large, at the picture drawn here (`RowLarge`) */
+  onLarge: (open: GalleryOpen) => void
 }) {
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
   const boat = boatOfQuote(quote)
-  const { noun } = quoteSells(ctx, quote)
-  /* WHAT THE PICTURE SHOWS AND WHAT THIS QUOTE CARRIES, because the customer at the desk reads
-     the picture (#24) — said in the lightbox now, under the picture drawn large. `say.ts` argues
-     it. */
-  const said = pictureSays(art, quote, rail, ctx)
+  const { noun, kind } = quoteSells(ctx, quote)
+  /* THE BOAT'S GALLERY (2026-11-02): the photograph drawn here is its cover, and the press on its
+     corner opens every picture of it, saying how many. What each shows and what this quote
+     carries, because the customer at the desk reads the picture (#24), is said under it large
+     (`pictureSays`, the build's `boatNote`). */
+  const item = itemOfQuote(quote)
+  const gallery = useGallery(item)
+  const many = gallery.length
   const [drawn, setDrawn] = useState<{ w: number; h: number } | null>(null)
   const photo = useRef<HTMLImageElement>(null)
   const held = art.kind === 'photograph' ? art.held : null
@@ -2706,13 +2876,14 @@ function Stage({
     }
   }, [held])
 
-  const note = said ? [said.shows, said.ours].filter((s) => s !== '').join(' ') : ''
   /* THE FINISH ON THE QUOTE, DRAWN WHERE THE LEDGER HOLDS IT: this exact model in this colourway
-     (`copyOf`, never another colourway's), on the photograph's corner (`FinishInset`) */
-  const finish = useMemo(
-    () => (boatOfQuote(quote).colour ? copyOf(itemOfQuote(quote)) : null),
-    [quote],
-  )
+     (`copyOf`, never another colourway's), on the photograph's corner (`FinishInset`). Read on
+     every paint, since a cover chosen in the gallery is the copy where it is exactly this row */
+  const finish = boat.colour ? copyOf(item) : null
+  /* THE PHOTOGRAPH ON THE STAGE IS THIS VERY FINISH where it is exactly this row — the finish's own
+     render made its cover, or Northside's own picture of it (the galleries, 2026-11-02): the inset
+     then draws no second copy of it, and says nothing about the maker's finish it does not show */
+  const exactly = art.kind === 'photograph' && (art.held.exact || art.held.added !== undefined)
 
   return (
     <section className="cfg-stage" aria-label={`The ${noun} this quote is about`}>
@@ -2769,10 +2940,24 @@ function Stage({
           )}
           {art.kind === 'photograph' ? (
             <span className="cfg-shot__expand">
+              {/* HOW MANY PICTURES THE PRESS OPENS, where it opens more than one: the catalogue's own
+                  count over a part's cover, said to a reader in the press's name */}
+              {many > 1 ? (
+                <span className="cfg-shot__many" aria-hidden="true">
+                  <Icon glyph={ImagesIcon} size="sm" />
+                  {many.toLocaleString('en-AU')}
+                </span>
+              ) : null}
               <ExpandPicture
-                label={`See the ${noun} larger`}
+                label={gallerySay(many, noun)}
                 onExpand={() =>
-                  onLarge([largeOf(art.held, boat.name, boat.say, note)], 0, `The ${noun}`)
+                  onLarge({
+                    item,
+                    name: boat.name,
+                    kind,
+                    at: placeIn(gallery, art.held),
+                    boat: true,
+                  })
                 }
               />
             </span>
@@ -2781,7 +2966,8 @@ function Stage({
             <FinishInset
               key={boat.colour.code}
               colour={boat.colour}
-              render={finish && finish.src !== art.held.src ? finish : null}
+              render={finish && finish.src !== art.held.src && !exactly ? finish : null}
+              exactly={exactly}
             />
           ) : null}
         </figure>
@@ -2797,7 +2983,21 @@ function Stage({
         )}
         {/* WHERE NO PHOTOGRAPH IS HELD, WHY — the one sentence a reader needs about the mark in
             its place; a photograph's provenance is its lightbox's */}
-        {art.kind === 'photograph' ? null : <p className="cfg-prov">{art.because}</p>}
+        {art.kind === 'photograph' ? null : (
+          <>
+            <p className="cfg-prov">{art.because}</p>
+            {/* AND THE WAY TO GIVE IT ONE, where it is missing: the dealer's own picture of this
+                boat, which the stage, the final package and the paper then draw (`PictureDoor`) */}
+            <div className="cfg-stage__add">
+              <PictureDoor
+                item={item}
+                name={boat.name}
+                kind={kind}
+                label={`Add a picture of this ${noun}`}
+              />
+            </div>
+          </>
+        )}
       </div>
     </section>
   )
@@ -2816,9 +3016,12 @@ function Stage({
 function FinishInset({
   colour,
   render,
+  exactly = false,
 }: {
   colour: NonNullable<ReturnType<typeof boatOfQuote>['colour']>
   render: Held | null
+  /** the stage's picture is exactly this row, so it is this finish and no word about it is owed */
+  exactly?: boolean
 }) {
   return (
     <span className="cfg-finish" data-testid="finish-inset">
@@ -2836,7 +3039,7 @@ function FinishInset({
       <span className="cfg-finish__words">
         <span className="cfg-finish__lab">Your finish</span>
         <Swatches colour={colour} />
-        {render ? null : (
+        {render || exactly ? null : (
           <span className="cfg-finish__say">Photographed in the maker’s finish</span>
         )}
       </span>
@@ -3135,8 +3338,8 @@ function ChapterCard({
   setRefused,
   go,
 }: {
-  /** opens a picture large, among its chapter's (`Lightbox`) */
-  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+  /** opens one row's gallery large (`RowLarge`) */
+  onLarge: (open: GalleryOpen) => void
   /** the sheet */
   ctx: CatalogueCtx
   /** follow an address without a page load — a rule's sentence to the rule on /rules */
@@ -3343,7 +3546,7 @@ function ChapterCard({
             query={searching ? query : ''}
             level={level}
             onPress={onPress}
-            onLarge={(set, picture) => onLarge(set, picture, chapter.name)}
+            onGallery={onLarge}
             onShowAll={onShowAll}
             motors={quote.lines
               .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
@@ -4070,8 +4273,8 @@ function FinishBlock({
 }: {
   finishes: Finishes
   query: string
-  /** opens a finish's picture large, among the others */
-  onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
+  /** opens a finish's own gallery large (`RowLarge`) */
+  onLarge: (open: GalleryOpen) => void
   onPress: (act: Act) => void
   /** the element holding the one reason every row here is refused
    *  for, where there is one. The sentence is drawn once, by the
@@ -4082,9 +4285,6 @@ function FinishBlock({
     query === '' ? finishes.rows : finishes.rows.filter((f) => matchesFinish(f.label, query))
 
   const pictured = rows.filter((f) => f.picture !== null)
-  const large = pictured.map((f) =>
-    largeOfRow(f.picture!, `${f.colour.say}${f.materialSaid === '' ? '' : ` · ${f.materialSaid}`}`),
-  )
 
   if (finishes.rows.length === 0) {
     return (
@@ -4125,17 +4325,10 @@ function FinishBlock({
             <li key={finish.rowId}>
               <FinishTile
                 finish={finish}
+                model={finishes.model}
                 onPress={onPress}
                 refusedBy={refusedBy}
-                expand={
-                  finish.picture
-                    ? {
-                        label: 'See this finish larger',
-                        onExpand: () =>
-                          onLarge(large, pictured.indexOf(finish), `${finishes.model} finishes`),
-                      }
-                    : undefined
-                }
+                onLarge={onLarge}
               />
             </li>
           ))}
@@ -4153,18 +4346,36 @@ function FinishBlock({
   )
 }
 
-/** A finish as a picture card: its own render, its colours, and what it does to the total. */
+/** A finish as a picture card: its own render, its colours, and what it does to the total; its
+ *  render opens the finish's own gallery large. */
 function FinishTile({
   finish,
+  model,
   onPress,
   refusedBy,
-  expand,
+  onLarge,
 }: {
   finish: Finish
+  /** the model these are finishes of, as a person says it: "Sport 560" */
+  model: string
   onPress: (act: Act) => void
   refusedBy: string | undefined
-  expand: { label: string; onExpand: () => void } | undefined
+  onLarge: (open: GalleryOpen) => void
 }) {
+  const gallery = useMemo(() => galleryOf(finish.item), [finish])
+  const said = `${finish.colour.say}${finish.materialSaid === '' ? '' : ` · ${finish.materialSaid}`}`
+  const expand = finish.picture
+    ? {
+        label: gallery.length > 1 ? gallerySay(gallery.length) : 'See this finish larger',
+        onExpand: () =>
+          onLarge({
+            item: finish.item,
+            name: `${model} · ${said}`,
+            kind: 'boat',
+            at: drawnIn(gallery, finish.picture),
+          }),
+      }
+    : undefined
   return (
     <OptionTile
       name={
@@ -4349,7 +4560,7 @@ function TableBlock({
   query,
   level,
   onPress,
-  onLarge,
+  onGallery,
   onShowAll,
   refusedBy,
   shop,
@@ -4365,8 +4576,8 @@ function TableBlock({
   motors: readonly string[]
   /** drawn in the range sheet, where the list is already its whole range */
   entire?: boolean
-  /** opens one of this list's pictures large, among the others it draws */
-  onLarge: (set: readonly LightboxPicture[], at: number) => void
+  /** opens one row's own gallery large (`RowLarge`) */
+  onGallery: (open: GalleryOpen) => void
   /** follow an address without a page load — a rule's sentence to the rule on /rules */
   go?: (href: string) => void
   /** the quote, so the door to Prices can lead back to it */
@@ -4437,18 +4648,6 @@ function TableBlock({
   const instead =
     swaps.length > 1 && swaps.every((r) => r.instead === swaps[0]!.instead) ? swaps[0]!.instead : ''
   const replaces = insteadSay(instead)
-  /* THE PICTURES THIS LIST DRAWS, in its order, so one opened large steps to the next */
-  const pictured = [...rows, ...table.also].filter((row) => row.picture !== null)
-  const large = pictured.map((row) =>
-    largeOfRow(row.picture!, row.listed === '' ? row.tail : row.listed),
-  )
-  const expandOf = (row: OptionRow): { label: string; onExpand: () => void } | undefined => {
-    const at = pictured.indexOf(row)
-    return at < 0
-      ? undefined
-      : { label: 'See its picture larger', onExpand: () => onLarge(large, at) }
-  }
-
   /* NOTHING IS COUNTED OVER A LIST AT REST (build-close-critique-2.md major 2: Dealer fit "is
      still a settings list"). "5 OF 2,238 PAIRED WITH THIS HULL" stood over every list in the
      database's capitals, with two paragraphs about the price file under it, beside a head that
@@ -4562,7 +4761,7 @@ function TableBlock({
                   <OptionCard
                     row={row}
                     kind={table.kind}
-                    expand={expandOf(row)}
+                    onGallery={onGallery}
                     query=""
                     level={level}
                     onPress={onPress}
@@ -4617,7 +4816,7 @@ function TableBlock({
                 <OptionCard
                   row={row}
                   kind={table.kind}
-                  expand={expandOf(row)}
+                  onGallery={onGallery}
                   query={query}
                   level={level}
                   onPress={onPress}
@@ -4645,7 +4844,7 @@ function TableBlock({
                 <OptionCard
                   row={row}
                   kind={table.kind}
-                  expand={expandOf(row)}
+                  onGallery={onGallery}
                   query=""
                   level={level}
                   onPress={onPress}
@@ -4756,15 +4955,14 @@ function OptionCard({
   tile,
   shop: shopOpen,
   insteadSaid,
-  expand,
+  onGallery,
   grouped = false,
 }: {
-  /** under a heading that says why it is where it is (
-angeGroups): its own sentence is that
+  /** under a heading that says why it is where it is (`rangeGroups`): its own sentence is that
    *  heading's, and is not said again under it */
   grouped?: boolean
-  /** the press that opens its picture large, where it has one */
-  expand?: { label: string; onExpand: () => void } | undefined
+  /** opens its own gallery large, the cover first (`RowLarge`) */
+  onGallery: (open: GalleryOpen) => void
   row: OptionRow
   /** what the list holds, for the glyph a tile without a picture is led by */
   kind: TableKind
@@ -4796,6 +4994,29 @@ angeGroups): its own sentence is that
       <Marked text={row.tail} query={query} />
     </span>
   )
+  /* ITS OWN GALLERY (2026-11-02): every picture of this one row, the cover first, read again with
+     the rail whenever the pictures or their arrangement move. The tile draws the cover where it is
+     exactly this row (`copyOf`), and the press under it opens them all at that one, saying how many */
+  const gallery = useMemo(() => galleryOf(row.item), [row])
+  const look = row.picture ? (
+    <div className="cfg-opt__look">
+      <Button
+        intent="quiet"
+        size="sm"
+        icon={ArrowsOutSimpleIcon}
+        onClick={() =>
+          onGallery({
+            item: row.item,
+            name: row.listed === '' ? [row.stem, row.tail].join(' ').trim() : row.listed,
+            kind,
+            at: drawnIn(gallery, row.picture),
+          })
+        }
+      >
+        {gallerySay(gallery.length)}
+      </Button>
+    </div>
+  ) : null
   /* what the list has not already said once over itself */
   const contains = includes ? '' : row.contains
   /* THE WORKSHOP'S WORDS: the price list's own description where the tile says the thing another
@@ -4892,6 +5113,9 @@ angeGroups): its own sentence is that
             {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
           </RowFace>
         </Tile>
+        {/* A LINE WITH A PICTURE OPENS IT, AS A TILE DOES, from the same quiet press under it: the
+            line itself is the press that puts it on, so its picture is never a press inside it */}
+        {look}
         {row.why === '' || grouped ? null : <p className="cfg-opt__why">{row.why}</p>}
         {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
       </div>
@@ -4928,13 +5152,18 @@ angeGroups): its own sentence is that
           owner, 2026-10-31: "its picture-open at the same place on every row"). It stood over the
           tile's own corner, a press laid over a press, which the overlap ruler fails the moment
           every chapter stands open; under it, it covers nothing */}
-      {expand && row.picture ? (
+      {/* AND A TILE WITH NO PICTURE OFFERS ONE IN THE SAME PLACE (the galleries, 2026-11-02): the
+          dealer's own picture of this option, which the tile, the head of its chapter, the final
+          package and the paper then draw (`PictureDoor`) */}
+      {look ?? (
         <div className="cfg-opt__look">
-          <Button intent="quiet" size="sm" icon={ArrowsOutSimpleIcon} onClick={expand.onExpand}>
-            {expand.label}
-          </Button>
+          <PictureDoor
+            item={row.item}
+            name={row.listed === '' ? [row.stem, row.tail].join(' ').trim() : row.listed}
+            kind={kind}
+          />
         </div>
-      ) : null}
+      )}
       {row.why === '' || grouped ? null : <p className="cfg-opt__why">{row.why}</p>}
       {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}
       {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}

@@ -188,8 +188,10 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   await expect(page.locator('.cfg-stage')).not.toContainText(/media\.highfieldboats\.com/)
   await expect(page.locator('.cfg-stage')).not.toContainText(/maker’s own finish/)
 
-  /* 5. A PICTURE, LARGE, carrying what stood under it */
-  const opener = page.getByRole('button', { name: 'See the boat larger' })
+  /* 5. A PICTURE, LARGE, carrying what stood under it. REWRITTEN 2026-11-02 (the owner,
+     2026-10-31: "per boat and product the ability to have more than one image and cover image"):
+     the press opens the boat's whole gallery and says how many pictures it holds */
+  const opener = page.getByRole('button', { name: /^See the boat(’s \d+ pictures)? larger$/ })
   await opener.scrollIntoViewIfNeeded()
   await opener.click()
   const large = page.getByRole('dialog')
@@ -197,7 +199,8 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   await expect(large).toContainText('Highfield Sport 560')
   await expect(large).toContainText(/from media\.highfieldboats\.com/)
   await expect(large).toContainText(/On this quote: no motor yet/)
-  const img = large.locator('img')
+  /* the picture open, by its own class: the gallery's strip under it is pictures too */
+  const img = large.locator('.ui-lightbox-img')
   const drawn = (await img.boundingBox())!
   const held = await img.evaluate((el: HTMLImageElement) => el.naturalWidth)
   expect(drawn.width).toBeLessThanOrEqual(held + 1)
@@ -286,15 +289,17 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
     await shot('06-scrolled')
   }
 
-  /* 9. A MOTOR'S PICTURE, LARGE, among its chapter's */
+  /* 9. A MOTOR'S PICTURE, LARGE: ITS OWN GALLERY. REWRITTEN 2026-11-02 (the owner, 2026-10-31:
+     "per boat and product the ability to have more than one image and cover image"): the press
+     under a tile opens that motor's own pictures, the cover first, with the dealer's acts under
+     them, and never walks the chapter's other motors ("1 of 4 · Motor" until 2026-11-02) */
   const motor = page.getByRole('region', { name: /^02 Motor/ })
-  const expand = motor.getByRole('button', { name: 'See its picture larger' })
+  const expand = motor.getByRole('button', { name: /^See its (\d+ pictures|picture) larger$/ })
   await expand.first().scrollIntoViewIfNeeded()
   await expand.first().click()
   await expect(large).toBeVisible()
-  await expect(large).toContainText(/1 of \d+ · Motor/)
-  await page.keyboard.press('ArrowRight')
-  await expect(large).toContainText(/2 of \d+ · Motor/)
+  await expect(large).not.toContainText(/ · Motor/)
+  await expect(large.getByRole('button', { name: 'Add pictures' })).toBeVisible()
   await large.getByRole('button', { name: 'Close' }).click()
   await expect(large).toBeHidden()
   await expect(expand.first()).toBeFocused()

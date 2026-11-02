@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A 1,024 px photograph</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="board.css">
+<style>
+/* ============================================================
+   THE THREE RULES, ON THE SMALLEST PHOTOGRAPH A COVER WILL MEET.
+   The dealership's own mirror holds its Stacer photographs at
+   1,024 px wide; the 529 Assault Pro's is 1,024 × 676 (images.json,
+   checked by eye: an Evinrude on the transom). Each sheet below is
+   that photograph drawn exactly as its direction's rule draws it,
+   at 1:1 on A4, with the type's places left as outlines. It is a
+   measurement, not a cover: no quote for the 529 is drawn.
+   ============================================================ */
+.study {
+  --u: calc(100cqi / 793.7);
+  display: flex;
+  flex-direction: column;
+  padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-bottom);
+}
+.study > * {
+  flex-shrink: 0;
+}
+.slot-mark {
+  align-self: flex-start;
+  inline-size: auto;
+  block-size: 40px;
+}
+.ruler {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  border-radius: calc(var(--spacing) * 2);
+  background: var(--color-white);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-plate);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-variant-numeric: tabular-nums;
+}
+.ruler b {
+  font-weight: 600;
+}
+.ghost {
+  display: grid;
+  place-items: center;
+  border: 1px dashed currentColor;
+  border-radius: calc(var(--spacing) * 2);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  opacity: 0.55;
+}
+
+/* A: the photograph bleeds three edges at the tallest the boat and its pixels allow */
+.study-a {
+  background: var(--color-cover-night);
+  color: var(--color-white);
+}
+.study-a .a-photo {
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: calc(676 * var(--u));
+  margin: 0;
+}
+.study-a .a-photo img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: 35% 50%;
+  -webkit-mask-image: linear-gradient(to bottom, var(--color-white) calc(450 * var(--u)), transparent 100%);
+  mask-image: linear-gradient(to bottom, var(--color-white) calc(450 * var(--u)), transparent 100%);
+}
+.study-a .a-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: 260px;
+  background: linear-gradient(to bottom, var(--color-cover-night-veil) 0, var(--color-cover-night-veil) 38%, transparent 100%);
+}
+.study-a .slot-mark {
+  position: relative;
+  z-index: 1;
+}
+.study-a .ruler {
+  inset-block-start: calc(118 * var(--u));
+  inset-inline-end: var(--page-pad-x);
+}
+.study-a .ghosts {
+  margin-block-start: calc(490 * var(--u) + 16px - 40px);
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  flex: 1;
+}
+
+/* B: at the full measure, 16 : 9, under the ghosted digits */
+.study-b {
+  background: var(--color-white);
+  color: var(--color-ink);
+}
+.study-b .b-photo {
+  margin: 80px 0 0;
+  position: relative;
+}
+.study-b .b-photo img {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.study-b .ruler {
+  inset-block-start: calc(var(--spacing) * 3);
+  inset-inline-end: calc(var(--spacing) * 3);
+}
+
+/* C: on the plate over the band's foot */
+.study-c {
+  padding: 0;
+  background: var(--color-white);
+  color: var(--color-ink);
+}
+.study-c .c-band {
+  position: relative;
+  block-size: calc(430 * var(--u));
+  padding: calc(var(--page-pad-top) + 10px) var(--page-pad-x) 0;
+  background: var(--grain), var(--band);
+}
+.study-c .c-band img {
+  inline-size: calc(420 * var(--u));
+  block-size: auto;
+}
+.study-c .c-plate {
+  position: relative;
+  margin: calc(-180 * var(--u)) var(--page-pad-x) 0;
+}
+.study-c .c-plate img {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-plate);
+  box-shadow: var(--shadow-plate);
+}
+.study-c .ruler {
+  inset-block-start: calc(var(--spacing) * 3);
+  inset-inline-end: calc(var(--spacing) * 3);
+}
+.study-c .ghosts,
+.study-b .ghosts {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 6) var(--page-pad-x) var(--page-pad-bottom);
+  flex: 1;
+}
+.study-b .ghosts {
+  padding-inline: 0;
+}
+.g-name { block-size: 96px; }
+.g-facts { block-size: 64px; }
+.g-sum { block-size: 120px; align-self: end; }
+
+@media screen and (max-width: 825.98px) {
+  .study {
+    block-size: calc(1122.5 * var(--u));
+  }
+  .study-b .b-photo {
+    margin-block-start: calc(80 * var(--u));
+  }
+  .ruler {
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+  }
+  .ghosts {
+    display: none;
+  }
+}
+</style>
+</head>
+<body>
+<main class="floor">
+  <header class="board-head">
+    <p class="board-kicker">The printed quote’s cover · the three rules on a 1,024 px photograph</p>
+    <h1>A 1,024 px photograph</h1>
+    <p class="board-say">The Stacer 529 Assault Pro’s photograph is held at 1,024 × 676, the size the dealership’s own mirror serves. Each sheet draws it exactly as its direction would. The dashed outlines are where the type goes; no quote is drawn on them.</p>
+  </header>
+
+  <div class="sheaf">
+    <div class="sheet-wrap">
+      <p class="sheaf-label">A · The boat is the page</p>
+      <article class="sheet study study-a" id="a-1024" aria-label="Direction A's rule on a 1,024 by 676 photograph">
+        <figure class="a-photo">
+          <img src="../../../../public/seed-images/529-assault-lifestyle-tiffs-7-1024x676-fbf66995.webp" width="1024" height="676" alt="A Stacer 529 Assault Pro under way on a lake, two people aboard">
+        </figure>
+        <img class="slot-mark" src="../../../../public/brand-marks/northside-marine-white.png" width="1798" height="448" alt="Northside Marine">
+        <p class="ruler"><b>794 × 676, 60% of the page</b><span>drawn 1,024 × 676: one held pixel to one CSS pixel</span><span>the ceiling: it cannot reach the page’s foot</span><span>prints at 96 dpi</span></p>
+        <div class="ghosts"><div class="ghost g-name">the name, under the boat’s lowest point</div><div class="ghost g-facts" style="margin-block-start:auto">the four facts</div><div class="ghost g-sum">who it is for · the total</div></div>
+      </article>
+    </div>
+
+    <div class="sheet-wrap">
+      <p class="sheaf-label">B · The configuration book</p>
+      <article class="sheet study study-b" id="b-1024" aria-label="Direction B's rule on a 1,024 by 676 photograph">
+        <img class="slot-mark" src="../../../../public/brand-marks/northside-marine.png" width="1798" height="448" alt="Northside Marine">
+        <figure class="b-photo">
+          <img src="../../../../public/seed-images/529-assault-lifestyle-tiffs-7-1024x676-fbf66995.webp" width="1024" height="676" alt="A Stacer 529 Assault Pro under way on a lake, two people aboard">
+          <p class="ruler"><b>658 × 370, 27% of the page</b><span>drawn 658 × 434: 1.56 held pixels to one CSS pixel</span><span>cut 16 : 9 from its top and foot only</span><span>prints at 149 dpi</span></p>
+        </figure>
+        <div class="ghosts"><div class="ghost g-name">the name and the four facts</div><div class="ghost g-facts">with your boat: each item by kind</div><div class="ghost g-sum">who it is for · the total</div></div>
+      </article>
+    </div>
+
+    <div class="sheet-wrap">
+      <p class="sheaf-label">C · Northside’s water</p>
+      <article class="sheet study study-c" id="c-1024" aria-label="Direction C's rule on a 1,024 by 676 photograph">
+        <header class="c-band">
+          <img src="../../../../public/brand-marks/northside-marine-white.png" width="1798" height="448" alt="Northside Marine">
+        </header>
+        <figure class="c-plate">
+          <img src="../../../../public/seed-images/529-assault-lifestyle-tiffs-7-1024x676-fbf66995.webp" width="1024" height="676" alt="A Stacer 529 Assault Pro under way on a lake, two people aboard">
+          <p class="ruler"><b>658 × 370 on the plate, 27% of the page</b><span>drawn 658 × 434: 1.56 held pixels to one CSS pixel</span><span>the band is drawn, not held: any size</span><span>prints at 149 dpi</span></p>
+        </figure>
+        <div class="ghosts"><div class="ghost g-name">the name</div><div class="ghost g-facts">the four facts</div><div class="ghost g-sum">who it is for · the total</div></div>
+      </article>
+    </div>
+  </div>
+</main>
+</body>
+</html>

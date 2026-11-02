@@ -48,6 +48,7 @@ import {
   pricedAtSay,
   rowFigure,
   reasonsOf,
+  soleLine,
   underTheTotal,
   unitlessOf,
   workshopOf,
@@ -601,5 +602,49 @@ describe('what the total includes, and its GST (2026-10-31)', () => {
     const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
     const nums = bandsOnPaper(doc).map((b) => b.num)
     expect(nums).toEqual(nums.map((_, i) => String(i + 1).padStart(2, '0')))
+  })
+})
+
+describe('a quote for one thing alone (2026-11-02)', () => {
+  it('is its one line where nothing else is on it, and nothing for a quote with more', () => {
+    const table = pack.byKey('mot_yamaha')
+    const rows = (pack.rowsByEntity[table.id] ?? []) as RowData[]
+    const row = rows.find((r) => rowLabel(table, r).includes('F115LB'))
+    const ctx = makeCtx({ ...pack.ctx, views: { ...pack.ctx.views } })
+    const view = createViewFor(ctx, table.id)
+    const alone = mintQuote(ctx, {
+      viewId: view.id,
+      rowId: row!.id,
+      reference: 'NSM-SOLE',
+      hullAlone: true,
+    })!.quote
+    const doc = readDocument(alone)
+    const sole = soleLine(doc)
+    expect(sole?.state).toBe('charged')
+    expect(sole?.amount).toBe(quoteTotals(alone).total)
+    /* a boat with its motor and trailer has more to say than its cover */
+    expect(soleLine(readDocument(minted('boat_stacer', '529 Assault Pro')))).toBeNull()
+  })
+
+  it('keeps a line that has words of its own: a quantity, a price agreed by hand, or no price', () => {
+    const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
+    const subject = doc.sections.flatMap((s) => s.tables).find((t) => t.subject)!
+    const only = (line: DocumentLine) => ({
+      ...doc,
+      sections: [{ ...doc.sections[0]!, tables: [{ ...subject, lines: [line] }] }],
+      typed: [],
+      adjustments: [],
+    })
+    const line = subject.lines[0]!
+    expect(soleLine(only(line))).toBe(line)
+    expect(soleLine(only({ ...line, qty: 2 }))).toBeNull()
+    expect(soleLine(only({ ...line, overridden: true }))).toBeNull()
+    expect(soleLine(only({ ...line, state: 'unpriced' }))).toBeNull()
+    /* and an adjustment or a typed line beside it is more than the cover says */
+    const beside = { ...only(line) }
+    expect(
+      soleLine({ ...beside, adjustments: [{ id: 'a' } as (typeof doc.adjustments)[number]] }),
+    ).toBeNull()
+    expect(soleLine({ ...beside, typed: [line] })).toBeNull()
   })
 })

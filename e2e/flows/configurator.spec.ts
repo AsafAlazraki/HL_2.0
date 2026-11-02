@@ -1101,7 +1101,9 @@ test('the boat drawn large names this quote’s motor, where the photograph has 
      text under the photo"): what it shows and what this quote carries are its caption drawn
      large, with where it came from */
   await expect(page.getByTestId('stage-caption')).toHaveCount(0)
-  await page.getByRole('button', { name: 'See the boat larger' }).click()
+  /* the press opens the boat's whole gallery and says how many pictures it holds (rewritten
+     2026-11-02: "per boat and product the ability to have more than one image") */
+  await page.getByRole('button', { name: /^See the boat(’s \d+ pictures)? larger$/ }).click()
   const caption = page.getByRole('dialog')
   await expect(caption).toBeVisible()
   await expect(caption).toContainText('the maker’s own finish and rig')

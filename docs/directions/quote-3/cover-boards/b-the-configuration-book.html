@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The configuration book</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="board.css">
+<style>
+/* ============================================================
+   COVER B — THE CONFIGURATION BOOK.
+   A car maker's configuration PDF, set for a boat: the model's own
+   digits ghosted in the dealer's colour over the photograph's top
+   edge, the photograph at the full measure with its edges square like
+   a print in a book, then the boat's name and four facts, and under
+   them everything else the quote is, by kind. White paper, every word inside
+   the margins, so an office printer loses nothing.
+   ============================================================ */
+.b {
+  display: flex;
+  flex-direction: column;
+  padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-bottom);
+  background: var(--color-white);
+  color: var(--color-ink);
+}
+/* nothing on a cover gives way to make room: a cover that does not fit is a fault, not a squeeze */
+.b > * {
+  flex-shrink: 0;
+}
+.b p,
+.b h2,
+.b h3,
+.b dl,
+.b dd,
+.b ul {
+  margin: 0;
+}
+.b-cap {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.b-head {
+  position: relative;
+  z-index: 1;
+  block-size: var(--b-photo-top);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: calc(var(--spacing) * 6);
+}
+.b-mark {
+  inline-size: auto;
+  block-size: 40px;
+}
+.b-ref {
+  display: grid;
+  justify-items: end;
+  gap: calc(var(--spacing) * 1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.b-ref .b-cap {
+  color: var(--color-ink);
+}
+
+/* THE BOAT'S OWN DIGITS, GHOSTED, and the photograph laid over their feet: Porsche's "911"
+   behind the car. The digits are the first run of figures in the model's name; a name with
+   none (a motor's "F90XB" gives 90, a Formosa "GRT 425" 425) simply has no numeral. */
+.b-hero {
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: var(--b-photo-top);
+  pointer-events: none;
+}
+.b {
+  /* where the photograph's top edge falls: the digits above it show about three fifths of
+     their height, and the photograph covers their feet */
+  --b-photo-top: 120px;
+}
+.b-numeral {
+  position: absolute;
+  inset-block-start: calc(var(--page-pad-top) + 18px);
+  inset-inline-end: calc(var(--page-pad-x) - 0.06em);
+  font-size: var(--text-numeral);
+  line-height: 0.8;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--color-numeral);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+.b-title {
+  padding-block-start: calc(var(--spacing) * 5);
+}
+.b-over {
+  color: var(--color-ink-file);
+}
+.b-name {
+  padding-block-start: calc(var(--spacing) * 2);
+  font-size: var(--text-cover);
+  line-height: var(--text-cover--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+.b[data-long] .b-name {
+  font-size: var(--text-cover-long);
+  line-height: var(--text-cover-long--line-height);
+}
+.b-bracket {
+  display: inline-block;
+}
+.b-finish {
+  padding-block-start: calc(var(--spacing) * 2);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-ink-2);
+}
+.b-title .b-over {
+  padding-block-end: 0;
+}
+/* the four facts as one line, the spec's own form (quote-spec §3.4) */
+.b-facts-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 5);
+  padding-block-start: calc(var(--spacing) * 3);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.b-facts-line b {
+  font-weight: 400;
+  color: var(--color-ink);
+}
+
+/* THE PRINT: the photograph at the full measure, square-edged, cut to 16 : 9 from its top and
+   foot only, so the boat keeps its whole length */
+.b-photo {
+  position: relative;
+  margin: 0;
+}
+.b-photo img {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: 50% var(--focus-y, 50%);
+}
+.b-photo figcaption {
+  padding-block-start: calc(var(--spacing) * 2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
+}
+
+/* WHAT ELSE THE QUOTE IS, BY KIND: Porsche's summary as one list. The hull is the title, so
+   its row would say the name a second time; the list is what comes with it. */
+.b-spec {
+  padding-block: calc(var(--spacing) * 5) calc(var(--spacing) * 6);
+}
+.b-spec h3 {
+  padding-block-end: calc(var(--spacing) * 2);
+  border-block-end: 2px solid var(--color-ink);
+  color: var(--color-ink);
+}
+.b-rows > div {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: calc(var(--spacing) * 3);
+  padding-block: calc(var(--spacing) * 1.5);
+  border-block-end: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.b-rows dt {
+  color: var(--color-ink-3);
+}
+.b-rows dd {
+  min-inline-size: 0;
+}
+.b-rows dd span {
+  display: block;
+}
+
+.b-sum {
+  margin-block-start: auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: calc(var(--spacing) * 6);
+  padding-block: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+  border-block-start: 2px solid var(--color-accent);
+}
+.b-sum .b-cap {
+  color: var(--color-ink-3);
+}
+.b-who {
+  padding-block-start: calc(var(--spacing) * 1);
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+}
+/* the same line box as the name beside it, so the two labels stand on one line */
+.b-by {
+  padding-block-start: calc(var(--spacing) * 1);
+  line-height: calc(var(--text-3xl) * 1.15);
+}
+.b-total {
+  display: grid;
+  justify-items: end;
+  text-align: end;
+}
+.b-fig {
+  padding-block: calc(var(--spacing) * 2);
+  font-size: var(--text-cover-figure);
+  line-height: var(--text-cover-figure--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+.b-small {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-3);
+}
+.b-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+  padding-block-start: calc(var(--spacing) * 2);
+  border-block-start: 1px solid var(--color-rule);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* IN A HAND: the numeral steps down with the name, the photograph spans the phone's measure,
+   and the two lists stand one over the other, the quote first. */
+@media screen and (max-width: 825.98px) {
+  .b {
+    padding: calc(var(--spacing) * 5) calc(var(--spacing) * 4);
+  }
+  .b-mark {
+    block-size: 28px;
+  }
+  /* the digits stand under the reference, whole, with the photograph just under their feet */
+  .b {
+    --b-photo-top: 124px;
+  }
+  .b-numeral {
+    font-size: 6.5rem;
+    inset-block-start: 66px;
+    inset-inline-end: calc(var(--spacing) * 4 - 0.06em);
+  }
+  .b-name,
+  .b[data-long] .b-name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .b-finish {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .b-rows > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .b-sum {
+    margin-block-start: calc(var(--spacing) * 8);
+    grid-template-columns: minmax(0, 1fr);
+    gap: calc(var(--spacing) * 4);
+  }
+  .b-total {
+    justify-items: start;
+    text-align: start;
+  }
+  .b-fig {
+    font-size: var(--text-6xl);
+    line-height: var(--text-6xl--line-height);
+  }
+}
+</style>
+</head>
+<body>
+<main class="floor">
+  <header class="board-head">
+    <p class="board-kicker">The printed quote’s cover · direction B of 3</p>
+    <h1>The configuration book</h1>
+    <p class="board-say">A car maker’s configuration PDF set for a boat: its own digits ghosted above the photograph, the photograph as a print at the full measure, and everything the quote is on the cover, by kind.</p>
+  </header>
+
+  <div class="sheaf">
+    <div class="sheet-wrap">
+      <p class="sheaf-label">Highfield Sport 560 · quote 20261031-01 · the maker’s photograph, 2,560 × 1,708</p>
+      <article class="sheet b" id="b-sp560" aria-label="Cover of quote 20261031-01, Highfield Sport 560 for R. Kelleher">
+        <header class="b-head">
+          <img class="b-mark" src="../../../../public/brand-marks/northside-marine.png" width="1798" height="448" alt="Northside Marine">
+          <p class="b-ref"><span class="b-cap">Quotation · 20261031-01</span><span>Issued 31 October 2026</span></p>
+        </header>
+        <div class="b-hero"><span class="b-numeral" aria-hidden="true">560</span></div>
+        <figure class="b-photo">
+          <img src="../../../../public/hero-images/highfield-sp560-84445423.webp" width="2560" height="1708" alt="A Highfield Sport 560 at rest on the water beside granite rocks">
+          <figcaption>Photographed with a Mercury outboard. Your boat’s finish and motor are as quoted.</figcaption>
+        </figure>
+        <div class="b-title">
+          <p class="b-cap b-over">Your boat</p>
+          <h2 class="b-name">Highfield Sport 560</h2>
+          <p class="b-finish">Hypalon · White / White / White/Blue</p>
+          <p class="b-facts-line"><span>Length overall <b>5.66 m</b></span><span>Beam <b>2.5 m</b></span><span>Power <b>90–115 hp</b></span><span>Boat weight <b>581 kg</b></span></p>
+        </div>
+        <section class="b-spec">
+          <h3 class="b-cap">With your boat</h3>
+          <dl class="b-rows">
+            <div><dt>Motor</dt><dd>Yamaha F90XB</dd></div>
+            <div><dt>Trailer</dt><dd>REDCO Custom / Highfield Sport 560 Aluminium</dd></div>
+            <div><dt>Dealer fit</dt><dd>2 x MFM50 Batteries</dd></div>
+          </dl>
+        </section>
+        <div class="b-sum">
+          <div>
+            <p class="b-cap">Prepared for</p>
+            <p class="b-who">R. Kelleher</p>
+          </div>
+          <div>
+            <p class="b-cap">Prepared by</p>
+            <p class="b-by">Asaf</p>
+          </div>
+          <div class="b-total">
+            <p class="b-cap">Total, including GST</p>
+            <p class="b-fig">$73,992</p>
+            <p class="b-small">Includes the motor’s pre-delivery and the trailer’s registration.<br>Includes GST of $6,726.55 at 10%.</p>
+          </div>
+        </div>
+        <footer class="b-foot"><span>20261031-01</span><span>Page 1 of 3</span></footer>
+      </article>
+    </div>
+
+    <div class="sheet-wrap">
+      <p class="sheaf-label">Stacer 499 Sea Ranger SDF (Centre Console) · quote 20261031-02 · the row’s own photograph, 1,100 × 733</p>
+      <article class="sheet b" id="b-stacer" data-long aria-label="Cover of quote 20261031-02, Stacer 499 Sea Ranger SDF (Centre Console) for R. Kelleher">
+        <header class="b-head">
+          <img class="b-mark" src="../../../../public/brand-marks/northside-marine.png" width="1798" height="448" alt="Northside Marine">
+          <p class="b-ref"><span class="b-cap">Quotation · 20261031-02</span><span>Issued 31 October 2026</span></p>
+        </header>
+        <div class="b-hero"><span class="b-numeral" aria-hidden="true">499</span></div>
+        <figure class="b-photo">
+          <img src="../../../../public/seed-images/499-sea-ranger-lifestyle-1-7d44842e.webp" width="1100" height="733" alt="A Stacer 499 Sea Ranger with a centre console in shallow water off a beach, two people fishing aboard">
+        </figure>
+        <div class="b-title">
+          <p class="b-cap b-over">Your boat</p>
+          <h2 class="b-name">Stacer 499 Sea Ranger SDF <span class="b-bracket">(Centre Console)</span></h2>
+          <p class="b-facts-line"><span>Hull length <b>5.05 m</b></span><span>Beam <b>2.24 m</b></span><span>Power <b>50–90 hp</b></span><span>Hull weight (dry) <b>542 kg</b></span></p>
+        </div>
+        <section class="b-spec">
+          <h3 class="b-cap">With your boat</h3>
+          <dl class="b-rows">
+            <div><dt>Dealer fit</dt><dd><span>Striker Vivid 4cv w GT20-TM Transducer</span><span>Garmin GA38 GPS/Glonass Antenna</span><span>Garmin NMEA Backbone/Drop Cable · 2mtr</span></dd></div>
+          </dl>
+        </section>
+        <div class="b-sum">
+          <div>
+            <p class="b-cap">Prepared for</p>
+            <p class="b-who">R. Kelleher</p>
+          </div>
+          <div>
+            <p class="b-cap">Prepared by</p>
+            <p class="b-by">Asaf</p>
+          </div>
+          <div class="b-total">
+            <p class="b-cap">Total, including GST</p>
+            <p class="b-fig">$30,243</p>
+            <p class="b-small">Includes GST of $2,749.36 at 10%.</p>
+          </div>
+        </div>
+        <footer class="b-foot"><span>20261031-02</span><span>Page 1 of 3</span></footer>
+      </article>
+    </div>
+  </div>
+
+  <aside class="notes" id="notes">
+    <section>
+      <h2>What only this one does</h2>
+      <p>It names everything on the quote on its cover: the motor, the trailer and each dealer-fit item, by kind, under the boat. It is the only one that keeps the recorded ruling: nothing bleeds, every word is on white, and an office printer loses nothing. It prints the sharpest photograph, with the most held pixels behind each printed one.</p>
+    </section>
+    <section>
+      <h2>The picture, measured on the sheet</h2>
+      <table>
+        <tr><th>picture</th><th>box</th><th>drawn</th><th>held px per CSS px</th><th>prints at</th></tr>
+        <tr><td>SP560, 2,560 × 1,708</td><td>658 × 370</td><td>658 × 439</td><td>3.89</td><td>374 dpi</td></tr>
+        <tr><td>Stacer 499, 1,100 × 733</td><td>658 × 370</td><td>658 × 438</td><td>1.67</td><td>161 dpi</td></tr>
+        <tr><td>Stacer 529, 1,024 × 676</td><td>658 × 370</td><td>658 × 434</td><td>1.56</td><td>149 dpi</td></tr>
+      </table>
+      <p><b>The rule:</b> the full 174 mm measure, square-edged like a print in a book, cut 16 : 9 from its top and foot only. The boat keeps its whole length. That is <b>27%</b> of the page, the least of the three: B spends the room on the configuration.</p>
+    </section>
+    <section>
+      <h2>With a 1,024 px photograph</h2>
+      <p>Exactly the spec’s band: 658 × 370, 1.56 held pixels to each CSS pixel, <b>149 dpi</b> (<code>the-1024-photograph.html</code>). Nothing about B changes with the picture’s size.</p>
+    </section>
+    <section>
+      <h2>How it reflows</h2>
+      <ul>
+        <li><b>390 × 844:</b> the digits step down to 104px and stand whole under the reference, the photograph spans the phone’s measure, each “with your boat” row stacks its kind over its item, and the total stands under who it is for.</li>
+        <li><b>844 × 390 and up:</b> the A4 sheet at 1:1.</li>
+        <li><b>The PDF on a phone</b> at 0.49: the name 31px, the total 24px.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>What Northside replaces</h2>
+      <p>The photograph is the gallery’s cover. The digits are the accent at 13%, so they are always Northside’s colour, faint. B works with a studio render, which multiplies into the white as today’s plate does. With no picture it is the digits and the name alone, Porsche without the car. A name with no digits simply has no numeral. The digits are the first run of figures in the model’s own name, a pure derivation if built.</p>
+    </section>
+    <section>
+      <h2>Type</h2>
+      <p>Digits 224px/600 at the accent’s 13%. Name 64px/300 (48px with a bracket). Finish 16px. Facts as one line at 13px, the spec’s §3.4 form. List 13px, kinds in quiet ink at a fixed 120px indent. Customer 26px, total 48px/300.</p>
+    </section>
+    <section>
+      <h2>Motion, keys, reduced motion</h2>
+      <p>The build’s photograph lands in the print frame on the 588ms spring and the digits do not move. Print and reduced motion: still. The digits are <code>aria-hidden</code>, because the name says them.</p>
+    </section>
+    <section>
+      <h2>References no earlier board used</h2>
+      <ul>
+        <li><code>docs/research/refs/document/live/saxdor-specs-crop.png</code>: facts as label over value in wide air, no rules.</li>
+        <li><code>C:\Users\Asaf\dev\hl-refs\ref\porsche-pdf-1.png</code>: the ghosted “911”. The document screen’s row already names Porsche’s PDF as a whole, so this is the genre. B takes one device from that frame.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Honest constraints</h2>
+      <ul>
+        <li>The dealer-fit names print as page 2 prints them (“w”, “· 2mtr”: critique minor 20). The cover never says an item differently from its line.</li>
+        <li>The SP560 photograph is the machine’s choice (<code>person: false</code>), refused by the paper’s reader until a person marks it. The Mercury caption is from the ledger.</li>
+        <li>R. Kelleher is the walks’ name. The figures are the given PDFs in <code>docs/directions/paper-quote/</code>. No validity date and no address print: Settings holds none.</li>
+      </ul>
+    </section>
+  </aside>
+</main>
+</body>
+</html>

@@ -5,6 +5,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { throughTheDoor } from '../door'
 import {
+  cameToRest,
   cardName,
   nameTheCustomer,
   openChapter,
@@ -119,6 +120,8 @@ async function issueAQuote(
   page: Page,
   /** what the walk does past the door and before it starts the quote, such as Settings */
   first?: () => Promise<void>,
+  /** what the walk puts on at the build before it names and gives the quote */
+  build?: () => Promise<void>,
 ): Promise<string> {
   await throughTheDoor(page)
   if (first) await first()
@@ -140,6 +143,7 @@ async function issueAQuote(
 
   await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
   await expect(page.getByTestId('configurator')).toBeVisible()
+  if (build) await build()
 
   await nameTheCustomer(page, CUSTOMER)
 
@@ -259,6 +263,68 @@ test('the sheet is A4 at true size, and the pages are whole', async ({ page, vie
   }
 })
 
+/* ============================================================
+   THE BOAT IS THE PAGE (2026-11-02; docs/directions/quote-3/cover-pick.md). The owner: "the quote
+   pdf is BORING … pdf quote needs to be insane with cover page … using boats photo". The cover's
+   top runs off the sheet's top and both sides, the picture whole and never enlarged, and every
+   word stands under it on the night: measured here at every width.
+   ============================================================ */
+
+test('the cover is the boat: off three edges, whole, never enlarged, every word under it', async ({
+  page,
+  viewport,
+}) => {
+  const id = await issueAQuote(page)
+  await openTheDocument(page, id)
+  const cover = page.locator('.doc-page[data-night]')
+  await expect(cover).toHaveCount(1)
+  await expect(page.locator('.doc-page').first()).toHaveAttribute('data-night', '')
+  const img = cover.locator('.doc-shot__img')
+  await expect
+    .poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0))
+    .toBe(true)
+  const read = await cover.evaluate((sheet) => {
+    const box = (sel: string) => sheet.querySelector(sel)!.getBoundingClientRect()
+    const edge = sheet.getBoundingClientRect()
+    const top = box('.doc-night')
+    const shot = box('.doc-shot__img')
+    const pic = sheet.querySelector<HTMLImageElement>('.doc-shot__img')!
+    const ground = sheet.querySelector('.doc-cover')!.getAttribute('data-ground')
+    const words = ['.doc-cover__title', '.doc-keys', '.doc-money']
+      .map((sel) => sheet.querySelector(sel))
+      .filter((el): el is Element => el !== null)
+      .map((el) => el.getBoundingClientRect().top)
+    return {
+      ground,
+      span: sheet.querySelector('.doc-shot')!.getAttribute('data-span'),
+      edges: [top.left - edge.left, top.top - edge.top, edge.right - top.right],
+      shot: { left: shot.left - edge.left, right: edge.right - shot.right, w: shot.width },
+      held: pic.naturalWidth,
+      foot: top.bottom,
+      firstWord: Math.min(...words),
+      background: getComputedStyle(sheet).backgroundColor,
+    }
+  })
+  /* the top of the cover is the sheet's top and both its sides */
+  for (const edge of read.edges)
+    expect(Math.abs(edge), 'the cover’s top is not off the edge').toBeLessThan(1)
+  /* a photograph that reaches the sheet spans it; nothing is drawn past its held pixels */
+  if (read.ground === 'photo' && read.span === 'full') {
+    expect(Math.abs(read.shot.left)).toBeLessThan(1)
+    expect(Math.abs(read.shot.right)).toBeLessThan(1)
+  }
+  expect(read.shot.w).toBeLessThanOrEqual(read.held + 0.5)
+  /* every word stands under the picture, on the night */
+  expect(read.firstWord).toBeGreaterThanOrEqual(read.foot - 0.5)
+  expect(read.background).not.toBe('rgba(0, 0, 0, 0)')
+  /* and in print the night prints */
+  if ((viewport?.width ?? 0) === 1440) {
+    await page.emulateMedia({ media: 'print' })
+    expect(await cover.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(read.background)
+    await page.emulateMedia({ media: 'screen' })
+  }
+})
+
 test('the page assignment is the paper’s at every width', async ({ page }) => {
   const id = await issueAQuote(page)
   await openTheDocument(page, id)
@@ -298,11 +364,19 @@ test('the dealership the file names is the first thing on page 1', async ({ page
 
   expect(BUSINESS.trim()).not.toBe('')
   const cover = page.locator('.doc-page[data-page="1"]')
-  /* since 2026-10-20 the letterhead is the dealership's own mark, which decodes, in the dark
-     ink paper needs, with the name as its words; nothing printed comes before it */
+  /* since 2026-10-20 the letterhead is the dealership's own mark, which decodes, with the name as
+     its words; nothing printed comes before it. REWRITTEN 2026-11-02 (the owner: "pdf quote needs
+     to be insane with cover page"; docs/directions/quote-3/cover-pick.md): a cover that stands on
+     its photograph prints the same mark in its white ink, a cover on the studio panel in dark */
   const mark = cover.locator('.doc-cover__house img.doc-cover__mark')
   await expect(mark).toHaveAttribute('alt', BUSINESS)
-  await expect(mark).toHaveAttribute('src', /brand-marks\/northside-marine\.png$/)
+  const ground = await cover.locator('.doc-cover').getAttribute('data-ground')
+  await expect(mark).toHaveAttribute(
+    'src',
+    ground === 'photo'
+      ? /brand-marks\/northside-marine-white\.png$/
+      : /brand-marks\/northside-marine\.png$/,
+  )
   await expect
     .poll(() => mark.evaluate((img: HTMLImageElement) => img.naturalWidth))
     .toBeGreaterThan(0)
@@ -361,10 +435,28 @@ test('the customer’s copy uses the customer’s words, and none of the app’s
   await expect(note).toContainText('offered')
 })
 
+/**
+ * A MOTOR BESIDE THE BOAT, put on at the build. A quote of one thing alone prints no line after its
+ * cover and says its price once, as the total (the owner's round, 2026-11-02: "the price said once
+ * where it belongs"), so the money column and the sum are read on a quote with two lines.
+ */
+async function withAMotor(page: Page): Promise<void> {
+  await openChapter(page, /^02 Motor/)
+  await cameToRest(page)
+  await page
+    .getByRole('region', { name: /^02 Motor/ })
+    .locator('.cfg-tiles .ui-option')
+    .first()
+    .click()
+  await expect(page.getByTestId('running-total')).not.toContainText('Not chosen yet: motor')
+  await cameToRest(page)
+}
+
 test('a figure, Included and Price to be confirmed read as three, with no legend', async ({
   page,
 }) => {
-  const id = await issueAQuote(page)
+  /* REWRITTEN 2026-11-02: the boat alone prints no line after its cover, so a motor is put on */
+  const id = await issueAQuote(page, undefined, () => withAMotor(page))
   await openTheDocument(page, id)
 
   /* the legend defined the price file's own words to a buyer; the words
@@ -387,7 +479,8 @@ test('a figure, Included and Price to be confirmed read as three, with no legend
 })
 
 test('your price adds up where the reader can see it', async ({ page }) => {
-  const id = await issueAQuote(page)
+  /* REWRITTEN 2026-11-02: the boat alone prints no line after its cover, so a motor is put on */
+  const id = await issueAQuote(page, undefined, () => withAMotor(page))
   await openTheDocument(page, id)
 
   const price = page.getByRole('region', { name: 'Your price' })
@@ -977,7 +1070,9 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
   const cover = shot.locator('.doc-shot__img')
   await expect(cover).toHaveAttribute('src', new RegExp(`${escapeRe(hero.file)}$`))
   expect(await cover.evaluate((el) => getComputedStyle(el).viewTransitionName)).toBe(travels)
-  await expect(shot).toContainText(`Pictured: the ${hero.subject}`)
+  /* its line under the name, on the night's ground (2026-11-02, cover-pick.md: it stood under the
+     picture, inside the figure) */
+  await expect(page.locator('.doc-cover__title')).toContainText(`Pictured: the ${hero.subject}`)
   await expect(page.locator('.doc-desk')).not.toContainText(/no copy of it is held|No photograph/)
   /* the cover still fits page 1 with the photograph on it */
   const pages = await page.locator('.doc-page').count()
@@ -1028,12 +1123,15 @@ test('a colour kept on Settings after the give never reaches the given paper', a
       ctx.fillRect(0, 0, 1, 1)
       return Array.from(ctx.getImageData(0, 0, 1, 1).data.slice(0, 3))
     }, css)
+  /* THE RULE OVER THE PRICE ON THE COVER, the cover's one stroke of Northside's colour. It read the
+     letterhead's rule until 2026-11-02, when the cover became the night's page and its letterhead
+     stood on the photograph with no rule under it (cover-pick.md) */
   const rule = async () =>
     painted(
       await page
-        .locator('.doc-cover__mast')
+        .locator('.doc-page[data-night] .doc-money')
         .first()
-        .evaluate((el) => getComputedStyle(el).borderBottomColor),
+        .evaluate((el) => getComputedStyle(el).borderTopColor),
     )
   /* the app's own accent, drawn on a probe outside the paper */
   const appAccent = async () =>

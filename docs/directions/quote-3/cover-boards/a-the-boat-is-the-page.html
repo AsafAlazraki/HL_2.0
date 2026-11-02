@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The boat is the page</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="board.css">
+<style>
+/* ============================================================
+   COVER A — THE BOAT IS THE PAGE.
+   The photograph runs off the top and both sides at the tallest
+   size that keeps the whole boat and never draws a held pixel
+   wider than one CSS pixel. Its water dissolves into the night's
+   ink, and everything the customer reads stands on that dark:
+   the name over the photograph's own foot, the four facts, who it
+   is for and what it comes to. No paper shows.
+   ============================================================ */
+.a {
+  /* ONE PIXEL OF THE A4 SHEET at whatever width the sheet is drawn: 1px on the sheet and in
+     print, 390/794 of one in a hand, so the photograph keeps its crop at every size */
+  --u: calc(100cqi / 793.7);
+  /* the photograph's drawn height, from its held pixels and the boat's width in it */
+  --drawn-h: calc(var(--drawn-h-n) * var(--u));
+  /* the boat's lowest point, drawn: the name stands under it, never over the hull */
+  --keep: calc(var(--keep-n) * var(--u));
+  display: flex;
+  flex-direction: column;
+  background: var(--color-cover-night);
+  color: var(--color-white);
+}
+.a-photo {
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: var(--drawn-h);
+  margin: 0;
+}
+.a-photo img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: var(--focus-x) 50%;
+  /* the water under the boat melts into the night: from 40 A4px above the hull's lowest point,
+     where only its reflection is, to the photograph's foot. The boat itself is never faded. */
+  -webkit-mask-image: linear-gradient(to bottom, var(--color-white) calc(var(--keep) - 40 * var(--u)), transparent 100%);
+  mask-image: linear-gradient(to bottom, var(--color-white) calc(var(--keep) - 40 * var(--u)), transparent 100%);
+}
+/* THE VEIL THE LETTERHEAD STANDS ON: the night's ink at 80%, held to the foot of the reference
+   and gone by 260px. Measured on the pixels behind each line: without the hold, "Issued 31
+   October 2026" stood on the SP560's pale sky at 2.48 : 1. */
+.a-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: 260px;
+  background: linear-gradient(to bottom, var(--color-cover-night-veil) 0, var(--color-cover-night-veil) 38%, transparent 100%);
+}
+
+.a-head {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: calc(var(--spacing) * 6);
+  padding: var(--page-pad-top) var(--page-pad-x) 0;
+}
+.a-mark {
+  inline-size: auto;
+  block-size: 44px;
+}
+.a-ref {
+  margin: 0;
+  display: grid;
+  justify-items: end;
+  gap: calc(var(--spacing) * 1);
+  padding-block-start: calc(var(--spacing) * 1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-100);
+  font-variant-numeric: tabular-nums;
+}
+.a-cap {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+.a-ref .a-cap {
+  color: var(--color-white);
+}
+
+.a-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--keep) + 16px) var(--page-pad-x) var(--page-pad-bottom);
+}
+.a-title {
+  padding-block-end: calc(var(--spacing) * 6);
+}
+.a-title p,
+.a-title h2 {
+  margin: 0;
+}
+.a-over {
+  color: var(--color-blue-100);
+}
+.a-name {
+  padding-block-start: calc(var(--spacing) * 2);
+  font-size: var(--text-cover);
+  line-height: var(--text-cover--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+.a[data-long] .a-name {
+  font-size: var(--text-cover-long);
+  line-height: var(--text-cover-long--line-height);
+}
+/* "(Centre Console)" breaks onto its own line whole */
+.a-bracket {
+  display: inline-block;
+}
+.a-finish {
+  padding-block-start: calc(var(--spacing) * 2);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-neutral-100);
+}
+.a-say {
+  padding-block-start: calc(var(--spacing) * 1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+
+/* the facts and the summary are one group at the foot; whatever the photograph does not take
+   is the night's ground between the name and them */
+.a-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: auto 0 0;
+  border-block: 1px solid var(--color-cover-night-rule);
+}
+.a-facts div {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+}
+.a-facts div + div {
+  border-inline-start: 1px solid var(--color-cover-night-rule);
+}
+.a-facts div:first-child {
+  padding-inline-start: 0;
+}
+.a-facts dt {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.a-facts dd {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-variant-numeric: tabular-nums;
+}
+
+.a-sum {
+  margin-block-start: calc(var(--spacing) * 7);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: calc(var(--spacing) * 6);
+  padding-block: calc(var(--spacing) * 5) calc(var(--spacing) * 6);
+  border-block-start: 2px solid var(--color-blue-300);
+}
+.a-sum p {
+  margin: 0;
+}
+.a-sum .a-cap {
+  color: var(--color-neutral-300);
+}
+.a-who {
+  padding-block: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+}
+.a-by {
+  padding-block-start: calc(var(--spacing) * 1);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+.a-total {
+  display: grid;
+  justify-items: end;
+  text-align: end;
+}
+.a-fig {
+  padding-block: calc(var(--spacing) * 2) calc(var(--spacing) * 2);
+  font-size: var(--text-cover-figure);
+  line-height: var(--text-cover-figure--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+.a-small {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+}
+.a-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+  padding-block-start: calc(var(--spacing) * 2);
+  border-block-start: 1px solid var(--color-cover-night-rule);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+  font-variant-numeric: tabular-nums;
+}
+
+/* IN A HAND: the photograph is a band as wide as the phone in the same crop, the name rises
+   into its foot, the facts go two by two, and the total stands under who it is for. */
+@media screen and (max-width: 825.98px) {
+  .a-photo::after {
+    block-size: 45%;
+  }
+  .a-head {
+    padding: calc(var(--spacing) * 4);
+  }
+  .a-mark {
+    block-size: 28px;
+  }
+  .a-ref {
+    padding-block-start: 0;
+  }
+  .a-body {
+    padding: calc(var(--keep) + 12px) calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+  }
+  .a-name,
+  .a[data-long] .a-name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .a-finish {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .a-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .a-facts div:nth-child(3) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+  .a-facts div:nth-child(n + 3) {
+    border-block-start: 1px solid var(--color-cover-night-rule);
+  }
+  .a-sum {
+    margin-block-start: calc(var(--spacing) * 8);
+    grid-template-columns: minmax(0, 1fr);
+    gap: calc(var(--spacing) * 4);
+  }
+  .a-total {
+    justify-items: start;
+    text-align: start;
+  }
+  .a-fig {
+    font-size: var(--text-6xl);
+    line-height: var(--text-6xl--line-height);
+  }
+}
+</style>
+</head>
+<body>
+<main class="floor">
+  <header class="board-head">
+    <p class="board-kicker">The printed quote’s cover · direction A of 3</p>
+    <h1>The boat is the page</h1>
+    <p class="board-say">The photograph runs off three edges at the tallest size its own pixels allow with the whole boat in it, and the customer reads everything on its water.</p>
+  </header>
+
+  <div class="sheaf">
+    <div class="sheet-wrap">
+      <p class="sheaf-label">Highfield Sport 560 · quote 20261031-01 · the maker’s photograph, 2,560 × 1,708</p>
+      <article class="sheet a" id="a-sp560" style="--drawn-h-n: 760; --keep-n: 614; --focus-x: 35%" aria-label="Cover of quote 20261031-01, Highfield Sport 560 for R. Kelleher">
+        <figure class="a-photo">
+          <img src="../../../../public/hero-images/highfield-sp560-84445423.webp" width="2560" height="1708" alt="A Highfield Sport 560 at rest on the water beside granite rocks">
+        </figure>
+        <header class="a-head">
+          <img class="a-mark" src="../../../../public/brand-marks/northside-marine-white.png" width="1798" height="448" alt="Northside Marine">
+          <p class="a-ref"><span class="a-cap">Quotation · 20261031-01</span><span>Issued 31 October 2026</span></p>
+        </header>
+        <div class="a-body">
+          <div class="a-title">
+            <p class="a-cap a-over">Your boat</p>
+            <h2 class="a-name">Highfield Sport 560</h2>
+            <p class="a-finish">Hypalon · White / White / White/Blue</p>
+            <p class="a-say">Photographed with a Mercury outboard. Your boat’s finish and motor are as quoted.</p>
+          </div>
+          <dl class="a-facts">
+            <div><dt>Length overall</dt><dd>5.66 m</dd></div>
+            <div><dt>Beam</dt><dd>2.5 m</dd></div>
+            <div><dt>Power</dt><dd>90–115 hp</dd></div>
+            <div><dt>Boat weight</dt><dd>581 kg</dd></div>
+          </dl>
+          <div class="a-sum">
+            <div>
+              <p class="a-cap">Prepared for</p>
+              <p class="a-who">R. Kelleher</p>
+              <p class="a-cap">Prepared by</p>
+              <p class="a-by">Asaf</p>
+            </div>
+            <div class="a-total">
+              <p class="a-cap">Total, including GST</p>
+              <p class="a-fig">$73,992</p>
+              <p class="a-small">Includes the motor’s pre-delivery and the trailer’s registration.<br>Includes GST of $6,726.55 at 10%.</p>
+            </div>
+          </div>
+          <footer class="a-foot"><span>20261031-01</span><span>Page 1 of 3</span></footer>
+        </div>
+      </article>
+    </div>
+
+    <div class="sheet-wrap">
+      <p class="sheaf-label">Stacer 499 Sea Ranger SDF (Centre Console) · quote 20261031-02 · the row’s own photograph, 1,100 × 733</p>
+      <article class="sheet a" id="a-stacer" data-long style="--drawn-h-n: 597; --keep-n: 466; --focus-x: 72%" aria-label="Cover of quote 20261031-02, Stacer 499 Sea Ranger SDF (Centre Console) for R. Kelleher">
+        <figure class="a-photo">
+          <img src="../../../../public/seed-images/499-sea-ranger-lifestyle-1-7d44842e.webp" width="1100" height="733" alt="A Stacer 499 Sea Ranger with a centre console in shallow water off a beach, two people fishing aboard">
+        </figure>
+        <header class="a-head">
+          <img class="a-mark" src="../../../../public/brand-marks/northside-marine-white.png" width="1798" height="448" alt="Northside Marine">
+          <p class="a-ref"><span class="a-cap">Quotation · 20261031-02</span><span>Issued 31 October 2026</span></p>
+        </header>
+        <div class="a-body">
+          <div class="a-title">
+            <p class="a-cap a-over">Your boat</p>
+            <h2 class="a-name">Stacer 499 Sea Ranger SDF <span class="a-bracket">(Centre Console)</span></h2>
+          </div>
+          <dl class="a-facts">
+            <div><dt>Hull length</dt><dd>5.05 m</dd></div>
+            <div><dt>Beam</dt><dd>2.24 m</dd></div>
+            <div><dt>Power</dt><dd>50–90 hp</dd></div>
+            <div><dt>Hull weight (dry)</dt><dd>542 kg</dd></div>
+          </dl>
+          <div class="a-sum">
+            <div>
+              <p class="a-cap">Prepared for</p>
+              <p class="a-who">R. Kelleher</p>
+              <p class="a-cap">Prepared by</p>
+              <p class="a-by">Asaf</p>
+            </div>
+            <div class="a-total">
+              <p class="a-cap">Total, including GST</p>
+              <p class="a-fig">$30,243</p>
+              <p class="a-small">Includes GST of $2,749.36 at 10%.</p>
+            </div>
+          </div>
+          <footer class="a-foot"><span>20261031-02</span><span>Page 1 of 3</span></footer>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <aside class="notes" id="notes">
+    <section>
+      <h2>What only this one does</h2>
+      <p>The photograph is the page. It runs off the top and both sides, takes <b>68%</b> of the SP560’s sheet and <b>53%</b> of the Stacer’s, and every word stands on its water and on the night it dissolves into. No paper shows. It is the only cover that prints a ground, and the only one that answers the critic’s “a letterhead with a framed picture” with the picture itself.</p>
+    </section>
+    <section>
+      <h2>The picture, measured on the sheet</h2>
+      <table>
+        <tr><th>picture</th><th>box</th><th>drawn</th><th>held px per CSS px</th><th>prints at</th></tr>
+        <tr><td>SP560, 2,560 × 1,708</td><td>794 × 760</td><td>1,139 × 760</td><td>2.25</td><td>216 dpi</td></tr>
+        <tr><td>Stacer 499, 1,100 × 733</td><td>794 × 597</td><td>896 × 597</td><td>1.23</td><td>118 dpi</td></tr>
+        <tr><td>Stacer 529, 1,024 × 676</td><td>794 × 676</td><td>1,024 × 676</td><td>1.00</td><td>96 dpi</td></tr>
+      </table>
+      <p><b>The rule:</b> the photograph spans the sheet’s width at the tallest size that keeps the whole boat with air on both ends and never draws one held pixel wider than one CSS pixel. The name stands 16px under the boat’s lowest point, never on the hull, and the water melts into the night from 40px above that point. Today’s cover draws the picture at most 131 mm (495px) tall inside the margins.</p>
+    </section>
+    <section>
+      <h2>With a 1,024 px photograph</h2>
+      <p>The bleed stops where the pixels stop: the 529’s 1,024 × 676 is drawn at one to one, 794 × 676 (60% of the page), cut 230px across, and the night takes the rest (<code>the-1024-photograph.html</code>). It prints at <b>96 dpi</b>, the softest of the three. A full-page bleed would need it 1,701px wide: refused.</p>
+    </section>
+    <section>
+      <h2>How it reflows</h2>
+      <ul>
+        <li><b>390 × 844:</b> the photograph is a band the phone’s width in the same crop (390 × 373 for the SP560), the name at 30px under the boat, the facts two by two, the total at 40px under who it is for.</li>
+        <li><b>844 × 390 and up:</b> the A4 sheet at 1:1, as the paper view draws it from 826px; the first screen is the photograph and the name.</li>
+        <li><b>The PDF on a phone</b> at fit-width (0.49): the name 31px, the total 24px, the customer 13px.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>What Northside replaces</h2>
+      <p>The photograph is the gallery’s cover (2026-11-02). Choosing it would need two things a person sets once, looking at it: where the crop sits and the boat’s lowest point. The ground is the night ink, not the accent, so any accent leaves it unchanged. <b>A needs a scene.</b> A studio render, a motor on white or no picture has nothing to dissolve, so that cover is the plate the paper prints today.</p>
+    </section>
+    <section>
+      <h2>Type</h2>
+      <p>One face, the app’s system stack (Segoe UI Variable here). Name 64px/300 (48px for a name with a bracket), finish 16px, eyebrow and labels 11px caps at 0.14em, facts 18px, customer 26px, total 48px/300, notes 12px. Proposed tokens: <code>--text-cover</code>, <code>--text-cover-long</code>, <code>--text-cover-figure</code>, <code>--color-cover-night</code>, <code>--color-cover-night-veil</code>.</p>
+    </section>
+    <section>
+      <h2>Motion, keys, reduced motion</h2>
+      <p>On screen the build’s photograph morphs into the top of the sheet on the kit’s 588ms spring and grows to the bleed; the type does not move. Print and reduced motion: the sheet is simply there. A cover has no controls; it reads in DOM order: mark, reference, name, facts, who, total.</p>
+    </section>
+    <section>
+      <h2>References no earlier board used</h2>
+      <ul>
+        <li><code>docs/research/refs/document/live/club-marine-cover.png</code>: an Australian marine insurer sets its headline straight on the boat’s own water.</li>
+        <li><code>docs/research/refs/document/live/rmsothebys-auctions.png</code>: one object lit on a black ground, the words on the dark beside it.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Honest constraints</h2>
+      <ul>
+        <li><b>A bleed reverses a recorded ruling</b> (<code>src/screens/document/art.ts</code>: “a band and never a bleed”, measured at 300 dpi). By the spec’s own rule 6, CSS px, nothing is enlarged here, and the SP560 prints at 216 dpi against the 149 the band already accepts. Picking A needs a dated decision naming what lost.</li>
+        <li>An office printer cannot print to the edge: the PDF bleeds, the paper gets a white frame of a few millimetres on three sides. Every word is 18mm inside. The dark ground takes a lot of toner.</li>
+        <li>The SP560 photograph is the machine’s choice (<code>person: false</code> in <code>pictures.json</code>), so the paper’s reader (<code>forCover</code>) refuses it today. A person marks it once and it prints. It carries a Mercury 115, hence the caption, from the ledger’s own <code>differs</code>.</li>
+        <li>R. Kelleher is the name the walks type (<code>e2e/mint.ts</code>). Both quotes and their figures are the given PDFs in <code>docs/directions/paper-quote/</code>. No validity date and no address line print: Settings holds no days and no address. The note beside the paper says so.</li>
+      </ul>
+    </section>
+  </aside>
+</main>
+</body>
+</html>

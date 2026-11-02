@@ -102,6 +102,26 @@ export function bandsOnPaper(doc: PrintedQuote): PaperBand[] {
   return out
 }
 
+/**
+ * THE ONE THING A QUOTE SELLS, WHERE IT SELLS NOTHING ELSE: a motor, a trailer, a part or a hull on
+ * its own, at one, charged, its price the file's, with no typed line and no adjustment beside it.
+ * Its cover names it and sets its facts, so the paper prints no "Your quote" for it: "Your price"
+ * names it under its head and says its figure once, as the total (the owner's round, 2026-11-02:
+ * "the price said once where it belongs"). Null for any quote with more on it, or whose one line
+ * has words of its own to say under its name — a quantity's arithmetic, a price agreed by hand,
+ * Included, or Price to be confirmed — so nothing it says is lost.
+ */
+export function soleLine(doc: PrintedQuote): DocumentLine | null {
+  if (doc.typed.length > 0 || doc.adjustments.length > 0) return null
+  const on = bandsOnPaper(doc).flatMap((band) => band.tables)
+  if (on.length !== 1) return null
+  const [table] = on
+  if (!table?.subject || table.lines.length !== 1) return null
+  const [line] = table.lines
+  if (!line || line.state !== 'charged' || line.qty !== 1 || line.overridden) return null
+  return line
+}
+
 /** True where a register prints a quantity column: only where one of
  *  its lines is at more than one. A column of `1`s is a digit a reader
  *  has to work out for nothing. */

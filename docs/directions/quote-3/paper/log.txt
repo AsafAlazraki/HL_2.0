@@ -1,0 +1,47 @@
+  no tile /REDCO/ in /^03 Trailer/; tiles: 
+A package landmarks main=2
+A title: Northside Marine quote 20261102-01 – Highfield Sport 560
+A panel: ON THE PRINTED QUOTE The cover, every item the customer pays for, the price and the signatures are always printed: nothing charged is ever left off the printed quote. None of Northside’s address, phone or email is set on Settings, so this printed quote gives the customer no way to reach Northside. Specifications: printed Pictures beside the items: none to print The motor’s specification: printed The trailer’s specification: printed Northside’s terms: none to print The deposit wording: none to print Northside’s details: none to print Given with this choice, so the printed quote is the one the customer holds. Make a new version to change it.
+A desk note: NOT PRINTED For you, not the customer. Left off the printed quote GFAB Trailers: none is listed for this boat yet. Dealer Fit Packages: 4 offered, none taken. Rigging Kits: 2 offered, none taken. Also offered, not taken Yamaha Outboards: 3 more offered. Parts & Accessories: 2 more offered. Priced at Cash, on every item. For the workshop Yamaha F90XB: Rigging Kit Option Mech Rigging Kit - 6X3 Concealed (Left Hand) Mount w 6Y5 2 Gauges, 5m Harness, 15' Cables & Filter; Prop Part No. 6FP-45943-00; Prop Description Propeller - Aluminium SDS GP K Series - 15"; Engine Hole TBA. The codes Highfield Sport 560 · Hypalon · White / White / White/Blue: HBS114 REDCO Custom / Highfield Sport 560 Aluminium: TA600-MOB (SP560) Tax At 10%, shown on its own line. Terms None set yet. The figures Fixed when each item was chosen: a new price list changes the next quote, not this one. Make a new version to change it. The letterhead Northside Marine’s own mark, from northsidemarine.com.au. No address, phone, email or ABN is set on Settings, so the printed quote carries none. No title, phone or email is set on Settings for Asaf, so the printed quote prints the name alone. The cover picture A studio picture, from www.highfieldboats.com.
+  A sheet 1: 794x1123 content ends 1012, foot at 1020; picture 68,137 658x370 held 1100x619 cur sp560-w-w-wb-4-2560x1440-c9afa06f.webp
+  A sheet 2: 794x1123 content ends 925, foot at 1020; picture 
+  A sheet 3: 794x1123 content ends 997, foot at 1020; picture 
+A printed: C:\Users\Asaf\dev\HL_2.0\docs\directions\quote-3\paper\paper-A.pdf [33m3[39m pages
+A 390x844: overflow 0; page height 5016
+A 844x390: overflow 0; page height 4511
+A 834x1112: overflow 0; page height 4511
+A 1280x800: overflow 0; page height 3712
+A 1440x900: overflow 0; page height 3712
+A 1920x1080: overflow 0; page height 3712
+B package landmarks main=2
+B title: Northside Marine quote 20261102-01 – Stacer 499 Sea Ranger SDF (Centre Console)
+B panel: ON THE PRINTED QUOTE The cover, every item the customer pays for, the price and the signatures are always printed: nothing charged is ever left off the printed quote. None of Northside’s address, phone or email is set on Settings, so this printed quote gives the customer no way to reach Northside. Specifications: printed Pictures beside the items: printed Northside’s terms: none to print The deposit wording: none to print Northside’s details: none to print Given with this choice, so the printed quote is the one the customer holds. Make a new version to change it.
+B desk note: NOT PRINTED For you, not the customer. Left off the printed quote Yamaha Outboards: 2 offered, none taken. Stacer Trailers: 2 offered, none taken. Rigging Kits: 2 offered, none taken. Also offered, not taken Parts & Accessories: 2 more offered. Priced at Cash, on every item. The codes Stacer 499 Sea Ranger SDF (Centre Console): SS499SRCCL Striker Vivid 4cv with GT20-TM Transducer: 010-02550-01 Garmin GA38 GPS/Glonass Antenna: 010-12017-00 Garmin NMEA Backbone/Drop Cable · 2 m: 010-11076-00 Tax At 10%, shown on its own line. Terms None set yet. The figures Fixed when each item was chosen: a new price list changes the next quote, not this one. Make a new version to change it. The letterhead Northside Marine’s own mark, from northsidemarine.com.au. No address, phone, email or ABN is set on Settings, so the printed quote carries none. No title, phone or email is set on Settings for Asaf, so the printed quote prints the name alone. The cover picture A photograph on the water, from www.stacer.com.au.
+  B sheet 1: 794x1123 content ends 1012, foot at 1020; picture 0,0 794x529 held 1100x733 cur 499-sea-ranger-lifestyle-1-7d44842e.webp
+  B sheet 2: 794x1123 content ends 897, foot at 1020; picture 
+  B sheet 3: 794x1123 content ends 641, foot at 1020; picture 
+B printed: C:\Users\Asaf\dev\HL_2.0\docs\directions\quote-3\paper\paper-B.pdf [33m3[39m pages
+B 390x844: overflow 0; page height 4368
+B 844x390: overflow 0; page height 4511
+B 834x1112: overflow 0; page height 4511
+B 1280x800: overflow 0; page height 3712
+B 1440x900: overflow 0; page height 3712
+B 1920x1080: overflow 0; page height 3712
+C package landmarks main=2
+C title: Northside Marine quote 20261102-01 – Yamaha F115LB
+C panel: ON THE PRINTED QUOTE The cover, every item the customer pays for, the price and the signatures are always printed: nothing charged is ever left off the printed quote. None of Northside’s address, phone or email is set on Settings, so this printed quote gives the customer no way to reach Northside. Specifications: printed Pictures beside the items: none to print Northside’s terms: none to print The deposit wording: none to print Northside’s details: none to print Given with this choice, so the printed quote is the one the customer holds. Make a new version to change it.
+C desk note: NOT PRINTED For you, not the customer. Left off the printed quote Rigging Kits: none is listed for this motor yet. Priced at Cash, on every item. Tax At 10%, shown on its own line. Terms None set yet. The figures Fixed when each item was chosen: a new price list changes the next quote, not this one. Make a new version to change it. The letterhead Northside Marine’s own mark, from northsidemarine.com.au. No address, phone, email or ABN is set on Settings, so the printed quote carries none. No title, phone or email is set on Settings for Asaf, so the printed quote prints the name alone. The cover picture A studio picture, from www.yamaha-motor.com.au.
+  C sheet 1: 794x1123 content ends 1012, foot at 1020; picture 150,137 494x370 held 800x600 cur f115-grey-white-800-x-600-15788967.webp
+  C sheet 2: 794x1123 content ends 620, foot at 1020; picture 
+C printed: C:\Users\Asaf\dev\HL_2.0\docs\directions\quote-3\paper\paper-C.pdf [33m2[39m pages
+C 390x844: overflow 0; page height 3165
+C 844x390: overflow 0; page height 3170
+C 834x1112: overflow 0; page height 3170
+C 1280x800: overflow 0; page height 2549
+C 1440x900: overflow 0; page height 2549
+C 1920x1080: overflow 0; page height 2549
+D package landmarks main=2
+D desk note: NOT PRINTED For you, not the customer. Left off the printed quote Yamaha Outboards: 2 offered, none taken. Stacer Trailers: 2 offered, none taken. Parts & Accessories: 5 offered, none taken. Rigging Kits: 2 offered, none taken. Priced at Cash, on every item. The codes Stacer 499 Sea Ranger SDF (Centre Console): SS499SRCCL Tax At 10%, shown on its own line. Terms None set yet. The figures Fixed when each item was chosen: a new price list changes the next quote, not this one. Make a new version to change it. The letterhead Northside Marine’s own mark, from northsidemarine.com.au. No title, phone or email is set on Settings for Asaf, so the printed quote prints the name alone. The cover picture A photograph on the water, from www.stacer.com.au.
+  D sheet 1: 794x1123 content ends 1012, foot at 1020; picture 0,0 794x529 held 1100x733 cur 499-sea-ranger-lifestyle-1-7d44842e.webp
+  D sheet 2: 794x1123 content ends 945, foot at 1020; picture 
+D printed: C:\Users\Asaf\dev\HL_2.0\docs\directions\quote-3\paper\paper-D.pdf [33m2[39m pages

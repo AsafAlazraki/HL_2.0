@@ -589,14 +589,19 @@ export function pictureSays(
   if (art.kind !== 'photograph') return null
   const held = art.held
 
+  /* A PICTURE NORTHSIDE ADDED IS OF THIS EXACT BOAT BY THE DEALER'S WORD (the galleries,
+     2026-11-02), and nothing about whose finish or rig it shows is known: it may be the very boat
+     on the yard. So it claims nothing about either, and only what this quote carries is said. */
   const shows =
-    held.subject !== ''
-      ? `${held.subject}, in the maker’s own finish and rig.`
-      : held.verdict === 'scene'
-        ? 'This model on the water, in the maker’s own finish and rig.'
-        : held.verdict === 'studio'
-          ? 'This model in its maker’s studio, in the maker’s own finish and rig.'
-          : 'This model as its maker pictured it, in the maker’s own finish and rig.'
+    held.added !== undefined
+      ? ''
+      : held.subject !== ''
+        ? `${held.subject}, in the maker’s own finish and rig.`
+        : held.verdict === 'scene'
+          ? 'This model on the water, in the maker’s own finish and rig.'
+          : held.verdict === 'studio'
+            ? 'This model in its maker’s studio, in the maker’s own finish and rig.'
+            : 'This model as its maker pictured it, in the maker’s own finish and rig.'
 
   const carries: string[] = []
 
@@ -641,6 +646,21 @@ export function pictureSays(
     shows,
     ours: carries.length === 0 ? '' : `On this quote: ${carries.join(', with ')}.`,
   }
+}
+
+/**
+ * THE PRESS THAT OPENS ONE ROW'S GALLERY, by how many pictures it holds (the owner, 2026-10-31:
+ * "per boat and product the ability to have more than one image and cover image"): "See its
+ * picture larger" under a tile with one, "See its 3 pictures larger" under one with three, so a
+ * person knows before the press that it opens a gallery and not one picture — the catalogue's own
+ * words for a part. The boat on the stage is named: "See the boat larger", "See the boat’s 3
+ * pictures larger".
+ */
+export function gallerySay(count: number, noun?: string): string {
+  if (noun === undefined) {
+    return count > 1 ? `See its ${au(count)} pictures larger` : 'See its picture larger'
+  }
+  return count > 1 ? `See the ${noun}’s ${au(count)} pictures larger` : `See the ${noun} larger`
 }
 
 /**

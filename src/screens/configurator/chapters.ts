@@ -90,7 +90,7 @@ import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
 import { readBoatChoices, type DrawnChoices } from './boat'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
-import { copyOf, creditOf, itemOf, srcSetOf } from '@/data/pictures'
+import { copyOf, creditOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
 import { measureMotorOnBoat } from '@/domain/fitment/envelope'
 import { ONE_TRAILER, sayVerdict } from '@/domain/fitment/say'
 import {
@@ -197,6 +197,10 @@ export interface OptionRow {
     /** where it came from, under it large (`creditOf`) */
     credit: string
   } | null
+  /** THE ROW ITSELF, as the one picture reader is asked about it: its register, its id and the
+   *  address the price file gave its picture (`itemOf`). It is what the build opens the row's
+   *  whole gallery by (`galleryOf`, the cover first), and what a picture is added to. */
+  item: Item
   /** the two or three facts its own row states that decide it — a
    *  motor's "90 hp · 162 kg · 20″ shaft", a trailer's "for a 4.9–5.3
    *  m boat · 1,400 kg ATM · 13″ wheels" (`goodsSaid`); '' for
@@ -909,9 +913,11 @@ function goods(
   line: QuoteLine,
   register: string,
   quote: QuoteDef,
-): Pick<OptionRow, 'picture' | 'spec' | 'power' | 'listed'> & { name: string } {
-  /* the exact item: its own copy, or one a person marked as exactly it — never a logo */
-  const held = copyOf(itemOf(line.entityId, line.rowId, line.image?.src))
+): Pick<OptionRow, 'picture' | 'spec' | 'power' | 'listed' | 'item'> & { name: string } {
+  /* the exact item: its own copy, or one a person marked as exactly it — never a logo; where the
+     dealer chose a cover that is exactly this row, that one (`copyOf`) */
+  const item = itemOf(line.entityId, line.rowId, line.image?.src)
+  const held = copyOf(item)
   const entity = ctx.entities[line.entityId]
   /* only a motor and a trailer say facts, so only their rows are looked for —
      a search that reaches two thousand parts never walks their register per row */
@@ -927,6 +933,7 @@ function goods(
       : nameFirst(lineSaid(line.label, register), line.code, trailerSizeOf(entity, row))
   const kit = kitSaid(ctx, quote, line)
   return {
+    item,
     picture: held
       ? {
           src: held.src,

@@ -39,15 +39,28 @@
    Where none is held, the name is set as type and the note says so once,
    rather than drawing a grey rectangle where a logo would go.
 
-   THE COVER PICTURE IS A BAND AND NEVER A BLEED, and that is measured
-   rather than chosen: A4 at 300 dpi is 2480 × 3508 px and not one held
-   picture is 3508 px tall, so a cover that filled the page would be
-   enlarging somebody's photograph past its own pixels. The band's
-   height is the stylesheet's; this file carries the held size, so the
-   note can print what was held and what was drawn.
+   THE BOAT IS THE PAGE (2026-11-02, direction A of
+   docs/directions/quote-3/cover-boards; cover-pick.md). Until this date
+   the cover picture was a band inside the margins and never a bleed,
+   argued at 300 dpi: no held picture is 3508 px tall, so a cover that
+   FILLED the page would enlarge it. The cover does not fill the page:
+   a photograph runs off the sheet's top and both sides at the sheet's
+   width where its own pixels reach it — never wider in CSS px than they
+   are, the rule the band kept — and stops where they stop, its foot
+   melting into the night's ink below. Which ground the top of the page
+   is, and how far a photograph spans, are read here (`groundOf`,
+   `spanOf`); how it is drawn is the stylesheet's.
    ============================================================ */
-import { coverOfQuote, hostOf, markOnPaper, type HeldMark, type HeldPicture } from '@/data/pictures'
-import type { QuoteDef } from '@/domain/model'
+import {
+  coverOfQuote,
+  hostOf,
+  letterheadOf,
+  markOnPaper,
+  pictures,
+  type HeldMark,
+  type HeldPicture,
+} from '@/data/pictures'
+import type { FrozenLetterhead, QuoteDef } from '@/domain/model'
 
 export { hostOf }
 
@@ -161,4 +174,55 @@ export function pictured(held: HeldPicture, title = '', boat = true): string | n
       : `Pictured as its maker shows it, which may differ from this quote. Yours is the ${title} quoted below.`
   }
   return null
+}
+
+/** What the top of the cover is: the photograph itself, or a pale studio panel. */
+export type CoverGround = 'photo' | 'studio'
+
+/**
+ * THE GROUND THE TOP OF THE COVER IS. A photograph on the water — or a picture Northside added,
+ * which is a photograph a person took — is the page's top and melts into the night under it. A
+ * studio picture (a motor on white, a maker's render), a picture whose kind was never measured, a
+ * maker's mark or a name in type has no water to melt, so it stands on a pale studio panel that
+ * bleeds the same three edges: one composition for every quote, the boat's, the motor's, the
+ * trailer's.
+ */
+export function groundOf(art: CoverArt): CoverGround {
+  if (art.kind !== 'photograph') return 'studio'
+  return art.held.verdict === 'scene' || art.held.verdict === 'own' ? 'photo' : 'studio'
+}
+
+/** A4's width and the tallest a cover photograph is drawn, in CSS px (210 mm; `--night-max`,
+ *  170 mm, in document.css): 96 px to the inch. */
+export const SHEET_PX = (210 / 25.4) * 96
+export const NIGHT_MAX_PX = (170 / 25.4) * 96
+
+/**
+ * HOW FAR A COVER PHOTOGRAPH SPANS THE SHEET: 'full', off both sides, where its held pixels are at
+ * least the sheet's width and its proportion at that width stands no taller than `--night-max`;
+ * else 'narrow' — drawn whole at its own size, centred, its sides melting into the night as its
+ * foot does. Never enlarged and never cropped to reach an edge.
+ */
+export function spanOf(held: Pick<HeldPicture, 'width' | 'height'>): 'full' | 'narrow' {
+  if (held.width <= 0 || held.height <= 0) return 'narrow'
+  return held.width >= SHEET_PX && (SHEET_PX * held.height) / held.width <= NIGHT_MAX_PX
+    ? 'full'
+    : 'narrow'
+}
+
+/**
+ * NORTHSIDE'S MARK IN WHITE INK, FOR THE COVER'S PHOTOGRAPH: the held light version of the very
+ * mark the letterhead prints in dark (`marks-ledger.json` holds both, from northsidemarine.com.au),
+ * or null — no mark is held for this business, or the one printed was added on Settings, of which
+ * no light ink exists — and the cover sets the name in type instead.
+ */
+export function nightMarkOf(
+  business: string | null,
+  letterhead: Pick<FrozenLetterhead, 'mark'> | null,
+): HeldMark | null {
+  const dark = letterheadOf(business)
+  if (!dark.drawn) return null
+  if (letterhead?.mark && letterhead.mark.src !== dark.mark.src) return null
+  const light = pictures().organisation('white')
+  return light.drawn ? light.mark : null
 }

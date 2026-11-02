@@ -72,6 +72,8 @@ export interface Finish {
   /** THIS FINISH'S OWN PICTURE, where the ledger holds the row's own copy (a colourway's render)
    *  or one a person marked as exactly it — never another colourway's (`copyOf`) */
   picture: OptionRow['picture']
+  /** the finish's own row, as the picture reader is asked about it: what its gallery opens by */
+  item: Item
 }
 
 export interface Finishes {
@@ -188,6 +190,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
       delta: would - nowTotal,
       current: row.id === quote.rootRowId,
       picture: pictureFor(itemOf(root.id, row.id, next.subjectImage?.src)),
+      item: itemOf(root.id, row.id, next.subjectImage?.src),
     })
   }
 

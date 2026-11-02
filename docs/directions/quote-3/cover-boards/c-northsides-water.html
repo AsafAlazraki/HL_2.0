@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northside's water</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="board.css">
+<style>
+/* ============================================================
+   COVER C — NORTHSIDE'S WATER.
+   The dealership first. The top of the page is the app's own band:
+   the accent deepened across it, its water stopped on one frame,
+   and Northside's white mark set at showpiece size where the
+   water's light stands. The boat's photograph is the kit's plate,
+   laid over the band's foot as if handed across the desk. Under it,
+   on white, the boat, its facts, who it is for and what it comes to.
+   ============================================================ */
+.c {
+  --u: calc(100cqi / 793.7);
+  /* the band's depth and how far the plate climbs into it */
+  --c-band-h: calc(430 * var(--u));
+  --c-climb: calc(180 * var(--u));
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  color: var(--color-ink);
+}
+/* nothing on a cover gives way to make room: a cover that does not fit is a fault, not a squeeze */
+.c > *,
+.c-body > * {
+  flex-shrink: 0;
+}
+.c p,
+.c h2,
+.c dl,
+.c dd {
+  margin: 0;
+}
+.c-cap {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+/* THE BAND: board C's ground (tokens --band and --grain) with board A's water over it, still */
+.c-band {
+  position: relative;
+  isolation: isolate;
+  block-size: var(--c-band-h);
+  padding: calc(var(--page-pad-top) + 10px) var(--page-pad-x) 0;
+  background: var(--grain), var(--band);
+  color: var(--color-white);
+}
+.c-water {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.c-mark {
+  inline-size: calc(420 * var(--u));
+  block-size: auto;
+}
+.c-ref {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  padding-block-start: calc(var(--spacing) * 6);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-blue-50);
+  font-variant-numeric: tabular-nums;
+}
+.c-ref .c-cap {
+  color: var(--color-white);
+}
+
+/* THE PLATE: the photograph handed over the band's foot, the kit's own radius and shadow */
+.c-plate {
+  position: relative;
+  z-index: 1;
+  margin: calc(-1 * var(--c-climb)) var(--page-pad-x) 0;
+}
+.c-plate img {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: 50% var(--focus-y, 50%);
+  border-radius: var(--radius-plate);
+  box-shadow: var(--shadow-plate);
+}
+.c-plate figcaption {
+  padding-block-start: calc(var(--spacing) * 2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
+}
+
+.c-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--spacing) * 6) var(--page-pad-x) var(--page-pad-bottom);
+}
+.c-over {
+  color: var(--color-ink-file);
+}
+.c-name {
+  padding-block-start: calc(var(--spacing) * 2);
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+.c-bracket {
+  display: inline-block;
+}
+.c-finish {
+  padding-block-start: calc(var(--spacing) * 1);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-ink-2);
+}
+
+.c .c-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-block-start: calc(var(--spacing) * 6);
+  border-block: 1px solid var(--color-rule);
+}
+.c-facts div {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+}
+.c-facts div + div {
+  border-inline-start: 1px solid var(--color-rule);
+}
+.c-facts div:first-child {
+  padding-inline-start: 0;
+}
+.c-facts dt {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+.c-facts dd {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-variant-numeric: tabular-nums;
+}
+
+/* WHO IT IS FOR AND WHAT IT COMES TO, on a strip of the band's own ground at the foot, so the
+   page opens and closes on Northside's blue */
+.c-sum {
+  margin-block-start: auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: calc(var(--spacing) * 6);
+  margin-inline: calc(-1 * var(--spacing) * 5);
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+  border-radius: var(--radius-plate);
+  background: var(--color-ground);
+}
+.c-sum .c-cap {
+  color: var(--color-ink-3);
+}
+.c-who {
+  padding-block-start: calc(var(--spacing) * 1);
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+}
+.c-by {
+  padding-block-start: calc(var(--spacing) * 1);
+  line-height: calc(var(--text-3xl) * 1.15);
+}
+.c-total {
+  display: grid;
+  justify-items: end;
+  text-align: end;
+}
+.c-fig {
+  padding-block: calc(var(--spacing) * 2) calc(var(--spacing) * 1);
+  font-size: var(--text-cover-figure);
+  line-height: var(--text-cover-figure--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-file);
+}
+.c-small {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-3);
+}
+.c-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+  margin-block-start: calc(var(--spacing) * 3);
+  padding-block-start: calc(var(--spacing) * 2);
+  border-block-start: 1px solid var(--color-rule);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* IN A HAND: the band keeps the mark at most the phone's measure, the plate climbs a third as
+   far, the facts go two by two, and the total stands under who it is for. */
+@media screen and (max-width: 825.98px) {
+  .c {
+    --c-band-h: auto;
+    --c-climb: 56px;
+  }
+  .c-band {
+    padding: calc(var(--spacing) * 6) calc(var(--spacing) * 4) calc(56px + var(--spacing) * 6);
+  }
+  .c-mark {
+    inline-size: min(100%, 260px);
+  }
+  .c-ref {
+    padding-block-start: calc(var(--spacing) * 4);
+  }
+  .c-plate {
+    margin-inline: calc(var(--spacing) * 4);
+  }
+  .c-body {
+    padding: calc(var(--spacing) * 5) calc(var(--spacing) * 4);
+  }
+  .c-name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .c-finish {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .c .c-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .c-facts div:nth-child(3) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+  .c-facts div:nth-child(n + 3) {
+    border-block-start: 1px solid var(--color-rule);
+  }
+  .c-sum {
+    margin-block-start: calc(var(--spacing) * 6);
+    margin-inline: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 4);
+  }
+  .c-total {
+    grid-column: 1 / -1;
+    justify-items: start;
+    text-align: start;
+  }
+  .c-fig {
+    font-size: var(--text-6xl);
+    line-height: var(--text-6xl--line-height);
+  }
+}
+</style>
+</head>
+<body>
+<main class="floor">
+  <header class="board-head">
+    <p class="board-kicker">The printed quote’s cover · direction C of 3</p>
+    <h1>Northside’s water</h1>
+    <p class="board-say">The dealership first: the app’s own band and water across the top with Northside’s mark at showpiece size, and the boat handed over its foot on the kit’s plate.</p>
+  </header>
+
+  <div class="sheaf">
+    <div class="sheet-wrap">
+      <p class="sheaf-label">Highfield Sport 560 · quote 20261031-01 · the maker’s photograph, 2,560 × 1,708</p>
+      <article class="sheet c" id="c-sp560" aria-label="Cover of quote 20261031-01, Highfield Sport 560 for R. Kelleher">
+        <header class="c-band">
+          <img class="c-water" alt="" data-water>
+          <img class="c-mark" src="../../../../public/brand-marks/northside-marine-white.png" width="1798" height="448" alt="Northside Marine">
+          <p class="c-ref"><span class="c-cap">Quotation · 20261031-01</span><span>Issued 31 October 2026</span></p>
+        </header>
+        <figure class="c-plate">
+          <img src="../../../../public/hero-images/highfield-sp560-84445423.webp" width="2560" height="1708" alt="A Highfield Sport 560 at rest on the water beside granite rocks">
+          <figcaption>Photographed with a Mercury outboard. Your boat’s finish and motor are as quoted.</figcaption>
+        </figure>
+        <div class="c-body">
+          <p class="c-cap c-over">Your boat</p>
+          <h2 class="c-name">Highfield Sport 560</h2>
+          <p class="c-finish">Hypalon · White / White / White/Blue</p>
+          <dl class="c-facts">
+            <div><dt>Length overall</dt><dd>5.66 m</dd></div>
+            <div><dt>Beam</dt><dd>2.5 m</dd></div>
+            <div><dt>Power</dt><dd>90–115 hp</dd></div>
+            <div><dt>Boat weight</dt><dd>581 kg</dd></div>
+          </dl>
+          <div class="c-sum">
+            <div>
+              <p class="c-cap">Prepared for</p>
+              <p class="c-who">R. Kelleher</p>
+            </div>
+            <div>
+              <p class="c-cap">Prepared by</p>
+              <p class="c-by">Asaf</p>
+            </div>
+            <div class="c-total">
+              <p class="c-cap">Total, including GST</p>
+              <p class="c-fig">$73,992</p>
+              <p class="c-small">Includes the motor’s pre-delivery and the trailer’s registration.<br>Includes GST of $6,726.55 at 10%.</p>
+            </div>
+          </div>
+          <footer class="c-foot"><span>20261031-01</span><span>Page 1 of 3</span></footer>
+        </div>
+      </article>
+    </div>
+
+    <div class="sheet-wrap">
+      <p class="sheaf-label">Stacer 499 Sea Ranger SDF (Centre Console) · quote 20261031-02 · the row’s own photograph, 1,100 × 733</p>
+      <article class="sheet c" id="c-stacer" aria-label="Cover of quote 20261031-02, Stacer 499 Sea Ranger SDF (Centre Console) for R. Kelleher">
+        <header class="c-band">
+          <img class="c-water" alt="" data-water>
+          <img class="c-mark" src="../../../../public/brand-marks/northside-marine-white.png" width="1798" height="448" alt="Northside Marine">
+          <p class="c-ref"><span class="c-cap">Quotation · 20261031-02</span><span>Issued 31 October 2026</span></p>
+        </header>
+        <figure class="c-plate">
+          <img src="../../../../public/seed-images/499-sea-ranger-lifestyle-1-7d44842e.webp" width="1100" height="733" alt="A Stacer 499 Sea Ranger with a centre console in shallow water off a beach, two people fishing aboard">
+        </figure>
+        <div class="c-body">
+          <p class="c-cap c-over">Your boat</p>
+          <h2 class="c-name">Stacer 499 Sea Ranger SDF <span class="c-bracket">(Centre Console)</span></h2>
+          <dl class="c-facts">
+            <div><dt>Hull length</dt><dd>5.05 m</dd></div>
+            <div><dt>Beam</dt><dd>2.24 m</dd></div>
+            <div><dt>Power</dt><dd>50–90 hp</dd></div>
+            <div><dt>Hull weight (dry)</dt><dd>542 kg</dd></div>
+          </dl>
+          <div class="c-sum">
+            <div>
+              <p class="c-cap">Prepared for</p>
+              <p class="c-who">R. Kelleher</p>
+            </div>
+            <div>
+              <p class="c-cap">Prepared by</p>
+              <p class="c-by">Asaf</p>
+            </div>
+            <div class="c-total">
+              <p class="c-cap">Total, including GST</p>
+              <p class="c-fig">$30,243</p>
+              <p class="c-small">Includes GST of $2,749.36 at 10%.</p>
+            </div>
+          </div>
+          <footer class="c-foot"><span>20261031-02</span><span>Page 1 of 3</span></footer>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <aside class="notes" id="notes">
+    <section>
+      <h2>What only this one does</h2>
+      <p>Northside is the showpiece. Its white mark spans 420px across Northside’s own water, the shader the app runs (<code>src/ui/water.ts</code>) stopped on its first frame. The boat is handed over the band’s foot on the kit’s plate. It is the only cover whose ground is drawn, not held, so the top 38% of the page never runs out of pixels and follows Northside’s accent.</p>
+    </section>
+    <section>
+      <h2>The picture, measured on the sheet</h2>
+      <table>
+        <tr><th>what</th><th>box</th><th>held px per CSS px</th><th>prints at</th></tr>
+        <tr><td>the water, drawn</td><td>794 × 430</td><td>2.00</td><td>192 dpi</td></tr>
+        <tr><td>the mark, 1,798 × 448</td><td>420 × 105</td><td>4.28</td><td>411 dpi</td></tr>
+        <tr><td>SP560 on the plate</td><td>658 × 370</td><td>3.89</td><td>374 dpi</td></tr>
+        <tr><td>Stacer 499 on the plate</td><td>658 × 370</td><td>1.67</td><td>161 dpi</td></tr>
+      </table>
+      <p><b>The rule:</b> the plate is the full measure at 16 : 9 with the kit’s radius and shadow, and it climbs 180px into the band.</p>
+    </section>
+    <section>
+      <h2>With a 1,024 px photograph</h2>
+      <p>The plate draws it like B: 658 × 370, <b>149 dpi</b> (<code>the-1024-photograph.html</code>). The band and the mark do not depend on it, so a small picture costs C the least.</p>
+    </section>
+    <section>
+      <h2>How it reflows</h2>
+      <ul>
+        <li><b>390 × 844:</b> the band is as tall as the mark (260px across) and the reference, the plate climbs 56px into it, the facts go two by two, and the summary card holds who over the total.</li>
+        <li><b>844 × 390 and up:</b> the A4 sheet at 1:1; the first screen is Northside’s band and the boat.</li>
+        <li><b>The PDF on a phone</b> at 0.49: the mark 206px across, the total 24px.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>What Northside replaces</h2>
+      <p>The accent moves the band, the water (<code>--water-deep</code> and <code>--water-lit</code> derive from it), the summary’s ground and the total’s ink. The mark is the organisation’s white mark in <code>marks-ledger.json</code>. Any picture sits on the plate: a scene, a studio motor or a render. With none, the band and the name carry the page.</p>
+    </section>
+    <section>
+      <h2>Type</h2>
+      <p>Mark 420px. Reference 11px caps and 12px on the band (blue-50, 5.14 : 1 against the brightest pixel behind it, measured). Name 40px/300, finish 16px, facts 18px, customer 26px, total 48px/300 in the file’s blue.</p>
+    </section>
+    <section>
+      <h2>Motion, keys, reduced motion</h2>
+      <p>On screen the water stays still: this is paper. The build’s photograph morphs onto the plate on the 588ms spring. Print and reduced motion: still. With no WebGL, the band’s own gradient and grain stand, as in the app.</p>
+    </section>
+    <section>
+      <h2>References no earlier board used</h2>
+      <ul>
+        <li><code>docs/research/refs/proposal/market/pandadoc-sales-quote-template.png</code>: the market’s most-used quote (4,872 uses) opens on the sender’s dark band with the mark in it. C takes the band and refuses the yellow tokens.</li>
+        <li><code>docs/research/refs/document/live/highfield-sp560-model.png</code>: the maker sets its white mark and words on its own water. C’s water is Northside’s.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Honest constraints</h2>
+      <ul>
+        <li>The band bleeds three edges: a drawn ground, not a photograph, so no pixel ruling applies. An office printer still frames it in white. Every word is 18mm inside.</li>
+        <li>The SP560 photograph is the machine’s choice (<code>person: false</code>), refused by the paper’s reader until a person marks it.</li>
+        <li>R. Kelleher is the walks’ name. The figures are the given PDFs in <code>docs/directions/paper-quote/</code>. No validity date and no address print: Settings holds none.</li>
+      </ul>
+    </section>
+  </aside>
+</main>
+<script>
+/* THE WATER, STOPPED ON ONE FRAME. The fragment shader is src/ui/water.ts's, character for
+   character, with its cap (0.13 luminance, the accent's own, so white on the brightest ripple is
+   at least 5.8 : 1), its broad swell (220 CSS px) and its light a third of the way in. It is drawn
+   once at T = 8, the app's first frame, at two canvas pixels to a CSS pixel so print has the
+   pixels, and handed to an <img>, so the paper and the printer get the same still. Colours are
+   --water-deep and --water-lit, read off the element: Northside's accent sets the water. */
+const FRAGMENT = `precision mediump float;
+uniform vec2 R;uniform float T;uniform vec3 D;uniform vec3 L;uniform vec2 C;uniform float CAP;uniform float S;
+float w(vec2 p,float a,float k,float s){return sin(dot(p,vec2(cos(a),sin(a)))*k+T*s);}
+vec3 lin(vec3 c){return pow(c,vec3(2.2));}
+vec3 enc(vec3 c){return pow(c,vec3(1./2.2));}
+void main(){
+  vec2 f=gl_FragCoord.xy;vec2 p=f/S;
+  p+=.35*vec2(sin(p.y*1.7+T*.23),cos(p.x*1.3-T*.19));
+  float h=w(p,.3,3.1,.9)+w(p,1.9,2.7,-.7)+w(p,3.4,3.6,.6)+w(p,4.8,2.3,-.8);
+  float c=pow(1.-abs(h)/4.,5.);
+  vec2 q=(f-C)/R.y;float cone=exp(-dot(q*vec2(1.,1.6),q*vec2(1.,1.6))*2.2);
+  float room=.28+.72*cone;
+  vec3 col=mix(lin(D),lin(L),clamp(c*room*1.5+cone*.3,0.,1.));
+  float y=dot(col,vec3(.2126,.7152,.0722));
+  col*=min(1.,CAP/max(y,.0001));
+  gl_FragColor=vec4(enc(col),1.);
+}`
+const VERTEX = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'
+const rgbOf = (el, name) => {
+  const v = getComputedStyle(el).getPropertyValue(name).trim()
+  const probe = document.createElement('canvas'); probe.width = probe.height = 1
+  const x = probe.getContext('2d'); x.fillStyle = v; x.fillRect(0, 0, 1, 1)
+  const d = x.getImageData(0, 0, 1, 1).data
+  return [d[0] / 255, d[1] / 255, d[2] / 255]
+}
+const still = (img) => {
+  const band = img.parentElement
+  const DPR = 2
+  const w = Math.round(band.clientWidth * DPR), h = Math.round(band.clientHeight * DPR)
+  const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h
+  const gl = canvas.getContext('webgl', { antialias: false, preserveDrawingBuffer: true })
+  if (!gl) return /* no WebGL: the band's own gradient and grain stand, as in the app */
+  const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); return s }
+  const pr = gl.createProgram()
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, VERTEX)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FRAGMENT))
+  gl.linkProgram(pr); gl.useProgram(pr)
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
+  const at = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0)
+  const u = (n) => gl.getUniformLocation(pr, n)
+  gl.viewport(0, 0, w, h)
+  gl.uniform2f(u('R'), w, h)
+  gl.uniform2f(u('C'), w * 0.3, h * 0.6)
+  gl.uniform1f(u('CAP'), 0.13)
+  gl.uniform1f(u('S'), 220 * DPR)
+  gl.uniform3fv(u('D'), rgbOf(img, '--water-deep'))
+  gl.uniform3fv(u('L'), rgbOf(img, '--water-lit'))
+  gl.uniform1f(u('T'), 8)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  img.src = canvas.toDataURL('image/png')
+}
+for (const img of document.querySelectorAll('[data-water]')) still(img)
+</script>
+</body>
+</html>

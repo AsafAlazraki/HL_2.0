@@ -1,0 +1,105 @@
+/* ============================================================
+   THE COVER BOARDS' TOKENS (quote-3, 2026-11-02).
+
+   Every value in the first block is copied from src/styles/tokens.css,
+   byte for byte, so the three covers are drawn in the app's own ramp.
+   The second block is what these boards PROPOSE, each with its reason;
+   nothing there is in the app until a picked board is built.
+
+   The covers read these names and nothing else: no colour, face or
+   picture path is written in a rule, so Northside's own accent moves
+   all three (docs/CUSTOMISATION.md).
+   ============================================================ */
+:root {
+  /* ---- copied from src/styles/tokens.css ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-ground: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 1.2;
+  --text-6xl: 2.5rem;
+  --text-6xl--line-height: 1.1;
+  --text-mark: 4.5rem;
+  --text-mark--line-height: 1;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-plate: 16px;
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --duration-morph: 588ms;
+
+  /* ---- PROPOSED BY THESE BOARDS, each with its reason ---- */
+  /* THE SHEET, in the units it is sold in (src/screens/document/document.css, `.doc`). */
+  --page-w: 210mm;
+  --page-h: 297mm;
+  --page-pad-x: 18mm;
+  --page-pad-top: 14mm;
+  --page-pad-bottom: 12mm;
+  /* THE MODEL'S NAME ON A COVER. The ramp stops at 40px and the mark's slot at 72px; a cover's
+     name sits between them, so it is the largest words on the paper and still under the mark
+     where the mark is the showpiece (board C). A name too long for one line of the measure
+     before its bracket steps down to --text-cover-long. */
+  --text-cover: 4rem; /* 64px */
+  --text-cover--line-height: 1.04;
+  --text-cover-long: 3rem; /* 48px */
+  --text-cover-long--line-height: 1.08;
+  /* THE TOTAL ON A COVER: the one price on the page, and at least as prominent as any other
+     (ACL s48, quote-spec §3.5). 48px, a step over --text-6xl. */
+  --text-cover-figure: 3rem;
+  --text-cover-figure--line-height: 1;
+  /* BOARD B's GHOSTED NUMERAL, Porsche's "911" behind the car (porsche-pdf-1): the digits of
+     the model's own name, heavy, at the accent's 13%, so the ink is the dealer's colour, faint. */
+  --text-numeral: 14rem; /* 224px: three digits span half the measure and show three quarters of
+     their height above the photograph */
+  --color-numeral: oklch(from var(--color-accent) l c h / 13%);
+  /* BOARD A's ground: the night's deepest ink, which the photograph's water dissolves into. */
+  --color-cover-night: var(--color-neutral-950);
+  --color-cover-night-veil: oklch(from var(--color-neutral-950) l c h / 80%);
+  --color-cover-night-rule: rgb(255 255 255 / 20%);
+}

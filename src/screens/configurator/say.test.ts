@@ -23,6 +23,7 @@ import {
   choiceSay,
   NOBODY_WAITS,
   engineWordsIn,
+  gallerySay,
   giveWaitsLead,
   insteadSay,
   levelCountSay,
@@ -329,6 +330,21 @@ describe('the caption under the stage photograph', () => {
     expect(said!.ours).not.toContain('yet')
   })
 
+  /* A PICTURE NORTHSIDE ADDED (the galleries, 2026-11-02) is of this exact boat by the dealer's
+     word, and nobody has said whose finish or rig is in it: it claims neither, and still names the
+     motor this quote carries */
+  it('claims nothing about the finish or rig of a picture Northside added, and still names the motor', () => {
+    const own = {
+      ...hero!,
+      id: 'own:test',
+      verdict: 'own',
+      added: { by: 'Asaf', at: '2026-11-02T00:00:00.000Z' },
+    }
+    const said = pictureSays({ kind: 'photograph', held: own }, sp560, readRail(ctx, sp560), ctx)
+    expect(said!.shows).toBe('')
+    expect(said!.ours).toBe(`On this quote: the ${motorsOn(sp560).join(' and ')}.`)
+  })
+
   it('says nothing where the stage draws a mark or a name rather than a boat', () => {
     const quote = quoteOn('boat_stacer', '529 Assault Pro')
     const said = pictureSays(
@@ -583,5 +599,21 @@ describe('what the Change model dialog says it holds', () => {
     expect(
       engineWordsIn(modelSheetSay({ many: 3, count: '', word: 'model', now: '1850 Supercab' })),
     ).toEqual([])
+  })
+})
+
+describe('the press that opens one row’s gallery', () => {
+  it('says how many pictures it opens, where it opens more than one', () => {
+    expect(gallerySay(1)).toBe('See its picture larger')
+    expect(gallerySay(3)).toBe('See its 3 pictures larger')
+    expect(gallerySay(0)).toBe('See its picture larger')
+  })
+  it('names the thing the quote is for on the stage', () => {
+    expect(gallerySay(1, 'boat')).toBe('See the boat larger')
+    expect(gallerySay(4, 'boat')).toBe('See the boat’s 4 pictures larger')
+    expect(gallerySay(2, 'motor')).toBe('See the motor’s 2 pictures larger')
+  })
+  it('speaks in the dealer’s words', () => {
+    expect(engineWordsIn(gallerySay(12, 'boat'))).toEqual([])
   })
 })
