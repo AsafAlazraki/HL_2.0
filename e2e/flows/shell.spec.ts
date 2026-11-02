@@ -1023,6 +1023,91 @@ test('over a scrolled build nothing of the page reads beside the bar, below a de
   expect(stray.slice(0, 5), `${stray.length} pixels beside the bar are not the floor`).toEqual([])
 })
 
+/** WHAT OF THE OPEN PLATE THE TOAST STANDS OVER: each word, press or picture under the card. */
+async function coveredBy(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const card = document.querySelector('[data-sonner-toast] .ui-toast')
+    if (card === null) return ['no card']
+    const t = card.getBoundingClientRect()
+    const meets = (b: DOMRect): boolean =>
+      b.width > 0 && b.left < t.right && b.right > t.left && b.top < t.bottom && b.bottom > t.top
+    return [...document.querySelectorAll('.ui-lightbox *')]
+      .filter((el) => {
+        const own = [...el.childNodes].some(
+          (n) => n.nodeType === Node.TEXT_NODE && (n.textContent ?? '').trim() !== '',
+        )
+        return own || el.matches('button, img, a')
+      })
+      .filter((el) => meets(el.getBoundingClientRect()))
+      .map((el) => (el.textContent ?? el.tagName).trim().slice(0, 40) || el.tagName)
+  })
+}
+
+/** HOW FAR THE TOAST LAPS OVER THE OPEN PLATE, said as the two boxes, or '' where it does not. */
+async function lapOf(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const card = document.querySelector('[data-sonner-toast] .ui-toast')
+    const plate = document.querySelector('.ui-lightbox')
+    if (card === null || plate === null) return 'no card or no plate'
+    const t = card.getBoundingClientRect()
+    const p = plate.getBoundingClientRect()
+    const meets = p.left < t.right && p.right > t.left && p.top < t.bottom && p.bottom > t.top
+    const box = (b: DOMRect): string =>
+      `${Math.round(b.left)}–${Math.round(b.right)} by ${Math.round(b.top)}–${Math.round(b.bottom)}`
+    return meets ? `card ${box(t)} over plate ${box(p)}` : ''
+  })
+}
+
+test('a motor’s own picture, added in its gallery, says so in a toast beside the plate and never on it', async ({
+  page,
+}, info) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await pickAndStart(page, 'boat_highfield', 'SP560')
+  await cameToRest(page)
+  const motor = page.getByRole('region', { name: /^02 Motor/ })
+  const look = motor.getByRole('button', { name: /larger/ }).first()
+  await look.scrollIntoViewIfNeeded()
+  const src = await motor.locator('.cfg-tiles img').first().getAttribute('src')
+  expect(src, 'the motor tile draws a held picture').toMatch(/seed-images\//)
+  await look.click()
+  const large = page.locator('.ui-lightbox')
+  await expect(large).toBeVisible()
+  /* THE MOTOR'S OWN PICTURE, given as a person picks a file: its held one, as the audit gave it */
+  const own = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '..',
+    '..',
+    'public',
+    'seed-images',
+    src!.split('/').pop()!.split('?')[0]!,
+  )
+  const chooser = page.waitForEvent('filechooser')
+  await large.getByRole('button', { name: 'Add pictures' }).click()
+  await (
+    await chooser
+  ).setFiles({ name: path.basename(own), mimeType: 'image/webp', buffer: readFileSync(own) })
+  const toast = page.locator('[data-sonner-toast] .ui-toast')
+  await expect(toast).toContainText('Your picture is on the')
+  await page.waitForTimeout(900)
+  await page.screenshot({
+    path: path.join(SHOTS, `h1-motor-picture-added-${info.project.name}.png`),
+  })
+  /* THE CARD STANDS OVER NO PART OF THE PLATE, ITS BARE CORNERS INCLUDED, wherever the window
+     leaves it a lane: from 1440 the shell's (src/screens/shell/lane.ts), and below it the plate's
+     own, which keeps out of the foot wherever the window is taller than 520px
+     (src/ui/lightbox.css). A phone on its side has no lane: the plate takes the window, and the
+     card lies under its column of acts, which src/ui's own gallery spec answers for. */
+  const room = page.viewportSize()!
+  if (room.width >= 1440 || room.height > 520)
+    expect(await lapOf(page), 'the toast laps over the open picture’s plate').toBe('')
+  /* and the whole card is in the window */
+  const t = (await toast.boundingBox())!
+  expect(t.x).toBeGreaterThanOrEqual(0)
+  expect(t.x + t.width).toBeLessThanOrEqual(room.width)
+  expect(t.y + t.height).toBeLessThanOrEqual(room.height)
+})
+
 test('from 1440 the toast ends on the page’s gutter beside the bar, and stands at the foot while a picture is open', async ({
   page,
 }, info) => {
@@ -1046,21 +1131,7 @@ test('from 1440 the toast ends on the page’s gutter beside the bar, and stands
   const width = page.viewportSize()?.width ?? 0
   if (width >= 1440) {
     /* WHILE THE PICTURE IS OPEN the card stands over none of the plate's words, presses or picture */
-    const under = await toast.evaluate((card) => {
-      const t = card.getBoundingClientRect()
-      const meets = (b: DOMRect): boolean =>
-        b.width > 0 && b.left < t.right && b.right > t.left && b.top < t.bottom && b.bottom > t.top
-      return [...document.querySelectorAll('.ui-lightbox *')]
-        .filter((el) => {
-          const own = [...el.childNodes].some(
-            (n) => n.nodeType === Node.TEXT_NODE && (n.textContent ?? '').trim() !== '',
-          )
-          return own || el.matches('button, img, a')
-        })
-        .filter((el) => meets(el.getBoundingClientRect()))
-        .map((el) => (el.textContent ?? el.tagName).trim().slice(0, 40) || el.tagName)
-    })
-    expect(under, 'the toast stands over the open picture’s plate').toEqual([])
+    expect(await coveredBy(page), 'the toast stands over the open picture’s plate').toEqual([])
     /* and it stands at the foot, inside the window */
     const t = (await toast.boundingBox())!
     const height = page.viewportSize()?.height ?? 0

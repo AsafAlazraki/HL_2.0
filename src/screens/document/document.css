@@ -1258,8 +1258,10 @@
 .doc-part {
   padding-block: --spacing(6) --spacing(2);
 }
-.doc-atom:first-child .doc-part,
-.doc-atom:first-child > .doc-part {
+/* the part that opens a sheet stands at its top; while the sheaf is gauging nothing opens one, so
+   an atom measures the same wherever the last assignment put it (`Atom.lead` in paginate.ts) */
+.doc:not([data-gauging]) .doc-atom:first-child .doc-part,
+.doc[data-gauging] .doc-atom[data-opening] .doc-part {
   padding-block-start: 0;
 }
 .doc-part__word {
@@ -1503,6 +1505,8 @@
 /* ---- your price, the terms, and what it replaces ---------------------------------- */
 
 .doc-sums {
+  /* the picture's height on a filled sheet, set by the screen (`fillOf`) */
+  --fill-h: auto;
   padding-block-start: --spacing(2);
 }
 /* THE FIGURES IN THE RIGHT 60%, AND WHAT THEY ARE FOR IN THE LEFT (the quote round's audit,
@@ -1512,7 +1516,31 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 60%;
   column-gap: --spacing(8);
+  /* the room between the picture and the figures once a filled sheet stacks them (`fillOf`
+     reads it off the paper's geometry, where the body is one row and it moves nothing) */
+  row-gap: --spacing(6);
   align-items: start;
+}
+/* WHERE NOTHING IS PICTURED, WHAT THE PRICE IS FOR HOLDS THE LEFT COLUMN (the quote round's audit,
+   round 3, D5): the head beside the figures, as an invoice's summary sets it, and the figures on
+   the head's foot line where they are fewer than its lines */
+.doc-sums[data-bare] {
+  padding-block-start: 0;
+}
+/* half and half: what it is for and who it is for on one line beside the figures, where 40% of
+   the measure wrapped "Highfield Patrol 600 Open, for R. Kelleher" over two */
+.doc-sums__body[data-bare] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.doc-sums__body[data-bare] > .doc-part {
+  grid-column: 1;
+  grid-row: 1;
+}
+.doc-sums__body[data-bare] > .doc-sums__figs {
+  align-self: end;
+}
+.doc-sums__body[data-bare] .doc-sums__list {
+  padding-block-start: 0;
 }
 .doc-sums__figs {
   grid-column: 2;
@@ -1628,6 +1656,47 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-500);
+}
+
+/* THE LAST SHEET'S ROOM GOES TO THE BOAT (the quote round's audit, round 3, D2; `fillOf` in
+   paginate.ts). Where the price's sheet has room left, its picture stands over the figures at the
+   height the screen measured (`--fill-h`), never past its pixels: a photograph with its name and
+   finish beside it, a studio picture on its pale panel the measure's width with its line under it.
+   On a sheet only: in a hand's single column the picture keeps its own size over the figures, and
+   while the sheaf is gauging the price stands as drawn, so the fill never moves a page break. */
+@media print, screen and (min-width: 826px) {
+  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__boat {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__figs {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .doc:not([data-gauging]) .doc-sums[data-fill] .doc-sums__img {
+    block-size: var(--fill-h);
+    inline-size: auto;
+    max-inline-size: 100%;
+  }
+  .doc:not([data-gauging])
+    .doc-sums[data-fill]
+    .doc-sums__boat[data-ground='studio']
+    .doc-sums__img {
+    max-block-size: none;
+    max-inline-size: 100%;
+  }
+  .doc:not([data-gauging]) .doc-sums[data-fill='beside'] .doc-sums__boat {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: --spacing(8);
+    align-items: end;
+  }
+  .doc:not([data-gauging]) .doc-sums[data-fill='beside'] .doc-sums__name {
+    padding-block-start: 0;
+  }
 }
 
 /* ---- the last page's own part: validity, who to call, and the two signature blocks ---- */

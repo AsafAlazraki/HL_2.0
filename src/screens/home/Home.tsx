@@ -988,10 +988,17 @@ function Paper({ job }: { job: Extract<Job, { kind: 'draft' | 'given' }> }) {
             {said}
           </StatusDot>
         </span>
-        {/* each part is one piece — its spaces do not break — so where a hand wraps the line it
-            breaks at the dot, and never inside "Nobody named yet" or a person's name */}
+        {/* each part is one piece — its spaces do not break — so never split inside "Nobody
+            named yet" or a person's name. IN A HAND EACH PART IS ITS OWN LINE AND THE DOT GOES
+            (the quote round's third walk, 2026-11-03): wrapping at the dot left "No motor yet ·"
+            ending on a separator at 390, which the build's lines were cured of (P6) */}
         <span className="home-job-who" data-wants={card.wants ? '' : undefined} title={whom}>
-          {whomParts.map((part) => part.replaceAll(' ', NO_BREAK)).join(' · ')}
+          {whomParts.map((part, i) => (
+            <span key={part} className="home-job-part">
+              {i > 0 ? <span className="home-job-dot"> · </span> : null}
+              {part.replaceAll(' ', NO_BREAK)}
+            </span>
+          ))}
         </span>
       </span>
       <span className="home-job-go" aria-hidden="true">

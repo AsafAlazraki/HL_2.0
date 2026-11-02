@@ -666,7 +666,9 @@ describe('a week in', () => {
     )
     render(<Home business="Northside Marine" now={clock} />)
     const card = within(desk()).getByRole('button', { name: /Sport 560/ })
-    expect(within(card).getByText('No motor yet · For R. Kelleher')).toBeInTheDocument()
+    /* REWRITTEN 2026-11-03: each part is its own element now, so a hand can set them one under
+       the other with no dot between; the line still reads the same */
+    expect(card.querySelector('.home-job-who')).toHaveTextContent('No motor yet · For R. Kelleher')
   })
 
   /* THE REFINE ROUND (2026-10-21): a Haines Signature draft totals only its trailer, since the
@@ -687,11 +689,16 @@ describe('a week in', () => {
     )
     render(<Home business="Northside Marine" now={clock} />)
     const card = within(desk()).getByRole('button', { name: /525F/ })
-    const who = within(card).getByText('No boat price yet · Nobody named yet')
-    expect(who).toBeInTheDocument()
-    /* in a hand the line wraps (built-critique-m3-2.md major 8), and only at the dot: each part
-       holds its words together, so "Nobody named yet" is never split across two lines */
-    expect(who.textContent).toBe('No boat price yet · Nobody named yet')
+    /* REWRITTEN 2026-11-03: each part is its own element, so in a hand they stand one under the
+       other and the dot goes, rather than a line ending on it (the quote round's third walk) */
+    const who = card.querySelector<HTMLElement>('.home-job-who')!
+    expect(who).toHaveTextContent('No boat price yet · Nobody named yet')
+    /* in a hand the line wraps (built-critique-m3-2.md major 8), and only between parts: each
+       part holds its words together, so "Nobody named yet" is never split across two lines */
+    expect([...who.querySelectorAll('.home-job-part')].map((part) => part.textContent)).toEqual([
+      'No boat price yet',
+      ' · Nobody named yet',
+    ])
     expect(card).not.toHaveTextContent('$')
   })
 

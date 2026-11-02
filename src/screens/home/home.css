@@ -977,6 +977,14 @@
     overflow-wrap: anywhere;
     text-wrap: pretty;
   }
+  /* what it wants over whom it is for, one under the other with no dot between: wrapping at the
+     dot left "No motor yet ·" ending on a separator (the quote round's third walk, 2026-11-03) */
+  .home-job-who {
+    display: grid;
+  }
+  .home-job-dot {
+    display: none;
+  }
   .home-boats {
     --boat-shot: --spacing(26);
   }

@@ -73,7 +73,7 @@ import {
   type CoverArt,
 } from './art'
 import { DESK_GLYPH, boatTravel, pricedAtGlyph } from './glyphs'
-import { paginate, type Atom } from './paginate'
+import { fillOf, paginate, type Atom, type Fill, type FillReading } from './paginate'
 import {
   ADJUSTMENTS,
   OTHER_ITEMS,
@@ -538,7 +538,11 @@ function Sheaf({
      drawn that much shorter, whole and in its own proportion. null where the cover fits. */
   const [fitted, setFit] = useState<{ of: string; px: number } | null>(null)
   const fit = fitted?.of === doc.reference ? fitted.px : null
-  const blocks = useMemo(() => blocksOf(doc, art, travel, fit), [doc, art, travel, fit])
+  /* THE LAST SHEET'S ROOM GOES TO THE BOAT (`fillOf`): the price's picture drawn larger where its
+     sheet has room left, read in the paper's geometry with the picture as it was drawn */
+  const [filled, setFill] = useState<{ of: string; fill: Fill } | null>(null)
+  const fill = filled?.of === doc.reference ? filled.fill : null
+  const blocks = useMemo(() => blocksOf(doc, art, travel, fit, fill), [doc, art, travel, fit, fill])
 
   /* THE SAVED PDF IS NAMED FOR THE QUOTE, NOT THE APP. The print window
      proposes the page's title as the file's name, so the title is the
@@ -603,6 +607,7 @@ function Sheaf({
     const atoms: Atom[] = blocks.map(({ under, ...block }) => ({
       ...block,
       height: held.current.get(block.id)?.offsetHeight ?? 0,
+      lead: leadOf(held.current.get(block.id)),
       /* a continued head stands the height of the head it repeats */
       ...(under ? { carry: held.current.get(under.head)?.offsetHeight ?? 0 } : {}),
     }))
@@ -617,7 +622,22 @@ function Sheaf({
       ? coverBox.lastElementChild.getBoundingClientRect().bottom -
         coverBox.getBoundingClientRect().top
       : 0
+    const laid = room > 0 && !atoms.every((a) => a.height === 0) ? paginate(atoms, room) : null
+    const reading = laid ? priceReading(laid, atoms, room, held.current) : null
     delete element.dataset.gauging
+    const wanted = reading ? fillOf(reading) : null
+    /* A BROWSER WITH NO LAYOUT KEEPS WHAT IT HAD, as the pages do: the print dialogue hides the
+       gauge, and a reading of nothing there unfilled the sheet the printer was handed */
+    if (laid !== null)
+      setFill((was) => {
+        const of = doc.reference
+        if (wanted === null) return was === null ? was : null
+        return was?.of === of &&
+          was.fill.height === wanted.height &&
+          was.fill.beside === wanted.beside
+          ? was
+          : { of, fill: wanted }
+      })
     /* a cover taller than its room, with a line's air above the foot's rule, takes the
        difference off the picture, never below half of it */
     if (shot && room > 0 && cover + COVER_AIR > room) {
@@ -627,9 +647,8 @@ function Sheaf({
         setFit((was) => (was?.of === of && was.px === next ? was : { of, px: next }))
       }
     }
-    if (room <= 0 || atoms.every((a) => a.height === 0)) return
-    const next = paginate(atoms, room)
-    setPages((was) => (was && same(was, next) ? was : next))
+    if (laid === null) return
+    setPages((was) => (was && same(was, laid) ? was : laid))
   }, [blocks, doc.reference])
 
   useLayoutEffect(measure)
@@ -801,6 +820,65 @@ function Sheaf({
       </div>
     </Root>
   )
+}
+
+/**
+ * THE PRICE AS THE PAPER'S GEOMETRY DREW IT, and the sheet it stands on, for `fillOf`: read while
+ * the sheaf is gauging, where the price's picture always stands as it was drawn beside the figures.
+ * null where the price carries no picture.
+ */
+function priceReading(
+  pages: string[][],
+  atoms: readonly Atom[],
+  room: number,
+  held: ReadonlyMap<string, HTMLElement>,
+): FillReading | null {
+  const page = pages.find((ids) => ids.includes('price'))
+  const atom = held.get('price')
+  const body = atom?.querySelector<HTMLElement>('.doc-sums__body')
+  const boat = atom?.querySelector<HTMLElement>('.doc-sums__boat')
+  const img = boat?.querySelector<HTMLImageElement>('.doc-sums__img')
+  const line = boat?.querySelector<HTMLElement>('.doc-sums__name')
+  const figs = atom?.querySelector<HTMLElement>('.doc-sums__figs')
+  if (!page || !atom || !body || !boat || !img || !line || !figs) return null
+  const height = new Map(atoms.map((a) => [a.id, a]))
+  const first = height.get(page[0] ?? '')
+  /* a page a band runs onto opens with its head said again; one that does not, with its first
+     part's head drawn without the air over it (`lead`) */
+  const carried = pages.indexOf(page) > 0 ? (first?.carry ?? 0) : 0
+  const opened = carried === 0 ? (first?.lead ?? 0) : 0
+  const used = page.reduce((n, id) => n + (height.get(id)?.height ?? 0), carried) - opened
+  const box = getComputedStyle(boat)
+  const w = Number(img.getAttribute('width'))
+  const h = Number(img.getAttribute('height'))
+  return {
+    room,
+    used,
+    atom: atom.offsetHeight,
+    above: atom.offsetHeight - body.offsetHeight,
+    boat: boat.offsetHeight - img.offsetHeight - line.offsetHeight,
+    line: line.offsetHeight,
+    picture: img.offsetHeight,
+    gap: parseFloat(getComputedStyle(body).rowGap) || 0,
+    figs: figs.offsetHeight,
+    width: atom.clientWidth,
+    inset: (parseFloat(box.paddingLeft) || 0) + (parseFloat(box.paddingRight) || 0),
+    held: { width: w, height: h },
+    beside: boat.dataset.ground === 'photo',
+  }
+}
+
+/** What an atom gives up where it opens a sheet (`Atom.lead`), read while gauging, where no atom
+ *  opens one: its height drawn as the first on a sheet, taken from its height drawn after another.
+ *  Measured rather than read off the head's padding, because a head beside taller figures gives up
+ *  nothing (`.doc-sums__body[data-bare]`). */
+function leadOf(atom: HTMLElement | undefined): number {
+  if (!atom?.querySelector('.doc-part')) return 0
+  const after = atom.offsetHeight
+  atom.dataset.opening = ''
+  const first = atom.offsetHeight
+  delete atom.dataset.opening
+  return Math.max(0, after - first)
 }
 
 /** Two page assignments that are the same assignment. Compared member
@@ -1471,7 +1549,13 @@ function DeskItems({ items }: { items: readonly string[] }) {
  * own shapes and by `keepWithNext`, which is how a heading is never
  * left alone at the foot of a page.
  */
-function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number | null): Block[] {
+function blocksOf(
+  doc: PrintedQuote,
+  art: CoverArt,
+  travel: string,
+  fit: number | null,
+  fill: Fill | null,
+): Block[] {
   const out: Block[] = []
   /* A SHORT SPECIFICATION IS THE COVER'S (the printed quote's critic, 2026-10-31: a repower's
      Specifications page repeated the cover's four facts and added four, on a sheet of its own).
@@ -1612,7 +1696,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number 
     keepWithNext: 1,
     /* the price opens the page after the cover where nothing stands between them */
     ...(sole && !specPage ? { breakBefore: true } : {}),
-    node: <YourPrice doc={doc} art={art} sub={sole ? quoteSub(doc) : undefined} />,
+    node: <YourPrice doc={doc} art={art} sub={sole ? quoteSub(doc) : undefined} fill={fill} />,
   })
   /* THE TERMS PRINT ONLY WHERE THE DEALERSHIP WROTE THEM AND THEY ARE KEPT ON. A section whose
      whole content was a sentence saying it had none was the app explaining itself to the buyer;
@@ -2346,7 +2430,18 @@ function AdjustmentHead() {
  * sheet. And the bands above the total are what make the page add up
  * where a reader can see it do so, which the lone total did not.
  */
-function YourPrice({ doc, art, sub }: { doc: PrintedQuote; art: CoverArt; sub?: string }) {
+function YourPrice({
+  doc,
+  art,
+  sub,
+  fill,
+}: {
+  doc: PrintedQuote
+  art: CoverArt
+  sub?: string
+  /** the last sheet's room, given to the picture (`fillOf`); null where it stands as drawn */
+  fill: Fill | null
+}) {
   const t = doc.totals
   /* A PRICE OF ONE ROW IS ITS TOTAL (the printed quote's critic, 2026-10-31: a one-motor quote
      printed $16,667 four times): the row that would say the motor's figure over the total that is
@@ -2361,10 +2456,22 @@ function YourPrice({ doc, art, sub }: { doc: PrintedQuote; art: CoverArt; sub?: 
      not print stands here — with the name and finish under it. A cover with no picture leaves the
      column to the air, as it was. */
   const pic = art.kind === 'photograph' ? art.held : null
+  /* WHERE NOTHING IS PICTURED, THE HEAD STANDS BESIDE THE FIGURES (the quote round's audit, round
+     3, D5): the hull-only Patrol 600 printed "Total, including GST $30,190" in the right column over
+     an empty left one. What the price is for now holds the left column itself, as an invoice's
+     summary does, and the price takes one line of the sheet less. */
+  const head = <PartHead word="Your price" {...(sub ? { sub } : {})} />
   return (
-    <section className="doc-sums" aria-label="Your price">
-      <PartHead word="Your price" {...(sub ? { sub } : {})} />
-      <div className="doc-sums__body">
+    <section
+      className="doc-sums"
+      aria-label="Your price"
+      data-bare={pic ? undefined : ''}
+      data-fill={pic && fill ? (fill.beside ? 'beside' : 'under') : undefined}
+      style={pic && fill ? ({ '--fill-h': `${fill.height}px` } as CSSProperties) : undefined}
+    >
+      {pic ? head : null}
+      <div className="doc-sums__body" data-bare={pic ? undefined : ''}>
+        {pic ? null : head}
         {pic ? (
           <figure className="doc-sums__boat" data-ground={groundOf(art)}>
             <img

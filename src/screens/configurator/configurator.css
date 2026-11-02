@@ -896,13 +896,19 @@
    the card and nothing in the photograph above it (the critic, 2026-11-02, B8: under a step's own
    row the photograph went from 250px to a 160px band at 1280 × 800). While a step stands the note
    steps aside; the key still says what has no price, and the note is back when the step ends. */
+/* THE KEY TAKES THE ROW UP TO THE ACT, NOT THE FIGURE'S COLUMN (the audit, round 3, P9): the key
+   shared its column with the figure, whose width the price capsules beside it set, so on a specced
+   quote at 1280 its four parts stood one under another, the total grew to 266px and the photograph
+   above fell from 261 to 212px. The capsules now span the act's column and one of their own, and
+   the key runs to the act. */
 @media (min-width: 1200px) {
   .cfg-tally {
+    grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas:
-      'sum level'
-      'bar bar'
-      'key go'
-      'note note';
+      'sum level level'
+      'bar bar bar'
+      'key key go'
+      'note note note';
   }
   .cfg-tally__made {
     display: contents;
@@ -1141,10 +1147,14 @@
   box-shadow: var(--shadow-plate);
   overflow: hidden;
 }
+/* EACH MEASURE THE ROOM ITS WORDS NEED, THEN AN EQUAL SHARE OF WHAT IS LEFT (the audit, round 3,
+   P12: in four equal cells "LENGTH OVERALL" wrapped beside "BEAM" on one line at 1440, and three of
+   the four wrapped at 1280). A short word gives the long one its room, so every label keeps one
+   line where the plate holds them all. */
 .cfg-specs__lead {
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(--spacing(24), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(24), auto));
 }
 /* BELOW A DESK THE FOUR STAND TWO BY TWO, never three over one with two empty cells beside it (the
    critic: a 345 × 90 empty white area under the tiles at 834) */
@@ -1197,15 +1207,20 @@
 .cfg-body__in > * + .cfg-more {
   margin-block-start: --spacing(6);
 }
+/* AS MANY ACROSS AS KEEP ITS ROWS FULL (`SpecSheet`, `--across`; the audit, round 3, P13: the
+   hull's eleventh measure stood alone in a row of five at 834): each measure a share of its row,
+   and a last row of fewer shares the row between them, so no cell stands empty beside it */
 .cfg-specsheet {
+  --across: 2;
   margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(34)), 1fr));
+  display: flex;
+  flex-wrap: wrap;
   border-radius: var(--radius-plate);
   box-shadow: 0 0 0 1px var(--color-rule);
   overflow: hidden;
 }
 .cfg-specsheet .cfg-spec {
+  flex: 1 0 calc(100% / var(--across) - 1px);
   margin: 0;
   padding: --spacing(4) --spacing(5);
   border-inline-start: 0;
@@ -3905,6 +3920,16 @@
   .cfg-mast__facts {
     flex: 1 1 auto;
   }
+  /* A LONG NAME KEEPS TWO LINES (the audit, round 3, P14): the Garmin GA38 antenna's name stood over
+     three in a 160px cell beside "PARTS & ACCESSORIES" on one line. The list's name in type
+     takes two short lines, and the item's name the hand's size it has below a desk. */
+  .cfg-mast__word {
+    max-inline-size: --spacing(28);
+  }
+  .cfg-mast__name {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
   .cfg-mast__fact:nth-child(n) {
     padding-inline: --spacing(4);
   }
@@ -4813,6 +4838,49 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+}
+/* WHY THE COVER IS NOT THE BOAT'S PHOTOGRAPH, AND THE ACT (`FinalPackage`; the audit, round 3,
+   P11): the kit's plate over the paper, its label, the sentence and the press, at the paper's own
+   measure so it reads as a note on the cover beneath it */
+.cfg-pkg__cover {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: calc(210mm + --spacing(8));
+  margin: 0 auto --spacing(5);
+  display: grid;
+  justify-items: start;
+  gap: --spacing(2);
+  padding: --spacing(4) --spacing(5);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+/* the sentence, the plate's width, its mark beside its first line as a refusal's is */
+.cfg-pkg__cover-say {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(1.5);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  color: var(--color-ink-reason);
+  text-wrap: pretty;
+}
+.cfg-pkg__cover-say > svg {
+  flex: none;
+  margin-block-start: 0.15em;
+}
+.cfg-pkg__cover-lab {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
 }
 
 /* THE PRINTED QUOTE ITSELF, the document screen's component, laid in this column: the paper and

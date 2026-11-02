@@ -446,7 +446,8 @@
   transition: transform var(--duration-reveal) var(--ease-out);
 }
 .picker-photo[data-art='studio'] {
-  object-fit: contain;
+  /* whole, and never past its own pixels (the third audit's S2) */
+  object-fit: scale-down;
   padding: --spacing(1.5);
   box-sizing: border-box;
 }
@@ -1093,6 +1094,10 @@
   /* THE NAME THE PLATE'S PHOTOGRAPH TRAVELS UNDER, handed in by the screen (`boatTravel`); a
      window too short to show it takes it away again (the ladder, below) */
   --picker-travel: none;
+  /* ITS OWN PIXELS, handed in by the screen from the ledger (Picker.tsx); the box's own size
+     until then, which binds nothing */
+  --picker-shot-w: 100%;
+  --picker-shot-h: 100%;
   view-transition-name: var(--picker-travel);
   display: block;
   inline-size: 100%;
@@ -1102,8 +1107,17 @@
      than its own pixels */
   object-fit: cover;
 }
+/* A STUDIO PICTURE'S BOX HUGS ITS OWN PIXELS (the quote round's third audit, S2). `scale-down`
+   already drew the GA38's 300px copy at its own size, but in a 544 x 585 box at 1920: the box
+   was larger than the bytes, and a reader of the box — a probe, a view transition carrying it
+   onto the build's stage — saw a picture drawn at x1.95. So the box is never wider or taller
+   than the copy the ledger holds, and stands centred in the band on the plate's own white. */
 .picker-shot__img[data-art='studio'] {
   object-fit: scale-down;
+  justify-self: center;
+  align-self: center;
+  max-inline-size: min(100%, var(--picker-shot-w));
+  max-block-size: min(--spacing(72), var(--picker-shot-h));
 }
 
 /* NO PHOTOGRAPH: the file's pale blue at the picture's size, and on it the one sentence every
@@ -1168,6 +1182,20 @@
   font-weight: 500;
   color: var(--ink-quiet);
   text-wrap: pretty;
+}
+
+/* IN A HAND EACH COLUMN IS AS WIDE AS WHAT IT SAYS (the quote round's third audit, P12): three
+   equal thirds of a 318px strip left "Inside length" 90px, and it wrapped under its glyph beside
+   two labels on one line. Sized by their own words, with a step less air at each rule, all three
+   stand on one line; a strip of more facts than fit still wraps its longest word, never past the
+   plate. */
+@media (max-width: 599px) {
+  .picker-strip {
+    grid-auto-columns: auto;
+  }
+  .picker-fact + .picker-fact {
+    padding-inline-start: --spacing(3);
+  }
 }
 
 /* WHAT THE FIGURE MEASURES, as a glyph before its label in the file's blue (Picker.tsx,
@@ -1860,6 +1888,10 @@
     block-size: 100%;
     max-block-size: none;
     min-block-size: 0;
+  }
+  /* and a studio picture takes that height only up to its own pixels */
+  .picker-shot__img[data-art='studio'] {
+    max-block-size: var(--picker-shot-h);
   }
   .picker-shot[data-empty] {
     min-block-size: 0;

@@ -165,6 +165,7 @@ import {
   itemOfQuote,
   markOnDark,
   markOnPaper,
+  pictureOfQuote,
   placeIn,
   srcSetOf,
   type HeldPicture,
@@ -210,8 +211,10 @@ import { PartDrag, QUOTE_DROP, useQuoteDrop } from '@/screens/catalogue/drag'
 import { PARTS_TABLE } from '@/screens/catalogue/shelf'
 import { fitmentOf } from '@/app/ways'
 import { boatTravel, levelGlyph } from './glyphs'
+import { acrossTheSheet } from './sheet'
+import { coverArt, coverAskAct, coverAskSay } from '@/screens/document/art'
 import { specsSaid } from '@/domain/quote/specSay'
-import { nameOnPaper } from '@/domain/quote/paperWords'
+import { nameOnPaper, paperFacts } from '@/domain/quote/paperWords'
 import { goodsSpecs, quoteSells } from '@/domain/quote/sells'
 import './configurator.css'
 
@@ -355,6 +358,10 @@ export const FOLDED_PREF = 'build.folded'
  * hull's material and not through its colour cards.
  */
 const ROOM_AIR = 12
+/** A WINDOW THIS SHORT IS A PHONE TURNED OVER (configurator.css, its `max-height: 700px`) */
+const SHORT_WINDOW = 700
+/** THE LEAST A RENDER ON WHITE IS DRAWN WHERE THE BAND ITSELF ENDS THE FIRST WINDOW (`fitTheBoat`) */
+const BARE_LEAST = 96
 /** THE FLOATING TOTAL'S ROOM OVER THE WINDOW'S FOOT (`TallyBar`, configurator.css): its 56px; in a
  *  hand it stands 8px over the tab bar on the room's own ground (the audit's P1, 2026-11-02), and
  *  its room is counted 4px short of that so the search field under the boat's measures begins at
@@ -400,12 +407,25 @@ function fitTheBoat(node: HTMLElement): () => void {
       const fold = window.innerHeight - foot - ROOM_AIR
       const was = shot.offsetHeight
       const wide = shot.offsetWidth
+      /* A THING SOLD ON ITS OWN WITH NO MEASURES, IN A SHORT WINDOW (the audit, round 3, P14): its
+         render had the band's whole width, so no height between half and all of that width fit a
+         window 390px tall, and the floating total cut the picture's foot on arrival. A render on
+         white is drawn whole at any height, so there the band itself may end the first window. */
+      const bare =
+        stage.hasAttribute('data-bare') &&
+        shot.dataset.art === 'photograph' &&
+        shot.dataset.verdict !== 'scene' &&
+        window.innerHeight <= SHORT_WINDOW
       let lowest = -1
-      for (const chapter of chapters) {
-        const ends = pageTop(chapter) + chapter.offsetHeight - was
+      /* the band's own air under it is the floating total's room (configurator.css), so the
+         picture itself ends the window, just above the total */
+      const under = bare ? Number.parseFloat(getComputedStyle(stage).paddingBlockEnd) || 0 : 0
+      for (const chapter of bare ? [stage, ...chapters] : chapters) {
+        const ends = pageTop(chapter) + chapter.offsetHeight - was - (chapter === stage ? under : 0)
         const height = Math.floor(fold - ends)
+        const least = chapter === stage ? BARE_LEAST : wide / 2
         /* of the blocks that can end there, the furthest down */
-        if (height >= wide / 2 && height <= wide && ends > lowest) {
+        if (height >= least && height <= wide && ends > lowest) {
           best = height
           lowest = ends
         }
@@ -860,6 +880,8 @@ function Build({
      to the final package over it, read as the window passes them. A browser with no watch, and a
      test's page, never raise the bar, and the card says the total where it stands. */
   /* read again whenever the chapters are drawn anew (a search narrows them, and the door goes and comes) */
+  /* the door to the final package, as drawn now (`PackageDoor` hands it over) */
+  const [doorNode, setDoorNode] = useState<HTMLElement | null>(null)
   const railDrawn = rail === null ? '' : rail.chapters.map((c) => c.id).join(' ')
   useEffect(() => {
     const node = floor.current
@@ -875,30 +897,32 @@ function Build({
       }
       setBar(seen.size === 0 ? 'up' : 'away')
     })
-    for (const kind of ['.cfg-tally', '.cfg-door'])
-      for (const el of node.querySelectorAll(kind)) watch.observe(el)
+    for (const el of node.querySelectorAll('.cfg-tally')) watch.observe(el)
+    const door = doorNode?.closest('.cfg-door')
+    if (door) watch.observe(door)
     return () => watch.disconnect()
-  }, [oneColumn, railDrawn])
+  }, [oneColumn, railDrawn, doorNode])
 
   /* AT A DESK THE TOTAL'S ACT STANDS DOWN WHILE THE DOOR'S IS IN THE WINDOW (the audit, 2026-11-02,
      P3): on a short build — a part on its own — the total's "View final package" and the door's at
      the rail's foot stood in one window, one act offered twice. The door is the act where the
      chapters end; the total's is the way on from anywhere above it. Read as the chapters' column
      passes the door, which its own clipping hides. */
-  const [doorIn, setDoorIn] = useState(false)
+  /* THE DOOR ITSELF, HANDED OVER BY ITS OWN REF (the audit, round 3, P3'): the watch found the door
+     once, by a query, and kept watching that node whatever the chapters drew after it, so a door
+     drawn anew left the total's act standing beside it on the specced Sport 560 at 1440. The door
+     now says when it is drawn and when it goes, and the watch follows the node that is there. */
+  const [doorSeen, setDoorSeen] = useState<Element | null>(null)
   useEffect(() => {
-    const node = floor.current
-    const door = node?.querySelector('.cfg-door')
-    if (oneColumn || railDrawn === '' || !door || typeof IntersectionObserver === 'undefined') {
-      setDoorIn(false)
-      return
-    }
+    if (oneColumn || !doorNode || typeof IntersectionObserver === 'undefined') return
     const watch = new IntersectionObserver((entries) => {
-      for (const entry of entries) setDoorIn(entry.isIntersecting)
+      for (const entry of entries) setDoorSeen(entry.isIntersecting ? entry.target : null)
     })
-    watch.observe(door)
+    watch.observe(doorNode)
     return () => watch.disconnect()
-  }, [oneColumn, railDrawn])
+  }, [oneColumn, doorNode])
+  /* only the door drawn now, seen now, and only at a desk */
+  const doorIn = !oneColumn && doorNode !== null && doorSeen === doorNode
 
   /* EVERY CHAPTER STANDS OPEN, AND A PERSON MAY FOLD ONE (the owner, 2026-10-31: "all cards on
      the right should be open by default"). What is folded is this browser's, kept by chapter id in
@@ -1282,6 +1306,7 @@ function Build({
                         index={i}
                         chapter={chapter}
                         onSee={viewPackage}
+                        onDrawn={setDoorNode}
                       />
                     ) : (
                       <ChapterCard
@@ -2639,10 +2664,16 @@ function Tally({
       ) : null}
       {/* THE BOAT, BESIDE ITS PRICE, WHERE THE STAGE HAS SCROLLED AWAY (below a desk): its own
       photograph, small, and a press that opens it large */}
+      {/* ONE STOP FOR ONE ACT (the audit, round 3, P15): the stage's own press opens the same
+          gallery, and the keyboard met it and then this, "See the boat's 2 pictures larger" and
+          "The boat's 2 pictures, larger", one after the other at 844 and 834. This one is for the
+          hand that has scrolled to the total; the keyboard and a reader have the stage's. */}
       {photo ? (
         <button
           type="button"
           className="cfg-tally__boat"
+          tabIndex={-1}
+          aria-hidden="true"
           aria-label={
             gallery.length > 1
               ? `The boat’s ${gallery.length.toLocaleString('en-AU')} pictures, larger`
@@ -2912,11 +2943,17 @@ function RowLarge({
  * the first is its cover. The step is the catalogue's, with its Undo, and the moment it is taken
  * the tile, the stage and the paper draw it.
  */
+/** What a picture added from the build is, said under the dialog's title. */
+const OWN_PICTURE_SAY =
+  'A picture you add here is Northside’s own, kept with who added it and when. The first one is its cover.'
+
 function PictureDoor({
   item,
   name,
   kind,
   label = 'Add a picture',
+  description = OWN_PICTURE_SAY,
+  intent = 'quiet',
   open: shown,
   onOpenChange,
 }: {
@@ -2925,6 +2962,9 @@ function PictureDoor({
   name: string
   kind?: TableKind | undefined
   label?: string
+  /** what the dialog says under its title: by default what a picture added here is */
+  description?: string
+  intent?: 'quiet' | 'secondary'
   /** OPENED BY ANOTHER PRESS — a tile's own well (`OptionTile`'s `look`): the screen holds whether it
    *  stands, and no button of its own is drawn */
   open?: boolean
@@ -2937,10 +2977,10 @@ function PictureDoor({
       open={held ? shown : own}
       onOpenChange={held ? onOpenChange : setOwn}
       title={`Pictures of the ${name}`}
-      description="A picture you add here is Northside’s own, kept with who added it and when. The first one is its cover."
+      description={description}
       trigger={
         held ? undefined : (
-          <Button intent="quiet" size="sm" icon={CameraPlusIcon} aria-haspopup="dialog">
+          <Button intent={intent} size="sm" icon={CameraPlusIcon} aria-haspopup="dialog">
             {label}
           </Button>
         )
@@ -3233,9 +3273,13 @@ function specsOf(
     : (quote.lines.find(
         (l) => l.id === quote.sections.find((s) => s.blockId === SUBJECT_BLOCK)?.lineIds[0],
       )?.facts ?? [])
+  /* AND IN THE PAPER'S WORDS, NOT THE FILE'S SHORTHAND (the audit, round 3, P10): the plate said
+     "L4 / 1832cc", "Remote mech" and "Power Trim & Tilt" where the printed quote says "In-line 4,
+     1,832 cc", "Mechanical remote" and "Power" of the same motor. A fact the paper leaves off is
+     left off here too (`paperFacts`). */
   const every: readonly SpecLine[] =
     own.length > 0
-      ? own
+      ? paperFacts(own).printed
       : [...frozen, ...all.filter((s) => !frozen.some((f) => f.label === s.label))]
   return { lead: every.slice(0, SPECS_LEAD), rest: every.slice(SPECS_LEAD) }
 }
@@ -3305,12 +3349,50 @@ function SpecsMore({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
         <span className="cfg-axis__name">Specification</span>
         <span className="cfg-axis__count">{`${rest.length.toLocaleString('en-AU')} more ${rest.length === 1 ? 'measure' : 'measures'}`}</span>
       </h3>
-      <dl className="cfg-specsheet" data-testid="specifications">
-        {rest.map((spec) => (
-          <SpecTile key={spec.label} label={spec.label} value={spec.value} />
-        ))}
-      </dl>
+      <SpecSheet specs={rest} />
     </section>
+  )
+}
+
+/** THE NARROWEST A MEASURE OF THE SHEET STANDS, in CSS pixels: the kit's 34 steps of 4px, the
+ *  width "4.51 m to 6.0 m" keeps its unit in */
+const SHEET_LEAST = 136
+
+/**
+ * THE SHEET OF MEASURES, AS MANY ACROSS AS KEEP ITS ROWS FULL (the audit, round 3, P13: the hull's
+ * eleventh measure stood alone in a row of five at 834). Its width is read as it changes, and
+ * `acrossTheSheet` says how many stand across; the last row's share its width (configurator.css).
+ */
+function SpecSheet({ specs }: { specs: readonly SpecLine[] }) {
+  const sheet = useRef<HTMLDListElement>(null)
+  const [room, setRoom] = useState(0)
+  /* READ BEFORE THE FIRST PAINT, AND KEPT WHILE THE BUILD IS HIDDEN: under the final package the
+     sheet has no width, and a sheet drawn two across for a frame on the way back stood 224px taller
+     than the one the scroll was kept against, so "Back to editing" landed 224px off */
+  useLayoutEffect(() => {
+    const node = sheet.current
+    if (!node || typeof ResizeObserver === 'undefined') return
+    const read = (): void => {
+      if (node.clientWidth > 0) setRoom(node.clientWidth)
+    }
+    read()
+    const watch = new ResizeObserver(read)
+    watch.observe(node)
+    return () => watch.disconnect()
+  }, [])
+  const across = room > 0 ? acrossTheSheet(specs.length, room, SHEET_LEAST) : null
+  return (
+    <dl
+      className="cfg-specsheet"
+      data-testid="specifications"
+      ref={sheet}
+      data-across={across ?? undefined}
+      style={across === null ? undefined : ({ '--across': across } as CSSProperties)}
+    >
+      {specs.map((spec) => (
+        <SpecTile key={spec.label} label={spec.label} value={spec.value} />
+      ))}
+    </dl>
   )
 }
 
@@ -5659,11 +5741,14 @@ function PackageDoor({
   index,
   chapter,
   onSee,
+  onDrawn,
 }: {
   at: RefObject<HTMLElement | null> | undefined
   index: number
   chapter: Chapter
   onSee: () => void
+  /** the door’s act as drawn now, and null when it goes, for the total's watch (`doorIn`) */
+  onDrawn: (node: HTMLElement | null) => void
 }) {
   const headId = useId()
   return (
@@ -5682,7 +5767,7 @@ function PackageDoor({
         </h2>
         <p className="cfg-door__fact">{chapter.fact}</p>
       </div>
-      <div className="cfg-door__go">
+      <div className="cfg-door__go" ref={onDrawn}>
         <Button intent="act" icon={ArrowRightIcon} onClick={onSee}>
           View final package
         </Button>
@@ -5789,6 +5874,22 @@ function FinalPackage({
   const issued = quote.state !== 'draft'
   const named = quote.customer.name.trim() !== ''
   const mark = markOnPaper(register)
+  const { noun } = quoteSells(ctx, quote)
+  /* WHAT THE PRINTED QUOTE'S COVER PRINTS, AND THE PICTURE THE BUILD SHOWS, read as the paper reads
+     them (`coverArt`, `pictureOfQuote`) and again when Northside's own pictures or a gallery's cover
+     move, so the sentence beside the paper goes the moment a photograph is made the cover */
+  const ownPictures = useCatalogue((s) => s.ownPictures)
+  const galleries = useCatalogue((s) => s.galleries)
+  const coverWhy = useMemo(
+    () => coverAskSay(coverArt(quote, register), pictureOfQuote(quote), noun),
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the store's records move the reader's answer
+    [quote, register, noun, ownPictures, galleries],
+  )
+  const shown = useMemo(
+    () => pictureOfQuote(quote),
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the store's records move the reader's answer
+    [quote, ownPictures, galleries],
+  )
 
   /* THE PACKAGE OPENS AT ITS TOP, and the caret on its title the moment it is drawn, so a reader
      is told where they are */
@@ -6049,6 +6150,30 @@ function FinalPackage({
               <span className="cfg-pkg__n">as the customer reads it</span>
             </h3>
             <p className="cfg-pkg__say">{PRINT_IS_THE_PAGE}</p>
+            {/* WHY THE COVER IS NOT THE BOAT'S PHOTOGRAPH, BESIDE THE PAPER IT IS SEEN ON, with the
+                one act that changes it on a draft (the audit, round 3, P11: the package showed the
+                Highfield's render or logo on its cover and said nothing; the sentence and its act
+                stood only on the printed quote's own page). The same words as there (`coverAskSay`,
+                `coverAskAct`), and the same picture control the stage opens. */}
+            {coverWhy === '' ? null : (
+              <div className="cfg-pkg__cover" data-testid="package-cover-ask">
+                <p className="cfg-pkg__cover-lab">The cover</p>
+                <p className="cfg-pkg__cover-say">
+                  <Icon glyph={WarningCircleIcon} weight="fill" />
+                  {coverWhy}
+                </p>
+                {issued ? null : (
+                  <PictureDoor
+                    item={itemOfQuote(quote)}
+                    name={boat.name}
+                    kind={quoteSells(ctx, quote).kind}
+                    label="Add a photograph for the cover"
+                    description={coverAskAct(noun, shown)}
+                    intent="secondary"
+                  />
+                )}
+              </div>
+            )}
             <div className="cfg-pkg__doc" ref={paper}>
               {/* EMBEDDED: the package is the page and its <main> is the build's, so the paper draws no
                   landmark of its own (two <main> stood on every quote, the audit, 2026-11-02, P4) */}

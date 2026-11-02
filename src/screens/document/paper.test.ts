@@ -18,6 +18,7 @@ import {
   noLevelDeclared,
   readDocument,
   type DocumentLine,
+  type PrintedQuote,
 } from '@/domain/quote/document'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { isDone } from '@/domain/quote/commands'
@@ -472,6 +473,35 @@ describe('the note says the engine’s reasons in the dealer’s words', () => {
       expect(w.said).not.toContain('|')
     }
     expect(motorShop!.facts).toMatch(/Rigging Kit Option [^;]+ · [^;]+;/)
+  })
+
+  /* the quote round's audit, round 3, D4: the note printed the file's "Mount w 6Y5 2 Gauges" where
+     the build's workshop said "Mount with" */
+  it('says the file’s shorthand in a workshop fact in full, as the build’s workshop does', () => {
+    const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
+    /* the F90XB's own Rigging Kit Option on the Sport 560, as the price list writes it */
+    const option =
+      "Mech Rigging Kit - 6X3 Concealed (Left Hand) Mount w 6Y5 2 Gauges, 5m Harness, 15' Cables & Filter"
+    const line = linesOf(doc).find((l) => l.facts.length > 0)!
+    const withIt: PrintedQuote = {
+      ...doc,
+      sections: doc.sections.map((s) => ({
+        ...s,
+        tables: s.tables.map((t) => ({
+          ...t,
+          lines: t.lines.map((l) =>
+            l.id === line.id
+              ? { ...l, facts: [{ label: 'Rigging Kit Option', value: option }, ...l.facts] }
+              : l,
+          ),
+        })),
+      })),
+    }
+    const said = workshopOf(withIt).find((w) => w.label === line.label)!.facts
+    expect(said).toContain(
+      'Rigging Kit Option Mech Rigging Kit - 6X3 Concealed (Left Hand) Mount with 6Y5 2 Gauges',
+    )
+    expect(said).not.toMatch(/ w /)
   })
 
   it('does not print the engine’s instruction about a page this app does not have', () => {

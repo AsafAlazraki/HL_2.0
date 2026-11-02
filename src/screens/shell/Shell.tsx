@@ -43,6 +43,7 @@ import { Finder } from './Finder'
 import { Shortcuts } from './Shortcuts'
 import { ScopeSeat, useLendFinder, useScope } from './scope'
 import { readLines } from './lines'
+import { useToastLane } from './lane'
 import { startQuote } from '@/screens/picker/mint'
 import { RECENT_KEY, readRecent, recentRows, remember, type RecentPlace } from './recent'
 import './shell.css'
@@ -182,6 +183,8 @@ function Standing({ at, go, org }: ShellProps) {
      finger or a pointer on the pill's bubble, which it answers by hanging down from it */
   const [by, setBy] = useState<'key' | 'pointer'>('key')
   const scope = useScope()
+  /* THE TOAST KEEPS OUT OF AN OPEN PLATE, from 1440 (./lane.ts, shell.css) */
+  useToastLane()
 
   /* THE DOCUMENTS, READ ONCE, BY WHOEVER GETS THERE FIRST. Ten of the
      twelve routes already do this; the two that do not are `/data`

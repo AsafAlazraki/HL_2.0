@@ -10,6 +10,7 @@ import {
   nameTheCustomer,
   openChapter,
   openThePackage,
+  pickAndStart,
   priceWhatWaits,
   startAQuote,
 } from '../mint'
@@ -1275,4 +1276,135 @@ test('the reference prints on one line beside a full contact line, on screen and
   for (const one of await referenceLines(page)) expect(one, 'in print').toMatchObject({ lines: 1 })
   expect(await stampLines(page), 'the stamp in print').toBe(1)
   await page.emulateMedia({ media: 'screen' })
+})
+
+/* ============================================================
+   THE LAST SHEET (the quote round's audit, round 3, D2 and D5, 2026-11-03). A sheet of only "Your
+   price" and the signatures stood with 52–74 mm of white between them, and a quote with no picture
+   printed its total alone in the right column over an empty left one, a sheet after the
+   specification it would have fitted under.
+   ============================================================ */
+
+/** Give the draft on the build to the customer and open its paper. */
+async function giveAndOpen(page: Page): Promise<string> {
+  await nameTheCustomer(page, CUSTOMER)
+  await openThePackage(page)
+  await priceWhatWaits(page)
+  await page.getByRole('button', { name: 'Give it to the customer' }).click()
+  await expect(page.getByTestId('given-seal')).toBeVisible()
+  const id = /\/quote\/([^/?#]+)/.exec(page.url())?.[1]
+  expect(id, 'the configurator is not at a quote address').toBeTruthy()
+  await openTheDocument(page, id!)
+  await expect(page.locator('.doc-sheaf[data-settled="yes"]')).toBeVisible()
+  return id!
+}
+
+test('a last sheet with room gives it to the boat’s picture, never past its pixels', async ({
+  page,
+  viewport,
+}) => {
+  await throughTheDoor(page)
+  /* the Yamaha F115LB on its own: the cover, then its price and the signatures, about a third of
+     the sheet left over (round 3 measured 52 mm of it between them) */
+  await page.goto('/quote/new')
+  const shelves = page.getByRole('region', { name: 'Sold on its own' })
+  const door = shelves.getByRole('button', { name: /^Yamaha Outboards, / })
+  await door.scrollIntoViewIfNeeded()
+  await door.click()
+  await page
+    .getByRole('region', { name: 'Models' })
+    .locator('.picker-cards__item button')
+    .filter({ hasText: /F115LB/ })
+    .first()
+    .click()
+  const act = page
+    .getByRole('complementary', { name: 'What is chosen' })
+    .getByRole('button', { name: 'Start the quote' })
+  await act.scrollIntoViewIfNeeded()
+  await act.click()
+  await expect(page.getByTestId('configurator')).toBeVisible()
+  await giveAndOpen(page)
+
+  const sheet = (viewport?.width ?? 0) >= 826
+  const read = () =>
+    page.evaluate(() => {
+      const img = document.querySelector<HTMLImageElement>('.doc-sums__img')!
+      const pic = img.getBoundingClientRect()
+      const price = document.querySelector('.doc-atom[data-atom="price"]')!.getBoundingClientRect()
+      const accept = document
+        .querySelector('.doc-atom[data-atom="accept"]')!
+        .getBoundingClientRect()
+      const flow = document
+        .querySelector('.doc-atom[data-atom="accept"]')!
+        .closest('.doc-page__flow')!
+        .getBoundingClientRect()
+      return {
+        fill: document.querySelector('.doc-sums')!.getAttribute('data-fill'),
+        w: pic.width,
+        h: pic.height,
+        held: { w: img.naturalWidth, h: img.naturalHeight },
+        gap: accept.top - price.bottom,
+        under: flow.bottom - accept.bottom,
+        overflow: accept.bottom - flow.bottom,
+      }
+    })
+  await expect.poll(async () => (await read()).held.w).toBeGreaterThan(0)
+  const drawn = await read()
+  /* never past its pixels, never out of its proportion */
+  expect(drawn.w).toBeLessThanOrEqual(drawn.held.w + 0.5)
+  expect(drawn.h).toBeLessThanOrEqual(drawn.held.h + 0.5)
+  expect(Math.abs(drawn.w / drawn.h - drawn.held.w / drawn.held.h)).toBeLessThan(0.02)
+  if (sheet) {
+    /* on a sheet: the picture takes the room, and what is left is the air either side of the
+       signatures (`FILL_AIR`, 40 px), never a band of white */
+    expect(drawn.fill).toMatch(/^(beside|under)$/)
+    expect(drawn.gap).toBeLessThanOrEqual(24)
+    expect(drawn.under).toBeLessThanOrEqual(24)
+    expect(drawn.overflow).toBeLessThanOrEqual(0.5)
+  }
+  /* AND THE PRINTER IS HANDED THE SAME SHEET: the print dialogue hides the gauge, which once
+     unfilled the price on its way to the tray */
+  if ((viewport?.width ?? 0) === 1440) {
+    await page.emulateMedia({ media: 'print' })
+    await page.waitForTimeout(300)
+    const printed = await read()
+    expect(printed.fill).toBe(drawn.fill)
+    expect(printed.h).toBeGreaterThan(200)
+    expect(printed.overflow).toBeLessThanOrEqual(0.5)
+    await page.emulateMedia({ media: 'screen' })
+  }
+})
+
+test('a hull alone with no picture prints its price beside its head, under the specification', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  /* the Highfield Patrol 600: no picture the paper may print, a specification of 14 facts */
+  await pickAndStart(page, 'boat_highfield', 'PA600')
+  await giveAndOpen(page)
+  const price = page.locator('.doc-sums')
+  await expect(price).toHaveAttribute('data-bare', '')
+  /* two sheets, the cover and the specification with the price and the signatures under it */
+  await expect(page.locator('.doc-page')).toHaveCount(2)
+  const second = page.locator('.doc-page').nth(1)
+  await expect(second.locator('.doc-sheet')).toHaveCount(1)
+  await expect(second.locator('.doc-sums')).toHaveCount(1)
+  await expect(second.locator('.doc-accept')).toHaveCount(1)
+  /* the head and the figures side by side where there is a sheet, one over the other in a hand */
+  const sides = await price.evaluate((el) => {
+    const head = el.querySelector('.doc-part')!.getBoundingClientRect()
+    const figs = el.querySelector('.doc-sums__figs')!.getBoundingClientRect()
+    return {
+      headRight: head.right,
+      figsLeft: figs.left,
+      headBottom: head.bottom,
+      figsTop: figs.top,
+    }
+  })
+  const wide = (page.viewportSize()?.width ?? 0) >= 826
+  if (wide) expect(sides.headRight).toBeLessThanOrEqual(sides.figsLeft)
+  else expect(sides.headBottom).toBeLessThanOrEqual(sides.figsTop + 0.5)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    page.viewportSize()!.width,
+  )
 })

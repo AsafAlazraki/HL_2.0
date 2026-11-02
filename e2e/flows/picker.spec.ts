@@ -1046,3 +1046,54 @@ test('a motor, a trailer and a part each start a quote of their own and reach th
 
   expect(errors).toEqual([])
 })
+
+/* ============================================================
+   A PART'S PICTURE ON ITS PLATE IS NEVER LARGER THAN ITS OWN PIXELS (the quote round's third
+   audit, S2: the GA38's 300px copy stood in a 544 x 585 box at 1920 and was read as drawn at
+   x1.95). A studio picture's box hugs the copy the ledger holds, and nothing on the plate is
+   painted past its pixels, read from a fresh decode of what it drew.
+   ============================================================ */
+test('a part chosen draws its picture at no more than its own pixels', async ({ page }) => {
+  await openPicker(page)
+  const door = page
+    .getByRole('region', { name: 'Sold on its own' })
+    .getByRole('button', { name: /^Parts & Accessories, / })
+  await door.scrollIntoViewIfNeeded()
+  await door.click()
+  await page
+    .getByLabel(/Find a/)
+    .first()
+    .fill('Garmin')
+  await page
+    .getByRole('region', { name: 'Models' })
+    .locator('.picker-cards__item button')
+    .filter({ has: page.locator('img') })
+    .first()
+    .click()
+  const img = page
+    .getByRole('complementary', { name: 'What is chosen' })
+    .locator('img.picker-shot__img')
+  await expect(img).toBeVisible()
+  const read = await img.evaluate(async (el: HTMLImageElement) => {
+    await el.decode()
+    const fresh = new Image()
+    fresh.src = el.currentSrc
+    await fresh.decode()
+    const box = el.getBoundingClientRect()
+    const fit = getComputedStyle(el).objectFit
+    const sx = box.width / fresh.naturalWidth
+    const sy = box.height / fresh.naturalHeight
+    return {
+      studio: el.dataset.art === 'studio',
+      within: box.width <= fresh.naturalWidth + 1 && box.height <= fresh.naturalHeight + 1,
+      scale:
+        fit === 'cover'
+          ? Math.max(sx, sy)
+          : fit === 'scale-down'
+            ? Math.min(1, sx, sy)
+            : Math.min(sx, sy),
+    }
+  })
+  expect(read.scale, 'painted at no more than its own pixels').toBeLessThanOrEqual(1.05)
+  if (read.studio) expect(read.within, 'a studio picture’s box hugs its own pixels').toBe(true)
+})

@@ -985,8 +985,9 @@ describe('the room speaks the kit, and the paper stays paper', () => {
   })
 
   /* THE PRICE STANDS BESIDE WHAT IT IS FOR (round 2, D2): the very picture the cover prints, never
-     another, with the name under it; a cover with no picture leaves the column to the air */
-  it('sets the cover’s own picture beside Your price, and nothing where the cover has none', () => {
+     another, with the name under it. A cover with no picture left the column to the air until
+     round 3 found "Total, including GST" alone over an empty left column (D5): the head holds it now */
+  it('sets the cover’s own picture beside Your price, and the head beside the figures where the cover has none', () => {
     const quote = issuedQuote('boat_stacer', 'Stacer - 409 Assault Pro')
     const { container, unmount } = render(<Document quoteId={quote.id} />)
     const cover = container.querySelector<HTMLImageElement>('.doc-shot__img')!
@@ -996,12 +997,20 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     expect(container.querySelector('.doc-sums__title')).toHaveTextContent(
       readDocument(quote).subject.title,
     )
+    expect(container.querySelector('.doc-sums')).not.toHaveAttribute('data-bare')
+    expect(container.querySelector('.doc-sums__body > .doc-part')).toBeNull()
     unmount()
 
     const bare = issuedQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
     const { container: none } = render(<Document quoteId={bare.id} />)
     expect(none.querySelector('.doc-shot')).not.toHaveAttribute('data-art', 'photograph')
     expect(none.querySelector('.doc-sums__boat')).toBeNull()
+    expect(none.querySelector('.doc-sums')).toHaveAttribute('data-bare', '')
+    /* the head in the body's left column, the figures in its right */
+    const body = none.querySelector('.doc-sums__body')!
+    expect(body.firstElementChild).toHaveClass('doc-part')
+    expect(body.firstElementChild).toHaveTextContent(/^Your price/)
+    expect(body.lastElementChild).toHaveClass('doc-sums__figs')
   })
 
   it('says nothing more where the cover prints the picture the build shows', () => {

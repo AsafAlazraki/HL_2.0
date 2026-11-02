@@ -1498,6 +1498,9 @@
   }
   :root {
     --way-toast-end: --spacing(14);
+    /* where the card starts beside an open plate: the shell writes it on the root while the side
+       band is the lane (./lane.ts), and nothing reads it otherwise */
+    --way-toast-left: auto;
   }
 }
 @media (min-width: 1441px) {
@@ -1528,6 +1531,20 @@
   :root:has([data-base-ui-portal] > [role='presentation'][data-open] ~ [role='dialog'][data-open])
     [data-sonner-toaster][data-y-position='top'][data-x-position='right'] {
     top: calc(100dvh - --spacing(20));
+  }
+  /* AND WHERE THE PLATE REACHES THE FOOT, BESIDE IT (2026-11-03, the quote-3 audit's H1). A
+     gallery fills the window's height at 1440 × 900, 24 to 876, and the card at the foot lay
+     about 50px over the plate's lower-right corner. The shell measures the open plate
+     (./lane.ts) and, when the foot is not free, says the band a centred plate leaves at its
+     right: from 16px past the plate's edge to 16px off the window's, the veil having dimmed the
+     page's gutter. */
+  :root[data-way-lane='side']:has(
+      [data-base-ui-portal] > [role='presentation'][data-open] ~ [role='dialog'][data-open]
+    )
+    [data-sonner-toaster][data-y-position='top'][data-x-position='right'] {
+    left: var(--way-toast-left);
+    right: --spacing(4);
+    width: auto;
   }
 }
 

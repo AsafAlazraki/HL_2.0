@@ -214,8 +214,10 @@
 .qd-deal__shot[data-rung='studio'] {
   background: var(--color-white);
 }
+/* a render on white is shown whole and never past its own pixels: a 300px part on a phone's
+   card is drawn at its size, not stretched to the card (`scale-down`, the third audit's S2) */
 .qd-deal__shot[data-rung='studio'] img {
-  object-fit: contain;
+  object-fit: scale-down;
 }
 .qd-deal__none {
   display: grid;

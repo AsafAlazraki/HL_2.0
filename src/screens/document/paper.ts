@@ -12,6 +12,7 @@ import {
 import { codeBeside, lineSaid, nameFirst } from '@/domain/quote/spoken'
 import { nameKey } from '@/domain/quote/swap'
 import { paperFileTitle } from '@/domain/quote/title'
+import { nameOnPaper } from '@/domain/quote/paperWords'
 
 /* ============================================================
    THE CUSTOMER'S COPY, AND WHAT THE DEALER IS TOLD INSTEAD.
@@ -578,7 +579,9 @@ export const piped = (value: string): string =>
  *  named as the paper names it, and a fact's own "|" is said as " · ",
  *  as the build says it; the facts are parted by ";" so a kit's parts
  *  and the next fact never read as one list (m2-last-critique.md,
- *  major 5: "the rigging kit still in pipes"). */
+ *  major 5: "the rigging kit still in pipes"). The file's shorthand is said in full, as the build's
+ *  workshop says it (`nameOnPaper`): the note printed "Mount w 6Y5 2 Gauges" where the build said
+ *  "Mount with" (the quote round's audit, round 3, D4). A code is the code. */
 export function workshopOf(
   doc: PrintedQuote,
 ): Array<{ label: string; said: string; facts: string }> {
@@ -589,7 +592,7 @@ export function workshopOf(
       label: line.label,
       said: line.said,
       facts: facts
-        .map((f) => [f.label, piped(f.value)].filter((part) => part !== '').join(' '))
+        .map((f) => [f.label, nameOnPaper(piped(f.value))].filter((part) => part !== '').join(' '))
         .join('; '),
     }))
 }

@@ -1701,7 +1701,17 @@ function Plate({
               width={picture.w}
               height={picture.h}
               decoding="async"
-              style={{ '--picker-travel': travel } as CSSProperties}
+              /* ITS OWN PIXELS, from the ledger, so a studio picture's box is never larger than
+                 the bytes it draws (the quote round's third audit, S2: the GA38's 300px copy
+                 stood in a 544 x 585 box at 1920, and a box larger than its picture is a picture
+                 waiting to be enlarged) */
+              style={
+                {
+                  '--picker-travel': travel,
+                  '--picker-shot-w': `${picture.w}px`,
+                  '--picker-shot-h': `${picture.h}px`,
+                } as CSSProperties
+              }
             />
           ) : (
             /* NO PHOTOGRAPH, SAID ONCE, IN THE WORDS EVERY SCREEN USES
