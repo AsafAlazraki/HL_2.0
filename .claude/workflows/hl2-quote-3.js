@@ -12,8 +12,9 @@ export const meta = {
       title: 'Audit',
       detail: 'every ask of the last three days, live or not, and the perfect bar at six sizes',
     },
-    { title: 'Fix', detail: 'the gaps, pushed' },
-    { title: 'PDF', detail: 'one fully specced quote, printed and read' },
+    { title: 'Fix', detail: 'the gaps, pushed, looped with the audit until dry' },
+    { title: 'Gate', detail: 'npm test alone, fixed at the cause, a gated push' },
+    { title: 'PDF', detail: 'one fully specced quote, printed, read, and fixed until perfect' },
   ],
 }
 
@@ -84,9 +85,9 @@ phase('Build')
 const [page, gallery] = await parallel([
   () =>
     agent(
-      `You own src/screens/configurator/** and its specs, and src/domain for pure derivations with tests. ${STATE}
+      `You own src/screens/configurator/** and its specs, src/routes/quote.$id.tsx, src/ui/OptionTile* (keep every other screen that uses it right, proven), and src/domain for pure derivations with tests. ${STATE}
 
-DO: (1) EVERY DISCLOSURE ON THE BUILD PAGE IS OPEN BY DEFAULT: every chapter, the specs' full list, any "more" inside a chapter, any group; a person can still fold one and it is remembered as today. (2) MORE AIR between the photograph and the specs under it, from the tokens, measured at each size. (3) THE HULL SHOWS THE CHOSEN MODEL: on a PA 600 quote, the hull chapter shows that model's own choices only (its versions, materials, colourways), not cards for the PA 460 and every other model; changing model is one quiet "Change model" press that opens the series' models in the popup the chapters already use. Prove it on a Stabicraft PA 600, a Highfield Sport 560 and a Stacer. (4) Read docs/directions/polish/critique.md and close every finding there that is on the build page and still true on this tree, checking each before touching it.
+DO: (1) EVERY DISCLOSURE ON THE BUILD PAGE IS OPEN BY DEFAULT: every chapter, the specs' full list, any "more" inside a chapter, any group; a person can still fold one and it is remembered as today. (2) MORE AIR between the photograph and the specs under it, from the tokens, measured at each size. (3) THE HULL SHOWS THE CHOSEN MODEL: on a PA 600 quote, the hull chapter shows that model's own choices only (its versions, materials, colourways), not cards for the PA 460 and every other model; changing model is one quiet "Change model" press that opens the series' models in the popup the chapters already use. Prove it on a Stabicraft PA 600, a Highfield Sport 560 and a Stacer. (4) Read docs/directions/polish/critique.md and close every finding there that is on the build page and still true on this tree, checking each before touching it. The polish fixers left these open because they were outside their folders, and they are yours now: tiles in one row of motors or trailers differ in height and the 'See its picture larger' press sits at different heights (OptionTile centres its content; align every tile's parts to one row); 'Back to editing' leaves ?at= in the address where there was none (the route's search); the customer popover lies over the rail's first model cards.
 
 ${HOUSE(6111)}`,
       { label: 'build:page', phase: 'Build', schema: REPORT },
@@ -128,7 +129,7 @@ Read docs/research/proposal/quote-spec.md (section 3 is the cover), docs/directi
     return agent(
       `You own src/screens/document/**, src/domain/quote/document.ts and freeze.ts's paper parts, and their specs. ${STATE}
 
-THREE COVERS WERE DRAWN: ${JSON.stringify(boards).slice(0, 3000)}. Open their PNGs. PICK the one the owner would call insane, judged as the owner (who rejects anything boring on sight), a customer, and a designer; write the pick and why into ${OUT}/cover-pick.md. Then BUILD it as the printed quote's cover. ALSO: (1) the cover and each line on the paper use the row's cover picture (read ${OUT}/gallery-needs.md and the gallery builder's report: ${JSON.stringify(gallery).slice(0, 2000)}); (2) Northside's contact details (address, phone, email, ABN, the salesperson's line) print where the spec puts them, from Settings, and where one is not set the paper leaves it out and the desk note beside the paper says which; (3) a short quote does not waste sheets: a one-motor quote fits the fewest pages the spec allows, the price said once where it belongs; (4) every other open item of docs/directions/paper-quote/critique.md still true on this tree. Print the Highfield, the Stacer and a motor-only quote to PDF and read every page.
+THREE COVERS WERE DRAWN: ${JSON.stringify(boards).slice(0, 3000)}. Open their PNGs. PICK the one the owner would call insane, judged as the owner (who rejects anything boring on sight), a customer, and a designer; write the pick and why into ${OUT}/cover-pick.md. Then BUILD it as the printed quote's cover. ALSO: (1) the cover and each line on the paper use the row's cover picture (read ${OUT}/gallery-needs.md and the gallery builder's report: ${JSON.stringify(gallery).slice(0, 2000)}); (2) Northside's contact details (address, phone, email, ABN, the salesperson's line) print where the spec puts them, from Settings, and where one is not set the paper leaves it out and the desk note beside the paper says which; (3) a short quote does not waste sheets: a one-motor quote fits the fewest pages the spec allows, the price said once where it belongs; (4) every other open item of docs/directions/paper-quote/critique.md still true on this tree; (5) the final package on the build page renders the Document inside its own <main>, so the page has two main landmarks: give the Document a way to render embedded (no landmark of its own) and say in your report the exact prop for the page to pass. Print the Highfield, the Stacer and a motor-only quote to PDF and read every page.
 
 ${HOUSE(6141)}`,
       { label: 'build:paper', phase: 'Build', schema: REPORT },
@@ -141,53 +142,97 @@ await checkpoint(
 )
 
 phase('Audit')
-const audit = await agent(
-  `You are auditing, read-only except ${OUT}/audit.md. ${STATE}
-
-The builders reported: ${JSON.stringify([page, gallery, wire, paper]).slice(0, 8000)}
-
-Serve the build (npx vite build --outDir e2e/out/dist-6151 && npx vite preview --outDir e2e/out/dist-6151 --port 6151). (1) EVERY ASK of the owner in the words above, one row each: done, partly or not, with the screenshot that proves it. (2) THE PERFECT BAR at each of the six sizes over the quote flow: New quote (a boat, a motor, parts), the build page for a Stabicraft PA 600 and a Highfield Sport 560 (every chapter, the hull, Change model, a gallery, the popups, the customer, View final package and back), the quotes page, Home and the floating bar, and the printed quote's three PDFs. For every frame, PERFECT or NOT AND WHY (the element, measured). Group gaps: page (configurator), paper (document), start (picker, quotes, Home), shell (the floating bar).`,
-  { label: 'audit', phase: 'Audit', schema: AUDIT },
-)
-
-phase('Fix')
-const gaps = (audit && audit.gaps) || []
-log(
-  `audit: ${audit && audit.asks ? audit.asks.filter((a) => a.state !== 'done').length : 0} asks not done, ${gaps.length} gaps`,
-)
 const OWNS = {
-  page: ['src/screens/configurator/** and its specs', 6161],
-  paper: ['src/screens/document/**, document.ts and its specs', 6171],
+  page: [
+    'src/screens/configurator/** and its specs, src/routes/quote.$id.tsx and src/ui/OptionTile*',
+    6161,
+  ],
+  paper: ['src/screens/document/**, src/domain/quote/document.ts and its specs', 6171],
   start: [
     'src/screens/picker/**, src/screens/quotes/**, src/screens/home/** and their specs',
     6181,
   ],
   shell: ['src/screens/shell/** and its specs', 6191],
 }
-await parallel(
-  Object.entries(OWNS).map(([group, [owns, port]]) => () => {
-    const mine = gaps.filter((g) => g.group === group)
-    const asks = ((audit && audit.asks) || []).filter((a) => a.state !== 'done')
-    if (!mine.length) return null
-    return agent(
-      `You own ${owns}, and you touch nothing else. ${STATE}
+const audits = []
+let fixes = []
+for (let round = 1; round <= 3; round++) {
+  const before = audits.length
+    ? `THE LAST AUDIT (round ${round - 1}) found these, and fixers then reported: ${JSON.stringify({ gaps: audits[audits.length - 1].gaps, fixes }).slice(0, 7000)}. Check each again with your own eyes; a fixer's word is not proof.`
+    : `The builders reported: ${JSON.stringify([page, gallery, wire, paper]).slice(0, 8000)}`
+  const audit = await agent(
+    `You are auditing (round ${round}), read-only except ${OUT}/audit-${round}.md. ${STATE}
 
-THE AUDIT'S GAPS IN YOUR AREA, every one to close, minors included: ${JSON.stringify(mine).slice(0, 8000)}
-THE OWNER'S ASKS NOT YET DONE (close the ones in your area): ${JSON.stringify(asks).slice(0, 3000)}
+${before}
+
+Serve the build (npx vite build --outDir e2e/out/dist-6151 && npx vite preview --outDir e2e/out/dist-6151 --port 6151). (1) EVERY ASK of the owner in the words above, one row each: done, partly or not, with the screenshot that proves it. (2) THE PERFECT BAR at each of the six sizes over the quote flow: New quote (a boat, a motor, parts), the build page for a Stabicraft PA 600 and a Highfield Sport 560 (every chapter, the hull, Change model, a gallery, the popups, the customer, View final package and back), a motor-only quote, the quotes page, Home and the floating bar, and the printed quote's PDFs (the Highfield, the Stacer, a motor only). For every frame, PERFECT or NOT AND WHY (the element, measured). Group gaps: page (configurator), paper (document), start (picker, quotes, Home), shell (the floating bar).`,
+    { label: 'audit:' + round, phase: 'Audit', schema: AUDIT },
+  )
+  if (!audit) break
+  audits.push(audit)
+  const open = (audit.gaps || []).filter((g) => g.severity !== 'minor').length
+  const asksOpen = (audit.asks || []).filter((a) => a.state !== 'done')
+  log(
+    `audit ${round}: ${asksOpen.length} asks not done, ${open} blockers or majors, ${(audit.gaps || []).length} gaps in all`,
+  )
+  if (!(audit.gaps || []).length && !asksOpen.length) break
+  if (round > 1 && !open && !asksOpen.length) {
+    log(`round ${round} left only minors; fixing them and stopping`)
+  }
+  fixes = await parallel(
+    Object.entries(OWNS).map(([group, [owns, port]]) => () => {
+      const mine = (audit.gaps || []).filter((g) => g.group === group)
+      if (!mine.length) return null
+      return agent(
+        `You own ${owns}, and you touch nothing else. ${STATE}
+
+THE AUDIT'S GAPS IN YOUR AREA (round ${round}), every one to close, minors included: ${JSON.stringify(mine).slice(0, 8000)}
+THE OWNER'S ASKS NOT YET DONE (close the ones in your area): ${JSON.stringify(asksOpen).slice(0, 3000)}
 
 ${HOUSE(port)}`,
-      { label: 'fix:' + group, phase: 'Fix', schema: REPORT },
-    )
-  }),
+        { label: 'fix:' + group + ':' + round, phase: 'Fix', schema: REPORT },
+      )
+    }),
+  )
+  await checkpoint(`the audit\u2019s gaps of round ${round} closed`, 'Fix')
+  if (round > 1 && !open && !asksOpen.length) break
+}
+
+phase('Gate')
+const gate = await agent(
+  `You are the gate, and you run alone. In ${NEW}, stop any vite or playwright you find still running from an earlier agent on ports 4170 to 6999 (only node processes serving this repo). Run npm test in the foreground (timeout 600000; it takes about 420 s). Every failure is fixed at its cause in the source; a ported or older test is never edited to pass unless the owner changed what it asserts, and then you name it. Rerun npm test until it passes. Then git add the changed paths (never test-results-*, e2e/out, zz-*.spec.ts or FAULT-*.png), commit "The owner's quote asks of 2026-10-31: galleries, the hull's own model, the paper's cover, and the audit's gaps closed, gated" with -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>", and git push origin main. Report the npm test time, every failure you fixed and how, and the hash.`,
+  { label: 'gate', phase: 'Gate', schema: REPORT },
 )
-await checkpoint('the audit\u2019s gaps closed', 'Fix')
 
 phase('PDF')
-const pdf = await agent(
-  `You are making the owner a fully specced quote to look at. ${STATE}
+const PDF_BRIEF = `You are making the owner a fully specced quote to look at. ${STATE}
 
-Serve the build (npx vite build --outDir e2e/out/dist-6199 && npx vite preview --outDir e2e/out/dist-6199 --port 6199). Through the app, as a salesperson would, build the richest honest quote the file allows: a Highfield or Stacer boat in a chosen colourway, a motor the file pairs with it, a trailer made for it, dealer fit and three or more parts, every optional section on. Name the customer "Asaf Alazraki" (the owner, who asked to see it). Give it, open the document, and print it to PDF through the app's own print (Chromium print to PDF of /quote/$id/document). Save it as ${OUT}/final/northside-quote.pdf, with a PNG of every page beside it. READ every page as the customer would. Report the path, the page count, what is on each page, and anything not perfect, without fixing it.`,
-  { label: 'pdf', phase: 'PDF', schema: REPORT },
-)
+Serve the build (npx vite build --outDir e2e/out/dist-6199 && npx vite preview --outDir e2e/out/dist-6199 --port 6199). Through the app, as a salesperson would, build the richest honest quote the file allows: a Highfield or Stacer boat in a chosen colourway, a motor the file pairs with it, a trailer made for it, dealer fit and three or more parts, every optional section on. Name the customer "Asaf Alazraki" (the owner, who asked to see it). Give it, open the document, and print it to PDF through the app's own print (Chromium print to PDF of /quote/$id/document with print media and backgrounds). Save it as ${OUT}/final/northside-quote.pdf, with a PNG of every page beside it (page-1.png ...). READ every page as the customer would and as the owner would, who rejects anything boring or half baked on sight. Report the path, the page count, what is on each page in done, and in notDone every single thing not perfect (the page, the element, measured), without fixing it.`
+let pdf = await agent(PDF_BRIEF, { label: 'pdf:1', phase: 'PDF', schema: REPORT })
+const pdfFixes = []
+for (let round = 2; round <= 3; round++) {
+  const faults = (pdf && pdf.notDone) || []
+  if (!faults.length) break
+  log(`the PDF reader found ${faults.length} faults; fixing them`)
+  pdfFixes.push(
+    await agent(
+      `You own src/screens/document/**, src/domain/quote/document.ts and freeze.ts's paper parts and their specs, and src/screens/configurator/** only where a fault is the build's. ${STATE}
 
-return { page, gallery, wire, paper, audit, pdf }
+THE OWNER'S FULLY SPECCED PDF was printed and read. Every fault the reader found is yours to close at its cause (never by hiding what is true; a missing fact is left out and the desk told why): ${JSON.stringify(faults).slice(0, 7000)}. The pages are under ${OUT}/final/.
+
+${HOUSE(6171)} Then rerun npm test alone (timeout 600000), fix anything it finds, git add your changed paths, commit "The owner's fully specced quote, its printed faults closed, gated" with -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>", and git push origin main.`,
+      { label: 'fix:pdf:' + round, phase: 'PDF', schema: REPORT },
+    ),
+  )
+  pdf = await agent(
+    PDF_BRIEF +
+      ` (Print ${round}: the last print's faults were ${JSON.stringify(faults).slice(0, 2500)}; say for each whether it is gone.)`,
+    {
+      label: 'pdf:' + round,
+      phase: 'PDF',
+      schema: REPORT,
+    },
+  )
+}
+
+return { page, gallery, wire, paper, audits, gate, pdf, pdfFixes }
