@@ -1,13 +1,13 @@
 import { Button as BaseButton } from '@base-ui/react/button'
-import { CheckIcon } from '@phosphor-icons/react'
+import { ArrowsOutSimpleIcon, CameraPlusIcon, CheckIcon } from '@phosphor-icons/react'
 import { useId, type ReactNode } from 'react'
 import type { TableKind } from '@/domain/model'
 import { Icon } from './Icon'
 import { KindMark } from './KindMark'
-import { ExpandPicture } from './Lightbox'
 import { Picture } from './Picture'
 import { Refusal } from './Refusal'
 import { describedBy } from './refuse'
+import './OptionTile.css'
 
 /**
  * AN OPTION ON THE BUILD: a motor, a trailer, a fit — board C's option tile. Its picture in a
@@ -33,6 +33,15 @@ import { describedBy } from './refuse'
  * `detail` line under the facts for the pairing's own words (the rigging kit, the prop), a
  * `label` where the tile's words are not its whole name ("…, on the quote"), and `lazy` for a
  * list of two hundred.
+ *
+ * THE WELL IS ITS OWN PRESS WHERE THE SCREEN GIVES IT ONE (`look`, the quote round's audit,
+ * 2026-11-02, P5). The picture opened large from a quiet full-width line under every tile, "See
+ * its picture larger", so a list read tile, line, tile, line — 209 of them in a whole range. A
+ * press laid over the tile's corner was a control over a control (the overlap ruler, 2026-10-31).
+ * So the tile is two presses side by side inside one card, neither over the other: the well,
+ * which opens the option's pictures (or, with none held, the way to give it one), its corner
+ * saying so; and the words, which put it on the quote or take it off. The card's ring, its wash
+ * and its lift are the card's, drawn round both (OptionTile.css).
  */
 export interface OptionTileProps {
   /** "Yamaha F115LB" — a node where a screen marks part of it */
@@ -57,12 +66,22 @@ export interface OptionTileProps {
   label?: string
   /** One of a long list: its picture is fetched only as it nears the window (`Picture`). */
   lazy?: boolean
-  /** THE PICTURE, LARGE (the owner, 2026-10-30): where the tile has a picture, a round press over
-   *  its corner opens it in the `Lightbox`. Its own button beside the tile's, never inside it. */
-  expand?: { label: string; onExpand: () => void }
+  /** THE WELL AS ITS OWN PRESS (above): what it opens, said in its name. */
+  look?: TileLook
   /** THE PRICE LIST RECOMMENDS IT: the tile wears the recommendation's edge, so the one press
    *  that puts it on is the first one the eye finds (the flow walk: nothing goes on by itself). */
   recommended?: boolean
+}
+
+/** What the well's own press does. */
+export interface TileLook {
+  /** its name for a reader: "See its picture larger", "See its 3 pictures larger", "Add a picture" */
+  label: string
+  /** 'see' opens the pictures held; 'add' opens the way to give it one */
+  act: 'see' | 'add'
+  /** how many pictures it opens, said on the well's corner where more than one */
+  count?: number
+  onLook?: () => void
 }
 
 export function OptionTile({
@@ -79,12 +98,90 @@ export function OptionTile({
   refusedBy,
   label,
   lazy,
-  expand,
+  look,
   recommended,
 }: OptionTileProps) {
   const reasonId = useId()
   const refused = Boolean(refusedBecause) || Boolean(refusedBy)
   const saidAt = refusedBecause ? reasonId : refusedBy
+  const drawn = picture ? (
+    <Picture
+      src={picture.src}
+      alt=""
+      width={picture.width}
+      height={picture.height}
+      fit="contain"
+      lazy={lazy}
+    />
+  ) : kind ? (
+    <KindMark kind={kind} size="lg" />
+  ) : null
+  const tick = (
+    <span className="ui-option-tick" aria-hidden="true">
+      <Icon glyph={CheckIcon} />
+    </span>
+  )
+  const words = (
+    <span className="ui-option-words">
+      <span className="ui-option-name">{name}</span>
+      {facts ? <span className="ui-option-facts">{facts}</span> : null}
+      {detail ? <span className="ui-option-detail">{detail}</span> : null}
+      {figure === undefined ? null : (
+        <span className="ui-option-figure">
+          {figure}
+          {figureSay ? <span className="ui-option-say">{figureSay}</span> : null}
+        </span>
+      )}
+    </span>
+  )
+
+  if (look) {
+    const many = look.act === 'see' && (look.count ?? 0) > 1 ? look.count! : 0
+    const press = (
+      <button
+        type="button"
+        className="ui-option-look"
+        data-act={look.act}
+        aria-label={look.label}
+        onClick={look.onLook}
+      >
+        {drawn}
+        {/* WHAT THE WELL OPENS, ON ITS CORNER: the glyph of a picture opened large, with how many
+            where it opens more than one, or the glyph of a picture to add. Its name says it to a
+            reader, so this is drawn for the eye alone. */}
+        <span className="ui-option-look__mark" aria-hidden="true">
+          <Icon glyph={look.act === 'see' ? ArrowsOutSimpleIcon : CameraPlusIcon} size="sm" />
+          {many > 0 ? many.toLocaleString('en-AU') : null}
+        </span>
+      </button>
+    )
+    return (
+      <span className="ui-option-frame" data-recommended={recommended ? '' : undefined}>
+        <span
+          className="ui-option-card"
+          data-on={selected ? '' : undefined}
+          data-refused={refused ? '' : undefined}
+        >
+          {press}
+          <BaseButton
+            className="ui-option-press"
+            aria-pressed={selected}
+            aria-label={label}
+            disabled={refused}
+            focusableWhenDisabled
+            onClick={onSelect}
+            aria-describedby={describedBy(undefined, refused ? saidAt : undefined)}
+            data-ground="plate"
+          >
+            {tick}
+            {words}
+          </BaseButton>
+        </span>
+        {refusedBecause ? <Refusal id={reasonId}>{refusedBecause}</Refusal> : null}
+      </span>
+    )
+  }
+
   return (
     <span className="ui-option-frame" data-recommended={recommended ? '' : undefined}>
       <BaseButton
@@ -97,40 +194,10 @@ export function OptionTile({
         aria-describedby={describedBy(undefined, refused ? saidAt : undefined)}
         data-ground="plate"
       >
-        <span className="ui-option-tick" aria-hidden="true">
-          <Icon glyph={CheckIcon} />
-        </span>
-        <span className="ui-option-well">
-          {picture ? (
-            <Picture
-              src={picture.src}
-              alt=""
-              width={picture.width}
-              height={picture.height}
-              fit="contain"
-              lazy={lazy}
-            />
-          ) : kind ? (
-            <KindMark kind={kind} size="lg" />
-          ) : null}
-        </span>
-        <span className="ui-option-words">
-          <span className="ui-option-name">{name}</span>
-          {facts ? <span className="ui-option-facts">{facts}</span> : null}
-          {detail ? <span className="ui-option-detail">{detail}</span> : null}
-          {figure === undefined ? null : (
-            <span className="ui-option-figure">
-              {figure}
-              {figureSay ? <span className="ui-option-say">{figureSay}</span> : null}
-            </span>
-          )}
-        </span>
+        {tick}
+        <span className="ui-option-well">{drawn}</span>
+        {words}
       </BaseButton>
-      {expand && picture ? (
-        <span className="ui-option-expand">
-          <ExpandPicture label={expand.label} onExpand={expand.onExpand} />
-        </span>
-      ) : null}
       {refusedBecause ? <Refusal id={reasonId}>{refusedBecause}</Refusal> : null}
     </span>
   )

@@ -1200,8 +1200,14 @@ test('a press leaves what was pressed where it was pressed', async ({ page }) =>
     'the rail head grew at the press',
   ).toBeCloseTo(fieldBefore, 0)
   /* THE STEP IS THE TOTAL'S OWN LINE AT EVERY SIZE (the critic, P-1b, 2026-10-31, below 1440;
-     and from 2026-11-02 above it too) */
-  await expect(page.getByTestId('running-total').getByTestId('last-step')).toHaveCount(1)
+     and from 2026-11-02 above it too): in its card, or below a desk in the bar that carries the
+     total over the window's foot while the card at the page's end is out of sight (the audit,
+     2026-11-02, P9) */
+  await expect(
+    page
+      .locator('[data-testid="running-total"], [data-testid="running-bar"]')
+      .getByTestId('last-step'),
+  ).toHaveCount(1)
   await expect(step).toBeInViewport({ ratio: 1 })
   /* and nothing is drawn over the rail: no toast stands anywhere */
   await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
@@ -1519,19 +1525,20 @@ test('a chapter pressed low in the room is brought up to the hand, and in a hand
 
   if (size.width >= 640) return
   /* MOVED, A HAND KEEPS THE TOTAL IN ONE ROW AT ITS FOOT (the owner, 2026-10-30: the bar is the
-     quote's identity and scrolls away with the page; the critic, P-1b, 2026-10-31: the total
-     floats folded to the figure and its caret, over the tab bar). It was a stuck head holding the
-     boat's name and the total until then. */
+     quote's identity and scrolls away with the page). Since the quote round's audit (2026-11-02, P9)
+     it is a bar with nothing folded in it, the figure over the tab bar while the total's own open
+     card at the page's end is out of sight (`TallyBar`); it floated folded, figure and caret. */
   await page.mouse.wheel(0, 600)
   await expect
     .poll(() =>
       page.evaluate(() => document.querySelector('.cfg-mast')!.getBoundingClientRect().bottom),
     )
     .toBeLessThan(0)
+  await expect(page.locator('[data-testid="running-bar"][data-up]')).toBeVisible()
   const chrome = await page.evaluate(() => {
-    const tally = document.querySelector('[data-testid="running-total"]')!.getBoundingClientRect()
+    const tally = document.querySelector('[data-testid="running-bar"]')!.getBoundingClientRect()
     const figure = document
-      .querySelector('[data-testid="running-total"] data')!
+      .querySelector('[data-testid="running-bar"] data')!
       .getBoundingClientRect()
     const pill = document.querySelector('.way-pill')?.getBoundingClientRect()
     return {
@@ -1554,32 +1561,33 @@ test('a chapter pressed low in the room is brought up to the hand, and in a hand
 
 /* PAST THE MOTOR THE BUILD IS NOT TEXT IN BOXES (the components critique, 2026-09-29, blocker
    2). A motor tile says the motor — its picture, its name, its power, weight and shaft and its
-   figure — and the pairing's rigging kit, prop and code are the workshop's, one press away
-   under it; the shut heads say what is on the quote, never a code first. Walked on the boat
-   the hero ledger photographs, at every size. */
-test('a motor tile says the motor, and its rigging kit is one press away', async ({ page }) => {
+   figure — and the pairing's rigging kit, prop and code are the workshop's; the shut heads say
+   what is on the quote, never a code first. SINCE THE QUOTE ROUND'S AUDIT (2026-11-02, P9; the
+   owner: "all dropdowns on the quote expanded by default") the workshop's words are never behind a
+   press: what is on the quote stands open at its chapter's foot. Walked on the boat the hero
+   ledger photographs, at every size. */
+test('a motor tile says the motor, and what is on the quote stands open for the workshop', async ({
+  page,
+}) => {
   expect(hero, 'the hero ledger holds no photograph of a boat').toBeDefined()
   await startAQuote(page, { table: hero!.table, model: hero!.model })
   const motor = page.getByRole('button', { name: /^02 Motor/ })
   if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
   const option = page.locator('[data-chapter="motor"] .cfg-tiles .cfg-opt').first()
   await expect(option).toBeVisible()
-  const tile = option.getByRole('button').first()
+  /* the press that puts it on, beside the well that opens its pictures (the audit, P5) */
+  const tile = option.locator('[aria-pressed]').first()
   await expect(tile).toContainText(/\d hp/)
   await expect(tile).not.toContainText(/Rigging Kit Option|Prop Part No/)
-  /* ONE "FOR THE WORKSHOP" FOR THE CHAPTER, over its tiles, never one under each (the refine
-     round, 2026-10-21) */
-  const shop = page.locator('[data-chapter="motor"]').getByRole('button', {
-    name: 'For the workshop',
-  })
-  expect(await shop.count()).toBeLessThanOrEqual(1)
-  if ((await shop.count()) > 0) {
-    await shop.scrollIntoViewIfNeeded()
-    await expect(shop).toHaveAttribute('aria-expanded', 'false')
-    await shop.click()
-    await expect(shop).toHaveAttribute('aria-expanded', 'true')
-    await expect(option.locator('.cfg-shop__facts')).toBeVisible()
-  }
+  /* NO "FOR THE WORKSHOP" PRESS ANYWHERE, and the motor put on stands open under its chapter's
+     lists with the words the workshop fits and orders it by */
+  const chapter = page.locator('[data-chapter="motor"]')
+  await expect(chapter.getByRole('button', { name: 'For the workshop' })).toHaveCount(0)
+  await tile.click()
+  await expect(tile).toHaveAttribute('aria-pressed', 'true')
+  const shop = chapter.getByRole('region', { name: /^For the workshop/ })
+  await expect(shop).toBeVisible()
+  await expect(shop.locator('.cfg-shoplist__item')).toHaveCount(1)
   for (const fact of await page.locator('.cfg-head__fact').allInnerTexts()) {
     expect(fact).not.toMatch(/^chosen:/)
   }
@@ -1613,9 +1621,11 @@ test('in a hand, the build arrives ending between two chapters, never through on
    2026-10-30, and the critic, P-1b, 2026-10-31). Until the bar became the quote's identity a head
    stuck over the page below a desk, and refine-critique.md (majors 7 and 8, 2026-10-21) read it
    for an empty photograph column, a shadow past its foot and "Total" over its figure on a phone
-   turned over. Nothing sticks there now: the bar scrolls away, and what stays is the total, folded
-   to its word, its figure and its caret in one row at the foot. Read on the Stacer 519, whose
-   stage draws Stacer's mark, and on the Formosa GRT 425, whose stage is a photograph. */
+   turned over. Nothing sticks there now: the bar scrolls away, and what stays is the total, one
+   row at the foot with nothing folded in it (`TallyBar`; the audit, 2026-11-02, P9: it was folded
+   to its word, its figure and a caret), while the total's own card, open, rests at the page's end.
+   Read on the Stacer 519, whose stage draws Stacer's mark, and on the Formosa GRT 425, whose stage
+   is a photograph. */
 test('scrolled below a desk, the bar leaves with the page and the total stays one row', async ({
   page,
 }) => {
@@ -1635,25 +1645,30 @@ test('scrolled below a desk, the bar leaves with the page and the total stays on
       window.scrollTo({ top: shot.bottom + scrollY + 40, behavior: 'instant' })
     })
     await arrived(page)
+    await expect(page.locator('[data-testid="running-bar"][data-up]')).toBeVisible()
     const read = await page.evaluate(() => {
       const mast = document.querySelector<HTMLElement>('.cfg-mast')!
-      const tally = document.querySelector<HTMLElement>('[data-testid="running-total"]')!
-      const fig = tally.querySelector('.cfg-tally__fig')!.getBoundingClientRect()
-      const lab = tally.querySelector('.cfg-tally__lab')
-      const shown = lab && getComputedStyle(lab).display !== 'none'
+      const bar = document.querySelector<HTMLElement>('[data-testid="running-bar"]')!
+      const card = document.querySelector<HTMLElement>('[data-testid="running-total"]')!
+      const fig = bar.querySelector('.cfg-bar__fig')!.getBoundingClientRect()
+      const lab = bar.querySelector('.cfg-bar__lab')!.getBoundingClientRect()
       return {
         scrolled: scrollY,
         sticks: getComputedStyle(mast).position === 'sticky',
         foot: mast.getBoundingClientRect().bottom,
-        folded: !tally.hasAttribute('data-unfolded'),
+        /* nothing folded in it: no press in it that opens or folds anything */
+        folds: bar.querySelectorAll('[aria-expanded]').length,
+        /* the card is the page's own, never floating over the build */
+        cardFloats: ['sticky', 'fixed'].includes(getComputedStyle(card).position),
         /* the word "Total" beside its figure, never on a line over it */
-        labOverFigure: shown ? lab.getBoundingClientRect().bottom <= fig.top + 0.5 : false,
+        labOverFigure: lab.bottom <= fig.top + 0.5,
       }
     })
     expect(read.scrolled, 'the page did not move').toBeGreaterThan(0)
     expect(read.sticks, `${on.model}: the bar sticks over the build`).toBe(false)
     expect(read.foot, `${on.model}: the bar did not leave with the page`).toBeLessThanOrEqual(0)
-    expect(read.folded, `${on.model}: the total stands open over the build`).toBe(true)
+    expect(read.folds, `${on.model}: the floating total folds`).toBe(0)
+    expect(read.cardFloats, `${on.model}: the total's card floats over the build`).toBe(false)
     expect(read.labOverFigure, `${on.model}: "Total" takes a line of its own`).toBe(false)
   }
 })

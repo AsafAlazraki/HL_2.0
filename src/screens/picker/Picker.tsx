@@ -27,9 +27,6 @@ import {
   STATE_GLYPH,
   Tile,
   canMorph,
-  say,
-  undo,
-  unsay,
   type Glyph,
 } from '@/ui'
 import type { EntityDef, TableKind } from '@/domain/model'
@@ -70,7 +67,7 @@ import {
 import { markOf, pictureOf, srcSetOf, type Held } from './pictures'
 import { startQuote, type Started } from './mint'
 import { stripGlyphs } from './glyphs'
-import { spokenFact } from './facts'
+import { spokenFacts } from './facts'
 import { boatTravel, markTravel } from './travel'
 import './picker.css'
 
@@ -377,7 +374,20 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
   )
 
   const press = useCallback(() => {
-    if (!model || !subject || (shelf?.refusal ?? '') !== '') return
+    if (!model || !subject) return
+    /* A PART ON ITS OWN IS ONE PRESS (the owner, 2026-10-30: "or even dealer fit things as
+       well and you can sell those as well"; the quote round's audit, 2026-11-02, S1: Parts &
+       Accessories refused until a second press). Where the place is still sold only with a
+       boat, the act sells it on its own first — Northside's own setting (`letQuote`), one step
+       in History and on the place's Settings, said on the plate before the press — and then
+       starts the quote. */
+    if (shelf && shelf.refusal !== '') {
+      const opened = catalogue.getState().apply(letQuote(shelf.moduleId, true))
+      if (!isDone(opened) && opened.refused !== '') {
+        setStarted({ ok: false, refused: opened.refused })
+        return
+      }
+    }
     const outcome = startQuote(
       {
         tableId: model.tableId,
@@ -506,7 +516,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                 toMakers={toMakers}
                 lifted={lift.mark}
                 allWord={allWord}
-                held={searched.heldBack.map((h) => h.sentence).join(' ')}
+                held={searched.heldBack.map((h) => h.short).join(' ')}
               />
               <Gallery
                 brand={brand}
@@ -533,8 +543,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                   press={press}
                   goes={openQuote !== undefined}
                   noun={noun}
-                  shut={shelf?.refusal ?? ''}
-                  moduleId={shelf?.moduleId ?? null}
+                  opens={shelf !== null && shelf.refusal !== '' ? shelf.name : null}
                 />
               ) : null}
             </>
@@ -546,7 +555,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
               announcing that nothing happened is not drawn. */}
           {fleet.heldBack.length > 0 ? (
             <p className="picker-held picker-held--floor">
-              {fleet.heldBack.map((h) => h.sentence).join(' ')}
+              {fleet.heldBack.map((h) => h.short).join(' ')}
             </p>
           ) : null}
         </div>
@@ -671,6 +680,20 @@ const DOOR_SIZES = '(max-width: 833px) 50vw, 25vw'
 const FEATURED_SIZES = '(max-width: 833px) 100vw, 50vw'
 const CARD_SIZES = '(max-width: 833px) 50vw, 16rem'
 const PLATE_SIZES = '(max-width: 833px) 100vw, 34rem'
+/**
+ * THE PLATE'S PHOTOGRAPH IN THE FIXED ROOM IS AS WIDE AS ITS HEIGHT ASKS (the quote round's
+ * audit, 2026-11-02, S2). There the picture takes the plate's height less its crest, figures and
+ * foot, and a scene is cropped to fill that box: at 1920 x 1080 the box was 544 x 529, so a 3:2
+ * photograph was drawn 793px wide, and `34rem` fetched the 640px copy — 1.24x its pixels, soft.
+ * So in that room the width asked for is the larger of the plate's and the box's height times
+ * the picture's own shape. The room around the box is 551px at 1080 (the band, the crest, the
+ * figures and the foot), written as 32rem so the guess errs wide, as every frame here does. A
+ * studio render is shown whole (`scale-down`), never cropped, and keeps the plain sizes.
+ */
+const plateSizes = (held: Held): string =>
+  held.verdict !== 'scene' || held.h <= 0
+    ? PLATE_SIZES
+    : `(max-width: 833px) 100vw, (min-width: 1200px) and (min-height: 700px) max(34rem, calc((100vh - 32rem) * ${(held.w / held.h).toFixed(3)})), 34rem`
 /** No photograph of this boat, in the one sentence every screen uses (docs/WORDS.md). */
 const NO_PHOTOGRAPH_YET = 'No photograph of this boat yet.'
 
@@ -881,9 +904,10 @@ const doorLabel = (b: Brand, one = 'model', many = 'models'): string =>
  * what price. No pictures: a shelf's lists are told apart by their makers, and the photographs
  * they hold were a cut-out here, a lone photograph there and an empty tile with a glyph in a
  * third (the critic, 2026-10-31, S-4). Beside the boats on a desk, so the first window answers
- * "What are you selling?" whole. A shelf that is sold only with a boat says so under its name,
- * with the switch that changes it (`letQuote`); its rows still open, so what is on it can be
- * looked at.
+ * "What are you selling?" whole. EVERY SHELF STARTS A QUOTE (the quote round's audit,
+ * 2026-11-02, S1): a place Northside still sells only with a boat is not refused here, as it was
+ * until a "Sell it on its own too" was pressed; its plate says that starting the quote sells it
+ * on its own, and the act does both in one press.
  */
 function Shelves({
   sold,
@@ -940,12 +964,6 @@ function Shelf({
         <KindMark kind={shelf.doors[0]?.kind ?? 'custom'} size="sm" />
         {shelf.name}
       </h3>
-      {shelf.refusal === '' ? null : (
-        <div className="picker-shelf__shut" data-seam="">
-          <p>{shelf.refusal}</p>
-          <SellAlone moduleId={shelf.moduleId} />
-        </div>
-      )}
       <ul className="picker-shelf__rows">
         {lists.map(({ door, brand }, i) => (
           <li
@@ -1012,35 +1030,6 @@ function ShelfRow({
         </span>
       </span>
     </Tile>
-  )
-}
-
-const SELL_STEP = 'picker-sell-alone'
-
-/** THE SWITCH, WHERE THE REFUSAL IS: Northside's own setting for the place (`letQuote`, the
- *  same one step with its Undo as the place's Settings tab), pressed from New quote. */
-function SellAlone({ moduleId }: { moduleId: string }) {
-  const press = (): void => {
-    const outcome = catalogue.getState().apply(letQuote(moduleId, true))
-    if (!isDone(outcome)) {
-      if (outcome.refused !== '') say(outcome.refused, { id: SELL_STEP })
-      return
-    }
-    unsay(SELL_STEP)
-    const eventId = outcome.event.id
-    undo(
-      outcome.said,
-      () => {
-        const back = catalogue.getState().undo(eventId)
-        say(isDone(back) ? back.said : back.refused || 'Nothing to change.', { id: SELL_STEP })
-      },
-      { id: SELL_STEP },
-    )
-  }
-  return (
-    <Button intent="secondary" size="sm" onClick={press}>
-      Sell it on its own too
-    </Button>
   )
 }
 
@@ -1256,6 +1245,7 @@ function Gallery({
                 <SeriesBlock
                   key={group.key}
                   brand={section.brand}
+                  noun={nouns.get(section.brand.id)}
                   group={group}
                   chosen={chosen}
                   toBoat={toBoat}
@@ -1370,11 +1360,15 @@ function BrandSay({
 
 function SeriesBlock({
   brand,
+  noun = MODEL_NOUN,
   group,
   chosen,
   toBoat,
 }: {
   brand: Brand
+  /** what one thing on this list is called, where it is not a boat maker's: a series of parts
+   *  holds "4 products", never "4 models" */
+  noun?: readonly [string, string] | undefined
   group: Series
   chosen: Model | null
   toBoat: (model: Model) => void
@@ -1390,7 +1384,7 @@ function SeriesBlock({
             {group.name === '' ? 'Not in a series' : group.label}
           </span>
           <span className="picker-serieshead__n">
-            {countOf(group.models.length, 'model', 'models')}
+            {countOf(group.models.length, ...noun)}
             {/* THE DATE THE FILE STAMPED THIS SERIES WITH, beside its count and
                 never in its name: "Fisher Series", 5 models · as at 18.03.2026
                 (m2-last-critique.md, major 6) */}
@@ -1595,8 +1589,7 @@ function Plate({
   press,
   goes,
   noun,
-  shut,
-  moduleId,
+  opens,
 }: {
   model: Model
   /** the version the quote opens on (`openingOf`), or the one the address names */
@@ -1610,10 +1603,9 @@ function Plate({
   goes: boolean
   /** what one of these is called — "boat", "motor", "product" */
   noun: string
-  /** why this place cannot start a quote on its own, or '' */
-  shut: string
-  /** the place in the business that would be switched on, where it is shut */
-  moduleId: string | null
+  /** the place the act sells on its own as it starts the quote, where Northside still sells it
+   *  only with a boat; null where it already sells on its own */
+  opens: string | null
 }) {
   const sayId = useId()
   /* THE ACT AND ITS SENTENCE, as one block the window can be brought to. */
@@ -1626,9 +1618,14 @@ function Plate({
   const plateSet = picture ? srcSetOf(picture) : undefined
   const back: PickerAt = { brand: model.tableId }
 
-  /* THE ONE REFUSAL LEFT: a place that does not sell on its own. A boat's material and colour
-     no longer hold the act back (the owner, 2026-10-30): they are chosen in the hull section. */
-  const refusal = shut !== '' ? shut : undefined
+  /* NOTHING HOLDS THE ACT BACK ANY MORE. A boat's material and colour are chosen in the hull
+     section (the owner, 2026-10-30), and a place still sold only with a boat is sold on its own
+     by the press itself (2026-11-02), which says so here before it is pressed: a setting that
+     changes is never changed silently. */
+  const sells =
+    opens === null
+      ? ''
+      : `${opens} has been sold only with a boat. Starting this quote sells it on its own from now on.`
 
   /* WHAT THE BUILD WILL ASK, SAID WHERE THE ACT IS: a model built in more than one version opens
      on the one its "from" figure prices, and the rest are a press away in the build, where the
@@ -1699,7 +1696,7 @@ function Plate({
               className="picker-shot__img"
               data-art={picture.verdict === 'scene' ? 'scene' : 'studio'}
               src={picture.at}
-              {...(plateSet ? { srcSet: plateSet, sizes: PLATE_SIZES } : {})}
+              {...(plateSet ? { srcSet: plateSet, sizes: plateSizes(picture) } : {})}
               alt={picture.subject === '' ? model.shown : picture.subject}
               width={picture.w}
               height={picture.h}
@@ -1754,14 +1751,14 @@ function Plate({
               )}
             </div>
 
-            <div className="picker-act" data-waits={refusal === undefined ? undefined : ''}>
+            <div className="picker-act">
               {/* THE ONE LOUD PRESS ENDS ON ITS ARROW IN A DARK DISC, which
                   nudges forward under the pointer (the kit's act) */}
               <Button
                 intent="act"
                 icon={ArrowRightIcon}
                 onClick={press}
-                refusedBy={refusal === undefined ? undefined : sayId}
+                aria-describedby={sells === '' ? undefined : sayId}
               >
                 {standing ? 'Open the draft already standing' : 'Start the quote'}
               </Button>
@@ -1769,12 +1766,10 @@ function Plate({
           </div>
 
           <p className="picker-act__say" id={sayId}>
-            {refusal ??
-              (standing
-                ? `A draft for this ${noun} is already started with nobody named on it, so this reopens it rather than starting a second.`
-                : later)}
+            {standing
+              ? `A draft for this ${noun} is already started with nobody named on it, so this reopens it rather than starting a second.`
+              : [sells, later].filter((said) => said !== '').join(' ')}
           </p>
-          {shut !== '' && moduleId !== null ? <SellAlone moduleId={moduleId} /> : null}
         </div>
 
         {started ? <Made started={started} goes={goes} /> : null}
@@ -1826,10 +1821,9 @@ function Made({ started, goes }: { started: Started; goes: boolean }) {
  * bare figure.
  */
 function Strip({ model }: { model: Model }) {
-  const facts = model.facts.map((fact) => ({
-    ...fact,
-    ...spokenFact(measured(model.tableId, fact)),
-  }))
+  /* IN THE BUILD'S OWN WORDS (the quote round's audit, 2026-11-02, S5): "Length overall" and
+     "Inside length" here as on the build, never "OA length" and "Int length" */
+  const facts = spokenFacts(model.facts.map((fact) => measured(model.tableId, fact)))
   const glyphs = stripGlyphs(facts.map((f) => f.label))
   return (
     <dl className="picker-strip">

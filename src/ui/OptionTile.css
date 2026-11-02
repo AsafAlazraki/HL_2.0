@@ -1,0 +1,186 @@
+/* THE THEME FOR THIS FILE'S FUNCTIONS, WITHOUT EMITTING IT AGAIN: the component imports its own
+   stylesheet, so Tailwind compiles it on its own and `--spacing(n)` needs the theme to read. */
+@reference '../styles/app.css';
+
+/* THE TILE WHOSE WELL IS ITS OWN PRESS (OptionTile.tsx, `look`; the quote round's audit,
+   2026-11-02, P5). One card on the plate, drawn round two presses that stand side by side and never
+   over each other: the well at its start, which opens the option's pictures large (or the way to
+   give it one), and the words, which put it on the quote or take it off. Everything the kit's tile
+   says (option.css) is said the same way: the hairline and the chosen ring are the card's, the tick
+   fills, the pill fills, the well washes the plate's blue; a hover on the words lifts the card, a
+   press gives it to .985. The well answers on its own: a hover washes it, a press gives it. */
+.ui-option-frame:has(> .ui-option-card) {
+  grid-template-rows: minmax(0, 1fr);
+  grid-auto-rows: auto;
+}
+.ui-option-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: --spacing(28) minmax(0, 1fr);
+  align-items: stretch;
+  min-inline-size: 0;
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-settle) var(--ease-spring);
+}
+.ui-option-card[data-on] {
+  box-shadow: var(--ring-chosen);
+}
+.ui-option-card[data-refused] {
+  background: var(--color-plate-tint);
+  box-shadow: 0 0 0 1px var(--color-rule);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-option-card:not([data-on], [data-refused]):has(> .ui-option-press:hover:not(:focus-visible)) {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ui-option-card:not([data-on], [data-refused]):has(
+      > .ui-option-press:hover:not(:focus-visible, :active)
+    ) {
+    transform: translateY(-1px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-option-card:not([data-refused]):has(> .ui-option-press:active) {
+    transform: scale(0.985);
+  }
+}
+
+/* THE WORDS' PRESS: the card's whole height beside the well, its words running from the name at
+   the top to the figure at the foot, the tick in the card's top end corner */
+.ui-option-press {
+  position: relative;
+  display: grid;
+  align-items: stretch;
+  min-inline-size: 0;
+  padding: --spacing(2) --spacing(2) --spacing(2) --spacing(3);
+  border: 0;
+  border-radius: 0 var(--radius-tile) var(--radius-tile) 0;
+  font: inherit;
+  text-align: start;
+  color: var(--color-ink);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ui-option-press[aria-disabled='true'] {
+  color: var(--color-ink-2);
+  cursor: not-allowed;
+}
+.ui-option-press:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 --spacing(0.75) var(--color-accent);
+}
+.ui-option-press[aria-pressed='true'] .ui-option-tick {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: none;
+}
+.ui-option-press[aria-pressed='true'] .ui-option-figure {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+}
+.ui-option-press[aria-pressed='true'] .ui-option-say {
+  color: var(--color-ink-on-accent);
+}
+
+/* THE WELL'S PRESS: the picture whole on the plate, centred in the card's start, as the kit's
+   well draws it; a zoom-in pointer where it opens pictures, and its corner says what it opens */
+.ui-option-look {
+  position: relative;
+  /* AT THE CARD'S TOP START CORNER, beside the name, so it stands at the same place on every tile of
+     a list whatever the height of the card (the owner, 2026-10-31: "its picture-open at the same
+     place on every row") */
+  align-self: start;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  block-size: --spacing(21);
+  margin: --spacing(2) 0 --spacing(2) --spacing(2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-field);
+  overflow: hidden;
+  font: inherit;
+  color: inherit;
+  background: var(--color-plate);
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--duration-settle) var(--ease-spring),
+    transform var(--duration-press) var(--ease-out);
+}
+.ui-option-look[data-act='add'] {
+  cursor: pointer;
+  background: var(--color-plate-tint);
+}
+.ui-option-look > .ui-picture {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.ui-option-card[data-on] .ui-option-look {
+  background: var(--color-plate-tint);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-option-look:hover {
+    background: var(--color-plate-tint);
+  }
+  .ui-option-look:hover .ui-option-look__mark {
+    color: var(--color-ink-file);
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-option-look:active {
+    transform: scale(0.97);
+  }
+}
+.ui-option-look:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+/* ITS CORNER: a small pill of the plate on its hairline, the glyph and the count, in the well's
+   bottom end corner where a render's foot is plate */
+.ui-option-look__mark {
+  position: absolute;
+  inset-block-end: --spacing(1);
+  inset-inline-end: --spacing(1);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(0.5);
+  min-block-size: --spacing(6);
+  min-inline-size: --spacing(6);
+  box-sizing: border-box;
+  justify-content: center;
+  padding: 0 --spacing(1);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-2xs);
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  background: --alpha(var(--color-plate) / 92%);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  transition:
+    color var(--duration-hover) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
+}
+
+/* IN A HAND THE WELL GIVES THE WORDS ITS WIDTH, as the kit's tile does (option.css) */
+@media (max-width: 639.98px) {
+  .ui-option-card {
+    grid-template-columns: --spacing(20) minmax(0, 1fr);
+  }
+  .ui-option-look {
+    block-size: --spacing(16);
+  }
+}

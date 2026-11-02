@@ -3,7 +3,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR, throughTheDoor, withoutTheFile } from '../door'
-import { issueIt, openTheDocument, raiseTheRung, startAQuote } from '../mint'
+import {
+  cameToRest,
+  issueIt,
+  openTheDocument,
+  pickAndStart,
+  raiseTheRung,
+  startAQuote,
+} from '../mint'
+import { decodePng } from '../rulers/measure/pixels'
 import { APP_NAME, DOORS } from '../../src/app/ways'
 import { initialsOf } from '../../src/domain/shell/crest'
 import { HOME_READY } from '../routes'
@@ -393,7 +401,11 @@ test.describe('the shell', () => {
     expect(name).toContain(/\(([^)]+)\)/.exec(label)?.[1] ?? label)
     const at = decodeURIComponent(new URL(page.url()).searchParams.get('at') ?? '')
     expect(at).toBe(adv9.id)
-    await expect(page.getByRole('grid', { name: /Highfield/ })).toHaveAttribute(
+    /* in a hand the record is a dialog over the list, and the list behind it is out of the
+       accessibility tree while it stands; its cursor is still the row's */
+    await expect(
+      page.getByRole('grid', { name: /Highfield/, includeHidden: true }),
+    ).toHaveAttribute(
       'aria-activedescendant',
       new RegExp(`^sh-cell-${at.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-`),
     )
@@ -937,4 +949,141 @@ test('Find stands before Home in the bar at every size, a phone’s tab bar incl
   if (!phone) await expect(find).toHaveText('Find')
   await page.keyboard.press('Control+k')
   await expect(page.getByTestId('shell-finder')).toBeVisible()
+})
+
+/* ============================================================
+   THE BAR OVER A MOVING PAGE, AND THE TOAST BESIDE IT (the quote-3
+   audit, 2026-11-02, H1 and H2). A picture of each at every size the
+   projects run is written under docs/directions/quote-3/shell/.
+   ============================================================ */
+const SHOTS = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'docs',
+  'directions',
+  'quote-3',
+  'shell',
+)
+
+test('over a scrolled build nothing of the page reads beside the bar, below a desk', async ({
+  page,
+}, info) => {
+  test.setTimeout(180_000)
+  await startAQuote(page)
+  await expect(page.getByTestId('running-total')).toBeVisible()
+  await cameToRest(page)
+  /* THE HULL'S MODEL LINE PUT AT THE BAR'S MIDDLE, where the audit read "MODEL P…" either side
+     of it at 844 x 390. At a desk the chapters scroll in their own column and the window does
+     not move; in a hand the bar is at the foot. */
+  const model = page.getByText('Model', { exact: true }).first()
+  await model.evaluate((el) => {
+    const pill = document.querySelector('.way-pill')!.getBoundingClientRect()
+    const line = el.getBoundingClientRect()
+    const middle = pill.top + pill.height / 2 - line.height / 2
+    const scroller = document.querySelector<HTMLElement>('.cfg-scroll')
+    const moves = scroller && scroller.scrollHeight > scroller.clientHeight + 1
+    if (moves && getComputedStyle(scroller).overflowY === 'auto')
+      scroller.scrollBy({ top: line.top - middle, behavior: 'instant' })
+    else scrollBy({ top: line.top - middle, behavior: 'instant' })
+  })
+  await cameToRest(page)
+  await page.waitForTimeout(300)
+  const shot = await page.screenshot({
+    path: path.join(SHOTS, `h1-scrolled-build-${info.project.name}.png`),
+  })
+
+  /* BELOW A DESK THE EDGE IS THE ROOM'S FLOOR TO THE BAR'S FOOT: either side of the bar, over its
+     whole height, every pixel is that one floor, and no glyph of the page is in it. In a hand the
+     bar is at the foot (its own walk above); at a desk the window does not move. */
+  const width = page.viewportSize()?.width ?? 0
+  if (width < 600 || width >= 1200) return
+  const pill = (await page.getByTestId('shell-pill').boundingBox())!
+  expect(
+    await page.evaluate(() => scrollY),
+    'the window was scrolled under the bar',
+  ).toBeGreaterThan(100)
+  const image = decodePng(shot)
+  const at = (x: number, y: number): number[] => {
+    const i = (y * image.width + x) * 4
+    return [image.data[i]!, image.data[i + 1]!, image.data[i + 2]!]
+  }
+  const floor = at(2, Math.round(pill.y + pill.height / 2))
+  const stray: string[] = []
+  const sides = [
+    [0, Math.floor(pill.x) - 8],
+    [Math.ceil(pill.x + pill.width) + 8, image.width],
+  ] as const
+  for (const [from, to] of sides)
+    for (let y = Math.ceil(pill.y); y < Math.floor(pill.y + pill.height); y += 1)
+      for (let x = from; x < to; x += 1) {
+        const p = at(x, y)
+        if (p.some((c, i) => Math.abs(c - floor[i]!) > 3)) stray.push(`${x},${y}`)
+      }
+  expect(stray.slice(0, 5), `${stray.length} pixels beside the bar are not the floor`).toEqual([])
+})
+
+test('from 1440 the toast ends on the page’s gutter beside the bar, and stands at the foot while a picture is open', async ({
+  page,
+}, info) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await pickAndStart(page, 'boat_highfield', 'SP560')
+  await cameToRest(page)
+  const opener = page.getByRole('button', { name: /^See the boat’s \d+ pictures larger$/ })
+  await opener.scrollIntoViewIfNeeded()
+  await opener.click()
+  const large = page.locator('.ui-lightbox')
+  await expect(large).toBeVisible()
+  await page.keyboard.press('ArrowRight')
+  await large.getByRole('button', { name: 'Make it the cover' }).click()
+  const toast = page.locator('[data-sonner-toast] .ui-toast')
+  await expect(toast).toBeVisible()
+  await page.waitForTimeout(600)
+  await page.screenshot({
+    path: path.join(SHOTS, `h2-toast-over-a-picture-${info.project.name}.png`),
+  })
+  const width = page.viewportSize()?.width ?? 0
+  if (width >= 1440) {
+    /* WHILE THE PICTURE IS OPEN the card stands over none of the plate's words, presses or picture */
+    const under = await toast.evaluate((card) => {
+      const t = card.getBoundingClientRect()
+      const meets = (b: DOMRect): boolean =>
+        b.width > 0 && b.left < t.right && b.right > t.left && b.top < t.bottom && b.bottom > t.top
+      return [...document.querySelectorAll('.ui-lightbox *')]
+        .filter((el) => {
+          const own = [...el.childNodes].some(
+            (n) => n.nodeType === Node.TEXT_NODE && (n.textContent ?? '').trim() !== '',
+          )
+          return own || el.matches('button, img, a')
+        })
+        .filter((el) => meets(el.getBoundingClientRect()))
+        .map((el) => (el.textContent ?? el.tagName).trim().slice(0, 40) || el.tagName)
+    })
+    expect(under, 'the toast stands over the open picture’s plate').toEqual([])
+    /* and it stands at the foot, inside the window */
+    const t = (await toast.boundingBox())!
+    const height = page.viewportSize()?.height ?? 0
+    expect(t.y, 'the toast stands at the foot while a picture is open').toBeGreaterThan(height / 2)
+    expect(t.y + t.height).toBeLessThanOrEqual(height - 8)
+  }
+
+  await page.keyboard.press('Escape')
+  await expect(large).toBeHidden()
+  await expect(toast).toBeVisible()
+  await page.waitForTimeout(600)
+  await page.screenshot({
+    path: path.join(SHOTS, `h2-toast-on-the-build-${info.project.name}.png`),
+  })
+  if (width < 1440) return
+  /* BESIDE THE BAR: 16px off its end, its own end on the build's edge, and above the build's head */
+  const t = (await toast.boundingBox())!
+  const pill = (await page.getByTestId('shell-pill').boundingBox())!
+  const mast = (await page.locator('.cfg-mast__bar').boundingBox())!
+  expect(t.x, 'the toast keeps 16px off the bar').toBeGreaterThanOrEqual(pill.x + pill.width + 15.5)
+  expect(
+    Math.abs(t.x + t.width - (mast.x + mast.width)),
+    'the toast ends on the build’s edge',
+  ).toBeLessThanOrEqual(0.5)
+  expect(t.y + t.height, 'the toast stands above the build’s head').toBeLessThanOrEqual(mast.y)
 })

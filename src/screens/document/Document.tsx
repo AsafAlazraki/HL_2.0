@@ -46,8 +46,17 @@ import {
 import type { QuoteDef } from '@/domain/model'
 import { DOORS, NO_WAYS, type Way } from '@/app/ways'
 import { glyphOfWay } from '@/screens/shell/glyphs'
-import { itemOf, letterheadOf, lineOf, type HeldPicture } from '@/data/pictures'
-import { coverArt, groundOf, hostOf, nightMarkOf, pictured, spanOf, type CoverArt } from './art'
+import { itemOf, letterheadOf, lineOf, pictureOfQuote, type HeldPicture } from '@/data/pictures'
+import {
+  coverArt,
+  coverSay,
+  groundOf,
+  nightMarkOf,
+  notPrintedSay,
+  pictured,
+  spanOf,
+  type CoverArt,
+} from './art'
 import { DESK_GLYPH, boatTravel, pricedAtGlyph } from './glyphs'
 import { paginate, type Atom } from './paginate'
 import {
@@ -487,8 +496,21 @@ function Sheaf({
   const doc = useMemo(() => kitsOnPaper(readDocument(drawn)), [drawn])
   /* THE BOAT'S PICTURE, READ BY THE ONE READER THE BUILD'S STAGE READS BY (`@/data/pictures`):
      the model on the water, then the row's own copy, then the maker's mark — asked with the
-     quote alone, because the paper renders with no catalogue at all */
-  const art = useMemo(() => coverArt(quote, registerOf(doc)), [quote, doc])
+     quote alone, because the paper renders with no catalogue at all. Read again when Northside's
+     own pictures or a gallery's cover move, which the reader lays over the ledgers. */
+  const own = useCatalogue((s) => s.ownPictures)
+  const galleries = useCatalogue((s) => s.galleries)
+  const art = useMemo(
+    () => coverArt(quote, registerOf(doc)),
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the store's records move the reader's answer
+    [quote, doc, own, galleries],
+  )
+  /* AND THE PICTURE THE BUILD SHOWS, so the note can say where the two differ, and why */
+  const shown = useMemo(
+    () => pictureOfQuote(quote),
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the store's records move the reader's answer
+    [quote, own, galleries],
+  )
 
   /* THE NAME THE BUILD'S PHOTOGRAPH TRAVELS UNDER — the row this quote is written against —
      so the finale's picture lands on the cover (PLAN.md § "Motion choreography for the flow") */
@@ -760,7 +782,7 @@ function Sheaf({
             room has to say about it; a grid puts the note in the margin
             at a desk width, which changes where it is drawn and never
             where it is read. */}
-        <DeskNote doc={doc} art={art} />
+        <DeskNote doc={doc} art={art} shown={shown} />
       </div>
     </Root>
   )
@@ -905,9 +927,12 @@ export const NO_WRITTEN_PAGES =
 export const NO_SPECS =
   'The price list gives no specifications for this, so there is none to print.'
 
-/** Why there are no pictures to put beside the lines. */
+/** Why there are no pictures to put beside the lines, and what puts one there (the quote round's
+ *  audit, 2026-11-02, D2: the build shows the makers' pictures on the tiles, and the panel said only
+ *  that none could print). A maker's picture on the build is not a person's check that it shows
+ *  the exact item, so the customer's copy carries only one a person checked or Northside added. */
 export const NO_LINE_PICTURES =
-  'No item on this quote has a picture marked as that exact item, so there is none to print beside it.'
+  'No item on this quote has a picture checked as that exact item yet. A picture Northside adds to an item on the build prints beside it.'
 
 /** Why Northside's terms cannot be printed. */
 export const NO_TERMS_SET = 'No terms are written on Settings yet.'
@@ -1163,7 +1188,16 @@ function SectionsPanel({
  * desk: what is not on the quote, why a line reads as it does, then the
  * workshop's facts and the codes, then the letterhead and the picture.
  */
-function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
+function DeskNote({
+  doc,
+  art,
+  shown,
+}: {
+  doc: PrintedQuote
+  art: CoverArt
+  /** the picture the build shows for what is sold, or null */
+  shown: HeldPicture | null
+}) {
   const census = offeredOf(doc)
   const leftOff = census.filter((o) => o.took === 0)
   const alsoOffered = census.filter((o) => o.took > 0)
@@ -1176,17 +1210,10 @@ function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
   const noun = subjectNoun(doc)
   /* WHAT THE PICTURE SHOWS AND WHOSE IT IS, and not how it is drawn (the refine critique, 18;
      docs/WORDS.md rule 1): it led with "1,917 × 845 pixels, printed whole at 658 × 290, never
-     enlarged", the screen's measurement of its own drawing, told to a dealer. */
-  const picture =
-    art.kind === 'photograph'
-      ? `${
-          art.held.tier === 'hero'
-            ? `The ${art.held.subject}, as its maker photographed it,`
-            : art.held.verdict === 'scene'
-              ? 'A photograph on the water,'
-              : `A ${art.held.verdict} picture,`
-        } from ${hostOf(art.held.address)}.`
-      : art.because
+     enlarged", the screen's measurement of its own drawing, told to a dealer. And where the build
+     shows a picture the cover does not print, which one and why (`notPrintedSay`). */
+  const picture = coverSay(art, noun)
+  const unprinted = notPrintedSay(shown, art, noun, !doc.issued)
 
   return (
     /* THE NOTE IS THE KIT'S WHITE PLATE ON THE FLOOR, beside the paper and never on it. The
@@ -1288,6 +1315,7 @@ function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
             </DeskRow>
             <DeskRow word="The cover picture" glyph={DESK_GLYPH.picture}>
               {picture}
+              {unprinted === '' ? '' : ` ${unprinted}`}
             </DeskRow>
           </dl>
         </div>

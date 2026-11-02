@@ -637,12 +637,12 @@
 }
 
 /* =====================================================================
-   THE ARRIVAL — once a session, at the door, never on a return.
+   THE ARRIVAL — once a visit, where the visit began (Home or the door), never on a return.
 
    Northside's name rises onto the water letter by letter out of a blur, a beat apart
    (`--stagger-letter`), each over `--duration-arrive`; the rest of the name follows the last
-   letter; the water comes up under it; the greeting and the ask rise; the work, the photographs
-   one by one, and the doors come into focus after, where they rest and never moved. Every
+   letter; the water comes up under it; the greeting and the ask rise with it; the work, the
+   photographs one by one and the doors fade in where they rest, never moved and never blurred. Every
    keyframe runs FROM a step away and fills BACKWARDS only, so nothing is held once landed. Never under reduced motion, and paused while a caret
    is in a field (`data-still`). No figure moves.
    ===================================================================== */
@@ -662,63 +662,55 @@
     animation: home-letter calc(var(--duration-arrive) * 1.4) var(--ease-out) backwards;
     animation-delay: var(--duration-press);
   }
+  /* THE WORK, THE PHOTOGRAPHS AND THE DOORS DO NOT WAIT FOR THE NAME (the quote round's audit,
+     2026-11-02, S3): each waited the name's whole rise and more — 900ms to 1,145ms — and came
+     out of a blur, so 561ms into the arrival at 1440 not one of the 16 pictures could be seen and
+     the main thread spent the rest repainting sixteen blurs. Now each fades in where it rests,
+     opacity alone, a beat after the press (`--duration-press`) and a beat apart; the last of
+     eight has landed by about 750ms while the name is still rising. */
   .home[data-arrive] .home-hello,
   .home[data-arrive] .home-ask,
   .home[data-arrive] .home-sea-foot {
     animation: home-rises var(--duration-reveal) var(--ease-out) backwards;
-    animation-delay: var(--duration-arrive);
+    animation-delay: var(--duration-press);
   }
   .home[data-arrive] .home-job {
     --n: 0;
     animation: home-settles var(--duration-reveal) var(--ease-out) backwards;
-    animation-delay: calc(
-      var(--duration-arrive) + var(--duration-press) + var(--n) * var(--stagger-letter) * 2
-    );
+    animation-delay: calc(var(--duration-enter) + var(--n) * var(--stagger-letter));
   }
   .home[data-arrive] .home-boat,
   .home[data-arrive] .home-door {
     animation: home-settles var(--duration-reveal) var(--ease-out) backwards;
-    animation-delay: calc(var(--duration-arrive) + var(--duration-enter));
+    animation-delay: var(--duration-press);
   }
   .home[data-arrive] .home-boat:nth-child(2),
   .home[data-arrive] .home-door:nth-child(2) {
-    animation-delay: calc(var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter));
+    animation-delay: calc(var(--duration-press) + var(--stagger-letter));
   }
   .home[data-arrive] .home-boat:nth-child(3),
   .home[data-arrive] .home-door:nth-child(3) {
-    animation-delay: calc(
-      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 2
-    );
+    animation-delay: calc(var(--duration-press) + var(--stagger-letter) * 2);
   }
   .home[data-arrive] .home-boat:nth-child(4),
   .home[data-arrive] .home-door:nth-child(4) {
-    animation-delay: calc(
-      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 3
-    );
+    animation-delay: calc(var(--duration-press) + var(--stagger-letter) * 3);
   }
   .home[data-arrive] .home-boat:nth-child(5),
   .home[data-arrive] .home-door:nth-child(5) {
-    animation-delay: calc(
-      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 4
-    );
+    animation-delay: calc(var(--duration-press) + var(--stagger-letter) * 4);
   }
   .home[data-arrive] .home-boat:nth-child(6),
   .home[data-arrive] .home-door:nth-child(6) {
-    animation-delay: calc(
-      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 5
-    );
+    animation-delay: calc(var(--duration-press) + var(--stagger-letter) * 5);
   }
   .home[data-arrive] .home-boat:nth-child(7),
   .home[data-arrive] .home-door:nth-child(7) {
-    animation-delay: calc(
-      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 6
-    );
+    animation-delay: calc(var(--duration-press) + var(--stagger-letter) * 6);
   }
   .home[data-arrive] .home-boat:nth-child(n + 8),
   .home[data-arrive] .home-door:nth-child(n + 8) {
-    animation-delay: calc(
-      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 7
-    );
+    animation-delay: calc(var(--duration-press) + var(--stagger-letter) * 7);
   }
   :root[data-still] .home[data-arrive] * {
     animation-play-state: paused;
@@ -748,14 +740,14 @@
     translate: 0 --spacing(3);
   }
 }
-/* THE CARDS, THE PHOTOGRAPHS AND THE DOORS COME INTO FOCUS WHERE THEY REST, never moved: a row
-   drawn 12px under its place hung past the window's foot while it arrived (a page that fits 800
-   in 800 must fit while it is arriving too), and a door that grew into place stood somewhere
-   else for a moment, under a keyboard user's ring */
+/* THE CARDS, THE PHOTOGRAPHS AND THE DOORS FADE IN WHERE THEY REST, never moved: a row drawn
+   12px under its place hung past the window's foot while it arrived (a page that fits 800 in 800
+   must fit while it is arriving too), and a door that grew into place stood somewhere else for a
+   moment, under a keyboard user's ring. NEVER OUT OF A BLUR (2026-11-02, the owner: "nothing
+   blurry"): a photograph is sharp the first frame it is seen. */
 @keyframes home-settles {
   from {
     opacity: 0;
-    filter: blur(--spacing(1));
   }
 }
 

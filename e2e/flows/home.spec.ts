@@ -225,8 +225,9 @@ test('day one: Northside on the water, the find beside the act, the boats and th
     await expect(doors.getByRole('button', { name: new RegExp(`^${maker} `) })).toHaveCount(0)
     await expect(doors).toContainText(maker)
   }
+  /* REWRITTEN 2026-11-02 (the quote round's audit, S4): New quote sells both on their own */
   await expect(doors).toContainText(
-    /trailers from \d+ makers, are chosen in the build, on the boat\./,
+    /trailers from \d+ makers, are sold on a boat, or on their own from New quote\./,
   )
   /* a mark is never drawn past the copy held, and Stabicraft, with none held, is set in type */
   const marks = doors.locator('img')
@@ -607,6 +608,87 @@ test('the second visit draws the same screen without reading the file again', as
     await expectOneScreen(page, 'the second visit')
   }
 })
+
+/* ============================================================
+   HOME'S ENTRANCE IS QUICK, AND A PRESS FROM ANOTHER SCREEN IS A RETURN (the quote round's
+   audit, 2026-11-02, S3: a visit opened on Quotes, then Home pressed, played the whole arrival
+   — at 1440, 0 of 16 pictures could be seen at 561ms and 16 at 1,983ms, the wordmark a blur and
+   both rows empty mid-way). Two questions, asked of the animations the page itself reports:
+   at the door, does any photograph, door or card come out of a blur or land past 800ms; and
+   pressed from Quotes, is anything arriving at all.
+   ============================================================ */
+/* eslint-disable unicorn/consistent-function-scoping -- the reading functions below run INSIDE
+   the page (`page.evaluate`), where nothing from this file's scope exists to hoist them to */
+test('the arrival at the door lands its pictures quickly and sharp, and Home pressed from Quotes is at rest', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('home')).toHaveAttribute('data-arrive', '')
+  /* every picture, door and card: the keyframes it arrives by, and when it lands — read off
+     the computed style and the stylesheet, so an arrival that has already landed by the time
+     this reads is still read */
+  const landing = await page.evaluate(() => {
+    const ms = (t: string): number =>
+      Math.max(
+        ...t
+          .split(',')
+          .map((one) => (one.trim().endsWith('ms') ? parseFloat(one) : parseFloat(one) * 1000)),
+      )
+    const played = new Set<string>()
+    const ends: number[] = []
+    for (const el of document.querySelectorAll('.home-boat, .home-door, .home-job')) {
+      const style = getComputedStyle(el)
+      if (style.animationName === 'none') continue
+      played.add(style.animationName)
+      ends.push(ms(style.animationDelay) + ms(style.animationDuration))
+    }
+    const flat = (rules: CSSRuleList): CSSRule[] =>
+      [...rules].flatMap((rule) => (rule instanceof CSSGroupingRule ? flat(rule.cssRules) : [rule]))
+    const sheets = [...document.styleSheets].flatMap((sheet) => {
+      try {
+        return flat(sheet.cssRules)
+      } catch {
+        return []
+      }
+    })
+    const blur = sheets.some(
+      (rule) =>
+        rule instanceof CSSKeyframesRule &&
+        played.has(rule.name) &&
+        [...rule.cssRules].some((frame) => (frame as CSSKeyframeRule).style.filter !== ''),
+    )
+    return { names: [...played], blur, last: ends.length > 0 ? Math.max(...ends) : 0 }
+  })
+  expect(landing.names.length, 'the arrival played on its pictures and doors').toBeGreaterThan(0)
+  expect(landing.blur, 'a picture or door comes out of a blur').toBe(false)
+  expect(landing.last, 'the last picture or door lands by').toBeLessThanOrEqual(800)
+
+  /* a visit that begins on Quotes, and Home pressed from the bar */
+  await page.goto('/quotes')
+  await expect(page.getByTestId('quotes')).toBeVisible()
+  await page.getByTestId('shell-pill').getByRole('link', { name: /^Home/ }).first().click()
+  await expect(page.locator(HOME_READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('home')).not.toHaveAttribute('data-arrive', '')
+  /* the arrival's keyframes, and nothing else: a photograph's own fade as its bytes land (the
+     kit's Picture, an opacity transition of `--duration-reveal`) is not the arrival */
+  const arriving = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-testid="home"] *')].flatMap((el) =>
+      el
+        .getAnimations()
+        .filter(
+          (a) =>
+            a instanceof CSSAnimation &&
+            a.playState === 'running' &&
+            a.effect?.getTiming().iterations !== Infinity,
+        )
+        .map((a) => `${String(el.className)} ${(a as CSSAnimation).animationName}`),
+    ),
+  )
+  expect(arriving, 'something on Home is still arriving after a press from Quotes').toEqual([])
+  await photographsUp(boatsRegion(page))
+})
+/* eslint-enable unicorn/consistent-function-scoping */
 
 /* ============================================================
    EVERY NAME IS SAID WHOLE WHERE THERE IS ROOM FOR IT (2026-10-29, built-critique-m3-2.md

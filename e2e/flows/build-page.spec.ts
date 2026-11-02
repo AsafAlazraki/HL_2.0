@@ -156,8 +156,12 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   await expect(tally).toContainText('Not chosen yet: motor')
   await expect(page.getByRole('region', { name: /^02 Motor/ })).toContainText('Nothing on it yet')
 
-  /* 2. THE TOTAL AT THE BOTTOM LEFT, in sight at rest, over no control, clear of the shell */
-  const box = (await tally.boundingBox())!
+  /* 2. THE TOTAL AT THE BOTTOM LEFT, in sight at rest, over no control, clear of the shell: at a
+     desk its card in the boat's column; below one the bar over the window's foot, the card itself
+     open at the page's end (the audit, 2026-11-02, P9: the floating total was folded there) */
+  const inSight = desk ? tally : page.locator('[data-testid="running-bar"][data-up]')
+  await expect(inSight).toBeVisible()
+  const box = (await inSight.boundingBox())!
   expect(box.x).toBeLessThan(size.width / 2)
   expect(box.y + box.height).toBeLessThanOrEqual(size.height)
   expect(box.y).toBeGreaterThan(size.height / 3)
@@ -283,7 +287,11 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
        replaced by the final package over the window) */
     await page.mouse.wheel(0, 900)
     await cameToRest(page)
-    const after = (await tally.boundingBox())!
+    /* the total in sight is the bar over the window's foot, nothing folded in it, while its own
+       card waits open at the page's end (the audit, 2026-11-02, P9) */
+    const floating = page.locator('[data-testid="running-bar"][data-up]')
+    await expect(floating).toBeVisible()
+    const after = (await floating.boundingBox())!
     expect(after.y + after.height).toBeLessThanOrEqual(size.height)
     expect(after.y, 'no total in sight').toBeGreaterThanOrEqual(0)
     await shot('06-scrolled')
@@ -330,7 +338,8 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   await sheet.getByLabel(/^Find in /).fill('F115')
   await expect.poll(() => sheet.locator('.cfg-tiles > li').count()).toBeLessThan(tiles)
   /* a press inside it puts the motor on, and the total on the sheet says so in place */
-  await sheet.locator('.cfg-tiles .ui-option').first().click()
+  /* the tile's own press, beside the well that opens its pictures (the audit, 2026-11-02, P5) */
+  await sheet.locator('.cfg-tiles .ui-option-press').first().click()
   await expect(sheetTotal).not.toContainText('$41,340')
   await expect(tally).not.toContainText('Not chosen yet: motor')
   await shot('08-range-added')
@@ -476,7 +485,7 @@ test('the boat chosen in its chapter, and the final package over the window', as
   await cameToRest(page)
   await page
     .getByRole('region', { name: /^02 Motor/ })
-    .locator('.cfg-tiles .ui-option')
+    .locator('.cfg-tiles .ui-option-press')
     .first()
     .click()
   await expect(tally).not.toContainText('Not chosen yet: motor')

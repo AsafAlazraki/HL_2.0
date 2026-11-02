@@ -368,9 +368,13 @@ describe('a motor is the kit’s photographed tile, where the ledger holds its p
     expect(pictured.length).toBeGreaterThan(0)
     for (const row of pictured) {
       const tile = screen.getByRole('button', { name: new RegExp(`^${escape(row.tail)}\\b`) })
-      /* the picture is the row's own, resolved through the ledger — and it says nothing a
-         reader has not already heard in the tile's name */
-      const img = tile.querySelector('img')!
+      /* THE PICTURE IS ITS OWN PRESS IN THE TILE'S WELL, beside the press that puts it on (the
+         audit, 2026-11-02, P5): the row's own picture, resolved through the ledger, saying nothing
+         a reader has not already heard in the tile's name, and the well named for what it opens */
+      const card = tile.closest('.ui-option-card') as HTMLElement
+      const well = within(card).getByRole('button', { name: /^See its (\d+ )?pictures? larger$/ })
+      expect(tile.querySelector('img')).toBeNull()
+      const img = well.querySelector('img')!
       expect(img.getAttribute('src')).toBe(row.picture!.src)
       expect(img).toHaveAttribute('alt', '')
       expect(row.spec).toMatch(/^\d[\d.]* hp · \d+ kg · \d+″ shaft$/)
@@ -383,24 +387,26 @@ describe('a motor is the kit’s photographed tile, where the ledger holds its p
       const option = tile.closest('.cfg-opt') as HTMLElement
       for (const fact of row.facts) expect(option).not.toHaveTextContent(fact.full)
     }
-    /* ONE "FOR THE WORKSHOP" FOR THE CHAPTER, never one under every tile (the refine round,
-       2026-10-21), and it opens every motor's words at once */
+    /* "FOR THE WORKSHOP" IS NEVER A PRESS (the owner, 2026-10-31: "all dropdowns on the quote
+       expanded by default"): nothing is folded, and it names only what is on the quote */
     const chapter = document.querySelector('.cfg-chapter[data-chapter="motor"]') as HTMLElement
-    const shops = within(chapter).getAllByRole('button', { name: 'For the workshop' })
-    expect(shops).toHaveLength(1)
-    const shop = shops[0]!
-    expect(shop).toHaveAttribute('aria-expanded', 'false')
-    await userEvent.click(shop)
-    expect(shop).toHaveAttribute('aria-expanded', 'true')
-    for (const row of pictured) {
-      const option = screen
-        .getByRole('button', { name: new RegExp(`^${escape(row.tail)}\\b`) })
-        .closest('.cfg-opt') as HTMLElement
-      for (const fact of row.facts) {
-        expect(option).toHaveTextContent(fact.label)
-        expect(option).toHaveTextContent(fact.full)
-      }
+    expect(within(chapter).queryAllByRole('button', { name: 'For the workshop' })).toEqual([])
+    const shopIn = (): HTMLElement | null =>
+      within(chapter).queryByRole('region', { name: /^For the workshop/ })
+    if (!table.rows.some((r) => r.fitted)) expect(shopIn()).toBeNull()
+    /* a motor put on stands open at the chapter's foot with every word the workshop orders by */
+    const chosen =
+      pictured.find((r) => !r.fitted && r.facts.length > 0) ?? pictured.find((r) => !r.fitted)!
+    await userEvent.click(
+      screen.getByRole('button', { name: new RegExp(`^${escape(chosen.tail)}\\b`) }),
+    )
+    const shop = shopIn()!
+    expect(shop).toHaveTextContent(chosen.tail)
+    for (const fact of chosen.facts.filter((f) => f.full.trim() !== '')) {
+      expect(shop).toHaveTextContent(fact.label)
+      expect(shop).toHaveTextContent(fact.full)
     }
+    if (chosen.code !== '') expect(shop).toHaveTextContent(chosen.code)
   })
 
   /* WHAT EVERY PRESS ON THE MOTORS DOES IS SAID ONCE, over the list (the refine round,
@@ -1843,9 +1849,11 @@ describe('past the motor, the thing a person recognises leads', () => {
   it('opens the workshop’s words while a search runs, with what matched in bold', async () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
     render(<Configurator quoteId={quote.id} />)
-    /* at rest each open chapter whose options carry the workshop's words has its one press
-       (every chapter stands open since 2026-10-31) */
-    expect(screen.queryAllByRole('button', { name: 'For the workshop' }).length).toBeGreaterThan(0)
+    /* at rest nothing about the workshop is folded behind a press (the owner, 2026-10-31: "all
+       dropdowns on the quote expanded by default"): what is on the quote stands open at its
+       chapter's foot, and an option off it keeps its words to a search */
+    expect(screen.queryAllByRole('button', { name: 'For the workshop' })).toEqual([])
+    expect(document.querySelectorAll('.cfg-shop')).toHaveLength(0)
     await userEvent.type(screen.getByRole('searchbox'), 'Binnacle')
     const hits = [...document.querySelectorAll('.cfg-shop__val .cfg-hit')]
     expect(hits.length).toBeGreaterThan(0)
@@ -2053,5 +2061,68 @@ describe('a row’s gallery on the build', () => {
     expect(
       within(dialog).getByRole('button', { name: /^Add a picture of the / }),
     ).toBeInTheDocument()
+  })
+})
+
+/* THE QUOTE ROUND'S AUDIT (docs/directions/quote-3/audit-1.md, 2026-11-02), each gap closed in the
+   build and held here where a page with no window can hold it; the window's own measures are the
+   build's flows (e2e/flows/build-page.spec.ts, configurator.spec.ts) */
+describe('the quote round’s audit, closed', () => {
+  const chapterOf = (quote: QuoteDef, id: string) =>
+    railFor(quote).chapters.find((c) => c.id === id)!
+  it('stands nothing on the photograph but its one press (P3)', () => {
+    const quote = fileAQuote('boat_highfield', 'PA600')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    expect(document.querySelector('.cfg-shot')).toHaveAttribute('data-art', 'photograph')
+    expect(screen.queryByTestId('finish-inset')).toBeNull()
+    expect(document.querySelector('.cfg-shot')).not.toHaveTextContent(/finish/i)
+    expect(document.querySelectorAll('.cfg-shot button')).toHaveLength(1)
+  })
+
+  it('draws a colourway its maker’s code does not name as unpainted, and says why (P10)', () => {
+    const quote = fileAQuote('boat_highfield', 'PA600')
+    const colour = chapterOf(quote, 'hull').boat!.axes.find((a) => a.id === 'colour')!
+    const coded = colour.options.filter((o) => !(o.colour?.read ?? false))
+    expect(coded.length, 'the Patrol 600 carries a coded colourway').toBeGreaterThan(0)
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    for (const option of coded) {
+      const card = screen.getByRole('button', {
+        name: new RegExp(`^${escape(option.say)}, a code its maker does not name, `),
+      })
+      expect(card).toHaveTextContent('A code its maker does not name')
+      const well = card.querySelector('.cfg-pick__well')!
+      expect(well).toHaveAttribute('data-unnamed', '')
+      expect(well.querySelector('svg')).not.toBeNull()
+    }
+  })
+
+  it('never folds the total, and stands the workshop’s words open (P9)', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    render(<Configurator quoteId={quote.id} />)
+    const total = screen.getByTestId('running-total')
+    expect(within(total).queryAllByRole('button', { expanded: false })).toEqual([])
+    expect(screen.queryByRole('button', { name: 'What the total is made of' })).toBeNull()
+    expect(screen.queryAllByRole('button', { name: 'For the workshop' })).toEqual([])
+    /* every disclosure on the build stands open */
+    for (const press of document.querySelectorAll('.cfg [aria-expanded]')) {
+      if (press.getAttribute('aria-haspopup') !== null) continue
+      expect(press, press.textContent ?? '').toHaveAttribute('aria-expanded', 'true')
+    }
+  })
+
+  it('renders the printed quote inside the package with no landmark of its own (P4)', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    render(<Configurator quoteId={quote.id} at="finale" />)
+    expect(screen.getByTestId('final-package')).toBeInTheDocument()
+    expect(document.querySelectorAll('main')).toHaveLength(1)
+  })
+
+  it('says once why a motor alone has no rigging kit (P17)', () => {
+    const quote = fileAQuote('mot_yamaha', 'F115LB')
+    render(<Configurator quoteId={quote.id} />)
+    expect(screen.queryAllByText('The price list has no rigging kit for the F115LB.')).toHaveLength(
+      1,
+    )
+    expect(screen.queryByText(/^Nothing from Rigging Kits goes with this motor\.$/)).toBeNull()
   })
 })

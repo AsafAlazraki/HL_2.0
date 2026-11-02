@@ -792,21 +792,24 @@ const ratio = async (ink: Locator, ground: Locator): Promise<number> => {
 }
 
 /* ============================================================
-   WHILE THE ACT WAITS IT IS NOT THE LOUDEST THING ON THE PLATE (the
-   M2-close-2 critique's minor 21, again in m2-last-critique.md minor
-   11). REWRITTEN 2026-10-31: a boat's colour no longer holds the act
-   back (it is chosen in the hull section), so the act that waits is a
-   product's on a shelf sold only with a boat: it waits in the foot's own
-   blue, readable in both themes, and is the act's amber the moment the
-   switch beside its sentence sells the shelf on its own.
+   A PART ON ITS OWN IS ONE PRESS, AND THE PRESS SAYS WHAT IT CHANGES
+   (the quote round's audit, 2026-11-02, S1). REWRITTEN from "while the
+   act waits it is drawn quietly … and it is amber once live": a product
+   on a shelf Northside still sells only with a boat waited behind
+   "Sell it on its own too", though New quote's own line says "a part on
+   its own". Now nothing on the first window refuses, the act is the
+   live amber at once, and its sentence says the press sells the place
+   on its own — read at 4.5 : 1 or better by day and by night.
    ============================================================ */
-test('while the act waits it is drawn quietly and read in both themes, and it is amber once live', async ({
+test('a product on a shelf sold only with a boat is one live press, and its sentence says what it changes', async ({
   page,
 }) => {
   await openPicker(page)
   const shelves = page.getByRole('region', { name: 'Sold on its own' })
-  const shut = shelves.locator('.picker-shelf').filter({ has: page.locator('.picker-shelf__shut') })
-  const row = shut.first().locator('.picker-shelf__rows button').first()
+  /* nothing on the first window refuses, and no switch stands beside a shelf */
+  await expect(shelves.getByText(/sold only with a boat/)).toHaveCount(0)
+  await expect(shelves.getByRole('button', { name: 'Sell it on its own too' })).toHaveCount(0)
+  const row = shelves.getByRole('button', { name: /^Parts & Accessories, / }).first()
   await row.scrollIntoViewIfNeeded()
   await row.click()
   await page
@@ -817,7 +820,14 @@ test('while the act waits it is drawn quietly and read in both themes, and it is
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   const act = panel.getByRole('button', { name: 'Start the quote' })
-  await expect(act).toHaveAttribute('aria-disabled', 'true')
+  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+  const say = panel.locator('.picker-act__say')
+  await expect(say).toHaveText(
+    /^Parts & Accessories has been sold only with a boat\. Starting this quote sells it on its own from now on\./,
+  )
+  await expect(act).toHaveAccessibleDescription(
+    /^Parts & Accessories has been sold only with a boat/,
+  )
 
   /* the colour a token names, as this page computes it */
   const token = (name: string): Promise<string> =>
@@ -830,34 +840,19 @@ test('while the act waits it is drawn quietly and read in both themes, and it is
       return colour
     }, name)
   const fill = (): Promise<string> => act.evaluate((el) => getComputedStyle(el).backgroundColor)
-  const amber = await token('--color-act')
-  const refusedAmber = await token('--color-act-refused')
-  await expect.poll(fill).not.toBe(refusedAmber)
-  expect(await fill()).not.toBe(amber)
+  await expect.poll(fill).toBe(await token('--color-act'))
 
   /* ITS LABEL ON ITS OWN FILL, AND ITS SENTENCE ON THE FOOT, at 4.5 : 1
      or better by day and by night. Read off the colours the page paints —
      through a canvas, so a token the page computes in oklch is compared
-     as the sRGB it is painted in — and not off a screenshot. At 844 x 390
-     the plate scrolls whole, and the page's contrast reader, bringing
-     runs into view, left the plate scrolled 242px inside itself: its
-     next reading measured "Colour · 5" at 1.52 : 1 off the band's pixels
-     at 15–30, where the run would be were it not clipped by the plate,
-     whose box began at 199 (measured 2026-09-25). The reader does not
-     know a run can be clipped by its own scroller. */
-  const say = panel.locator('.picker-act__say')
-  await expect(say).not.toBeEmpty()
+     as the sRGB it is painted in — and not off a screenshot. */
   const foot = panel.locator('.picker-stage__foot')
   for (const theme of THEMES) {
     await wearTheme(page, theme)
-    expect(await ratio(act, act), `the waiting act's label by ${theme}`).toBeGreaterThanOrEqual(4.5)
+    expect(await ratio(act, act), `the act's label by ${theme}`).toBeGreaterThanOrEqual(4.5)
     expect(await ratio(say, foot), `the act's sentence by ${theme}`).toBeGreaterThanOrEqual(4.5)
   }
   await wearTheme(page, 'day')
-
-  await panel.getByRole('button', { name: 'Sell it on its own too' }).click()
-  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
-  await expect.poll(fill).toBe(amber)
 })
 
 /* ============================================================
@@ -993,8 +988,10 @@ test('in a hand, the makers and the first shelf are in the first window, and not
    NOT JUST BOATS (the owner, 2026-10-30: "quotes are not just boats - also motors or trailers
    or even dealer fit things as well and you can sell those as well"). A motor on its own (a
    repower), a trailer on its own and a part on its own each start from New quote's shelves and
-   reach the build at the quote's own address. Parts & Accessories is sold only with a boat until
-   Northside says otherwise, which it says where it is refused (`letQuote`, one step with Undo).
+   reach the build at the quote's own address. REWRITTEN 2026-11-02 (the quote round's audit, S1):
+   Parts & Accessories, sold only with a boat until Northside says otherwise, refused until "Sell it
+   on its own too" was pressed; now its act sells the place on its own as it starts the quote, and
+   from then on its plate has nothing to say about it.
    ============================================================ */
 test('a motor, a trailer and a part each start a quote of their own and reach the build', async ({
   page,
@@ -1009,10 +1006,8 @@ test('a motor, a trailer and a part each start a quote of their own and reach th
   const touch = testInfo.project.use.hasTouch
   await openPicker(page)
 
-  /* `fresh` opens New quote at its address; a switch just pressed is pressed on, in the same
-     page, rather than across a reload that would race its own write */
-  const startOn = async (list: RegExp, which: string, fresh = true): Promise<void> => {
-    if (fresh) await page.goto('/quote/new')
+  const startOn = async (list: RegExp, which: string): Promise<void> => {
+    await page.goto('/quote/new')
     const shelves = page.getByRole('region', { name: 'Sold on its own' })
     const door = shelves.getByRole('button', { name: list })
     await door.scrollIntoViewIfNeeded()
@@ -1032,19 +1027,22 @@ test('a motor, a trailer and a part each start a quote of their own and reach th
   await startOn(/^Yamaha Outboards, /, 'Which motor is it?')
   await startOn(/^Dunbier Trailers, /, 'Which trailer is it?')
 
-  /* THE SHELF SOLD ONLY WITH A BOAT SAYS SO, AND IS SWITCHED WHERE IT IS REFUSED */
+  /* A PART ON ITS OWN, ONE PRESS: nothing refuses it, and its act sells the place on its own */
+  await startOn(/^Parts & Accessories, /, 'Which product is it?')
+  /* and the place now sells on its own, read back out of this browser after a reload */
   await page.goto('/quote/new')
-  const parts = page.getByRole('region', { name: 'Sold on its own' })
+  const parts = page
+    .getByRole('region', { name: 'Sold on its own' })
+    .getByRole('button', { name: /^Parts & Accessories, / })
+  await parts.scrollIntoViewIfNeeded()
+  await pressAs(parts, touch)
+  await pressAs(
+    page.getByRole('region', { name: 'Models' }).locator('.picker-cards__item button').first(),
+    touch,
+  )
   await expect(
-    parts.getByText(
-      'Parts & Accessories is sold only with a boat today, so it cannot start a quote on its own.',
-    ),
-  ).toBeVisible()
-  const sell = parts.getByRole('button', { name: 'Sell it on its own too' }).first()
-  await sell.scrollIntoViewIfNeeded()
-  await pressAs(sell, touch)
-  await expect(parts.getByText(/^Parts & Accessories is sold only with a boat/)).toHaveCount(0)
-  await startOn(/^Parts & Accessories, /, 'Which product is it?', false)
+    page.getByRole('complementary', { name: 'What is chosen' }).locator('.picker-act__say'),
+  ).not.toContainText('sold only with a boat')
 
   expect(errors).toEqual([])
 })

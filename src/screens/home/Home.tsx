@@ -97,8 +97,8 @@ export interface HomeProps {
   /** THE WAY BACK TO THE DOOR, for a browser that holds no copy of the
    *  file. Home reads this browser and never the file. */
   openTheFile?: () => void
-  /** the picker, at `/quote/new`, where a quote is started — and where a
-   *  motor or a trailer is sold, on the boat it goes on */
+  /** the picker, at `/quote/new`, where a quote is started — for a boat, or a motor, a trailer
+   *  or a part on its own */
   newQuote?: () => void
   /** one filed document: a draft where it is written, a given one as paper */
   openQuote?: (id: string, state: RegisterStateId) => void
@@ -129,7 +129,7 @@ export interface HomeProps {
 /** Said at the act, where the press happens: the render a component
  *  test makes with no router, and never a browser. */
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was handed no way to the picker, so nothing was opened. Every quote starts there, from the boat.'
+  'This screen was handed no way to the picker, so nothing was opened. Every quote starts there.'
 
 /** Said once under the row of work, in the same render. */
 export const NO_WAY_TO_A_FILED_QUOTE =
@@ -144,13 +144,16 @@ export const NO_FINDER =
 
 /**
  * THE MOTORS AND THE TRAILERS, SAID ONCE AND NOT AS DOORS (2026-10-20, the second cold critique,
- * major 4): a door with Yamaha's mark on it opened a boat list that never named Yamaha. Nothing
- * in this app sells a motor or a trailer on its own — each is a chapter of a boat's build — so
- * they are named in one sentence beside the boat makers' doors: "Yamaha and ePropulsion motors,
- * and trailers from 7 makers, are chosen in the build, on the boat." Null where the file sells
- * neither.
+ * major 4): a door with Yamaha's mark on it opened a boat list that never named Yamaha. So they
+ * are named in one sentence beside the boat makers' doors.
+ *
+ * REWRITTEN 2026-11-02 (the quote round's audit, S4): the sentence said they "are chosen in the
+ * build, on the boat" while New quote sells a motor and a trailer on their own (the owner,
+ * 2026-10-30: "quotes are not just boats"). It now says both: "Yamaha and ePropulsion motors, and
+ * trailers from 7 makers, are sold on a boat, or on their own from New quote." Null where the file
+ * sells neither.
  */
-export function soldOnTheBoat(doors: readonly MakerDoor[]): string | null {
+export function soldWithOrAlone(doors: readonly MakerDoor[]): string | null {
   const motors = doors.filter((door) => door.kind === 'motor').map((door) => door.name)
   const trailers = doors.find((door) => door.kind === 'trailer')
   const clauses: string[] = []
@@ -158,7 +161,7 @@ export function soldOnTheBoat(doors: readonly MakerDoor[]): string | null {
   if (trailers) clauses.push(`trailers from ${trailers.said}`)
   if (clauses.length === 0) return null
   const head = clauses.join(', and ')
-  return `${head.charAt(0).toUpperCase()}${head.slice(1)}, ${clauses.length > 1 || motors.length > 1 ? 'are' : 'is'} chosen in the build, on the boat.`
+  return `${head.charAt(0).toUpperCase()}${head.slice(1)}, ${clauses.length > 1 || motors.length > 1 ? 'are' : 'is'} sold on a boat, or on ${clauses.length > 1 || motors.length > 1 ? 'their' : 'its'} own from New quote.`
 }
 
 /** "A", "A and B", "A, B and C" */
@@ -173,11 +176,41 @@ export function greetingFor(hour: number, name: string | null): string {
   return name ? `Good ${part}, ${name}.` : `Good ${part}.`
 }
 
-/* THE ARRIVAL PLAYS ONCE A SESSION. A module flag rather than a store:
-   it is not state the app keeps, only whether this page has already
-   seen Northside's name rise. A return to Home within the visit draws
-   the screen at rest; a reload plays it again, as a visit should. */
-let arrived = false
+/**
+ * THE ARRIVAL PLAYS ONCE A VISIT, AND ONLY WHERE THE VISIT BEGAN: on Home itself, or at the door
+ * (Entry), which hands the visit to Home. A module flag rather than a store: it is not state the
+ * app keeps, only whether this page has already seen Northside's name rise. A return to Home
+ * within the visit draws the screen at rest; a reload of Home plays it again, as a visit should.
+ *
+ * AND HOME REACHED BY A PRESS FROM ANOTHER SCREEN IS A RETURN, never an arrival (the quote
+ * round's audit, 2026-11-02, S3). A visit opened on Quotes, then Home pressed, played the whole
+ * arrival: at 1440 the 16 pictures were still held at nothing 561ms after the press and the
+ * wordmark was a blur. So the address the page was loaded at decides: the navigation's own entry,
+ * read off the base the app is served under, is Home's ('') or the door's ('sign-in'), or the
+ * arrival does not play. Where the browser keeps no such entry (a test's render), it plays.
+ */
+export function visitBeganHere(loaded: string | null, base: string): boolean {
+  if (loaded === null) return true
+  let path: string
+  try {
+    path = new URL(loaded).pathname
+  } catch {
+    return true
+  }
+  const root = base.endsWith('/') ? base : `${base}/`
+  const rest = path.startsWith(root) ? path.slice(root.length) : path.replace(/^\/+/, '')
+  return /^(index\.html|sign-in\/?)?$/.test(rest)
+}
+
+/** The address this page was loaded at, from the browser's own record of the navigation. */
+function loadedAt(): string | null {
+  if (typeof performance === 'undefined' || typeof performance.getEntriesByType !== 'function')
+    return null
+  const entry = performance.getEntriesByType('navigation')[0]
+  return entry ? entry.name : null
+}
+
+let arrived = !visitBeganHere(loadedAt(), import.meta.env.BASE_URL)
 
 /** Whether a media query holds, heard live: a change mid-visit is answered at once. */
 function useMatch(query: string): boolean {
@@ -243,6 +276,34 @@ export function Home({
   useEffect(() => {
     arrived = true
   }, [])
+
+  /* THE WATER HOLDS STILL UNTIL HOME'S PICTURES HAVE LANDED (the quote round's audit,
+     2026-11-02, S3). Measured on this desk's software renderer at 1920 x 1080, Home pressed from
+     Quotes: with the water running, the main thread spent 1,613ms of 2.4s waiting on the
+     compositor ("Commit") and a script's answer took up to 716ms; with the water still, 46ms, and
+     every answer came within 170ms. So the water stands on its one frame — the band's own still
+     water, as Entry holds it while the file is read — until every picture on Home has decoded,
+     and then flows. A page with no pictures to wait for lets it go at once. */
+  const root = useRef<HTMLElement>(null)
+  const [calm, setCalm] = useState(true)
+  const settled = status === 'ready' || status === 'failed'
+  useEffect(() => {
+    if (!calm || !settled) return
+    const pictures = [...(root.current?.querySelectorAll('img') ?? [])]
+    let gone = false
+    let frame = 0
+    void Promise.all(
+      pictures.map((img) =>
+        typeof img.decode === 'function' ? img.decode().catch(() => undefined) : undefined,
+      ),
+    ).then(() => {
+      if (!gone) frame = requestAnimationFrame(() => setCalm(false))
+    })
+    return () => {
+      gone = true
+      cancelAnimationFrame(frame)
+    }
+  }, [calm, settled])
 
   /* THE CLOCK IS READ ONCE PER RENDER, so a card's age and today's line
      cannot be stamped a minute apart */
@@ -312,6 +373,7 @@ export function Home({
 
   return (
     <main
+      ref={root}
       className="home"
       data-testid="home"
       data-state={week ? 'week' : 'day-one'}
@@ -342,7 +404,7 @@ export function Home({
               />
             </span>
           ) : (
-            <Water />
+            <Water still={calm} />
           )}
         </span>
         <div className="home-sea-centre">
@@ -1069,9 +1131,9 @@ function Boats({
  * stands up (Jeanneau's star, Haines's script) — never recoloured and never drawn past the copy
  * held. A maker with no mark held (Stabicraft) is set in type in its place.
  *
- * THE MOTORS AND THE TRAILERS ARE NOT DOORS (major 4): they are chosen in the build, on a boat,
- * and a door with Yamaha's mark on it that opened a boat list never named Yamaha. They are said
- * once beside the doors' head (`soldOnTheBoat`).
+ * THE MOTORS AND THE TRAILERS ARE NOT DOORS (major 4): a door with Yamaha's mark on it that
+ * opened a boat list never named Yamaha. They are said once beside the doors' head, sold on a
+ * boat or on their own from New quote (`soldWithOrAlone`).
  */
 function Makers({
   business,
@@ -1086,7 +1148,7 @@ function Makers({
 }) {
   const boats = doors.filter((door) => door.kind === 'boat')
   if (boats.length === 0) return null
-  const onTheBoat = soldOnTheBoat(doors)
+  const onTheBoat = soldWithOrAlone(doors)
   const go = (door: MakerDoor): (() => void) | undefined => {
     const opens = door.opens
     return opens.at === 'picker' && openBoatRegister

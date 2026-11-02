@@ -203,6 +203,11 @@ export function unpricedWaitSay(
  *  cannot be given" itself, which the list's lead says once for all of them. */
 export const NOBODY_WAITS = 'No customer’s name is on it yet.'
 
+/** WHAT THE TOTAL'S LAST LINE SAYS WHEN NOTHING IS STILL OPEN AND NOTHING IS WITHOUT ITS PRICE: the
+ *  same two facts "Not chosen yet" and the unpriced note read, said the other way, so the line the
+ *  step stands in at a desk is never an empty band under the total (the audit, 2026-11-02, P12) */
+export const ALL_CHOSEN = 'Nothing is left to choose, and every line has its price.'
+
 /** "It cannot be given yet, for two reasons:" — the one place a list of causes says what they
  *  stop. */
 export function giveWaitsLead(count: number): string {
@@ -681,5 +686,7 @@ export function modelSheetSay(options: {
 }): string {
   const { many, count, word, now } = options
   const held = count === '' ? `${au(many)} ${many === 1 ? word : `${word}s`}` : `The ${count}`
-  return `${held} on the price list, each with what choosing it does to this quote’s total. Choosing one puts it on in place of the ${now}, with Undo beside the total.`
+  /* TWO LINES, NOT THREE: at 844 × 390 the three-line version took 100 of the dialog's 358px, so two
+     rows of its cards showed (the audit, 2026-11-02, P19) */
+  return `${held} on the price list, each with what it does to the total. Choosing one puts it on in place of the ${now}, with its Undo.`
 }

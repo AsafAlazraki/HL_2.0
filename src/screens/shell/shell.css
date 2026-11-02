@@ -1397,6 +1397,27 @@
       content: none;
     }
   }
+
+  /* BELOW A DESK, AND IN ANY SHORT WINDOW, THE EDGE CARRIES THE ROOM'S FLOOR UP TO THE BAR'S FOOT
+     (2026-11-02, the quote-3 audit's H1). A phone turned, 844 x 390: over a scrolled build
+     "MODEL P…" and "…ge model" read either side of the pill, the blur alone too light for a line
+     at a reading size; at 834 x 1112 the same line read through it as "MODEL S…". These are the
+     windows where the build's own page passes under the bar — at a desk only its chapters scroll,
+     in their own column under the search. Here the softer layer is the floor the room stands on,
+     solid from the window's top to the bar's foot (the clearance less the edge's reach) and
+     falling to clear at the clearance, so what passes under the bar goes under one soft edge and
+     nothing of it shows beside it: the hand's own answer, at the head. The blur keeps the fall. A
+     screen on another floor names it, as it does for the hand. */
+  @media (min-width: 600px) and (max-width: 1199.98px), (min-width: 600px) and (max-height: 520px) {
+    .way-edge::before {
+      background-color: var(--shell-floor, var(--color-ground));
+      mask-image: linear-gradient(
+        to bottom,
+        rgb(0 0 0) calc(100% - var(--edge-reach)),
+        transparent
+      );
+    }
+  }
 }
 @keyframes way-edge-on {
   to {
@@ -1457,6 +1478,56 @@
   }
   :root:has([data-pill='head']) .way-finder[data-by='pointer'] .way-finder__sheet {
     animation-name: way-sheet-hangs;
+  }
+}
+
+/* ---- the toast beside the pill ------------------------------------------------------ */
+
+/* FROM 1440 THE KIT'S TOAST STANDS IN THE BAND BESIDE THE PILL (src/ui/Toaster.tsx), AND THE BAND
+   ENDS ON THE PAGE'S GUTTER (2026-11-02, the quote-3 audit's H2). At 1440 it stood at x
+   1,100–1,424, past the build's edge at 1,384, its width a guess at the pill's (half the window
+   less 380px). The band is the pill's to say, so it is measured off the pill itself (an anchor):
+   from the pill's end and 16px of air, the air the kit kept off the window's edge, to the gutter
+   the build keeps, 56px at 1440 and 80 above it. The narrower band sets more of a step on three
+   lines, so the card hangs a step above the pill's top rather than from it: a two-line card is
+   level with the pill (4–52 against 8–50) and a three-line one ends at 66, clear of the build's
+   head at 68. A browser with no anchors keeps the kit's own band. */
+@media (min-width: 1440px) {
+  .way-pill {
+    anchor-name: --way-pill;
+  }
+  :root {
+    --way-toast-end: --spacing(14);
+  }
+}
+@media (min-width: 1441px) {
+  :root {
+    --way-toast-end: --spacing(20);
+  }
+}
+@supports (anchor-name: --way-pill) {
+  @media (min-width: 1440px) {
+    /* only where the pill stands: the door has none, and keeps the kit's band */
+    :root:has(.way-pill) [data-sonner-toaster][data-y-position='top'][data-x-position='right'] {
+      top: calc(anchor(--way-pill top) - --spacing(1));
+      left: calc(anchor(--way-pill right) + --spacing(4));
+      right: var(--way-toast-end);
+      width: auto;
+    }
+  }
+}
+/* AND WHILE A DIALOG STANDS OVER THE ROOM THE TOAST STANDS AT THE FOOT, as it does at every
+   narrower window. The pill is dimmed under the dialog's veil, so the band beside it has lost its
+   reason, and a dialog's own Close stands at its top right: at 1440 the lightbox's "Make it the
+   cover" said its step at x 1,100, 5px off that Close. At the foot the card stands in the corner
+   a centred plate leaves, over none of its words or presses. Sonner hangs a top stack from its
+   head, so the head is set 80px above the window's foot: a two-line card ends 32px above it and a
+   three-line one 18px. A dialog over a veil is Base UI's: its popup follows its backdrop in their
+   portal, both open, with the focus guards between them. */
+@media (min-width: 1440px) {
+  :root:has([data-base-ui-portal] > [role='presentation'][data-open] ~ [role='dialog'][data-open])
+    [data-sonner-toaster][data-y-position='top'][data-x-position='right'] {
+    top: calc(100dvh - --spacing(20));
   }
 }
 

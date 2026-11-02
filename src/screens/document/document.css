@@ -15,7 +15,7 @@
    WHAT THE COMPOSITION IS. One object: a sheet of A4, at true size
    where the window allows, standing on the same dark floor the rest
    of this app is drawn in, with crop marks at its corners and its
-   page number in the gutter beside it. The floor and the chrome are
+   page number in its own foot. The floor and the chrome are
    the ROOM the paper is standing in; the sheet is the document. Print
    takes the room away and keeps every node of the sheet, which is why
    there is no second renderer and why screen and paper cannot
@@ -118,7 +118,7 @@
                                because it is honestly about height.
      834 x 1112 (tablet)       True size, 20px of floor either side — the paper all but
                                fills the tablet, which is what a tablet is for here. Crop
-                               marks and the page rail stay off: there is no floor to draw
+                               marks stay off: there is no floor to draw
                                them on. The section picker stands over the paper and the
                                desk note under it, each at the paper's width and each set
                                in two columns (what is always printed and why beside the
@@ -126,13 +126,13 @@
                                a 64ch column with 300px of white beside it. The chrome
                                stands in as far as the paper does (here and at 844), so
                                its status dot and Print sit over the cards' own edges.
-     1280 x 800 (laptop)       True size. The crop marks come on, the page number stands in
-                               a 64px rail left of each sheet — pagedjs' own furniture —
+     1280 x 800 (laptop)       True size. The crop marks come on — pagedjs' own furniture —
                                and the picker and the note take the margin beside the
-                               cover. Rail, paper and margin are ONE composition with one
-                               pair of edges: at 1280 it fills the 24px gutter, so the
-                               chrome's first word, the page number and the rail share a
-                               left edge and Print and the margin's card a right one.
+                               cover. Paper and margin are ONE composition with one pair
+                               of edges, centred: the chrome's first word and the paper
+                               share a left edge and Print and the margin's card a right
+                               one. Each sheet's number is in its own foot, and nothing
+                               stands in the floor beside it.
      1440 x 900 (desk)         The same, and the margin at its widest, 24rem, so the
                                composition is narrower than the window and stands centred;
                                the chrome's padding is the floor's, so its edges move with it.
@@ -145,7 +145,7 @@
    this file that moves at that width: under it the floor either side
    of the paper is 115px, which is not a column anybody can read, so
    the note is a card under the last sheet at the paper's own width.
-   Over it the floor is a three-column grid (rail, paper, margin) and
+   Over it the floor is a two-column grid (paper, margin) and
    the note is in the margin; the margin's width is set by the window
    and never by the note, so the paper's x does not move with what the
    note says.
@@ -158,8 +158,7 @@
    is the act ending on its printer, the way back leads with its arrow;
    the sentence under them is led by the glyph of what it is about; the
    dealer's note is the kit's white plate on the floor, each of its facts
-   led by the glyph of what it is about (glyphs.ts); the page number in
-   the gutter is a capsule; a link to a quote this browser does not hold
+   led by the glyph of what it is about (glyphs.ts); a link to a quote this browser does not hold
    is a plate with the places' own glyphs on its ways out.
 
    ------------------------------------------------------------------------------------
@@ -177,8 +176,7 @@
      price never animates on an issued document"): the paper is simply
      there, bit by bit, where it will stay.
      THEN THE ROOM'S FURNITURE: the crop marks are drawn at the corners
-     and the page number comes on in the gutter once its sheet is down,
-     and the dealer's note rises into the margin.
+     once their sheet is down, and the dealer's note rises into the margin.
      SCROLLED, the chrome lifts off the paper on the plate's shadow, so a
      sheet sliding under it reads as under it.
 
@@ -210,12 +208,11 @@
   --shot-max: 131mm;
 
   /* THE ROOM AT A DESK, where the paper has a margin beside it (the ladder's 1240 step): the
-     window's gutter, the column the page number stands in, the widest the margin's card grows,
-     and so the whole composition — rail, paper and margin with the two gaps between them. */
+     window's gutter, the widest the margin's card grows, and so the whole composition — the paper
+     and the margin with the gap between them. */
   --doc-gutter: --spacing(6);
-  --doc-rail: --spacing(16);
   --doc-margin-w: 24rem;
-  --doc-span: calc(var(--doc-rail) + var(--page-w) + var(--doc-margin-w) + 2 * --spacing(8));
+  --doc-span: calc(var(--page-w) + var(--doc-margin-w) + --spacing(8));
 
   /* THE SHEET IS SQUARE, and nothing on it reads a radius. This scope set `--radius-sm` and
      `--radius-xs` to 0 as well, which squared the chrome's buttons through the cascade
@@ -587,12 +584,14 @@
   color: var(--color-neutral-900);
 }
 
-/* the block a page's content flows in. Plain block flow, so an atom
-   is never stretched or shrunk by a grid and its measured height is
-   the height it will print at. */
+/* the block a page's content flows in. A column whose atoms never grow or shrink (`flex: none`),
+   so an atom is never stretched or squeezed and its measured height is the height it will print
+   at; a column and not plain flow only so the last page's signatures can stand at its foot. */
 .doc-page__flow {
   block-size: var(--page-room);
   overflow: visible;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ONE ATOM. `flow-root` so a child's margin is contained rather than
@@ -600,7 +599,18 @@
    under it would put one line too many on every page. */
 .doc-atom {
   display: flow-root;
+  flex: none;
   margin: 0;
+}
+/* THE SIGNATURES STAND AT THE FOOT OF THE LAST SHEET (the quote round's audit, 2026-11-02, D2): a
+   last sheet holding only "Your price" and the acceptance ended at about 625 of its 1,020px and
+   left the lower third blank under the signature lines, a page that read as unfinished. The
+   acceptance now takes the sheet's foot and the air stands between what is paid and where it is
+   signed, as a contract's last page does. Where the sheet is full there is no air to move, and in
+   a hand's single column (no sheet) it follows the price as it always did. Nothing is measured
+   differently: the margin is the room the page had left, never a height. */
+.doc-atom[data-atom='accept'] {
+  margin-block-start: auto;
 }
 .doc-atom > * {
   margin-block: 0;
@@ -610,8 +620,14 @@
   block-size: 100%;
 }
 
-/* the page number in the gutter, and the crop marks — pagedjs' own
-   furniture. Both are the ROOM's, so both are off in print. */
+/* THE CROP MARKS — pagedjs' own furniture, and the ROOM's, so off in print.
+
+   NO PAGE NUMBER STANDS ON THE FLOOR (the quote round's audit, 2026-11-02, D3). A capsule "PAGE 1"
+   stood in the floor left of each sheet: hung off the paper until the polish critic found it alone
+   in open floor (R1), then in a 64px rail of its own, where the audit found it alone again (x 67 at
+   1440, x 307 at 1920). Every sheet already says "Page 1 of 3" in its own foot and the chrome says
+   "3 pages of A4", and the final package draws the same sheets with no number beside them, so the
+   floor carries none. Lost: the capsule and its rail. */
 .doc-page__marks {
   position: absolute;
   inset: calc(-1 * var(--crop));
@@ -645,27 +661,6 @@
     left bottom,
     right bottom,
     right bottom;
-}
-
-/* THE PAGE NUMBER IN THE GUTTER, as the kit's small capsule: the plate's white on the floor,
-   the room's third ink, the file's mono */
-.doc-page::before {
-  content: 'Page ' attr(data-page);
-  display: none;
-  position: absolute;
-  inset-inline-end: calc(100% + --spacing(6));
-  inset-block-start: var(--page-pad-top);
-  padding: --spacing(1) --spacing(2.5);
-  border-radius: var(--radius-pill);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-plate);
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-2);
 }
 
 /* ---- the cover ------------------------------------------------------------------- */
@@ -1774,10 +1769,9 @@
    the printer.
    ==================================================================================== */
 
-/* the crop marks and the gutter rail need floor to stand on */
+/* the crop marks need floor to stand on */
 @media screen and (min-width: 1024px) {
-  .doc-page__marks,
-  .doc-page::before {
+  .doc-page__marks {
     display: block;
   }
 }
@@ -1796,16 +1790,14 @@
    page rail.
 
    AND THE COMPOSITION HAS ONE PAIR OF EDGES (the polish critic, 2026-11-02, R1). That centring
-   still left 180px of floor right of a 255px margin at 1440, "PAGE 1" alone in the left floor,
-   and Print ending at 1416 over a card ending at 1260; the card wrapped "What comes with your /
-   boat" and set every refusal four lines tall. Now the floor is three columns — the rail the
-   page number stands in (64px), the paper, the margin (from 14rem up to 24rem) — and the floor
-   and the chrome share one inline padding: the gutter, or half of whatever the window has over
-   the whole span, so the three stand centred and the chrome's first word, the page number and
-   the paper's rail share a left edge while Print and the margin's card share a right one.
-   Measured: the margin is 310px at 1280 and 384px at 1440 and 1920, and the chrome's first word
-   and the page number both stand at x 24, 67 and 307. 1240 is still the step (by arithmetic the
-   three fit from 48 + 64 + 794 + 224 + 2 x 32 = 1,194, and at 1240 the margin comes to 270px).
+   still left 180px of floor right of a 255px margin at 1440, and Print ending at 1416 over a card
+   ending at 1260; the card wrapped "What comes with your / boat" and set every refusal four lines
+   tall. Now the floor is two columns — the paper, and the margin (from 14rem up to 24rem) — and the
+   floor and the chrome share one inline padding: the gutter, or half of whatever the window has
+   over the whole span, so the two stand centred, the chrome's first word and the paper share a
+   left edge, and Print and the margin's card share a right one. (Until the audit of 2026-11-02 a
+   64px rail stood left of the paper for a page number, which stood alone in it: see the crop
+   marks above.) 1240 is still the step: at 1240 the margin comes to 366px.
 
    THE SHEET DOES NOT MOVE WHEN THE NOTE ARRIVES: the margin's column is the same width whatever
    the note holds, so the paper's x never depends on the note's words. */
@@ -1813,39 +1805,33 @@
   /* ONE COMPOSITION, ONE PAIR OF EDGES (the polish critic, 2026-11-02, R1). The chrome and the
      floor keep the same inline padding: the window's gutter, or more where the window is wider
      than the composition, so the composition stands centred and the chrome's words start where
-     the page number does and Print ends where the margin's card does. */
+     the paper does and Print ends where the margin's card does. */
   .doc-chrome,
   .doc:not([data-gauging]) .doc-floor {
     padding-inline: max(var(--doc-gutter), calc((100% - var(--doc-span)) / 2));
   }
   .doc:not([data-gauging]) .doc-floor {
     display: grid;
-    grid-template-columns: var(--doc-rail) auto minmax(--spacing(56), 1fr);
+    grid-template-columns: auto minmax(--spacing(56), 1fr);
     /* THE PICKER OVER THE NOTE, IN THE MARGIN: the sheaf spans both rows, and the second takes
        what is left, so the note stands directly under the picker however tall the paper is */
     grid-template-rows: auto 1fr;
     align-items: start;
     column-gap: --spacing(8);
   }
-  /* THE PAGE NUMBER STANDS AT THE COMPOSITION'S LEFT EDGE, in the rail's own column, under the
-     chrome's first word: it no longer hangs at a fixed reach off the paper into open floor */
-  .doc:not([data-gauging]) .doc-page::before {
-    inset-inline-end: auto;
-    inset-inline-start: calc(-1 * (var(--doc-rail) + --spacing(8)));
-  }
   .doc:not([data-gauging]) .doc-sheaf,
   .doc:not([data-gauging]) .doc-gauge {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1 / span 2;
   }
   .doc:not([data-gauging]) .doc-pick {
-    grid-column: 3;
+    grid-column: 2;
     grid-row: 1;
     margin-block-end: --spacing(4);
     inline-size: 100%;
   }
   .doc:not([data-gauging]) .doc-desk {
-    grid-column: 3;
+    grid-column: 2;
     grid-row: 2;
     margin-block-start: 0;
     inline-size: 100%;
@@ -1895,8 +1881,7 @@
   .doc:not([data-gauging]) .doc-page__foot {
     margin-block-start: --spacing(5);
   }
-  .doc:not([data-gauging]) .doc-page__marks,
-  .doc:not([data-gauging]) .doc-page::before {
+  .doc:not([data-gauging]) .doc-page__marks {
     display: none;
   }
   .doc:not([data-gauging]) .doc-gauge {
@@ -2126,9 +2111,6 @@
   .doc-gauge {
     display: none;
   }
-  .doc-page::before {
-    display: none;
-  }
   .doc-floor {
     display: block;
     padding: 0;
@@ -2197,21 +2179,17 @@
 @media screen {
   /* THE PAPER IS FED OUT, head first, a hover apart page by page (`--i`, set by the screen and
      capped at 4). `backwards`, not `both`: once a sheet is down it carries no clip at all, so
-     its crop marks and its page number, which stand outside it, are not cut. */
+     its crop marks, which stand outside it, are not cut. */
   .doc-page {
     --i: 0;
     animation: doc-feed var(--duration-morph) var(--ease-out) backwards;
     animation-delay: calc(var(--i) * var(--duration-hover));
   }
 
-  /* THEN THE FURNITURE: the crop marks drawn out from each corner, and the page's number coming
-     on in the gutter, once the sheet they belong to is down */
+  /* THEN THE FURNITURE: the crop marks drawn out from each corner once the sheet they belong to
+     is down */
   .doc-page__marks {
     animation: doc-marks var(--duration-enter) var(--ease-out) both;
-    animation-delay: calc(var(--duration-morph) + var(--i) * var(--duration-hover));
-  }
-  .doc-page::before {
-    animation: doc-fade var(--duration-enter) var(--ease-out) both;
     animation-delay: calc(var(--duration-morph) + var(--i) * var(--duration-hover));
   }
 
@@ -2254,12 +2232,6 @@
   }
 }
 
-@keyframes doc-fade {
-  from {
-    opacity: 0;
-  }
-}
-
 @keyframes doc-rise {
   from {
     opacity: 0;
@@ -2281,7 +2253,6 @@
    when a caret left a field, since an animation given back is a new one. */
 :root[data-still] .doc-page,
 :root[data-still] .doc-page__marks,
-:root[data-still] .doc-page::before,
 :root[data-still] .doc-desk,
 :root[data-still] .doc-pick {
   animation-duration: 0s;
@@ -2290,7 +2261,6 @@
 @media (prefers-reduced-motion: reduce) {
   .doc-page,
   .doc-page__marks,
-  .doc-page::before,
   .doc-desk,
   .doc-pick,
   .doc-chrome {

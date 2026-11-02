@@ -53,6 +53,7 @@
    ============================================================ */
 import {
   coverOfQuote,
+  creditOf,
   hostOf,
   letterheadOf,
   markOnPaper,
@@ -174,6 +175,59 @@ export function pictured(held: HeldPicture, title = '', boat = true): string | n
       : `Pictured as its maker shows it, which may differ from this quote. Yours is the ${title} quoted below.`
   }
   return null
+}
+
+/**
+ * WHAT THE COVER PRINTS AND WHOSE IT IS, said to the dealer on the note beside the paper: what the
+ * picture shows and where it came from, never how the screen drew it (the refine critique, 18).
+ * A maker's photograph of the model, the price list's own picture of this item, a picture
+ * Northside added, or — where no picture prints — the reason, as the cover's ladder gave it.
+ */
+export function coverSay(art: CoverArt, noun: string): string {
+  if (art.kind !== 'photograph') return art.because
+  const held = art.held
+  if (held.added) return `Northside’s own photograph. ${creditOf(held)}.`
+  const what =
+    held.tier === 'hero' && held.subject !== ''
+      ? `The ${held.subject}, as its maker photographed it,`
+      : held.id.startsWith('row:')
+        ? `The price list’s own picture of this ${noun},`
+        : held.verdict === 'scene'
+          ? 'A photograph on the water,'
+          : `A ${held.verdict} picture,`
+  return `${what} from ${hostOf(held.address)}.`
+}
+
+/**
+ * WHY THE PICTURE THE BUILD SHOWS IS NOT THE ONE THE COVER PRINTS, and what would print one (the
+ * quote round's audit, 2026-11-02, D1). The Highfield Sport 560 stood on the build as Highfield's
+ * photograph on the water and printed the price list's studio picture, and nothing beside the
+ * paper said why. The paper takes a maker's photograph of a model only where a person checked it
+ * shows that model (`forCover`): the machine once took a photograph off the Sport 660's page for
+ * the Sport 600. So the dealer is told which picture the build shows, why the customer's copy leaves it
+ * off, and, on a draft, the one thing he can do about it here: a photograph Northside adds to the
+ * item in its pictures and makes its cover is printed. '' where the build shows what the cover
+ * prints, or shows nothing.
+ */
+export function notPrintedSay(
+  shown: HeldPicture | null,
+  art: CoverArt,
+  noun: string,
+  draft: boolean,
+): string {
+  if (!shown) return ''
+  if (art.kind === 'photograph' && (art.held.id === shown.id || art.held.src === shown.src))
+    return ''
+  const said =
+    shown.tier === 'hero' && !shown.person && shown.subject !== ''
+      ? `The build shows the ${shown.subject}, as its maker photographed it. Nobody has checked that it shows this model, so it is not printed.`
+      : !shown.exact && !shown.added
+        ? `The build shows a picture of the model that may not be this ${noun}’s finish, so it is not printed.`
+        : ''
+  if (said === '') return ''
+  return draft
+    ? `${said} A photograph Northside adds to this ${noun} and makes its cover is printed instead.`
+    : said
 }
 
 /** What the top of the cover is: the photograph itself, or a pale studio panel. */

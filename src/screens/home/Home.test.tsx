@@ -28,7 +28,8 @@ import {
   NO_WAY_TO_THE_PICKER,
   foldedSaid,
   greetingFor,
-  soldOnTheBoat,
+  soldWithOrAlone,
+  visitBeganHere,
 } from './Home'
 
 /* ============================================================
@@ -94,6 +95,32 @@ describe('the greeting', () => {
     expect(greetingFor(13, null)).toBe('Good afternoon.')
     expect(greetingFor(21, null)).toBe('Good evening.')
     expect(greetingFor(9, 'Asaf')).toBe('Good morning, Asaf.')
+  })
+})
+
+/* THE ARRIVAL PLAYS WHERE THE VISIT BEGAN, NEVER ON A PRESS FROM ANOTHER SCREEN (the quote
+   round's audit, 2026-11-02, S3: a visit opened on Quotes, then Home pressed, played the whole
+   arrival and 0 of 16 pictures could be seen at 561ms). The page's own load address decides. */
+describe('where the visit began', () => {
+  it('is Home, or the door that hands the visit to Home, under the base the app is served at', () => {
+    expect(visitBeganHere('http://localhost:5100/', '/')).toBe(true)
+    expect(visitBeganHere('http://localhost:5100/sign-in', '/')).toBe(true)
+    expect(visitBeganHere('https://asafalazraki.github.io/HL_2.0/', '/HL_2.0/')).toBe(true)
+    expect(visitBeganHere('https://asafalazraki.github.io/HL_2.0/sign-in', '/HL_2.0/')).toBe(true)
+    expect(visitBeganHere('http://localhost:5100/?q=1#top', '/')).toBe(true)
+  })
+
+  it('is not Quotes, the build or any other screen a person then presses Home from', () => {
+    expect(visitBeganHere('http://localhost:5100/quotes', '/')).toBe(false)
+    expect(visitBeganHere('http://localhost:5100/quote/new', '/')).toBe(false)
+    expect(visitBeganHere('https://asafalazraki.github.io/HL_2.0/customers', '/HL_2.0/')).toBe(
+      false,
+    )
+  })
+
+  it('plays where the browser keeps no record of the load, as a test’s render', () => {
+    expect(visitBeganHere(null, '/')).toBe(true)
+    expect(visitBeganHere('not an address', '/')).toBe(true)
   })
 })
 
@@ -223,11 +250,13 @@ describe('day one, with the Master Price File open', () => {
       expect(within(region).queryByRole('button', { name: new RegExp(`^${name} `) })).toBeNull()
   })
 
-  it('says the motors and the trailers once, as chosen in the build, on the boat', () => {
+  /* REWRITTEN 2026-11-02 (the quote round's audit, S4): the sentence said the motors and the
+     trailers "are chosen in the build, on the boat" while New quote sells both on their own */
+  it('says the motors and the trailers once, sold on a boat or on their own from New quote', () => {
     render(<Home business="Northside Marine" openBoatRegister={() => {}} />)
-    const said = soldOnTheBoat(doors())
+    const said = soldWithOrAlone(doors())
     expect(said).toMatch(
-      /^Yamaha and ePropulsion motors, and trailers from \d+ makers, are chosen in the build, on the boat\.$/,
+      /^Yamaha and ePropulsion motors, and trailers from \d+ makers, are sold on a boat, or on their own from New quote\.$/,
     )
     const region = screen.getByRole('region', { name: 'What Northside Marine sells' })
     expect(within(region).getByText(said!)).toBeInTheDocument()

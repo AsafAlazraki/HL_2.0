@@ -52,6 +52,7 @@ import {
   countDiscontinued,
   heldBackSentence,
   retiredTableSentence,
+  withheldClause,
 } from '@/domain/catalogue/views/sellable'
 import { colourwayOf, splitVariant, type Colourway } from '@/domain/quote/colourway'
 import { modelKeyOf } from '@/domain/quote/boats'
@@ -244,6 +245,10 @@ export interface Brand {
 export interface HeldBack {
   id: string
   sentence: string
+  /** THE SAME FACT IN ONE SHORT LINE, for the picker's rail and floor (the quote round's audit,
+   *  2026-11-02, S5): the whole sentence set nine lines at 12px in a 190px rail and spoke of
+   *  "the sheet". The count and the list stay; where the old quotes still open is Data's to say. */
+  short: string
 }
 
 export interface Fleet {
@@ -545,11 +550,20 @@ export function fleetOf(
   for (const table of all) {
     const list = rows[table.id] ?? []
     if (isRetired(table)) {
-      heldBack.push({ id: table.id, sentence: retiredTableSentence(table.name) })
+      heldBack.push({
+        id: table.id,
+        sentence: retiredTableSentence(table.name),
+        short: `${table.name} is no longer sold, so nothing from it is shown.`,
+      })
       continue
     }
     const gone = countDiscontinued([...list])
-    if (gone > 0) heldBack.push({ id: table.id, sentence: heldBackSentence(gone, table.name) })
+    if (gone > 0)
+      heldBack.push({
+        id: table.id,
+        sentence: heldBackSentence(gone, table.name),
+        short: `${withheldClause(gone, table.name)}, so ${gone === 1 ? 'it is' : 'they are'} not shown.`,
+      })
     brands.push(brandOf(table, list))
   }
 

@@ -1440,20 +1440,6 @@
   justify-items: stretch;
 }
 
-/* THE ACT WHILE IT WAITS IS NOT THE LOUDEST THING ON THE PLATE (the M2-close-2 critique's minor
-   21, and m2-last-critique.md minor 11: "'Start the quote' is aria-disabled, in amber, and is
-   the loudest thing on the plate before a colour is chosen"). Amber on this screen means
-   "press this", and until a colour is chosen there is nothing to press: the question is the
-   chips above. So the refused act keeps its place, its size, its name, its focus and its
-   sentence — nothing moves when it comes live — and is drawn in the foot's own blue, one step
-   down from the plate's paper, with the plate's second ink on it (neutral-700 on blue-100,
-   over 7 : 1). It is the primitive's own two tokens, re-declared for this block alone, which
-   is how a screen dresses a primitive without reaching into it; the live act is untouched. */
-.picker-act[data-waits] {
-  --color-act-refused: var(--color-blue-100);
-  --color-ink-on-act-refused: var(--ink-soft);
-}
-
 .picker-close {
   display: grid;
   gap: --spacing(3);
@@ -1494,9 +1480,9 @@
   }
 }
 
-/* THE ACT'S ONE SENTENCE — its refusal while it waits (the button points `aria-describedby`
-   here through `refusedBy`). Neutral-900 on the foot's pale blue, because while it is a
-   refusal it is the thing to read. BALANCED, not pretty (2026-11-02): it is one or two lines,
+/* THE ACT'S ONE SENTENCE — what the press does that its label does not say (the button points
+   `aria-describedby` here where it sells a place on its own). Neutral-900 on the foot's pale
+   blue, because it is the thing to read before pressing. BALANCED, not pretty (2026-11-02): it is one or two lines,
    and `pretty` let "each one." stand alone on the second line under the plate's act at 1440,
    and "price follows each one." at 834. */
 .picker-act__say {
@@ -2041,27 +2027,6 @@
   font-weight: 600;
   color: var(--ink);
   border-block-end: 1px solid var(--rule);
-}
-
-/* A SHELF SOLD ONLY WITH A BOAT SAYS SO UNDER ITS NAME, AND THE SWITCH STANDS BESIDE THE
-   SENTENCE */
-.picker-shelf__shut {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: --spacing(3);
-  row-gap: --spacing(2);
-  padding: --spacing(2.5) --spacing(3);
-  border-block-end: 1px solid var(--rule);
-  background: var(--color-wash);
-}
-.picker-shelf__shut p {
-  flex: 1 1 14rem;
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--ink-soft);
-  text-wrap: pretty;
 }
 
 .picker-shelf__rows {

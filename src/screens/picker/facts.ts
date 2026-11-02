@@ -1,58 +1,41 @@
 /* ============================================================
-   A FIGURE SAID WITH ITS NOUN (the owner, 2026-10-30: "Max power 90 hp",
-   not "MAX 90 HP").
+   A FIGURE SAID WITH ITS NOUN, IN THE BUILD'S OWN WORDS.
 
    `measured` (src/domain/quote/spoken.ts) has already moved the unit onto
-   the figure; what it leaves is the price file's own column words, and
-   two of them are not nouns at all: Formosa's and Stacer's "Min" and
-   "Max" are the motor's power, which the figure's own "HP" says. So:
+   the figure; what it leaves is the price file's own column words. Until
+   2026-11-02 the picker said them its own way ("OA length", "Int length",
+   "Max power") while the build said "Length overall", "Inside length" and
+   "Maximum power" (the quote round's audit, S5): two names for one
+   measure, a press apart. So the strip asks the build's one namer,
+   `specsSaid` (src/domain/quote/specSay.ts): the file's shorthand in full,
+   a sentence's casing, "hp" and "L" as a person writes them, and the
+   horsepower range the file splits over two columns said as one "Power".
 
-     · "Min" / "Max" over a figure in horsepower is "Min power" / "Max
-       power", and the unit is set as a unit is written, "hp";
-     · a label the file wrote in capitals ("WEIGHT") is set in sentence
-       case, and every label is: the strip no longer shouts its words,
-       so a short capital run the file means as letters (OA, ATM) stays;
-     · the file's "@" before a bracket ("Hull Weight @ (Dry)") is
-       dropped, and a trailing " in" on a bare figure is the inch it
-       names ("Wheel Size in" 13 → "Wheel size" 13 in).
+   ONE RULE STAYS THE PICKER'S, because the namer does not have it: a
+   trailing " in" on a bare figure is the inch it names ("Wheel Size in"
+   13 → "Wheel size" 13 in), moved onto the figure before it is said.
 
    Nothing is invented: every word is the file's or the unit its own
    figure carries. Pure, so it is tested without a screen.
    ============================================================ */
+import { specsSaid } from '@/domain/quote/specSay'
 
-const POWER = /^(min|max)\.?$/i
-const HP = /^([\d.,]+)\s*hp$/i
 const FIGURE = /^[\d.,]+$/
 
-/** One word as a sentence sets it after its first: lower-cased, unless the file means it as
- *  letters — a capital run of two or three (OA, ATM, HP) that is not an ordinary word. */
-function inSentence(word: string, first: boolean): string {
-  if (/^[A-Z]{2,3}$/.test(word)) return word
-  const lower = word.toLowerCase()
-  return first ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower
-}
-
-/** A figure's label and value as a person says them. */
-export function spokenFact(fact: { label: string; value: string }): {
+interface Fact {
   label: string
   value: string
-} {
-  let label = fact.label.replace(/\s*@\s*/g, ' ').trim()
-  let value = fact.value.trim()
+}
 
-  const hp = HP.exec(value)
-  if (hp) value = `${hp[1]} hp`
-  if (POWER.test(label) && hp) label = `${label.replace('.', '')} power`
-
+/** The file's "Wheel Size in" over a bare 13 is 13 inches: the unit moves onto the figure. */
+function inchOf(fact: Fact): Fact {
+  const label = fact.label.trim()
+  const value = fact.value.trim()
   const inch = /^(.*\S)\s+in$/i.exec(label)
-  if (inch && FIGURE.test(value)) {
-    label = inch[1]
-    value = `${value} in`
-  }
+  return inch && FIGURE.test(value) ? { label: inch[1]!, value: `${value} in` } : { label, value }
+}
 
-  label = label
-    .split(/\s+/)
-    .map((word, i) => inSentence(word, i === 0))
-    .join(' ')
-  return { label, value }
+/** A strip's figures, labelled and valued as the build says them. */
+export function spokenFacts(facts: readonly Fact[]): Fact[] {
+  return specsSaid(facts.map(inchOf))
 }

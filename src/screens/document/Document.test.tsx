@@ -20,6 +20,7 @@ import {
   NO_DETAILS_SET,
   NO_TERMS_SET,
   NO_INCLUSIONS,
+  NO_LINE_PICTURES,
   NO_WRITTEN_PAGES,
   LETTERHEAD_MARK,
   LETTERHEAD_MARK_ADDED,
@@ -907,6 +908,59 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     expect(theNote()).not.toHaveTextContent(/pixels|printed whole|enlarged/)
   })
 
+  /* THE QUOTE ROUND'S AUDIT, 2026-11-02, D1: the Sport 560 stood on the build as Highfield's
+     photograph on the water and printed the price list's studio picture, and nothing beside the
+     paper said why. The photograph is the machine's choice, which the paper does not print; the
+     note now says which picture the build shows, why it is left off, and on a draft what prints */
+  it('says which picture the build shows and the cover leaves off, and why', () => {
+    const draft = draftQuote('boat_highfield', 'SP560 (HYP)')
+    const shown = pictureOfQuote(draft)
+    expect(shown?.tier, 'the build shows the Sport 560 on the water').toBe('hero')
+    expect(shown?.person, 'no person has marked it').toBe(false)
+    const said = `The build shows the ${shown!.subject}, as its maker photographed it. Nobody has checked that it shows this model, so it is not printed.`
+    const way = 'A photograph Northside adds to this boat and makes its cover is printed instead.'
+
+    const { container, unmount } = render(<Document quoteId={draft.id} />)
+    expect(container.querySelector(`.doc-shot__img[src="${shown!.src}"]`)).toBeNull()
+    expect(theNote()).toHaveTextContent(said)
+    expect(theNote()).toHaveTextContent(way)
+    /* the price list's own picture of this boat is what prints, and the note says so */
+    expect(theNote()).toHaveTextContent(/The price list’s own picture of this boat, from /)
+    expect(onThePaper(container)).not.toContain('Nobody has checked')
+    unmount()
+
+    /* AND THE WAY IT NAMES IS A WAY: Northside's own photograph, made the boat's cover, is the
+       cover, and the note has nothing left to explain */
+    const own = ownPicture('sp560own', draft.rootTableId, draft.rootRowId, draft.subjectLabel)
+    holdOwnPictures([own])
+    holdGalleries([coverOrder(own)])
+    try {
+      const { container: ours, unmount: done } = render(<Document quoteId={draft.id} />)
+      expect(ours.querySelector('.doc-page[data-night] .doc-shot__img')).toHaveAttribute(
+        'src',
+        own.src,
+      )
+      expect(theNote()).toHaveTextContent(/Northside’s own photograph\. Added by Asaf, /)
+      expect(theNote()).not.toHaveTextContent(/The build shows|is printed instead/)
+      done()
+    } finally {
+      holdOwnPictures([])
+      holdGalleries([])
+    }
+
+    /* A GIVEN QUOTE IS NOT OFFERED A NEW COVER: the reason stays, the way does not */
+    const given = issuedQuote('boat_highfield', 'SP560 (HYP)')
+    render(<Document quoteId={given.id} />)
+    expect(theNote()).toHaveTextContent(said)
+    expect(theNote()).not.toHaveTextContent(way)
+  })
+
+  it('says nothing more where the cover prints the picture the build shows', () => {
+    const quote = issuedQuote('boat_stacer', 'Stacer - 409 Assault Pro')
+    render(<Document quoteId={quote.id} />)
+    expect(theNote()).not.toHaveTextContent(/The build shows|is printed instead/)
+  })
+
   /* THE GATE ROUND, 2026-10-20: the 519's on-water photograph is a SIDE console. Its Centre
      Console row has no picture of that boat (its own address is refused: it is the side console
      too), so the cover says so and stands nothing in */
@@ -1053,6 +1107,12 @@ describe('what goes on the printed quote', () => {
     expect(screen.getByText(NO_INCLUSIONS)).toBeInTheDocument()
     expect(screen.getByText(NO_WRITTEN_PAGES)).toBeInTheDocument()
     expect(screen.getByText(ALWAYS_IN)).toBeInTheDocument()
+    /* no item carries a checked picture, and the panel says what puts one there (the audit,
+       2026-11-02, D2) */
+    expect(screen.getByText(NO_LINE_PICTURES)).toBeInTheDocument()
+    expect(NO_LINE_PICTURES).toMatch(
+      /A picture Northside adds to an item on the build prints beside it.$/,
+    )
   })
 
   it('on a given quote, says the choice it was given with and offers no switch', () => {

@@ -443,9 +443,12 @@ test('the customer’s copy uses the customer’s words, and none of the app’s
 async function withAMotor(page: Page): Promise<void> {
   await openChapter(page, /^02 Motor/)
   await cameToRest(page)
+  /* the first motor by the press's own words, as a person hears it ("Yamaha F175XC, recommended,
+     not on the quote"), never by the tile's class: a pictured tile is a frame around its press and
+     its picture's press since 2026-11-02, and only the name says which is which */
   await page
     .getByRole('region', { name: /^02 Motor/ })
-    .locator('.cfg-tiles .ui-option')
+    .getByRole('button', { name: /, not on the quote$/ })
     .first()
     .click()
   await expect(page.getByTestId('running-total')).not.toContainText('Not chosen yet: motor')

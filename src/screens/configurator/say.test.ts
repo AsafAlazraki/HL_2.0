@@ -587,7 +587,7 @@ describe('where the finale says its figures came from', () => {
 describe('what the Change model dialog says it holds', () => {
   it('counts a boat’s series, and names the model a press puts another in place of', () => {
     expect(modelSheetSay({ many: 16, count: '', word: 'model', now: 'Patrol 600 Open' })).toBe(
-      '16 models on the price list, each with what choosing it does to this quote’s total. Choosing one puts it on in place of the Patrol 600 Open, with Undo beside the total.',
+      '16 models on the price list, each with what it does to the total. Choosing one puts it on in place of the Patrol 600 Open, with its Undo.',
     )
   })
   it('says a thing sold on its own is weighed against the ones nearest it', () => {

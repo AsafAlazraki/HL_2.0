@@ -8,6 +8,7 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { spokenBoat } from '@/domain/quote/spoken'
+import { quoteDoors, whatIsSold } from '@/domain/quote/start'
 import {
   featuredOf,
   flagshipOf,
@@ -754,6 +755,65 @@ describe('the words that are counts', () => {
     expect(document.getElementById('picker-find-said')).toHaveTextContent(
       `1 model matches from ${found?.brand.name ?? ''}.`,
     )
+  })
+})
+
+/* ============================================================
+   A PART ON ITS OWN IS ONE PRESS (the quote round's audit, 2026-11-02, S1: Parts & Accessories
+   and Dealer Fit Packages refused to start a quote until "Sell it on its own too" was pressed,
+   beside "A boat, or a motor, a trailer or a part on its own"). The act sells the place on its
+   own — Northside's own setting, one step — and starts the quote; its sentence says so first.
+   ============================================================ */
+/** The first place the open sheet sells only with a boat, and the first thing on it. */
+const shutShelf = () => {
+  const sheet = catalogue.getState()
+  const sold = whatIsSold(quoteDoors(sheet.modules, sheet.tables, sheet.rows))
+  const shelf = sold.alone.find((s) => s.refusal !== '')
+  expect(shelf, 'a place the pack sells only with a boat').toBeDefined()
+  const ids = shelf!.doors.flatMap((d) => d.tables.map((t) => t.id))
+  const own = Object.fromEntries(ids.map((id) => [id, sheet.tables[id]!]))
+  const shelfFleet = fleetOf(own, sheet.rows, shelf!.doors[0]!.kind)
+  const model = shelfFleet.brands.flatMap((b) => b.models)[0] as Model
+  return { shelf: shelf!, model }
+}
+
+describe('a product from a place sold only with a boat', () => {
+  beforeAll(async () => {
+    await loadTheFile()
+    await quotes.getState().openFor('northside')
+    session.getState().signIn('Asaf')
+  })
+
+  it('draws no refusal and no switch on the first question', () => {
+    render(<Picker />)
+    const shelves = screen.getByRole('region', { name: 'Sold on its own' })
+    expect(within(shelves).queryByText(/sold only with a boat/)).toBeNull()
+    expect(within(shelves).queryByRole('button', { name: 'Sell it on its own too' })).toBeNull()
+  })
+
+  it('is live at once, says what the press changes, and starts the quote in one press', async () => {
+    const { shelf, model } = shutShelf()
+    const openQuote = vi.fn<(quoteId: string) => void>()
+    render(
+      <Picker
+        at={{ brand: model.tableId, model: model.key }}
+        now={() => AT}
+        openQuote={openQuote}
+      />,
+    )
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    const act = within(panel).getByRole('button', { name: 'Start the quote' })
+    expect(act).not.toHaveAttribute('aria-disabled', 'true')
+    const said = `${shelf.name} has been sold only with a boat. Starting this quote sells it on its own from now on.`
+    expect(panel.querySelector('.picker-act__say')?.textContent).toMatch(
+      new RegExp(`^${escape(said)}`),
+    )
+    expect(act).toHaveAccessibleDescription(new RegExp(`^${escape(said)}`))
+    await userEvent.click(act)
+    expect(openQuote).toHaveBeenCalledTimes(1)
+    expect(catalogue.getState().modules[shelf.moduleId]?.capabilities).toContain('quote')
+    const quote = quotes.getState().quotes.find((q) => q.id === openQuote.mock.calls[0]![0])
+    expect(quote?.rootTableId).toBe(model.tableId)
   })
 })
 

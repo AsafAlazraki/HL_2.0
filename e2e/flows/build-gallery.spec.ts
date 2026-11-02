@@ -82,11 +82,12 @@ async function give(page: Page, press: Locator, file: string): Promise<void> {
   ).setFiles({ name: path.basename(file), mimeType: 'image/webp', buffer: readFileSync(file) })
 }
 
-/** How far under a tile its quiet press stands, from the tile's foot to the press's top. */
-async function underTheTile(option: Locator): Promise<number> {
-  const tile = (await option.locator('.ui-option').boundingBox())!
-  const press = (await option.locator('.cfg-opt__look').boundingBox())!
-  return press.y - (tile.y + tile.height)
+/** WHERE A TILE'S PICTURE PRESS STANDS IN ITS CARD (the audit, 2026-11-02, P5: it is the card's own
+ *  well now, never a line under the tile): its offset from the card's start corner, and its size. */
+async function wellIn(option: Locator): Promise<[number, number, number, number]> {
+  const card = (await option.locator('.ui-option-card').boundingBox())!
+  const well = (await option.locator('.ui-option-look').boundingBox())!
+  return [well.x - card.x, well.y - card.y, well.width, well.height]
 }
 
 /** The picture large, by its own name: a sheet over the page is a dialog too. */
@@ -117,7 +118,8 @@ test('the boat’s gallery from the stage: its cover first, a cover chosen in th
   const large = largeIn(page)
   await expect(large).toBeVisible()
   const count = large.locator('.ui-lightbox-count')
-  await expect(count).toHaveText(new RegExp(`^Cover1 of ${n} · Highfield Sport 560$`))
+  /* the model's number kept with its name, never alone on a line (the audit, 2026-11-02, P19) */
+  await expect(count).toHaveText(new RegExp(`^Cover1 of ${n} · Highfield Sport\u00a0560$`))
   await expect(large.locator('.ui-lightbox-img')).toHaveAttribute('src', was!)
   /* what this quote carries that the picture may not show, said under it as on the stage */
   await expect(large).toContainText(/On this quote: no motor yet/)
@@ -172,16 +174,18 @@ test('a motor’s own gallery from its tile: a picture added in the build and ma
   const motor = page.getByRole('region', { name: /^02 Motor/ })
   const option = motor.locator('.cfg-tiles .cfg-opt').first()
   await option.scrollIntoViewIfNeeded()
-  const tile = option.locator('.ui-option')
-  const well = tile.locator('.ui-option-well img')
+  /* the tile is two presses in one card: the words that put it on, and its own well that opens its
+     pictures (the audit, 2026-11-02, P5) */
+  const tile = option.locator('.ui-option-press')
+  const well = option.locator('.ui-option-look img')
   const src = (await well.getAttribute('src')) ?? ''
   expect(src).toMatch(/\/seed-images\/[^/]+\.webp$/)
   const own = path.join(ROOT, 'public', 'seed-images', src.split('/').pop()!)
   const name = (await tile.locator('.ui-option-name').innerText()).trim()
 
-  /* 3. THE PRESS UNDER THE TILE OPENS THIS MOTOR'S PICTURES, AND NO OTHER MOTOR'S */
+  /* 3. THE TILE'S OWN WELL OPENS THIS MOTOR'S PICTURES, AND NO OTHER MOTOR'S */
   const look = option.getByRole('button', { name: /^See its (\d+ pictures|picture) larger$/ })
-  const said = (await look.innerText()).trim()
+  const said = ((await look.getAttribute('aria-label')) ?? '').trim()
   const n = Number(/(\d+) pictures/.exec(said)?.[1] ?? 1)
   await look.click()
   const large = largeIn(page)
@@ -243,20 +247,21 @@ test('a tile drawn without a picture offers one where every other tile opens its
     .first()
   /* the window as a person sees it there: the tile in the middle of it, the bars over the page */
   await bare.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
-  await expect(bare.locator('.ui-option-well img')).toHaveCount(0)
+  await expect(bare.locator('.ui-option-look img')).toHaveCount(0)
   await expect(bare.getByRole('button', { name: /^See its/ })).toHaveCount(0)
   await page.mouse.move(0, 0)
   await cameToRest(page)
   await shot(page, 'w07-trailer-door', info.project.name)
-  /* the press sits where a pictured tile's "See its picture larger" sits: one height under the
-     tile on every tile of the row */
+  /* the press is the tile's own well, where a pictured tile's "See its picture larger" is: the same
+     place in the card and the same size on every tile of the row */
   const pictured = trailer
     .locator('.cfg-tiles .cfg-opt')
     .filter({ has: page.getByRole('button', { name: /^See its/ }) })
     .first()
   if ((await pictured.count()) > 0) {
     /* within the pixel a fractional layout rounds to (measured 1px apart at 844 × 390) */
-    expect(Math.abs((await underTheTile(bare)) - (await underTheTile(pictured)))).toBeLessThan(1.5)
+    const [a, b] = [await wellIn(bare), await wellIn(pictured)]
+    for (let i = 0; i < 4; i++) expect(Math.abs(a[i]! - b[i]!)).toBeLessThan(1.5)
   }
   await bare.getByRole('button', { name: 'Add a picture' }).click()
   const dialog = page.getByRole('dialog', { name: /^Pictures of the / })
