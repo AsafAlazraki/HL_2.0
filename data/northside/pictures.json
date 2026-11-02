@@ -2,7 +2,7 @@
   "meta": {
     "note": "The pictures attached to a MODEL of the price file (a hull, a motor, a trailer), each because a person looked at it on a contact sheet and marked it as that exact item, plus the eight heroes held before the contact sheets existed, which were chosen by the pixel judge alone and say so (`person: false`). `rows` is keyed by the file’s own model name (the picker’s fleetOf) and lists every row the picture may be drawn for; `exactRows` are the rows it shows exactly, model and finish both — a colourway render is exact only on its colourway. `findings` are a person’s rulings on a row’s OWN address in images.json: `refuse` (a logo, a sister model, a wrong configuration) is never drawn for those rows; `note` is drawn and captioned with `differs`. The rows’ own addresses stay in images.json. Nothing is matched by resemblance and nothing is substituted. Read by src/domain/model/pictures.ts and nothing else.",
     "generatedBy": "tools/seed/fetch-images.ts --accepted (the catalogue tier and the findings), tools/seed/heroes.ts (the hero tier), tools/seed/hero-widths.ts (the narrower copies), from docs/research/imagery/proposals/*.verdicts.json",
-    "updated": "2026-10-31"
+    "updated": "2026-11-03"
   },
   "pictures": [
     {
@@ -3005,7 +3005,7 @@
       "depicts": "Highfield Sport 660 (SP660), an aerial running shot with a navy bimini and people aboard; from media.highfieldboats.com/sport/sp660-new-2/ (SP660-8)",
       "differs": [
         "a bimini is fitted",
-        "the outboard make is not legible",
+        "a Mercury outboard is fitted (its cowl reads MERCURY at twice the held size)",
         "the tubes are light grey or white, so the colourway is not pinned to a row"
       ],
       "verdict": "scene",

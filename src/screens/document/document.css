@@ -330,6 +330,12 @@
 }
 /* the PDF's glyph before the sentence about keeping one, in the file's blue, centred on the
    sentence's first line */
+/* THE WAY DOWN TO WHAT PRINTS, drawn only where the panel stands under the paper (a hand) */
+.doc-chrome__to-pick {
+  display: none;
+  grid-column: 1 / -1;
+  margin: 0;
+}
 .doc-chrome__glyph {
   display: inline-flex;
   flex: none;
@@ -398,6 +404,9 @@
   block-size: var(--page-room);
   pointer-events: none;
 }
+.doc-gauge[data-cover] {
+  block-size: calc(var(--page-room) + var(--foot-h));
+}
 
 /* ---- the desk note, in the margin -------------------------------------------------
    WHAT THE ROOM SAYS ABOUT THE PAPER. Five sentences written for the
@@ -424,6 +433,11 @@
   margin-block-start: --spacing(10);
 }
 
+/* the note scrolls inside its card at a desk, so a keyboard reaches it there */
+.doc-desk__in:focus-visible {
+  outline: --spacing(0.5) solid var(--color-accent);
+  outline-offset: --spacing(1);
+}
 /* the note's own anatomy, inside the kit's plate */
 .doc-desk__in {
   display: grid;
@@ -625,18 +639,12 @@
   flex: none;
   margin: 0;
 }
-/* THE SIGNATURES STAND IN THE ROOM THE LAST SHEET HAS LEFT, CENTRED IN IT (the quote round's
-   audits, 2026-11-02). Round 1 found a last sheet of only "Your price" and the acceptance ending at
-   625 of its 1,020px, the lower third blank under the signature lines; the signatures were sent to
-   the foot, and round 2 found about 210px of empty page between the price and them instead. Both
-   were one block of white. The room left is now shared: as much air over "Acceptance" as under
-   its last line, so neither the price nor the signatures stands alone against a third of a page.
-   Where the sheet is full there is no air to share, and in a hand's single column (no sheet) it
-   follows the price as it always did. Nothing is measured differently: the margins are the room
-   the page had left, never a height. Lost: the signatures on the foot's rule. */
-.doc-atom[data-atom='accept'] {
-  margin-block: auto;
-}
+/* THE SIGNATURES FOLLOW THE PRICE AT A PART'S OWN AIR (the owner's fully specced quote, read
+   2026-11-03, the second print). Centred in the room the last sheet had left, "Acceptance" stood
+   85 pt under the price's last line while "Your price" stood 25 pt under the line before it, so
+   the signatures read as pushed down a hole. Every part now opens at the same air after what
+   precedes it, and the white a last sheet has left is at its foot, where a letter's is. Lost: the
+   acceptance centred in the sheet's room (2026-11-02). */
 .doc-atom > * {
   margin-block: 0;
 }
@@ -889,9 +897,18 @@
   background: var(--night);
   color: var(--night-ink);
 }
+/* THE COVER'S FOOT PRINTS NOTHING, SO ITS ROOM IS THE COVER'S (the owner's fully specced quote,
+   read 2026-11-03, the second print: about 90 pt of empty ink stood under "Prepared by Asaf", and
+   100 px of it at 844 x 390). The flow takes the foot's row, so the price and who it is for stand
+   the sheet's own bottom margin over its edge, as the letterhead stands under its top. */
+.doc-page[data-night] {
+  grid-template-rows: var(--head-h) calc(var(--page-room) + var(--foot-h)) 0;
+}
+.doc-page[data-night] .doc-page__flow {
+  block-size: calc(var(--page-room) + var(--foot-h));
+}
 .doc-page[data-night] .doc-page__foot {
-  border-block-start-color: var(--night-rule);
-  color: var(--night-ink-2);
+  display: none;
 }
 
 /* THE TOP OF THE COVER, OFF THREE EDGES: pulled up over the sheet's top margin and out over its
@@ -1184,10 +1201,16 @@
    leaves `porsche-pdf-1`'s order: a configuration belongs to a code, a quote belongs to a person.
    It opens under a rule in the dealership's own colour, the cover's one stroke of it: who it is
    for over who prepared it at the start, the total at the end. */
+/* THE TWO BLOCKS START ON ONE LINE (the owner's fully specced quote, read 2026-11-03, the second
+   print: "TOTAL, INCLUDING GST" stood 25 pt over "PREPARED FOR", their feet level, so the two
+   capitals read out of line). Each block hangs from the rule by its eyebrow, the total's column
+   as wide as its one sentence needs, so "Includes the motor's pre-delivery and the trailer's
+   registration." stands on one line, not two ragged ones. Lost: the blocks set on their feet. */
 .doc-money {
-  display: flex;
-  gap: --spacing(6);
-  align-items: end;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) fit-content(64%);
+  column-gap: --spacing(6);
+  align-items: start;
   margin-block-start: --spacing(8);
   padding-block-start: --spacing(5);
   border-block-start: var(--mark) solid var(--color-accent);
@@ -1232,7 +1255,6 @@
 }
 /* who it is for over who prepared it, and the total at the end: one row across the foot */
 .doc-money__who {
-  flex: 1 1 0;
   min-inline-size: 0;
 }
 .doc-money__by {
@@ -1249,10 +1271,7 @@
   color: var(--night-ink);
 }
 .doc-money__sum {
-  flex: none;
-  margin-inline-start: auto;
   text-align: end;
-  max-inline-size: --spacing(88);
 }
 .doc-money__sum .doc-money__line {
   padding-block-start: --spacing(1);
@@ -1280,8 +1299,10 @@
    Each opens with its word set large and light, and what it is about under it: Specifications,
    Your quote, Your price, Acceptance. The head is what makes a page of rows read as a designed
    page rather than a printout. */
+/* ONE AIR OVER EVERY PART AFTER WHAT PRECEDES IT (the second print: "Your price" stood 25 pt under
+   the rigging row's rule, "Acceptance" 85 pt under the price) */
 .doc-part {
-  padding-block: --spacing(6) --spacing(2);
+  padding-block: --spacing(12) --spacing(2);
 }
 /* THE PART THAT OPENS A SHEET KEEPS AIR UNDER THE RUNNING HEAD (the owner's fully specced quote,
    read 2026-11-03: "Specifications" stood about 6 pt under the head's hairline and "Your price"
@@ -1289,9 +1310,30 @@
    only part of its air there, so its word stands a clear step under the hairline; while the sheaf
    is gauging nothing opens one, so an atom measures the same wherever the last assignment put it
    (`Atom.lead` in paginate.ts reads the difference). */
+/* AND ONE AIR UNDER THE RUNNING HEAD, WHATEVER OPENS THE SHEET (the second print: the first
+   heading's baseline stood 37.7 pt under the hairline on page 2, 31.7 pt on page 3 and 25.7 pt on
+   page 4, where "04 Dealer fit, continued" had its cap 17 pt under it). A part's word, a band's
+   head and a band said again each stand their cap `--open-cap` under the hairline: each kind's
+   padding is that less the room its own line keeps over its cap. */
+.doc {
+  --open-cap: 14mm;
+  /* the chrome's height, measured by the screen (`Sheaf`): nought until it is */
+  --chrome-h: 0px;
+}
 .doc:not([data-gauging]) .doc-atom:first-child .doc-part,
 .doc[data-gauging] .doc-atom[data-opening] .doc-part {
-  padding-block-start: --spacing(5);
+  padding-block-start: calc(
+    var(--open-cap) - (var(--text-4xl--line-height) - 0.7) * var(--text-4xl) / 2 - 0.04 *
+      var(--text-4xl)
+  );
+}
+.doc:not([data-gauging]) .doc-atom:first-child .doc-band,
+.doc[data-gauging] .doc-atom[data-opening] .doc-band,
+.doc-band[data-continued] {
+  padding-block-start: calc(
+    var(--open-cap) - (var(--text-lg--line-height) - 0.7) * var(--text-lg) / 2 - 0.04 *
+      var(--text-lg)
+  );
 }
 .doc-part__word {
   margin: 0;
@@ -1308,32 +1350,27 @@
   color: var(--color-neutral-500);
 }
 
-/* THE SPECIFICATION: its groups two to a row, each a small head in the accent over hairline rows
-   — `live/saxdor-brochure-specs-crop`, the label light and the value at a fixed indent */
-/* TWO COLUMNS THE GROUPS FLOW DOWN, balanced, rather than a grid of rows: a group of six beside
-   a group of one left five rows of air under the one (measured on the Sport 560, 2026-10-31) */
+/* THE SPECIFICATION: EACH GROUP A ROW OF THE PAGE (the owner's fully specced quote, read 2026-11-03,
+   the second print). Its name stands in a margin of its own under the group's rule, its facts two
+   to a line beside it, each the label light and the value in full ink over a hairline
+   (`live/saxdor-brochure-specs-crop`). Two stacks of whole groups could only be as even as the
+   groups: the Sport 660's ended 57 pt apart, a block 232 pt wide empty under the shorter. Read
+   across, a group ends where its facts do. Lost: the two columns of groups. */
 .doc-sheet__groups {
-  column-count: 2;
-  column-gap: --spacing(10);
+  display: grid;
+  row-gap: --spacing(5);
   padding-block-start: --spacing(4);
 }
 .doc-sheet__group {
-  break-inside: avoid;
-  padding-block-end: --spacing(5);
-}
-/* PARTED BY WEIGHT, NOT FLOWED (`specColumns`): two columns, each a stack of whole groups, so the
-   shorter ends a row or two above the longer and never a third of the page */
-.doc-sheet__groups[data-parted] {
-  column-count: auto;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: --spacing(10);
-  align-items: start;
+  grid-template-columns: 30mm minmax(0, 1fr);
+  column-gap: --spacing(6);
+  align-items: baseline;
+  border-block-start: var(--mark) solid var(--color-neutral-900);
 }
 .doc-sheet__name {
   margin: 0;
-  padding-block-end: --spacing(1);
-  border-block-end: var(--mark) solid var(--color-neutral-900);
+  padding-block: --spacing(2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   font-weight: 600;
@@ -1343,23 +1380,28 @@
 }
 .doc-specs {
   margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: --spacing(8);
 }
-/* A SHEET SET AS ONE LIST runs across both columns of the measure, its rows down the first and
-   then the second, under one rule: eleven facts are six rows, not a column of eleven */
+/* AN ODD FACT AT A GROUP'S END keeps its line's rule running under the empty half, so the group
+   ends on one rule and not on a step */
+.doc-specs:has(> .doc-spec:last-child:nth-child(odd))::after {
+  content: '';
+  border-block-end: 1px solid var(--color-neutral-200);
+}
+/* A SHEET SET AS ONE LIST has no name to hold the margin: its facts take the whole measure, two to
+   a line, under one rule */
 .doc-sheet__group[data-flat] {
-  column-span: all;
-  border-block-start: var(--mark) solid var(--color-neutral-900);
+  grid-template-columns: minmax(0, 1fr);
 }
-.doc-sheet__group[data-flat] .doc-specs {
-  column-count: 2;
-  column-gap: --spacing(10);
-}
-.doc-sheet__group[data-flat] .doc-spec {
+.doc-spec {
   break-inside: avoid;
 }
 .doc-spec {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* the label the wider: "Engine configuration" on one line beside "Remote" */
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: --spacing(3);
   padding-block: --spacing(2);
   border-block-end: 1px solid var(--color-neutral-200);
@@ -1403,10 +1445,7 @@
   color: var(--color-accent);
 }
 /* A BAND THAT RUNS OVER A PAGE BREAK, said again at the top of the next sheet: the same head,
-   with "continued" in the paper's quiet ink, and no air above it under the running head */
-.doc-band[data-continued] {
-  padding-block-start: --spacing(4);
-}
+   with "continued" in the paper's quiet ink, at the sheet's opening air (above) */
 .doc-band__cont {
   color: var(--color-neutral-500);
 }
@@ -1495,15 +1534,19 @@
   font-weight: 600;
 }
 
-/* AN ITEM WITH ITS PICTURE: the picture of that exact item in a column of its own before the
-   name, inside the quote spec's 42 x 32 mm (§5) at 28 x 20 mm, so three pictured parts stand in
-   the room one used to; never wider than its held pixels and never cropped */
+/* AN ITEM WITH ITS PICTURE: the picture of that exact item in a column of its own AFTER the name,
+   at 24 x 14 mm, never wider than its held pixels and never cropped. EVERY ROW OF A PICTURED BAND
+   IS ONE HEIGHT AND STARTS ITS NAME AT THE BAND'S EDGE (the owner's fully specced quote, read
+   2026-11-03, the second print): with the column before the name, a row with no picture was 30 pt
+   among rows of 52 and left an empty 77 pt slot at the table's left edge, which read as holes.
+   After the name, a row with none leaves the gap a column of figures leaves, and the names keep
+   one edge. */
 .doc-row[data-pictured] {
-  grid-template-columns: 24mm minmax(0, 1fr) minmax(16ch, max-content);
+  grid-template-columns: minmax(0, 1fr) 24mm minmax(16ch, max-content);
   align-items: center;
 }
 .doc-row[data-pictured][data-qty] {
-  grid-template-columns: 24mm minmax(0, 1fr) 4ch minmax(16ch, max-content);
+  grid-template-columns: minmax(0, 1fr) 24mm 4ch minmax(16ch, max-content);
 }
 /* THE PICTURE'S WELL, ONE WIDTH DOWN A BAND, EMPTY WHERE AN ITEM HAS NO PICTURE (the owner's fully
    specced quote, 2026-11-03: two left edges in one band). Its picture stands no taller than 14 mm,
@@ -1513,7 +1556,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-block-size: 0;
+  min-block-size: 14mm;
 }
 .doc-row__pic {
   --held-w: 0;
@@ -1527,12 +1570,6 @@
      box round the part. Multiplied, its white is the paper's own and the part stands on the
      sheet; a photograph's own colours are unchanged where they are not white. */
   mix-blend-mode: multiply;
-}
-/* THE HULL'S PICTURE IS A PHOTOGRAPH, the cover's own: it fills its well's width, a little taller
-   than a part's cut-out, and is never multiplied into the paper */
-.doc-row[data-hull] .doc-row__pic {
-  inline-size: min(100%, calc(var(--held-w) * 1px));
-  mix-blend-mode: normal;
 }
 /* the hull's name is the quote's biggest line, set a step up */
 .doc-row[data-hull] .doc-row__said {
@@ -1729,6 +1766,11 @@
   inline-size: 100%;
   max-inline-size: var(--page-w);
   margin-block-end: --spacing(8);
+}
+/* focused only when the chrome's press brings a keyboard down to it: its first control is a press
+   away, and a ring round the whole card would say nothing more */
+.doc-pick:focus:not(:focus-visible) {
+  outline: none;
 }
 /* why nothing reaches Northside, and why the cover is not the boat's photograph, each with its act */
 .doc-pick__asks {
@@ -1957,6 +1999,22 @@
     margin-block-start: 0;
     inline-size: 100%;
   }
+  /* THE NOTE FOLLOWS THE PAPER DOWN (the owner's fully specced quote, read 2026-11-03, the second
+     print: at 1920 x 1080, once past the panel, the right third of the window was empty beside the
+     paper). It stands under the panel where it always did, and once its top reaches the chrome's
+     foot it stays there beside the sheets, never taller than the window under the chrome; what it
+     holds past that scrolls inside its own card (`--chrome-h` is the chrome's measured height). */
+  .doc:not([data-gauging]) .doc-desk {
+    position: sticky;
+    inset-block-start: calc(var(--chrome-h) + var(--doc-gutter));
+  }
+  .doc:not([data-gauging]) .doc-desk__in {
+    max-block-size: calc(100dvh - var(--chrome-h) - 2 * var(--doc-gutter) - --spacing(10));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    padding-inline-end: --spacing(1);
+  }
 }
 
 @media screen and (min-width: 1441px) {
@@ -1978,6 +2036,10 @@
    measured on a phone are the heights the printer will lay out. See
    the block above `.doc-page__head`. */
 @media screen and (max-width: 825.98px) {
+  /* a column with no sheet has no running head to keep air under */
+  .doc:not([data-gauging]) {
+    --open-cap: 8mm;
+  }
   .doc:not([data-gauging]) .doc-floor {
     padding: --spacing(6) --spacing(4) --spacing(12);
     align-items: stretch;
@@ -2050,14 +2112,12 @@
   .doc:not([data-gauging]) .doc-key:nth-child(n + 3) {
     border-block-start: 1px solid var(--night-rule);
   }
-  .doc:not([data-gauging]) .doc-sheet__groups {
-    column-count: 1;
-  }
-  .doc:not([data-gauging]) .doc-sheet__groups[data-parted] {
+  .doc:not([data-gauging]) .doc-sheet__group,
+  .doc:not([data-gauging]) .doc-specs {
     grid-template-columns: minmax(0, 1fr);
   }
-  .doc:not([data-gauging]) .doc-sheet__group[data-flat] .doc-specs {
-    column-count: 1;
+  .doc:not([data-gauging]) .doc-specs::after {
+    content: none;
   }
   /* the cover is as tall as what it holds here, so its price keeps its own air above it */
   .doc:not([data-gauging]) .doc-cover > .doc-money {
@@ -2068,13 +2128,13 @@
     grid-template-columns: minmax(0, 1fr);
     gap: --spacing(6);
   }
-  .doc:not([data-gauging]) .doc-money__sum {
-    max-inline-size: none;
-  }
-  /* an item's picture over its name, not beside it: 42 mm of a 358 px column is a third of it */
+  /* an item's picture narrower in a hand's column: 24 mm of a 358 px column is a quarter of it */
   .doc:not([data-gauging]) .doc-row[data-pictured],
   .doc:not([data-gauging]) .doc-row[data-pictured][data-qty] {
-    grid-template-columns: 18mm minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) 16mm auto;
+  }
+  .doc:not([data-gauging]) .doc-row__well {
+    min-block-size: 10mm;
   }
   .doc:not([data-gauging]) .doc-cover__mast {
     flex-wrap: wrap;
@@ -2136,11 +2196,8 @@
     line-height: var(--text-base--line-height);
   }
   .doc:not([data-gauging]) .doc-money {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .doc:not([data-gauging]) .doc-money__sum {
-    margin-inline-start: 0;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: --spacing(6);
   }
   .doc:not([data-gauging]) .doc-money__sum {
     text-align: start;
@@ -2177,6 +2234,17 @@
 @media screen and (max-height: 480px) {
   .doc:not([data-gauging]) .doc-chrome {
     position: static;
+    padding-block-end: --spacing(3);
+  }
+  /* A SHORT WINDOW KEEPS ITS HEIGHT FOR THE PAPER (the owner's fully specced quote, read
+     2026-11-03, the second print: at 844 x 390 the bar and the title strip took 160 of 390 px). The
+     line about saving a PDF is the print dialogue's own business and goes; the floor's air over
+     the first card is halved. */
+  .doc:not([data-gauging]) .doc-chrome__say {
+    display: none;
+  }
+  .doc:not([data-gauging]) .doc-floor {
+    padding-block-start: --spacing(5);
   }
 }
 
@@ -2185,6 +2253,22 @@
     position: static;
     grid-template-columns: minmax(0, 1fr);
     padding: --spacing(4);
+  }
+  /* THE CUSTOMER'S QUOTE IS THE FIRST SCREEN IN A HAND (the owner's fully specced quote, read
+     2026-11-03, the second print: at 390 x 844 the panel ran down to y 740 and the paper started
+     below the fold). The panel stands under the paper and over the note, and the chrome carries
+     the press down to it. Its controls are still the first a keyboard reaches: the sheets hold
+     none. Lost: the switches before the pages in a hand. */
+  .doc:not([data-gauging]) .doc-chrome__to-pick {
+    display: block;
+  }
+  .doc:not([data-gauging]) .doc-pick {
+    order: 1;
+    margin-block: --spacing(8) 0;
+    scroll-margin-block-start: --spacing(4);
+  }
+  .doc:not([data-gauging]) .doc-desk {
+    order: 2;
   }
   .doc:not([data-gauging]) .doc-chrome__acts {
     flex-wrap: wrap;
@@ -2294,7 +2378,7 @@
     display: block;
   }
   .doc-money {
-    flex-direction: row;
+    grid-template-columns: minmax(0, 1fr) fit-content(64%);
   }
   .doc-money__sum {
     text-align: end;

@@ -130,13 +130,16 @@ export const hasQuantity = (lines: readonly DocumentLine[]): boolean =>
   lines.some((line) => line.qty > 1)
 
 /**
- * WHERE THE PAPER PRINTS A QUANTITY: every band of parts, and any other where a line is at more than
- * one. Read as the customer on the owner's fully specced quote (2026-11-03), no part said how many it
- * was, "so a customer cannot tell whether $209 buys one speaker or a pair". A motor, a trailer and a
- * hull are one by what they are; a part is counted, so Dealer fit always says how many.
+ * WHERE THE PAPER PRINTS A QUANTITY: in a band where an item is at more than one, and nowhere else
+ * (the owner's fully specced quote, read 2026-11-03, the second print). Dealer fit printed a column
+ * of seven 1s, and "2 x MFM70 Batteries" stood over a QTY of 1, so the customer could not tell one
+ * battery from two: the price file names a pair as one item, and a 1 beside it said the opposite of
+ * its name. A count the item's own name does not carry is said where it is more than one, with its
+ * sum under the name (`noteOnPaper`). Lost: Dealer fit's quantity on every row (2026-11-03, the first
+ * print), which answered "one speaker or a pair" with a 1 that did not.
  */
 export const quantityShown = (band: Pick<PaperBand, 'section' | 'tables'>): boolean =>
-  band.section.id === 'fit' || hasQuantity(band.tables.flatMap((t) => t.lines))
+  hasQuantity(band.tables.flatMap((t) => t.lines))
 
 /** "Fusion · Apollo 770 Marine Stereo": a one-word maker parted from its model by the dot. Not a size after
  *  a dot ("Tube Covers … · 6.6 m", "Battery Box · Large" keep theirs: their first part is no maker). */
@@ -167,57 +170,6 @@ export function namesOnPaper(doc: PrintedQuote): PrintedQuote {
       tables: s.tables.map((t) => (t.subject ? t : { ...t, lines: t.lines.map(named) })),
     })),
   }
-}
-
-/** A group of the specification as the two columns weigh it. */
-interface Weighed<T> {
-  group: T
-  weight: number
-}
-
-/** What a group's head weighs against its rows: its caps, its rule and the air over it. */
-const HEAD_WEIGHT = 1.5
-
-/** What a column of groups weighs. */
-const weightOf = (side: ReadonlyArray<{ weight: number }>): number =>
-  side.reduce((n, w) => n + w.weight, 0)
-
-/**
- * THE SPECIFICATION'S TWO COLUMNS, BALANCED (the owner's fully specced quote, 2026-11-03: the Sport
- * 660's left column, Size and Power, ended 120 pt below the right, Capacity and Details, "a block
- * about 120 pt tall and 230 pt wide empty under 'Air chambers'"). The browser's columns flowed the
- * groups in their order and broke only between groups, so a group of six then one of three stood
- * against two of three and two. Here every way of parting the groups into two columns is weighed —
- * a row is one, a head is `HEAD_WEIGHT` — and the most even wins, each column keeping the sheet's
- * order and the first group heading the left. Pure; a group is never split. A sheet of one list
- * (`sheetOnPaper`'s unnamed group) is not parted: it sets its own two columns.
- */
-export function specColumns<T extends { name: string; rows: readonly unknown[] }>(
-  groups: readonly T[],
-): [T[], T[]] {
-  if (groups.length < 2 || groups.some((g) => g.name === '')) return [[...groups], []]
-  const weighed: Weighed<T>[] = groups.map((group) => ({
-    group,
-    weight: group.rows.length + HEAD_WEIGHT,
-  }))
-  let best: { left: T[]; right: T[]; gap: number } | null = null
-  /* the first group always heads the left column, so only the others are placed: 2^(n-1) ways */
-  const ways = 1 << (weighed.length - 1)
-  for (let mask = 0; mask < ways; mask++) {
-    const left: Weighed<T>[] = [weighed[0]!]
-    const right: Weighed<T>[] = []
-    for (let i = 1; i < weighed.length; i++) {
-      if (mask & (1 << (i - 1))) right.push(weighed[i]!)
-      else left.push(weighed[i]!)
-    }
-    if (right.length === 0) continue
-    const gap = Math.abs(weightOf(left) - weightOf(right))
-    /* the most even; on a tie, the left the taller (a page reads down the left first) */
-    if (best === null || gap < best.gap - 1e-9) {
-      best = { left: left.map((w) => w.group), right: right.map((w) => w.group), gap }
-    }
-  }
-  return best === null ? [[...groups], []] : [best.left, best.right]
 }
 
 /** The money cell's word, or '' where a figure prints. Exactly one of

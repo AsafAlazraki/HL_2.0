@@ -1005,16 +1005,17 @@ describe('the room speaks the kit, and the paper stays paper', () => {
   })
 
   /* REWRITTEN 2026-11-03 to the owner's fully specced quote: "Your price" drew the cover's own
-     photograph again, which "adds nothing and the composition is unbalanced". The cover's picture
-     stands beside the hull's own line now, small, and the price is its head and its figures: beside
-     the head where it is one figure, under it, the measure's width, where it is several. */
-  it('draws the cover’s picture beside the hull’s line and never again under Your price', () => {
+     photograph again, which "adds nothing and the composition is unbalanced", and the price is its
+     head and its figures: beside the head where it is one figure, under it, the measure's width,
+     where it is several. REWRITTEN AGAIN the same day to its second print: the cover's picture
+     beside the hull's line was the cover shrunk whole, a quarter boat and three quarters sea, the
+     third time it printed, so the cover alone prints it. */
+  it('prints the cover’s picture on the cover alone, never beside the hull’s line or under Your price', () => {
     const quote = issuedQuote('boat_stacer', 'Stacer - 409 Assault Pro')
     const { container } = render(<Document quoteId={quote.id} />)
-    const cover = container.querySelector<HTMLImageElement>('.doc-shot__img')!
-    const hull = container.querySelector<HTMLImageElement>('.doc-row[data-hull] .doc-row__pic')!
-    expect(hull).toHaveAttribute('src', cover.getAttribute('src'))
-    expect(hull).toHaveAttribute('alt', '')
+    expect(container.querySelector('.doc-shot__img')).not.toBeNull()
+    expect(container.querySelector('.doc-row[data-hull]')).not.toBeNull()
+    expect(container.querySelector('.doc-row[data-hull] img')).toBeNull()
     expect(container.querySelector('.doc-sums img')).toBeNull()
     /* the head first, then the figures */
     const body = container.querySelector('.doc-sums__body')!
@@ -1170,6 +1171,22 @@ describe('what goes on the printed quote', () => {
     expect(sheetHead()).not.toBeNull()
   })
 
+  /* the owner's fully specced quote, the second print: two stacks of whole groups ended 57 pt apart */
+  it('sets each group of the specification as a row of the page, its name beside its facts', () => {
+    const quote = draftQuote('boat_highfield', 'SP560 (HYP)')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const sheet = readDocument(quote).subject.sheet
+    const groups = [
+      ...container.querySelectorAll('.doc-page .doc-sheet__groups > .doc-sheet__group'),
+    ]
+    expect(groups.map((g) => g.querySelector('.doc-sheet__name')?.textContent ?? '')).toEqual(
+      sheet.map((g) => g.name),
+    )
+    groups.forEach((g, i) => {
+      expect(g.querySelectorAll('.doc-spec')).toHaveLength(sheet[i]!.rows.length)
+    })
+  })
+
   it('says why a section it cannot print is not offered, where it is', () => {
     const quote = draftQuote('boat_highfield', 'SP560 (HYP)')
     render(<Document quoteId={quote.id} />)
@@ -1257,12 +1274,21 @@ describe('the sections beside the paper, and a quote that is not a boat', () => 
     expect(motorFacts().length).toBeGreaterThan(0)
   })
 
-  it('refuses terms, deposit wording and details nobody set, each with its sentence', () => {
+  /* REWRITTEN 2026-11-03 to the owner's fully specced quote, the second print: each of the three
+     was said twice, once where Settings is asked for and again as a switch that could not be
+     pressed ("Northside's terms: none to print"). Each is said once now, with its press to
+     Settings, and is no switch until it is set. */
+  it('says terms, deposit wording and details nobody set once, where Settings is asked for', () => {
     const quote = draftQuote('boat_highfield', 'SP560 (HYP)')
     render(<Document quoteId={quote.id} />)
-    expect(screen.getByText(NO_TERMS_SET)).toBeInTheDocument()
-    expect(screen.getByText(NO_DEPOSIT_SET)).toBeInTheDocument()
-    expect(screen.getByText(NO_DETAILS_SET)).toBeInTheDocument()
+    expect(screen.queryByText(NO_TERMS_SET)).toBeNull()
+    expect(screen.queryByText(NO_DEPOSIT_SET)).toBeNull()
+    expect(screen.queryByText(NO_DETAILS_SET)).toBeNull()
+    for (const name of [/^Northside’s terms/, /^The deposit wording/, /^Northside’s details/])
+      expect(screen.queryByRole('switch', { name })).toBeNull()
+    const unset = screen.getByTestId('document-unset')
+    expect(unset).toHaveTextContent(/Northside’s terms: none is set/)
+    expect(unset).toHaveTextContent(/The deposit wording: none is set/)
     /* and says once, where the paper is chosen, that nothing on it reaches Northside */
     expect(screen.getByTestId('document-unreachable')).toHaveTextContent(NO_WAY_TO_REACH)
   })

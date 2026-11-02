@@ -106,6 +106,21 @@ export function coverArt(quote: QuoteDef, register: string): CoverArt {
     : { kind: 'word', because: `${missing} ${mark.because}` }
 }
 
+/** A ledger note that names the make of the outboard a picture shows: "a Mercury outboard is
+ *  fitted (…)", "an Evinrude outboard: …". */
+const MAKE = /^(an?) (\p{Lu}[\p{L}-]*) outboard\b/u
+
+/** The make of outboard a picture shows, where its ledger names one; null where it does not. */
+export function outboardOf(
+  held: Pick<HeldPicture, 'differs'>,
+): { article: string; name: string } | null {
+  for (const note of held.differs) {
+    const m = MAKE.exec(note)
+    if (m) return { article: m[1]!, name: m[2]! }
+  }
+  return null
+}
+
 /** A ledger note that counts the outboards in a picture: "two outboards in one picture…". */
 const MANY = /^(two|three|four|five|six) outboards\b/i
 
@@ -171,7 +186,18 @@ export function pictured(
       yours.finish ? 'in the finish named above' : '',
       yours.motor === '' ? '' : `with the ${yours.motor}`,
     ].filter((part) => part !== '')
-    const said = `Pictured: the ${held.subject}, in its maker’s own finish and rig.`
+    /* AND THE OUTBOARD IT SHOWS, BY ITS MAKE, where the ledger names one this quote does not carry
+       (the second print of the same quote: the Sport 660's cowl reads MERCURY at twice its size,
+       which the ledger had as "not legible" and now says). "Rig" said it to nobody. */
+    const make = outboardOf(held)
+    const other =
+      make !== null && !yours.motor.toLowerCase().startsWith(make.name.toLowerCase())
+        ? `, as its maker photographed it, with ${make.article} ${make.name} outboard`
+        : ''
+    const said =
+      other === ''
+        ? `Pictured: the ${held.subject}, in its maker’s own finish and rig.`
+        : `Pictured: the ${held.subject}${other}.`
     return own.length === 0 ? said : `${said} Yours is ${own.join(', ')}.`
   }
   /* A PICTURE OF MORE THAN ONE OUTBOARD (the printed quote's critic, 2026-10-31, blocker 1): a
@@ -257,10 +283,49 @@ export function notPrintedSay(
  * cover's own reason. '' where the cover is a photograph and nothing on the build differs from it,
  * or where it prints the exact item's studio picture and the build shows nothing else.
  */
-export function coverAskSay(art: CoverArt, shown: HeldPicture | null, noun: string): string {
+export function coverAskSay(
+  art: CoverArt,
+  shown: HeldPicture | null,
+  noun: string,
+  /** THIS QUOTE'S OWN, as the line under the photograph is told it (`pictured`) */
+  yours: { finish: string; motor: string } = { finish: '', motor: '' },
+): string {
   const unprinted = notPrintedSay(shown, art, noun, false)
   if (unprinted !== '') return unprinted
-  return art.kind === 'photograph' ? '' : art.because
+  if (art.kind !== 'photograph') return art.because
+  return makersSay(art.held, noun, yours)
+}
+
+/**
+ * WHERE THE COVER PRINTS ITS MAKER'S PHOTOGRAPH OF THE MODEL AND NOT THE BOAT AS QUOTED, said to the
+ * dealer where the paper is chosen (the owner's fully specced quote, read 2026-11-03, the second
+ * print: the Sport 660's cover is Highfield's photograph, in Highfield's finish and with a Mercury
+ * outboard, on a quote for Light Grey / White / Dark Blue with a Yamaha F200XCB, "the first thing the
+ * owner and customer see is another brand of motor"). Northside holds no photograph of the boat as
+ * quoted; the line under the photograph tells the customer, and this tells the dealer the one thing
+ * that changes it. '' where the cover is not a maker's photograph of the model, or Northside's own.
+ */
+export function makersSay(
+  held: HeldPicture,
+  noun: string,
+  yours: { finish: string; motor: string },
+): string {
+  if (held.added || held.tier !== 'hero' || !held.subject) return ''
+  const make = outboardOf(held)
+  /* WHAT IT SHOWS THAT THE QUOTE DOES NOT: the maker's own finish where this quote names one, and
+     an outboard of another make where the ledger reads one; nothing said where neither is known */
+  const shows = [
+    yours.finish === '' ? '' : 'in its own finish',
+    make !== null && !yours.motor.toLowerCase().startsWith(make.name.toLowerCase())
+      ? `with ${make.article} ${make.name} outboard`
+      : '',
+  ].filter((part) => part !== '')
+  if (shows.length === 0) return ''
+  const quoted = [yours.finish, yours.motor === '' ? '' : `the ${yours.motor}`]
+    .filter((part) => part !== '')
+    .join(' with ')
+  const ours = `Northside holds no photograph of this ${noun} as quoted`
+  return `The cover’s photograph is the maker’s own: the ${held.subject}, ${shows.join(', ')}. ${quoted === '' ? `${ours}.` : `This quote is ${quoted}, and ${ours}.`}`
 }
 
 /** SAID OVER THE CONTROL ON A DRAFT: the act that puts a photograph on the cover, and — where the

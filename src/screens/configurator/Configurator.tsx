@@ -163,6 +163,7 @@ import {
   creditOf,
   galleryOf,
   itemOfQuote,
+  lineOf,
   markOnDark,
   markOnPaper,
   pictureOfQuote,
@@ -6097,41 +6098,58 @@ function FinalPackage({
                 </span>
               </h3>
               <ul className="cfg-pkg__list">
-                {items.map((item) => (
-                  <li key={item.key} className="cfg-pkg__item" data-ink={kindInk(item.kind)}>
-                    <span className="cfg-pkg__thumb">
-                      {item.picture ? (
-                        <img
-                          src={item.picture.src}
-                          alt=""
-                          width={item.picture.width}
-                          height={item.picture.height}
-                          loading="lazy"
-                          decoding="async"
-                          {...(item.picture.srcSet
-                            ? { srcSet: item.picture.srcSet, sizes: '112px' }
-                            : {})}
-                        />
-                      ) : (
-                        <KindMark kind={item.kind} size="sm" />
-                      )}
-                    </span>
-                    <span className="cfg-pkg__words">
-                      <span className="cfg-pkg__item-name">{slashed(item.name)}</span>
-                      <span className="cfg-pkg__item-in">
-                        <span className="cfg-pkg__dot" aria-hidden="true" />
-                        {item.chapter}
+                {items.map((item) => {
+                  /* THE PAPER'S PICTURE OF IT, AND NO OTHER (the owner's fully specced quote, read
+                     2026-11-03, the second print: this row drew Yamaha's picture of three F200s for
+                     a one-motor quote while the note beside the paper listed the F200XCB under
+                     "Printed without a picture"). A line's picture here is the one the paper prints
+                     beside it (`lineOf`): checked as that exact item, or Northside's own; the
+                     boat's is the cover's. Lost: the tile's picture in the package's list. */
+                  const found = item.item ? lineOf(item.item) : null
+                  const pic = found
+                    ? found.held
+                      ? {
+                          src: found.picture.src,
+                          width: found.picture.width,
+                          height: found.picture.height,
+                          ...(srcSetOf(found.picture) ? { srcSet: srcSetOf(found.picture) } : {}),
+                        }
+                      : null
+                    : item.picture
+                  return (
+                    <li key={item.key} className="cfg-pkg__item" data-ink={kindInk(item.kind)}>
+                      <span className="cfg-pkg__thumb">
+                        {pic ? (
+                          <img
+                            src={pic.src}
+                            alt=""
+                            width={pic.width}
+                            height={pic.height}
+                            loading="lazy"
+                            decoding="async"
+                            {...(pic.srcSet ? { srcSet: pic.srcSet, sizes: '112px' } : {})}
+                          />
+                        ) : (
+                          <KindMark kind={item.kind} size="sm" />
+                        )}
                       </span>
-                    </span>
-                    <span className="cfg-pkg__amt">
-                      {item.amount === null ? (
-                        <span className="cfg-pkg__none">no price yet</span>
-                      ) : (
-                        <PriceFigure amount={item.amount} />
-                      )}
-                    </span>
-                  </li>
-                ))}
+                      <span className="cfg-pkg__words">
+                        <span className="cfg-pkg__item-name">{slashed(item.name)}</span>
+                        <span className="cfg-pkg__item-in">
+                          <span className="cfg-pkg__dot" aria-hidden="true" />
+                          {item.chapter}
+                        </span>
+                      </span>
+                      <span className="cfg-pkg__amt">
+                        {item.amount === null ? (
+                          <span className="cfg-pkg__none">no price yet</span>
+                        ) : (
+                          <PriceFigure amount={item.amount} />
+                        )}
+                      </span>
+                    </li>
+                  )
+                })}
               </ul>
               {made.shares.length > 1 ? (
                 <div className="cfg-pkg__made">

@@ -44,7 +44,6 @@ import {
   makerSaid,
   namesOnPaper,
   quantityShown,
-  specColumns,
   NO_LEVEL_ON_IT,
   noteOnPaper,
   offeredOf,
@@ -693,12 +692,9 @@ describe('a quote for one thing alone (2026-11-02)', () => {
 
 /* ============================================================
    THE OWNER'S FULLY SPECCED QUOTE, READ AS PRINTED (2026-11-03): one style for every item's
-   name, a quantity on every part, the specification's columns even, and the rigging kits said by
+   name, a quantity only where an item is at more than one (the second print), and the rigging kits said by
    the motor as the build offers them.
    ============================================================ */
-/** A group of the specification of `n` rows, and what a column of them weighs. */
-const g = (name: string, n: number) => ({ id: name, name, rows: Array.from({ length: n }) })
-const weigh = (side: ReturnType<typeof g>[]) => side.reduce((n, x) => n + x.rows.length + 1.5, 0)
 
 describe('the owner’s fully specced quote, its printed faults', () => {
   it('names a maker and its model one way, and leaves a dot that parts no maker', () => {
@@ -722,39 +718,12 @@ describe('the owner’s fully specced quote, its printed faults', () => {
       expect(line.said).toBe(makerSaid(line.said))
   })
 
-  it('counts every part: Dealer fit always prints a quantity, a motor’s band only past one', () => {
+  it('prints a quantity only in a band where an item is at more than one, Dealer fit too', () => {
     const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
     for (const band of bandsOnPaper(doc)) {
       const many = band.tables.some((t) => t.lines.some((l) => l.qty > 1))
-      expect(quantityShown(band)).toBe(band.section.id === 'fit' || many)
+      expect(quantityShown(band)).toBe(many)
     }
-  })
-
-  it('parts the specification into two columns as evenly as whole groups allow', () => {
-    /* the Sport 660's: Size 6, Power 3, Capacity 3, Details 2 — flowed in order, the left column
-       held 9 rows and the right 5 */
-    const [left, right] = specColumns([
-      g('Size', 6),
-      g('Power', 3),
-      g('Capacity', 3),
-      g('Details', 2),
-    ])
-    expect(left[0]!.name).toBe('Size')
-    expect(Math.abs(weigh(left) - weigh(right))).toBeLessThanOrEqual(2)
-    expect([...left, ...right].map((x) => x.name).toSorted()).toEqual([
-      'Capacity',
-      'Details',
-      'Power',
-      'Size',
-    ])
-    /* each column keeps the sheet's order */
-    const order = ['Size', 'Power', 'Capacity', 'Details']
-    for (const side of [left, right]) {
-      const at = side.map((x) => order.indexOf(x.name))
-      expect(at).toEqual(at.toSorted((a, b) => a - b))
-    }
-    /* a sheet of one list is not parted */
-    expect(specColumns([g('', 11)])).toEqual([[g('', 11)], []])
   })
 
   it('says a rigging kit register by the motor, never by the frozen count the build no longer offers', () => {

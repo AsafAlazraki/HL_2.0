@@ -11,6 +11,7 @@
    ============================================================ */
 
 import type { TableKind } from '@/domain/model'
+import type { Item } from '@/data/pictures'
 import type { OptionRow, Rail } from './chapters'
 
 export interface SummaryItem {
@@ -24,6 +25,9 @@ export interface SummaryItem {
   /** its figure at the quote's price, or null where it carries none */
   amount: number | null
   picture: OptionRow['picture']
+  /** THE ROW ITSELF, where it is a line of a chapter: what the package asks the paper's own picture
+   *  question by (`lineOf`), so the list beside the paper never draws a picture the paper refuses */
+  item?: Item
 }
 
 /** Every line on the quote: the boat first, then each chapter's lines in the rail's order. */
@@ -60,6 +64,7 @@ export function summaryItems(
           kind: table.kind,
           amount: row.amount,
           picture: row.picture,
+          item: row.item,
         })
       }
     }

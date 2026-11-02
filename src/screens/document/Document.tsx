@@ -16,6 +16,7 @@ import {
   FilePdfIcon,
   FileXIcon,
   GearSixIcon,
+  ListChecksIcon,
   PrinterIcon,
 } from '@phosphor-icons/react'
 import {
@@ -89,7 +90,6 @@ import {
   namesOnPaper,
   noteOnPaper,
   quantityShown,
-  specColumns,
   offeredOf,
   offeredSay,
   paperTitle,
@@ -633,6 +633,9 @@ function Sheaf({
 
   const root = useRef<HTMLElement>(null)
   const gauge = useRef<HTMLSpanElement>(null)
+  /* THE COVER'S OWN ROOM, which keeps the foot's: its foot prints nothing, so its words stand as
+     far over the sheet's lower edge as the letterhead stands under its top (document.css) */
+  const coverGauge = useRef<HTMLSpanElement>(null)
   const held = useRef(new Map<string, HTMLElement>())
   const [pages, setPages] = useState<string[][] | null>(null)
 
@@ -668,12 +671,18 @@ function Sheaf({
     if (!element || !box) return
     element.dataset.gauging = ''
     const room = box.clientHeight
+    const coverRoom = coverGauge.current?.clientHeight || room
+    const leads = new Map(blocks.map((b) => [b.id, leadOf(held.current.get(b.id))]))
     const atoms: Atom[] = blocks.map(({ under, ...block }) => ({
       ...block,
       height: held.current.get(block.id)?.offsetHeight ?? 0,
-      lead: leadOf(held.current.get(block.id)),
-      /* a continued head stands the height of the head it repeats */
-      ...(under ? { carry: held.current.get(under.head)?.offsetHeight ?? 0 } : {}),
+      lead: leads.get(block.id) ?? 0,
+      /* a continued head stands the height of the head it repeats where that opens a sheet */
+      ...(under
+        ? {
+            carry: (held.current.get(under.head)?.offsetHeight ?? 0) - (leads.get(under.head) ?? 0),
+          }
+        : {}),
     }))
     /* the cover picture's box on paper, which is the whole picture: it
        is fitted and never cropped (`.doc-shot__img`) */
@@ -690,8 +699,8 @@ function Sheaf({
     delete element.dataset.gauging
     /* a cover taller than its room, with a line's air above the foot's rule, takes the
        difference off the picture, never below half of it */
-    if (shot && room > 0 && cover + COVER_AIR > room) {
-      const next = Math.floor(shot.height - (cover + COVER_AIR - room))
+    if (shot && coverRoom > 0 && cover + COVER_AIR > coverRoom) {
+      const next = Math.floor(shot.height - (cover + COVER_AIR - coverRoom))
       if (next >= shot.height / 2) {
         const of = doc.reference
         setFit((was) => (was?.of === of && was.px === next ? was : { of, px: next }))
@@ -735,6 +744,21 @@ function Sheaf({
       watch.disconnect()
     }
   }, [measure])
+
+  /* THE CHROME'S HEIGHT, for the note that stays beside the sheets under it at a desk
+     (document.css, `--chrome-h`): read off the bar, since its words wrap with the window */
+  useEffect(() => {
+    const element = root.current
+    const bar = element?.querySelector<HTMLElement>('.doc-chrome')
+    if (!element || !bar || typeof ResizeObserver === 'undefined') return
+    const watch = new ResizeObserver(() => {
+      element.style.setProperty('--chrome-h', `${bar.offsetHeight}px`)
+    })
+    watch.observe(bar)
+    return () => {
+      watch.disconnect()
+    }
+  }, [])
 
   const settled = pages !== null
   const sheets = pages ?? [blocks.map((b) => b.id)]
@@ -880,6 +904,7 @@ function Sheaf({
         {/* the page's own content box, measured rather than written
             down twice. Zero width, no text, out of the reading order. */}
         <span className="doc-gauge" ref={gauge} aria-hidden="true" />
+        <span className="doc-gauge" data-cover="" ref={coverGauge} aria-hidden="true" />
 
         {/* AFTER THE PAPER IN THE READING ORDER AND BESIDE IT ON THE
             FLOOR. The sheet is the subject of this screen, so a reader
@@ -1014,12 +1039,19 @@ function usePrinted(doc: PrintedQuote, art: CoverArt): { printed: Printed; ready
  *  Measured rather than read off the head's padding, because a head beside taller figures gives up
  *  nothing (`.doc-sums__body[data-beside]`). */
 function leadOf(atom: HTMLElement | undefined): number {
-  if (!atom?.querySelector('.doc-part')) return 0
+  /* a band's head opens a sheet at the same air a part's word does (document.css, `--open-cap`),
+     which can be more than it keeps after a line: then it gives up less than nothing */
+  if (
+    !atom ||
+    (atom.getElementsByClassName('doc-part').length === 0 &&
+      atom.getElementsByClassName('doc-band').length === 0)
+  )
+    return 0
   const after = atom.offsetHeight
   atom.dataset.opening = ''
   const first = atom.offsetHeight
   delete atom.dataset.opening
-  return Math.max(0, after - first)
+  return after - first
 }
 
 /** Two page assignments that are the same assignment. Compared member
@@ -1161,8 +1193,26 @@ function Chrome({
         </span>
         {PRINT_IS_THE_PAGE}
       </p>
+      {/* IN A HAND THE PAPER COMES FIRST AND WHAT PRINTS AFTER IT (the owner's fully specced quote,
+          read 2026-11-03, the second print: at 390 x 844 the first screen was the panel down to
+          y 740 and no part of the paper). The panel moves under the paper there (document.css),
+          and this is the way to it from the top. */}
+      <p className="doc-chrome__to-pick">
+        <Button intent="veiled" size="sm" icon={ListChecksIcon} onClick={toThePick}>
+          What goes on it, and what is not set
+        </Button>
+      </p>
     </div>
   )
+}
+
+/** Down to the panel where the paper is chosen, and onto it for a keyboard. */
+function toThePick(): void {
+  const panel = globalThis.document.querySelector<HTMLElement>('.doc-pick')
+  if (!panel) return
+  const still = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? true
+  panel.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' })
+  panel.focus({ preventScroll: true })
 }
 
 /* ---------------------------------------------------------- */
@@ -1371,9 +1421,18 @@ function SectionsPanel({
   people: ReadonlyArray<{ id: string; name: string }>
 }) {
   const quoteId = quote.id
-  const choices = choicesOf(doc)
+  /* EACH THING SAID ONCE (the owner's fully specced quote, read 2026-11-03, the second print: "Not
+     set when it was given" said the terms and the deposit wording were not set, and the list under
+     it said "Northside's terms: none to print" and "The deposit wording: none to print" again, and
+     "Northside's details: none to print" repeated the warning above it). A section that cannot
+     print for want of a word on Settings is said where Settings is asked for, with its press, and
+     is no switch of its own until it is set. Lost: three refused switches on every quote. */
+  const asked = new Set<PaperSection>(['terms', 'deposit', 'details'])
+  const choices = choicesOf(doc).filter(
+    (choice) => !(choice.refused && choice.section !== null && asked.has(choice.section)),
+  )
   const noun = subjectNoun(doc)
-  const cover = coverAskSay(art, shown, noun)
+  const cover = coverAskSay(art, shown, noun, { finish: doc.subject.finish, motor: motorOn(doc) })
   const unreachable = unreachableSay(doc.letterhead, doc.preparer, doc.chosen.details)
   const unset = unsetOn(doc)
   /* where Settings opens each: its line, or the person by their id (one not held yet is added) */
@@ -1385,7 +1444,7 @@ function SectionsPanel({
     apply(quoteId, setPaperSection(section, on))
   }
   return (
-    <div className="doc-pick">
+    <div className="doc-pick" tabIndex={-1}>
       <Plate as="section" pad="md" label="What goes on the printed quote">
         <div className="doc-pick__in">
           <p className="doc-desk__lab">On the printed quote</p>
@@ -1605,6 +1664,8 @@ function DeskNote({
        plate is the surface; its facts are led by the glyph of what each is about. */
     <div className="doc-desk">
       <Plate as="aside" pad="md" label="What is not printed">
+        {/* at a desk it scrolls inside its card (document.css); a scroller with nothing to press in
+            it is a stop of its own for a keyboard in the browser */}
         <div className="doc-desk__in">
           <p className="doc-desk__lab">Not printed</p>
           <p className="doc-desk__say">{THE_DESK_NOTE}</p>
@@ -1829,12 +1890,16 @@ function blocksOf(
   const bands = sole ? [] : bandsOnPaper(doc)
   /* A NUMBER ONLY WHERE THERE IS A SECOND: "01" over a quote's only band numbers nothing */
   const numbered = bands.length + (doc.typed.length > 0 ? 1 : 0) > 1
+  /* ITS HEAD SAYS ITS WORD ALONE (the owner's fully specced quote, read 2026-11-03, the second
+     print): "Highfield Sport 660, for Asaf Alazraki" under it repeated the cover's name and boat,
+     on a page whose running head already names the quote, so one pair of facts printed three times
+     in two pages. Lost: the line under "Your quote". */
   if (!sole)
     out.push({
       id: 'quote-head',
       keepWithNext: 1,
       ...(specPage ? {} : { breakBefore: true }),
-      node: <PartHead word="Your quote" sub={quoteSub(doc)} />,
+      node: <PartHead word="Your quote" />,
     })
   for (const band of bands) {
     const { section } = band
@@ -1844,17 +1909,20 @@ function blocksOf(
        one column whichever register they came from: every band of parts, and any other with a
        line at more than one (`quantityShown`) */
     const qty = quantityShown(band)
-    /* ONE LEFT EDGE PER BAND (the owner's fully specced quote, 2026-11-03: pictured parts started
-       their names at x 139 pt and the Tube Covers and the batteries at x 51 pt, one band, two
-       edges). Where any item in a band prints its picture, every item in it keeps the picture's
-       column, empty where it has none, so every name in the band starts at one x. */
+    /* ONE LEFT EDGE PER BAND AND ONE HEIGHT PER ROW (the owner's fully specced quote, 2026-11-03,
+       both prints). The first had pictured parts start their names at x 139 pt and the Tube Covers
+       at x 51 pt; the second, every name at 139 pt but an empty 77 pt slot left of each item with
+       no picture and those rows 30 pt tall among rows of 52, so the table's left edge read as
+       holes. Every name now starts at the band's own edge, and where any item in a band prints its
+       picture, every row of the band keeps a picture's column after its name and a picture's
+       height, empty where it has none, as a gap in a column of figures is. Lost: the picture
+       column before the name.
+       THE HULL PRINTS NO PICTURE OF ITS OWN (the same read): its only picture is the cover's
+       photograph, which shrunk whole to 68 x 51 pt was a quarter boat and three quarters sea, the
+       third time it printed. The cover is the boat; the hull's line names it with its finish. */
     const well =
       doc.chosen.pictures &&
-      band.tables.some((table) =>
-        table.lines.some((line) =>
-          table.subject ? art.kind === 'photograph' : heldFor(line) !== null,
-        ),
-      )
+      band.tables.some((table) => !table.subject && table.lines.some((l) => heldFor(l) !== null))
     const head = `sec:${section.id}`
     const under = {
       head,
@@ -1877,17 +1945,7 @@ function blocksOf(
           id: `line:${line.id}`,
           under,
           node: table.subject ? (
-            <HullLine
-              doc={doc}
-              line={line}
-              qty={qty}
-              well={well}
-              picture={
-                doc.chosen.pictures && art.kind === 'photograph'
-                  ? { held: art.held, src: printedSrc(printed, art.held.src, LINE_PX) }
-                  : null
-              }
-            />
+            <HullLine doc={doc} line={line} qty={qty} well={well} />
           ) : (
             <Line
               line={line}
@@ -1911,6 +1969,16 @@ function blocksOf(
        onto the next page and left a third of the page before it empty (2026-10-31) */
     const firstLine = out.findIndex((block, k) => k > from && block.id.startsWith('line:'))
     out[from].keepWithNext = firstLine < 0 ? 0 : firstLine - from
+    /* AND A BAND'S LAST LINE NEVER OPENS A SHEET ALONE (the owner's fully specced quote, read
+       2026-11-03, the second print: page 4 opened "04 Dealer fit, continued" over one row, the
+       Rigging kit at $14,660, under 82 pt of white at the foot of page 3). The line before it
+       keeps it, and whatever stands between them, so a band that runs over a break carries two
+       of its lines onto the next sheet or none. */
+    const lines = out.flatMap((block, k) => (k > from && block.id.startsWith('line:') ? [k] : []))
+    const [penult, last] = lines.slice(-2)
+    if (penult !== undefined && last !== undefined) {
+      out[penult]!.keepWithNext = Math.max(out[penult]!.keepWithNext ?? 0, last - penult)
+    }
   }
 
   if (doc.typed.length > 0) {
@@ -2299,42 +2367,31 @@ export function eyebrowOf(doc: Pick<PrintedQuote, 'subject'>): string {
 /* ---------------------------------------------------------- */
 
 /**
- * EVERY FACT THE FILE HOLDS FOR WHAT IS SOLD, laid out as a brochure lays a specification:
- * grouped (size, weight, power, capacity, construction), each group a block of hairline rows,
- * two blocks to a row on paper. `live/saxdor-brochure-specs-crop` is the register — the label
- * light, the value at a fixed indent — and the groups are what turn eighteen file columns into
- * something a buyer can find a figure in.
+ * EVERY FACT THE FILE HOLDS FOR WHAT IS SOLD, laid out as a brochure lays a specification: grouped
+ * (size, power, capacity, details), the label light and the value in full ink, over hairlines
+ * (`live/saxdor-brochure-specs-crop`).
+ *
+ * EACH GROUP IS A ROW OF THE PAGE: its name in a margin of its own and its facts two to a line
+ * beside it (the owner's fully specced quote, read 2026-11-03, the second print). Two columns of
+ * whole groups could only be as even as the groups were: the Sport 660's Size and Details ended
+ * 57 pt under Power and Capacity, a block 232 pt wide left empty under "Maximum people", and no
+ * parting of groups of 6, 3, 3 and 2 does better. Read across, each group ends where its facts do
+ * and the sheet ends where its last group does. Lost: `specColumns`, the two stacks of groups.
  */
 function SpecPage({ doc }: { doc: PrintedQuote }) {
-  /* TWO COLUMNS, EACH A STACK OF WHOLE GROUPS, PARTED AS EVENLY AS THE GROUPS ALLOW (`specColumns`),
-     so neither column ends 120 pt above the other; a sheet of one list sets its own two columns */
-  const [left, right] = specColumns(doc.subject.sheet)
   return (
     <section className="doc-sheet" aria-label="Specifications">
       <PartHead word="Specifications" sub={doc.subject.title} />
-      <div className="doc-sheet__groups" data-parted={right.length > 0 ? '' : undefined}>
-        {right.length > 0 ? (
-          <>
-            <div className="doc-sheet__col">
-              {left.map((g) => (
-                <SpecGroupBlock group={g} key={g.id} />
-              ))}
-            </div>
-            <div className="doc-sheet__col">
-              {right.map((g) => (
-                <SpecGroupBlock group={g} key={g.id} />
-              ))}
-            </div>
-          </>
-        ) : (
-          left.map((g) => <SpecGroupBlock group={g} key={g.id} />)
-        )}
+      <div className="doc-sheet__groups">
+        {doc.subject.sheet.map((g) => (
+          <SpecGroupBlock group={g} key={g.id} />
+        ))}
       </div>
     </section>
   )
 }
 
-/** One group of the specification: its head in the accent over its hairline rows. */
+/** One group of the specification: its name in the margin, its facts two to a line beside it. */
 function SpecGroupBlock({ group: g }: { group: PrintedQuote['subject']['sheet'][number] }) {
   return (
     <div
@@ -2678,29 +2735,27 @@ function Line({
  * read 2026-11-03: "one bare row … no picture beside it and no line about the Hypalon or the colour
  * choice. It is the biggest line on the quote ($72,170) and it reads like the smallest"). Its name is
  * the exact model, as the cover heads it; under it, its material and its colours with the same
- * squares the cover and the build draw them in; beside it, the cover's own photograph of the model,
- * small, where the pictures are chosen — never another picture, so nothing the cover may not print
- * stands here. A quote that is not for a boat sets its item's name as it always did.
+ * squares the cover and the build draw them in. No picture beside it: its only one is the cover's
+ * photograph, which the second print found shrunk to a quarter boat and three quarters sea, the third
+ * time it printed. A quote that is not for a boat sets its item's name as it always did.
  */
 function HullLine({
   doc,
   line,
   qty,
   well,
-  picture,
 }: {
   doc: PrintedQuote
   line: DocumentLine
   qty: boolean
   well: boolean
-  picture: { held: HeldPicture; src: string } | null
 }) {
   const under = noteOnPaper(line)
   const material = doc.subject.material
   const colour = doc.subject.colour
   const finished = doc.subject.finish !== ''
   return (
-    <Row line={line} qty={qty} well={well} picture={picture} hull>
+    <Row line={line} qty={qty} well={well} picture={null} hull>
       <span className="doc-row__said">{finished ? doc.subject.title : line.said}</span>
       {finished ? (
         <span className="doc-row__own">
@@ -2749,8 +2804,9 @@ function Row({
       data-pictured={well ? '' : undefined}
       data-hull={hull ? '' : undefined}
     >
+      <span className="doc-row__name">{children}</span>
       {well ? (
-        <span className="doc-row__well" data-ground={hull ? 'photo' : undefined}>
+        <span className="doc-row__well">
           {picture ? (
             /* never drawn wider than its held pixels, nor past its well */
             <img
@@ -2770,7 +2826,6 @@ function Row({
           ) : null}
         </span>
       ) : null}
-      <span className="doc-row__name">{children}</span>
       {qty ? (
         <span className="doc-row__qty doc-fig">{line.qty.toLocaleString('en-AU')}</span>
       ) : null}

@@ -3,7 +3,7 @@
    and how far a photograph spans the sheet, read off the held picture alone.
    ============================================================ */
 import { describe, expect, it } from 'vitest'
-import type { HeldPicture } from '@/data/pictures'
+import { itemOf, pictures, type HeldPicture } from '@/data/pictures'
 import {
   NIGHT_MAX_PX,
   SHEET_PX,
@@ -12,6 +12,7 @@ import {
   coverSay,
   groundOf,
   notPrintedSay,
+  outboardOf,
   pictured,
   spanOf,
   type CoverArt,
@@ -155,6 +156,35 @@ describe('what the panel where the paper is chosen says of the cover', () => {
     expect(coverAskSay(photo({ id: 'row:m', verdict: 'studio' }), null, 'motor')).toBe('')
   })
 
+  /* the owner's fully specced quote, the second print: the cover is Highfield's photograph with a
+     Mercury outboard on a quote for a Yamaha, and Northside holds none of the boat as quoted */
+  it('says where the cover prints the maker’s photograph and not the boat as quoted', () => {
+    const maker = held({
+      id: 'highfield-sp660',
+      src: '/sp660.webp',
+      tier: 'hero',
+      person: true,
+      subject: 'Highfield Sport 660 on the water',
+      differs: ['a Mercury outboard is fitted (its cowl reads MERCURY at twice the held size)'],
+    })
+    expect(
+      coverAskSay({ kind: 'photograph', held: maker }, maker, 'boat', {
+        finish: 'Hypalon · Light Grey / White / Dark Blue',
+        motor: 'Yamaha F200XCB',
+      }),
+    ).toBe(
+      'The cover’s photograph is the maker’s own: the Highfield Sport 660 on the water, in its own finish, with a Mercury outboard. This quote is Hypalon · Light Grey / White / Dark Blue with the Yamaha F200XCB, and Northside holds no photograph of this boat as quoted.',
+    )
+    /* Northside's own photograph made the cover answers it */
+    const own = held({
+      ...maker,
+      id: 'own:1',
+      added: { by: 'Asaf', at: '2026-11-03T00:00:00Z' },
+      verdict: 'own',
+    })
+    expect(coverAskSay({ kind: 'photograph', held: own }, own, 'boat')).toBe('')
+  })
+
   it('names the act on a draft in the noun of what is sold', () => {
     expect(coverAskAct('trailer', null)).toBe(
       'Add Northside’s own photograph of this trailer and make it the cover, and the printed quote prints it on its cover.',
@@ -189,6 +219,23 @@ describe('the line under a maker’s photograph says what this quote’s own is 
     )
     expect(pictured(hero)).toBe(
       'Pictured: the Highfield Sport 660 on the water, in its maker’s own finish and rig.',
+    )
+  })
+
+  it('names the outboard the ledger reads on the photograph, where the quote carries another', () => {
+    /* the second print: the cowl reads MERCURY on a quote for a Yamaha F200XCB, read off the
+       ledger's own entry */
+    const ledger = pictures().hero(itemOf('boat_highfield', 'boat_highfield:513'))
+    expect(ledger && outboardOf(ledger)).toEqual({ article: 'a', name: 'Mercury' })
+    const mercury = held({ ...hero, differs: ledger?.differs ?? [] })
+    expect(
+      pictured(mercury, 'Highfield Sport 660', true, { finish: true, motor: 'Yamaha F200XCB' }),
+    ).toBe(
+      'Pictured: the Highfield Sport 660 on the water, as its maker photographed it, with a Mercury outboard. Yours is in the finish named above, with the Yamaha F200XCB.',
+    )
+    /* a quote that carries that make says nothing of it */
+    expect(pictured(mercury, '', true, { finish: false, motor: 'Mercury 150XL' })).toBe(
+      'Pictured: the Highfield Sport 660 on the water, in its maker’s own finish and rig. Yours is with the Mercury 150XL.',
     )
   })
 })
