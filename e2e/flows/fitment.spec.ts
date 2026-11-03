@@ -375,9 +375,13 @@ test('the recommended is set on a tile, and a motor under the range is refused w
       /^The Yamaha F200XC is now the recommended motor for the Highfield Sport 660, on all 16/,
     ),
   ).toBeVisible()
+  /* THE TILE STAYS WHERE IT WAS PRESSED, starred there (the fitment verifier, 2026-11-03: moved to
+     the front, it put another tile's Recommend it under the pointer) */
   const tiles = page.getByRole('list', { name: 'Made for it' }).getByRole('listitem')
-  await expect(tiles.first()).toContainText('F200XC')
-  await expect(tiles.first().getByLabel('Recommended')).toBeVisible()
+  await expect(tiles.first()).toContainText('F175XC')
+  await expect(tiles.nth(2)).toContainText('F200XC')
+  await expect(tiles.nth(2).getByLabel('Recommended', { exact: true })).toBeVisible()
+  await expect(tiles.first().getByLabel('Recommended', { exact: true })).toHaveCount(0)
 
   await page.goto(`${AT_REST}&all=motor&only=under`)
   await page.getByRole('button', { name: /^Put the Yamaha F2.5SMHB on/ }).click()
@@ -440,4 +444,40 @@ test('a wrong-shaft motor and a trailer over its ATM are refused where they are 
   const start = page.getByRole('heading', { name: 'A quote with' }).locator('..').locator('..')
   await expect(start).toContainText('REDCO')
   await expect(start).not.toContainText('GFAB')
+})
+
+/* THE FITMENT VERIFIER, 2026-11-03, round 2: on the quote started here, one press of the build's
+   Add put the GFAB on at $111,778 with no word. The build refuses it with Fitment's own sentence. */
+test('the build refuses a trailer over its ATM on a quote started here, with its figures', async ({
+  page,
+}) => {
+  await onTheBoat(page)
+  await page.getByRole('button', { name: 'Start the quote' }).click()
+  await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 15_000 })
+  const gfab = page.getByRole('button', {
+    name: /GFAB Tandem Axel Trailer t\/s Highfield Sport 660/,
+  })
+  await gfab.first().scrollIntoViewIfNeeded()
+  await gfab.first().click()
+  await expect(page.getByRole('alert').filter({ hasText: 'ATM' })).toHaveText(
+    'The GFAB Tandem Axel Trailer t/s Highfield Sport 660 is rated 2,200 kg and would carry 2,950 kg, 750 kg over, so it is not put on the quote. Its ATM decides that.',
+  )
+  await expect(page.getByTestId('configurator')).not.toContainText('$111,778')
+})
+
+/* AND A KIT THE PRICE LIST NO LONGER SELLS IS NAMED AS THAT, never "no rigging kit" (round 2) */
+test('a rigging kit no longer sold is named, counted once and never priced in', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await page.goto('/fitment?boat=boat_stabicraft%3A30')
+  await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
+    timeout: 15_000,
+  })
+  const motor = page.getByRole('region', { name: /^Motor/ })
+  await expect(motor).toContainText(
+    '10 of the 11 name a rigging kit the price list marks no longer sold, so their figures are the motor alone and a quote takes the motor without it.',
+  )
+  await expect(motor.getByText('No longer sold', { exact: true })).toHaveCount(10)
+  await expect(motor).not.toContainText('names no rigging kit')
 })
