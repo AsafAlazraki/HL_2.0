@@ -65,6 +65,9 @@ export const Route = createFileRoute('/rules')({
 const listHref = (table: string, at: string): string =>
   `/data/${encodeURIComponent(table)}?at=${encodeURIComponent(at)}`
 
+/** One quote in the build: the configurator's own address (src/routes/quote.$id.tsx). */
+const quoteHref = (id: string): string => `/quote/${encodeURIComponent(id)}`
+
 function RulesRoute() {
   const navigate = useNavigate()
   const search = Route.useSearch()
@@ -110,6 +113,7 @@ function RulesRoute() {
       at={{ open: search.open ?? '', look: search.look ?? '', on: search.on ?? '' }}
       go={go}
       listHref={listHref}
+      quoteHref={quoteHref}
       follow={(href) => void navigate({ href })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
     />

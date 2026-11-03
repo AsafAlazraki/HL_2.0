@@ -55,7 +55,9 @@ test('what needs Northside is a checklist of figures, each out of something, eac
 }) => {
   await onData(page)
   const needs = page.getByTestId('data-needs')
-  await expect(needs.locator('[data-need="review"] .dt-need__fig')).toHaveText('37', {
+  /* 39 since Review was deepened on 2026-11-04: the $0 boats, below cost, notes on sale and the
+     price list's own rule broken are cases too (docs/directions/data-round/review/built.md) */
+  await expect(needs.locator('[data-need="review"] .dt-need__fig')).toHaveText('39', {
     timeout: 15_000,
   })
   await expect(needs.locator('[data-need="prices"] .dt-need__fig')).toHaveText('4')

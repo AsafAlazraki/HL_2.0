@@ -13,7 +13,7 @@
 import { describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import { pairReach, sideFor } from './pairRules'
-import { specByKey } from './pairSpecs'
+import { specByKey, specValue } from './pairSpecs'
 import {
   BUILD_DOES,
   groupExceptions,
@@ -67,6 +67,33 @@ describe('each clause, counted on the sheet loaded here', () => {
     for (const e of m('F6').exceptions) {
       const line = (world.rowsByEntity[e.list] ?? []).find((r) => r.id === e.line)
       expect(line, `${e.list} ${e.line}`).toBeTruthy()
+    }
+  })
+
+  it('names the two lines that write the shaft and the transom in conflict, each a real row', () => {
+    for (const e of m('F6').exceptions) {
+      expect(e.sides.map((x) => `${x.noun} ${x.what}`)).toEqual(['boat transom', 'motor shaft'])
+      const [boat, motor] = e.sides.map((x) => {
+        const table = world.entities[x.list]!
+        const row = (world.rowsByEntity[x.list] ?? []).find((r) => r.id === x.line)
+        expect(row, `${x.list} ${x.line}`).toBeTruthy()
+        return { table, row: row! }
+      })
+      expect(boat!.table.kind).toBe('boat')
+      expect(motor!.table.kind).toBe('motor')
+      /* the two lines really do write two different lengths: the break is on them */
+      const transom = specValue(specByKey('boat::shaft')!, boat!.table, boat!.row)
+      const shaft = specValue(specByKey('motor::shaft')!, motor!.table, motor!.row)
+      expect(transom).not.toBeNull()
+      expect(shaft).not.toBeNull()
+      expect(transom).not.toBe(shaft)
+    }
+  })
+
+  it('every break on every measured clause names at least one line that writes what breaks', () => {
+    for (const entry of PAIRING_RULES) {
+      const out = measureClause(entry.ref, world)
+      for (const e of out?.exceptions ?? []) expect(e.sides.length, entry.ref).toBeGreaterThan(0)
     }
   })
 

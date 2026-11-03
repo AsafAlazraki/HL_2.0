@@ -7,9 +7,14 @@
 import { describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import { PAIRING_RULES, ledgerFor } from '@/domain/rules/constraints/ruleLedger'
-import { WORKBOOK_RULES } from '@/domain/rules/constraints/workbookRules'
+import { WORKBOOK_RULES, WORKBOOK_RULES_REFUTED } from '@/domain/rules/constraints/workbookRules'
 import { pairReach, pairSaid } from '@/domain/rules/constraints/pairRules'
 import {
+  REFUTED_SAID,
+  boatsNamed,
+  headsSaid,
+  houseText,
+  workbookSaid,
   blankDraft,
   costSaid,
   draftChanged,
@@ -265,5 +270,122 @@ describe('a filed rule, opened again', () => {
     const back = draftOf(rule, world)!
     expect(back.boatValue).toBe('6.5')
     expect(draftChanged(back, rule, world)).toBe(false)
+  })
+})
+
+describe('where the workbook and the sheet part', () => {
+  const stated = statedRules(cols, world)
+  const of = (ref: string) => stated.find((x) => x.ref === ref)!
+
+  it('says the workbook’s 16 of 571 on F15 where the sheet loaded here counts none', () => {
+    expect(of('F15').live!.exceptions).toHaveLength(0)
+    expect(workbookSaid(of('F15'))).toBe(
+      'The workbook this rule was found in counted 16 of 571 breaking it; on the price list loaded here, none does.',
+    )
+  })
+
+  it('says nothing where they agree, and nothing on a clause never refused', () => {
+    expect(of('F6').live!.exceptions).toHaveLength(3)
+    expect(workbookSaid(of('F6'))).toBe('')
+    expect(workbookSaid(of('A2'))).toBe('')
+  })
+})
+
+const numberOf = (id: string) => (id === 'r1' ? '2.4' : '')
+
+describe('said before it is added', () => {
+  const base = { noun: 'motor', idle: [], same: '', noticed: false, numberOf }
+
+  it('names each other rule once, by its number, and never a boat twice', () => {
+    const said = headsSaid({
+      ...base,
+      empties: [
+        { said: 'Highfield Classic 340', made: 3, with: ['r1'] },
+        { said: 'Highfield Classic 360', made: 2, with: ['r1'] },
+      ],
+      clashes: [
+        {
+          ruleId: 'r1',
+          boats: ['Highfield Classic 340', 'Highfield Classic 360', 'Highfield GRT 425'],
+        },
+      ],
+    })
+    expect(said).toEqual([
+      'Beside your rule 2.4, the Highfield Classic 340 and Classic 360 would be offered no motor at all: the two together take everything your price list makes for them. On one more boat, the Highfield GRT 425, no motor on sale keeps both.',
+    ])
+    expect(said.join(' ').match(/GRT 425/g)).toHaveLength(1)
+  })
+
+  it('never names a boat it alone empties again in the clash beside it', () => {
+    const said = headsSaid({
+      ...base,
+      empties: [
+        { said: 'Formosa GRT 425', made: 4, with: [] },
+        { said: 'Formosa GRT 455', made: 4, with: [] },
+      ],
+      clashes: [{ ruleId: 'r1', boats: ['Formosa GRT 425', 'Formosa GRT 455', 'Stacer 429'] }],
+    })
+    expect(said[1]).toBe(
+      'It cannot stand beside your rule 2.4: on those and one more boat, the Stacer 429, no motor on sale keeps both.',
+    )
+    expect(said.join(' ').match(/GRT 425/g)).toHaveLength(1)
+  })
+
+  it('names every boat it fights over, past three as a count', () => {
+    expect(boatsNamed(['Stacer A', 'Stacer B', 'Stacer C', 'Stacer D', 'Stacer E'])).toBe(
+      'the Stacer A, B, C and 2 more',
+    )
+    expect(boatsNamed(['Highfield Classic 340'])).toBe('the Highfield Classic 340')
+  })
+
+  it('says an exception that spares nothing, and a rule that already says it', () => {
+    expect(
+      headsSaid({
+        ...base,
+        empties: [],
+        clashes: [],
+        idle: ['Surtees 495 Pro Fisher'],
+        same: '2.4',
+      }),
+    ).toEqual([
+      'The exception changes nothing: the Surtees 495 Pro Fisher is not among the boats the rest of the sentence speaks of.',
+      'It says what your rule 2.4 already says.',
+    ])
+  })
+})
+
+const digits = (t: string) => t.replace(/(\d),(\d)/g, '$1$2').match(/\d+(\.\d+)?/g) ?? []
+
+describe('looked for and not true', () => {
+  const six = WORKBOOK_RULES_REFUTED.filter((r) => r.ref === 'F10' || r.ref === 'F11')
+
+  it('says each of the six in the page’s own words, with curly apostrophes and no cell', () => {
+    expect(six).toHaveLength(6)
+    for (const r of six) {
+      const said = REFUTED_SAID[r.candidate]
+      expect(said, r.candidate).toBeTruthy()
+      const words = `${said!.said} ${said!.counted}`
+      expect(words).not.toMatch(/'|!|\bPLUS\b|Library|Module/)
+    }
+  })
+
+  it('carries no figure the workbook record does not', () => {
+    for (const r of six) {
+      const known = new Set(digits(`${r.measured} ${r.verdict}`))
+      for (const n of digits(REFUTED_SAID[r.candidate]!.counted))
+        expect(known.has(n), `${n} in ${r.candidate}`).toBe(true)
+    }
+  })
+})
+
+describe('the house rules as words', () => {
+  it('heads them with whose they are and the price list’s date, then every clause by number', () => {
+    const book = partsOf(statedRules(cols, world), [])
+    const text = houseText(book, 'Northside Marine', 'The price list of 16 September 2026')
+    const lines = text.split('\n')
+    expect(lines[0]).toBe('Northside Marine — the house rules: what may be sold with what')
+    expect(lines[1]).toBe('The price list of 16 September 2026')
+    expect(text).toContain('2.3 A motor’s shaft is the length the boat’s transom is cut for.')
+    expect(text).toContain('1 Trailers')
   })
 })

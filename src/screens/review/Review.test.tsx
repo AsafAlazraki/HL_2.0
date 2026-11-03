@@ -10,9 +10,10 @@ import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { engineWordsIn } from '@/screens/configurator/say'
+import { isDiscontinued } from '@/domain/model'
 import { review } from '@/domain/rules/review/checks'
 import { meantKeysOf, queueOf } from '@/domain/rules/review/cases'
-import { Review, type ReviewProps } from './Review'
+import { Review, type ReviewPosition, type ReviewProps } from './Review'
 import { MEANT_PREF, TIDY } from './read'
 
 let pack: PackFixture
@@ -31,61 +32,78 @@ beforeEach(async () => {
   })
 })
 
-function draw(at = '') {
-  const onAt = vi.fn<ReviewProps['onAt']>()
+function draw(at = '', more: ReviewPosition = {}) {
+  const onPosition = vi.fn<ReviewProps['onPosition']>()
   const go = vi.fn<ReviewProps['go']>()
   const openTheFile = vi.fn<() => void>()
+  const position: ReviewPosition = { ...(at === '' ? {} : { case: at }), ...more }
   const view = render(
     <Review
-      at={at}
-      onAt={onAt}
+      position={position}
+      onPosition={onPosition}
       listHref={(t, a) => `/data/${t}${a ? `?at=${a}` : ''}`}
       go={go}
       openTheFile={openTheFile}
     />,
   )
-  return { onAt, go, openTheFile, ...view }
+  /** where the last press sent the stage */
+  const lastCase = (): string | undefined => onPosition.mock.lastCall?.[0].case
+  return { onPosition, go, openTheFile, lastCase, ...view }
 }
 
 const row = (table: string, id: string): Record<string, unknown> =>
   catalogue.getState().rows[table]!.find((r) => r.id === id)!.values
 
-const stage = (): HTMLElement => screen.getByRole('region')
+const stage = (): HTMLElement => document.querySelector<HTMLElement>('.rv-stage')!
+const queue = () => {
+  const s = catalogue.getState()
+  return queueOf(review({ entities: s.tables, rowsByEntity: s.rows }))
+}
 
+const FIRST_TRAILER = 'band:trl_dunbier:trl_dunbier:67:Small Trailers - Up to 1.02t:1450'
+const SECOND_TRAILER = 'band:trl_dunbier:trl_dunbier:69:Small Trailers - Up to 1.02t:2000'
 const LONE_STAR = 'none:parts:ANCHOR WINCHES - Lone Star:blank'
 const PLUGS = 'none:parts:TRAILER PARTS - Trailer Plugs:zero'
+const FORMOSA = 'none:boat_formosa::zero'
 
 describe('the first look', () => {
-  it('counts what is left and what it costs, and puts the most money on the stage', () => {
+  it('counts what is left and what it costs, and puts what risks a quote on the stage', () => {
     const { container } = draw()
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Review 37 to settle, the most money first' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Review 39 to settle, what puts a quote at risk first',
+      }),
     ).toBeTruthy()
-    /* $819 and $234: 7 × $117 and 2 × $117, read as text whatever the figure is drawn with */
+    /* $819 and $234: 7 × $117 and 2 × $117, on one sale of each */
     expect(container.textContent).toContain('$819')
     expect(container.textContent).toContain('$234')
-    /* ONE FIGURE: the head, each check and "Case 1 of 37" all count cases, and the five add to
-       the 37 (built-critique-m3.md, major 11: "69 to settle" beside "Case 1 of 37") */
+    expect(container.textContent).toContain('on one sale of each trailer')
+    /* ONE FIGURE: the head, each check and "Case 1 of 39" all count cases, and the nine add up */
     const checks = screen.getByRole('navigation', { name: 'The checks' })
     for (const name of [
+      'Boats at $0 1',
       'Wrong size 9',
+      'Below cost 2',
       'Two prices 3',
-      'No price 18',
-      'Two under one name 4',
-      'Nothing to name it 3',
+      'No price 15',
+      'Notes on sale 3',
+      'Own rules broken 1',
+      'Two headings, one name 4',
+      'Nothing to name it 1',
       'then Tidy 138',
     ])
       expect(within(checks).getByRole('button', { name })).toBeTruthy()
 
+    /* a boat on sale at $0 is a $0 quote: it leads (the judge's B3) */
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Rego the ALP 5.3M-13B as a Large trailer.' }),
+      screen.getByRole('heading', { level: 2, name: 'Price the 9 Formosa boats on sale at $0.' }),
     ).toBeTruthy()
-    expect(within(stage()).getByText('Case 1 of 37 · Registered as the wrong size')).toBeTruthy()
-    expect(within(stage()).getByRole('button', { name: /^Make it Large · \+\$117/ })).toBeTruthy()
-    /* the file's own cells, as they read and after the change */
-    expect(within(stage()).getByRole('cell', { name: 'Small Trailers - Up to 1.02t' })).toBeTruthy()
-    expect(within(stage()).getByRole('cell', { name: 'Large Trailers - Over 1.021t' })).toBeTruthy()
-    expect(within(stage()).getByRole('cell', { name: '$11,483' })).toBeTruthy()
+    expect(within(stage()).getByText('Case 1 of 39')).toBeTruthy()
+    expect(within(stage()).getByText('A boat on sale at $0')).toBeTruthy()
+    expect(within(stage()).getByText(/sells at \$79,760 Cash\.$/)).toBeTruthy()
+    /* the plug's "$0 is meant" is never said of a boat */
+    expect(stage().textContent).not.toContain('$0 is meant')
     expect(engineWordsIn(container.textContent ?? '')).toEqual([])
   })
 
@@ -94,92 +112,134 @@ describe('the first look', () => {
     const next = screen.getByRole('navigation', { name: 'The next cases' })
     expect(
       within(next).getByRole('button', {
-        name: 'Case 2: Rego the ALP 5.7M-13TB as a Large trailer.',
+        name: 'Case 2: Rego the ALP 5.3M-13B as a Large trailer.',
       }),
     ).toBeTruthy()
     expect(within(next).getAllByRole('button')).toHaveLength(2)
-    /* six, not seven: Registration Costs declares no price, but the first case reads its fees */
     const notChecked = screen.getByText(/^Not checked: 6 lists declare no price/).textContent
     expect(notChecked).toContain('2,561')
+    expect(notChecked).toContain('Once a price is declared for one on Prices')
     expect(notChecked).not.toContain('Registration Costs')
   })
 
   it('keeps a model code whole in the headline, never broken at its hyphen', () => {
-    draw()
-    const title = screen.getByRole('heading', { level: 2 })
+    draw(FIRST_TRAILER)
+    const title = within(stage()).getByRole('heading', { level: 2 })
     const whole = [...title.querySelectorAll('.rv-whole')].map((e) => e.textContent)
     expect(whole).toEqual(['5.3M-13B'])
   })
 
-  it('promises only what is true of a press: History keeps quotes, not the price list', () => {
-    const { container } = draw()
-    expect(within(stage()).getByText(/One step, said with its Undo./)).toBeTruthy()
-    expect(container.textContent).not.toMatch(/History/)
+  it('says an address naming a case no longer there, and shows the first', () => {
+    draw('band:nothing:here')
+    expect(screen.getByText(/^That case is settled or is no longer in the price list/)).toBeTruthy()
+    expect(within(stage()).getByText('Case 1 of 39')).toBeTruthy()
   })
 })
 
-describe('one neighbour said once', () => {
-  it('says the priced line beside Formosa’s nine boats once, over them, not nine times', () => {
-    const s = catalogue.getState()
-    const formosa = queueOf(review({ entities: s.tables, rowsByEntity: s.rows })).find(
-      (c) => c.kind === 'none' && c.group.tableName === 'Formosa',
-    )!
-    draw(formosa.key)
-    expect(within(stage()).getAllByText(/^Beside them in the price list: /)).toHaveLength(1)
-    expect(within(stage()).queryByText(/^Beside it: /)).toBeNull()
-    expect(within(stage()).getAllByRole('textbox')).toHaveLength(9)
+describe('every case in one look', () => {
+  it('lists all 39 by check, each a link to its case, and finds them by typing', async () => {
+    const user = userEvent.setup()
+    const { onPosition } = draw()
+    const index = screen.getByRole('navigation', { name: 'Every case' })
+    expect(within(index).getAllByRole('link')).toHaveLength(39)
+    expect(within(index).getByText('39 cases')).toBeTruthy()
+    const lit = within(index)
+      .getAllByRole('link')
+      .find((a) => a.getAttribute('aria-current') === 'true')
+    expect(lit?.getAttribute('href')).toBe(`/review?case=${encodeURIComponent(FORMOSA)}`)
+
+    await user.type(
+      within(index).getByRole('textbox', { name: 'Find a case by its list, maker or line' }),
+      'lone star',
+    )
+    expect(within(index).getAllByRole('link')).toHaveLength(1)
+    expect(within(index).getByText('1 case of 39 hold “lone star”')).toBeTruthy()
+    expect(onPosition).toHaveBeenLastCalledWith({ find: 'lone star' })
+    await user.click(within(index).getByRole('link'))
+    /* a case picked from the index closes it below a desk and stands on the stage */
+    expect(onPosition.mock.lastCall?.[0]).toMatchObject({ case: LONE_STAR, list: undefined })
+  })
+
+  it('groups by list, and says when nothing holds what was typed', async () => {
+    const user = userEvent.setup()
+    draw('', { by: 'list' })
+    const index = screen.getByRole('navigation', { name: 'Every case' })
+    const parts = within(index).getByRole('list', { name: 'Parts & Accessories' })
+    expect(within(parts).getAllByRole('link').length).toBeGreaterThan(15)
+    await user.type(within(index).getByRole('textbox'), 'zzqx')
+    expect(within(index).getByText(/^No case holds “zzqx”\./)).toBeTruthy()
   })
 })
 
 describe('a press writes the price list, and comes back', () => {
   it('makes a trailer Large in one step, the count falls, and Ctrl Z puts it back', async () => {
     const user = userEvent.setup()
-    const { onAt } = draw()
+    const { lastCase } = draw(FIRST_TRAILER)
     await user.click(within(stage()).getByRole('button', { name: /^Make it Large/ }))
     const v = row('trl_dunbier', 'trl_dunbier:67')
     expect(v['trl_dunbier.by']).toBe('Large Trailers - Over 1.021t')
     expect(v['trl_dunbier.bz']).toBe(283)
     expect(v['trl_dunbier.ca']).toBe(11483)
     /* the stage moves on to the case that stood after it */
-    expect(onAt).toHaveBeenLastCalledWith(
-      'band:trl_dunbier:trl_dunbier:69:Small Trailers - Up to 1.02t:2000',
-    )
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('36')
+    expect(lastCase()).toBe(SECOND_TRAILER)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('38')
 
     await user.keyboard('{Control>}z{/Control}')
     expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11366)
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('37')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('39')
   })
 
   it('Enter makes the fix on the stage, and → skips it without writing', async () => {
     const user = userEvent.setup()
-    const { onAt } = draw()
+    const { lastCase } = draw(FIRST_TRAILER)
     await user.keyboard('{ArrowRight}')
-    expect(onAt).toHaveBeenLastCalledWith(
-      'band:trl_dunbier:trl_dunbier:69:Small Trailers - Up to 1.02t:2000',
+    expect(lastCase()).toBe(SECOND_TRAILER)
+    expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11366)
+    /* the stage stands on the case the press named at once, before the address catches up */
+    expect(within(stage()).getByRole('heading', { level: 2 }).textContent).toBe(
+      'Rego the ALP 5.7M-13TB as a Large trailer.',
+    )
+    await user.keyboard('{Enter}')
+    expect(row('trl_dunbier', 'trl_dunbier:69')['trl_dunbier.by']).toBe(
+      'Large Trailers - Over 1.021t',
     )
     expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11366)
-    await user.keyboard('{Enter}')
-    expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11483)
+  })
+
+  it('opens every line it names in the price list', () => {
+    draw(FIRST_TRAILER)
+    expect(
+      within(stage())
+        .getByRole('link', { name: 'Open the ALP 5.3M-13B in the price list' })
+        .getAttribute('href'),
+    ).toBe('/data/trl_dunbier?at=trl_dunbier:67')
   })
 })
 
 describe('a case of several lines, priced as typed', () => {
-  it('refuses with its reason until a price is typed, then writes every price typed', async () => {
+  it('refuses with its reason at the field it is about, then writes every price typed', async () => {
     const user = userEvent.setup()
-    const { onAt } = draw(LONE_STAR)
+    const { lastCase } = draw(LONE_STAR)
     expect(
       screen.getByRole('heading', {
         level: 2,
         name: 'Give the 8 lines in Anchor Winches - Lone Star a price.',
       }),
     ).toBeTruthy()
-    /* the priced line beside it, for the dealer to type against — never proposed */
+    /* the line most like it, by name — the GX-4 never beside a wiring loom (the judge's J3c) */
     expect(
       within(stage()).getAllByText(
-        'Beside it: Lone Star · GX-1 6 mm Combo Winch Kit · Sell $2,100',
+        'Most like it: Lone Star · GX-1 6 mm Combo Winch Kit · Sell $2,100',
       ),
     ).toHaveLength(2)
+    expect(
+      within(stage()).getAllByText('Nothing like it in its heading has a price.'),
+    ).toHaveLength(2)
+    expect(stage().textContent).not.toContain('Wiring Loom')
+    /* priced whole: the fitted price stays blank, and the screen says so (J3b) */
+    expect(stage().textContent).toContain(
+      'Each one’s Sell inc Install stays blank until it is set on its line',
+    )
 
     await user.click(within(stage()).getByRole('button', { name: /^Price them at Sell/ }))
     expect(
@@ -187,12 +247,14 @@ describe('a case of several lines, priced as typed', () => {
     ).toBeTruthy()
 
     const first = within(stage()).getByRole('textbox', {
-      /* the line as the dealer says it, not as the file writes it (`nameSaid`) */
       name: 'Sell for Lone Star · GX-1 HS4mm Combo Winch Kit',
     })
     await user.type(first, 'abc')
     await user.click(within(stage()).getByRole('button', { name: /^Price the one typed at Sell/ }))
     expect(within(stage()).getByText(/^“abc” is not a price\./)).toBeTruthy()
+    /* the field holding it is marked, and holds the focus (the judge's B6) */
+    expect(first.getAttribute('aria-invalid')).toBe('true')
+    expect(document.activeElement).toBe(first)
 
     await user.clear(first)
     await user.type(first, '$2,150')
@@ -204,59 +266,121 @@ describe('a case of several lines, priced as typed', () => {
     )
     await user.click(within(stage()).getByRole('button', { name: /^Price the 2 typed at Sell/ }))
     const s = catalogue.getState()
-    expect(review({ entities: s.tables, rowsByEntity: s.rows }).noPrice.count).toBe(44)
-    /* six of the eight still have no price, so the stage keeps the case, two lines shorter, and
-       the queue still holds it: the count is of cases */
-    expect(onAt).toHaveBeenLastCalledWith(LONE_STAR)
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('37')
+    expect(review({ entities: s.tables, rowsByEntity: s.rows }).noPrice.count).toBe(41)
+    expect(lastCase()).toBe(LONE_STAR)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('39')
   })
 
-  it('makes no default amber where $0 may be meant, and leaves all four plugs in one press', async () => {
+  it('asks first to leave lines that say what they come with at $0, never in amber', async () => {
     const user = userEvent.setup()
     draw(PLUGS)
     expect(
       screen.getByRole('heading', {
         level: 2,
-        name: 'Price the 4 lines in Trailer Parts - Trailer Plugs, or leave them at $0.',
+        name: 'Leave the 4 lines in Trailer Parts - Trailer Plugs at $0, as each says what they come with.',
       }),
     ).toBeTruthy()
     /* Enter makes nothing here: the file cannot say which of the two is right */
     await user.keyboard('{Enter}')
-    expect(prefs.getState().get(MEANT_PREF)).toBeUndefined()
+    expect(catalogue.getState().org?.leftAlone).toBeUndefined()
 
-    await user.click(within(stage()).getByRole('button', { name: 'It’s meant' }))
-    const s = catalogue.getState()
-    expect(review({ entities: s.tables, rowsByEntity: s.rows }, prefsMeant()).open).toBe(65)
-    expect(screen.getByText(/^4 lines are left alone\./)).toBeTruthy()
+    await user.click(within(stage()).getByRole('button', { name: 'Leave them at $0' }))
+    const left = catalogue.getState().org?.leftAlone ?? {}
+    expect(Object.keys(left)).toHaveLength(4)
+    /* the stamp keeps the reason, the instant and the person (the judge's item 10) */
+    for (const stamp of Object.values(left)) expect(stamp).toMatch(/^meant \d{4}-\d{2}-\d{2}T/)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('38')
+    expect(screen.getByText(/^1 case is left alone, on 4 lines\./)).toBeTruthy()
+  })
 
-    await user.click(screen.getByRole('button', { name: 'Bring them back' }))
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('37')
+  it('takes a boat off sale through the Discontinued column, and the Undo takes it back', async () => {
+    const user = userEvent.setup()
+    draw(FORMOSA)
+    await user.click(within(stage()).getByRole('button', { name: 'Take them off sale' }))
+    const formosa = catalogue.getState().rows['boat_formosa']!
+    const off = formosa.filter(isDiscontinued)
+    expect(off).toHaveLength(9)
+    expect(
+      catalogue.getState().tables['boat_formosa']!.fields.some((f) => f.name === 'Discontinued'),
+    ).toBe(true)
+    await user.keyboard('{Control>}z{/Control}')
+    expect(catalogue.getState().rows['boat_formosa']!.filter(isDiscontinued)).toHaveLength(0)
   })
 })
 
-const prefsMeant = (): Record<string, string> =>
-  (prefs.getState().get(MEANT_PREF) as Record<string, string> | undefined) ?? {}
-
-describe('a choice between two named options', () => {
-  it('sells one name at the price chosen', async () => {
+describe('the fixes a line really needs', () => {
+  it('takes the notes in Parts off sale in one press, never priced or named', async () => {
     const user = userEvent.setup()
-    draw('two:trl_mackay:mackay pu series trailer - pu5000-14-m:9423/10043')
-    await user.click(within(stage()).getByRole('button', { name: /^Sell both at \$9,423/ }))
-    expect(row('trl_mackay', 'trl_mackay:57')['trl_mackay.ca']).toBe(9423)
+    draw('note:parts')
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Take the 6 notes and empty lines in Parts & Accessories off sale.',
+      }),
+    ).toBeTruthy()
+    /* the empty lines are told apart by where they came from (the judge's J6) */
+    expect(stage().textContent).toContain('line 2,905 of the Parts Maintenance tab')
+    expect(stage().textContent).toContain('Obsolete Parts (NB: Parts No Longer Available or Used)')
+    expect(within(stage()).queryAllByRole('textbox')).toHaveLength(0)
+    await user.click(within(stage()).getByRole('button', { name: 'Take all 6 off sale' }))
+    expect(isDiscontinued({ values: row('parts', 'parts:2238') } as never)).toBe(true)
+  })
+
+  it('names two lines of one name apart where their codes differ', async () => {
+    const user = userEvent.setup()
+    const vented = queue().find((c) => c.kind === 'two' && c.tableId === 'parts')!
+    draw(vented.key)
+    expect(
+      within(stage()).getByRole('heading', { level: 3, name: 'Or name them apart' }),
+    ).toBeTruthy()
+    await user.click(within(stage()).getByRole('button', { name: 'Name them apart' }))
+    expect(within(stage()).getByText(/^Both are still called/)).toBeTruthy()
+    const vw = within(stage()).getByRole('textbox', { name: 'Product for code Y10A-VW' })
+    await user.clear(vw)
+    await user.type(vw, 'Outboard Vented Cover - Yamaha 4 Cyl (white)')
+    await user.click(within(stage()).getByRole('button', { name: 'Name them apart' }))
     const s = catalogue.getState()
     expect(review({ entities: s.tables, rowsByEntity: s.rows }).twoPrices.count).toBe(2)
   })
 
-  it('keeps a cost out of sight where two under one name are both costs', () => {
-    draw('field-dup-name:dealer_fit:dealer_fit.e,dealer_fit.v')
-    expect(within(stage()).getAllByText('A cost, not shown here')).toHaveLength(2)
+  it('raises a line sold below its cost, and never prints the cost', () => {
+    const { container } = draw('cost:parts:parts.l')
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Raise the Sell of 4 lines in Parts & Accessories above their cost.',
+      }),
+    ).toBeTruthy()
+    expect(stage().textContent).toContain('4 lines of the 2,095')
+    /* $861.24 is the battery's CTD: Review never prints a cost */
+    expect(container.textContent).not.toContain('861')
+    expect(stage().textContent).toContain('$818 at Sell, below what it costs')
   })
 
-  it('renames one of two under one name', async () => {
+  it('names the offers that break the price list’s own rule, each with its line', () => {
+    draw('house:F6')
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Correct the 3 offers that break your price list’s own rule.',
+      }),
+    ).toBeTruthy()
+    expect(stage().textContent).toContain('3,289 of the 3,292')
+    expect(within(stage()).getAllByRole('link', { name: /^Open the Stacer/ })).toHaveLength(3)
+  })
+
+  it('says a pair of columns by their letters, and a cost column as one it never prints', () => {
+    draw('field-dup-name:dealer_fit:dealer_fit.e,dealer_fit.v')
+    expect(stage().textContent).toContain('Letter E in the workbook')
+    expect(stage().textContent).toContain('Letter V in the workbook')
+    expect(within(stage()).getAllByText(/^What a line costs Northside/)).toHaveLength(2)
+  })
+
+  it('renames one of two columns under one name', async () => {
     const user = userEvent.setup()
     draw('field-dup-name:rig_kits:rig_kits.l,rig_kits.ad')
     const second = within(stage()).getByRole('textbox', {
-      name: 'A name of its own for the second, after Sell Price, called Trade Price in Rigging Kits',
+      name: 'A name of its own for the heading at letter AD in the workbook, called Trade Price in Rigging Kits',
     })
     await user.type(second, 'Install Trade Price{Enter}')
     const s = catalogue.getState()
@@ -276,26 +400,45 @@ describe('after the queue, and the clean day', () => {
         name: '138 suggestions about how the price list is laid out.',
       }),
     ).toBeTruthy()
-    expect(
-      within(stage()).getByText('Typed words that could be chosen from a short list'),
-    ).toBeTruthy()
   })
 
-  it('says what is now true when nothing is left, and the money reads $0', () => {
-    const s = catalogue.getState()
-    const all = queueOf(review({ entities: s.tables, rowsByEntity: s.rows }))
-    prefs
-      .getState()
-      .set(MEANT_PREF, Object.fromEntries(all.flatMap(meantKeysOf).map((k) => [k, 'meant x'])))
+  it('never says a check holds when its cases were left alone (the judge’s blocker)', () => {
+    prefs.getState().set(
+      MEANT_PREF,
+      Object.fromEntries(
+        queue()
+          .flatMap(meantKeysOf)
+          .map((k) => [k, 'meant x']),
+      ),
+    )
     const { container } = draw()
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Nothing in your price list needs you.' }),
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Nothing in your price list is waiting on you.',
+      }),
     ).toBeTruthy()
-    expect(
-      screen.getByText(/^Every trailer is registered as the size its weight says\./),
-    ).toBeTruthy()
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('0')
-    expect(container.textContent).toContain('$0')
-    expect(screen.getByText(/^69 lines are left alone\./)).toBeTruthy()
+    const said = container.textContent ?? ''
+    expect(said).not.toContain('each one holds')
+    expect(said).not.toContain('Every trailer is registered as the size its weight says')
+    expect(said).toContain(
+      '9 trailers are still registered as the wrong size, left alone by your choice: $819 on one sale of each, not charged.',
+    )
+    expect(said).toContain('9 boats are still on sale at $0, left alone by your choice.')
+    /* the money is said as left alone, never as $0 not charged */
+    expect(said).toContain('not charged, left alone')
+    expect(said).not.toMatch(/\$0\s*not charged/)
+    expect(screen.getByText(/^39 cases are left alone, on 79 lines\./)).toBeTruthy()
+  })
+
+  it('lists what was left, and brings one case back on its own', async () => {
+    const user = userEvent.setup()
+    draw(PLUGS, { left: 'open' })
+    await user.click(within(stage()).getByRole('button', { name: 'It’s meant' }))
+    const left = screen.getByRole('list', { name: 'Left alone' })
+    expect(within(left).getAllByRole('listitem')).toHaveLength(1)
+    expect(left.textContent).toContain('Left as meant')
+    await user.click(within(left).getByRole('button', { name: 'Bring it back' }))
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('39')
   })
 })

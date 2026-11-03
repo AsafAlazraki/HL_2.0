@@ -9,6 +9,14 @@
 [data-sonner-toaster] {
   font-family: var(--font-sans);
 }
+/* A TOAST NEVER PRINTS: it says what a press just did on the screen, and paper was not pressed
+   (Rules, data round 2026-11-04: "Your rule is switched off. Undo" printed at the foot of both
+   pages of the house rules) */
+@media print {
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}
 /* Sonner's own slot is unstyled; its width follows the card */
 .ui-toast-slot {
   inline-size: auto;

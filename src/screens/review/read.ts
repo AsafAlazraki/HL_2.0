@@ -9,19 +9,27 @@
    title is what the press does, the lede is why, in the file's own
    figures, and what does not move is said before the press, as
    Apple's storage panel says what is kept.
+
+   IN THE DEALER'S WORDS (the judge of 2026-11-04, B5): a name is said
+   by the one namer (`lineSaid`), and a word the file types in capitals
+   ("YAMAHA", "MINN KOTA", "OBSOLETE PARTS") is said with its first
+   letter only, short codes ("CYL", "PVC", "RT") kept as written. A toast
+   says what the title says, never the file's whole string.
    ============================================================ */
 
 import { lineSaid, nameFirst } from '@/domain/quote/spoken'
 import { money } from '@/domain/money'
 import type { Meant, Reband } from '@/domain/rules/review/checks'
 import type { Case, CaseKind } from '@/domain/rules/review/cases'
+import { saysWhatItComesWith } from '@/domain/rules/review/notes'
+import type { LeftAs } from '@/domain/rules/review/standing'
 import type { PrefValue } from '@/state/prefs'
 
-/** Where what a dealer left alone is kept: this computer's own prefs (Data counts it too). */
-export const MEANT_PREF = 'review.meant'
+export type { LeftAs }
 
-/** The two reasons a case is left alone (Dependabot asks why; two are enough here). */
-export type LeftAs = 'meant' | 'wrong'
+/** Where this computer kept what a dealer left alone before 2026-11-04 (now kept with Northside's
+ *  file, `OrgProfile.leftAlone`): still read, so nothing left before comes back unasked. */
+export const MEANT_PREF = 'review.meant'
 
 /** The meant record, read off a pref that may hold anything. */
 export function meantOf(value: PrefValue | undefined): Meant {
@@ -35,12 +43,22 @@ export function meantOf(value: PrefValue | undefined): Meant {
 export const TIDY = 'tidy'
 
 /** What each check is called while it finds something, the rail's chip, and what is true once
- *  it finds nothing — the clean day says the second, each with its tick, in the same order. */
+ *  it finds nothing — the clean day says the third, each with its tick, in the same order. */
 export const CHECK_WORDS: Record<CaseKind, { wrong: string; chip: string; true: string }> = {
+  boat: {
+    wrong: 'A boat on sale at $0',
+    chip: 'Boats at $0',
+    true: 'Every boat on sale has a price.',
+  },
   band: {
     wrong: 'Registered as the wrong size',
     chip: 'Wrong size',
     true: 'Every trailer is registered as the size its weight says.',
+  },
+  cost: {
+    wrong: 'Sold below its cost',
+    chip: 'Below cost',
+    true: 'Nothing is sold below what it costs Northside.',
   },
   two: {
     wrong: 'One name, two prices',
@@ -50,12 +68,22 @@ export const CHECK_WORDS: Record<CaseKind, { wrong: string; chip: string; true: 
   none: {
     wrong: 'On sale with no price',
     chip: 'No price',
-    true: 'Everything on sale has a price.',
+    true: 'Every part and package on sale has a price.',
+  },
+  note: {
+    wrong: 'A note on sale',
+    chip: 'Notes on sale',
+    true: 'No note or empty line is on sale.',
+  },
+  house: {
+    wrong: 'Breaks the price list’s own rule',
+    chip: 'Own rules broken',
+    true: 'Every offer keeps the rules your price list asserts.',
   },
   twins: {
-    wrong: 'Two under one name',
-    chip: 'Two under one name',
-    true: 'Nothing in a list shares a name with another.',
+    wrong: 'Two headings, one name',
+    chip: 'Two headings, one name',
+    true: 'No list has two headings of one name.',
   },
   nameless: {
     wrong: 'Nothing to name it',
@@ -82,7 +110,7 @@ export function andMore(names: readonly string[], shown = 2): string {
   return `${names.slice(0, shown).join(', ')} and ${names.length - shown} more`
 }
 
-/** "Sell", "Sell or Sell inc Install (if appl.)", "Cash, Trade or Warranty". */
+/** "Sell", "Sell or Sell inc Install", "Cash, Trade or Warranty". */
 export function joined(words: readonly string[], last: 'or' | 'and'): string {
   if (words.length <= 1) return words[0] ?? ''
   return `${words.slice(0, -1).join(', ')} ${last} ${words[words.length - 1]}`
@@ -91,6 +119,37 @@ export function joined(words: readonly string[], last: 'or' | 'and'): string {
 /** A typed maker in place of a mark: the list's name less its kind ("REDCO / Tinka"). */
 export const makerTyped = (tableName: string): string =>
   tableName.replace(/\s+(trailers|outboards|boats)$/i, '')
+
+/**
+ * WORDS THE FILE TYPES IN CAPITALS, said in a person's case: a run of capitalised words with one
+ * of four letters or more in it is said with each word's first letter only ("MINN KOTA" is Minn
+ * Kota, "NOT TO BE SUPPLIED" is Not To Be Supplied), and a short code on its own ("CYL", "PVC",
+ * "RT", "DBW") or a word with a figure in it ("F150D", "2.8L") keeps its case.
+ */
+const isCaps = (w: string): boolean => /^[A-Z][A-Z'&/.-]*[A-Z]$/.test(w) && !/[0-9]/.test(w)
+
+export function capsSaid(text: string): string {
+  const tokens = text.split(/(\s+)/)
+  const out = [...tokens]
+  let i = 0
+  while (i < tokens.length) {
+    if (!isCaps(tokens[i] ?? '')) {
+      i += 1
+      continue
+    }
+    /* the run: capitalised words with only spaces between them */
+    let j = i
+    while (j + 2 < tokens.length && isCaps(tokens[j + 2] ?? '')) j += 2
+    const run = tokens.slice(i, j + 1).filter((_, k) => k % 2 === 0)
+    if (run.some((w) => w.replace(/[^A-Z]/g, '').length >= 4))
+      for (let k = i; k <= j; k += 2) {
+        const w = tokens[k]!
+        out[k] = w.charAt(0) + w.slice(1).toLowerCase()
+      }
+    i = j + 1
+  }
+  return out.join('')
+}
 
 /**
  * A CATEGORY AS A PERSON READS IT. The price list types its categories in capitals
@@ -126,6 +185,13 @@ export function trailerSaid(line: TrailerLine): string {
     : said
 }
 
+/** The model alone, as a sentence says it: "ALP 5.3M-13B", without its rating in brackets or the
+ *  word "Trailer" the sentence already ends on. */
+export const trailerModel = (line: TrailerLine): string =>
+  trailerSaid(line)
+    .replace(/\s*\(.*$/, '')
+    .replace(/\s+trailer$/i, '')
+
 /** What a trailer namer reads off a line: its name in the file, its list and its code. */
 type TrailerLine = Pick<Reband, 'label' | 'tableName' | 'code'>
 
@@ -141,10 +207,9 @@ const makersOf = (tableName: string): Set<string> =>
 /**
  * THE SERIES A TRAILER IS SOLD IN, as a person reads it beside the maker's mark: the file's
  * "DUNBIER Alloy Loader Pro Series - ALP 5.3M-13B …" under Dunbier's mark is the Alloy Loader
- * Pro Series (built-critique-m3-2.md, M13: the stage's eyebrow printed the line's codes, "9304 +
- * 9083L", and its table the file's whole string). The maker's own word is left to the mark, and
- * a word the file types in capitals is said with its first letter only. '' where the name does
- * not lead with a series.
+ * Pro Series (built-critique-m3-2.md, M13). The maker's own word is left to the mark, and a word
+ * the file types in capitals is said with its first letter only. '' where the name does not lead
+ * with a series.
  */
 export function trailerSeries(line: TrailerLine): string {
   const pieces = nameFirst(lineSaid(line.label, line.tableName), line.code || undefined).split(
@@ -166,6 +231,10 @@ export function trailerSeries(line: TrailerLine): string {
 export const heading = (name: string): string =>
   name.replace(/\s*\((?:kgs?|\$|%|mm|m|hp|ltr)\)\s*$/i, '').trim() || name
 
+/** A price's name in a sentence: "Sell inc Install (if appl.)" is Sell inc Install. */
+export const priceSaid = (name: string): string =>
+  name.replace(/\s*\(if appl\.?\)\s*$/i, '').trim() || name
+
 /**
  * WHERE A SIZE IS READ FROM, as the dealer reads it: the fee list's own label alone ("“Up to
  * 1.02t”"), without the workbook's cell address ("Registration Costs!C16") the band record keeps
@@ -176,10 +245,14 @@ export function labelRead(readFrom: string): string | null {
   return /^“.+”$/.test(label) ? label : null
 }
 
-/** A name in a list as the build says it: "MACKAY PU Series Trailer - PU5000-14-M". */
-export const nameSaid = (name: string, tableName: string): string => lineSaid(name, tableName)
+/** A name in a list as the build says it, in a person's case: "Minn Kota · RT Terrova". */
+export const nameSaid = (name: string, tableName: string): string =>
+  capsSaid(lineSaid(name, tableName))
 
-/** What a list's lines are, in a title: "boats", "trailers", or "lines". */
+/** A boat in a sentence: the maker's dash and the brackets said as the namer says them. */
+export const boatSaid = (name: string, tableName: string): string => nameSaid(name, tableName)
+
+/** What a list's lines are, in a title: "boats", "trailers", "kits" or "lines". */
 const nounOf = (tableKind: string | undefined, n: number): string =>
   tableKind === 'boat'
     ? n === 1
@@ -193,25 +266,40 @@ const nounOf = (tableKind: string | undefined, n: number): string =>
         ? 'line'
         : 'lines'
 
+/** Where a line came from in the workbook, as a person says it. */
+export const sourceSaid = (source: { tab: string; line: number } | null): string =>
+  source ? `line ${source.line.toLocaleString('en-AU')} of the ${source.tab} tab` : ''
+
+/** Do two prices' codes differ, so the lines may be two products? */
+export const codesDiffer = (c: Extract<Case, { kind: 'two' }>): boolean =>
+  new Set(c.item.lines.map((l) => l.code).filter((code) => code !== '')).size > 1
+
+/** Does every line of a $0 case say what it comes with? Then its $0 is likely meant. */
+export const allSayWhatTheyComeWith = (c: Extract<Case, { kind: 'none' }>): boolean =>
+  c.group.kind === 'zero' && c.group.lines.every((l) => saysWhatItComesWith(l.name))
+
 /**
- * THE CASE'S TITLE: the fix, said as the press does it. A wrong size names the size; a name at
- * two prices asks for one price; lines with no price are priced, or — at $0, where $0 may be
- * meant — priced or left; two under one name, and nothing to name it, are named.
+ * THE CASE'S TITLE: the fix, said as the press does it.
  */
 export function titleOf(c: Case, tableKind?: string): string {
   switch (c.kind) {
     case 'band': {
-      /* the model, as a dealer says it in a sentence: "ALP 5.3M-13B", without its rating in
-         brackets or the word "Trailer" the sentence already ends on */
-      const name = trailerSaid(c.line)
-        .replace(/\s*\(.*$/, '')
-        .replace(/\s+trailer$/i, '')
+      const name = trailerModel(c.line)
       return c.line.to
         ? `Rego the ${name} as a ${c.line.to.word} trailer.`
         : `Choose the rego type for the ${name}.`
     }
     case 'two':
-      return `Choose one price for the ${trailerSaid({ label: c.item.name, tableName: c.tableName, code: '' })}.`
+      return codesDiffer(c)
+        ? `Choose one price for the ${capsSaid(trailerSaid({ label: c.item.name, tableName: c.tableName, code: '' }))}, or name the two apart.`
+        : `Choose one price for the ${capsSaid(trailerSaid({ label: c.item.name, tableName: c.tableName, code: '' }))}.`
+    case 'boat': {
+      const g = c.group
+      const n = g.lines.length
+      return n === 1
+        ? `Price the ${boatSaid(g.lines[0]?.name ?? '', g.tableName)}, on sale at $0.`
+        : `Price the ${n} ${makerTyped(g.tableName)} boats on sale at $0.`
+    }
     case 'none': {
       const g = c.group
       const n = g.lines.length
@@ -221,18 +309,48 @@ export function titleOf(c: Case, tableKind?: string): string {
           : g.category
             ? `the ${n} lines in ${spokenCategory(g.category)}`
             : `the ${n} ${g.tableName} ${nounOf(tableKind, n)}`
+      if (allSayWhatTheyComeWith(c))
+        return `Leave ${what} at $0, as ${n === 1 ? 'it says' : 'each says'} what ${n === 1 ? 'it comes' : 'they come'} with.`
       return g.kind === 'zero'
         ? `Price ${what}, or leave ${n === 1 ? 'it' : 'them'} at $0.`
         : `Give ${what} a price.`
     }
+    case 'cost': {
+      const g = c.group
+      const n = g.lines.length
+      return n === 1
+        ? `Raise the ${priceSaid(g.priceName)} of ${nameSaid(g.lines[0]?.name ?? '', g.tableName)} above its cost.`
+        : `Raise the ${priceSaid(g.priceName)} of ${n} lines in ${g.tableName} above their cost.`
+    }
+    case 'note': {
+      const g = c.group
+      const n = g.lines.length
+      const empty = g.lines.filter((l) => l.why === 'empty').length
+      const what =
+        empty === n
+          ? n === 1
+            ? 'the empty line'
+            : `the ${n} empty lines`
+          : empty === 0
+            ? n === 1
+              ? 'the note'
+              : `the ${n} notes`
+            : `the ${n} notes and empty lines`
+      return `Take ${what} in ${g.tableName} off sale.`
+    }
+    case 'house': {
+      const n = c.clause.breaks.length
+      return n === 1
+        ? 'Correct the offer that breaks your price list’s own rule.'
+        : `Correct the ${n} offers that break your price list’s own rule.`
+    }
     case 'twins':
-      return `Give one of the two called “${c.twin.name}” a name of its own.`
+      return `Rename one of the two “${c.twin.name}” headings in ${c.twin.tableName}.`
     case 'nameless': {
       const n = c.group.items.length
-      const field = c.group.items[0]?.nameField.name ?? ''
       return n === 1
-        ? `Name the line in ${c.group.tableName} that has no ${field}.`
-        : `Name the ${n} lines in ${c.group.tableName} that have no ${field}.`
+        ? `Name the line in ${c.group.tableName} that has no name.`
+        : `Name the ${n} lines in ${c.group.tableName} that have no name.`
     }
   }
 }
@@ -257,21 +375,51 @@ export function ledeOf(c: Case): string {
     }
     case 'two': {
       const n = c.item.lines.length
-      return `${n === 2 ? 'Two' : n} lines in ${c.tableName} carry this name, at ${money(c.item.low)} and ${money(c.item.high)} ${c.priceName}. A salesperson who finds it by name could quote either.`
+      const apart = codesDiffer(c)
+        ? ` Their codes differ, so they may be two products under one name.`
+        : ''
+      return `${n === 2 ? 'Two' : n} lines in ${c.tableName} carry this name, at ${money(c.item.low)} and ${money(c.item.high)} ${c.priceName}. A salesperson who finds it by name could quote either.${apart}`
+    }
+    case 'boat': {
+      const g = c.group
+      const one = g.lines.length === 1
+      const like = g.lines.find((l) => l.beside)?.beside
+      const scale = like
+        ? ` The ${boatSaid(like.name, g.tableName)}, the boat most like ${one ? 'it' : 'them'} in the list, sells at ${money(like.price)} ${g.priceName}.`
+        : ''
+      return `${one ? 'It is' : 'They are'} on sale at ${g.kind === 'zero' ? '$0' : 'no price'} at ${joined(g.priceNames, 'and')}, so a quote for ${one ? 'it' : 'one'} is a $0 quote.${scale}`
     }
     case 'none': {
       const g = c.group
       const one = g.lines.length === 1
+      if (allSayWhatTheyComeWith(c))
+        return `${one ? 'It is' : 'They are'} on sale at $0 at ${joined(g.priceNames.map(priceSaid), 'and')}, and ${one ? 'its name says' : 'each name says'} it comes with something already priced, so $0 is likely meant. If not, type ${one ? 'its' : 'each one’s'} price.`
       return g.kind === 'zero'
-        ? `${one ? 'It is' : 'They are'} on sale at $0 at ${joined(g.priceNames, 'and')}. If ${one ? 'it comes' : 'they come'} with something else, $0 is meant; if not, type ${one ? 'its' : 'each one’s'} price.`
-        : `${one ? 'It is' : 'They are'} on sale with no price at ${joined(g.priceNames, 'or')}, so a quote with ${one ? 'it' : 'one'} on it is $0.`
+        ? `${one ? 'It is' : 'They are'} on sale at $0 at ${joined(g.priceNames.map(priceSaid), 'and')}. If ${one ? 'it comes' : 'they come'} with something else, $0 is meant; if not, type ${one ? 'its' : 'each one’s'} price.`
+        : `${one ? 'It is' : 'They are'} on sale with no price at ${joined(g.priceNames.map(priceSaid), 'or')}, so a quote with ${one ? 'it' : 'one'} on it is $0.`
+    }
+    case 'cost': {
+      const g = c.group
+      const one = g.lines.length === 1
+      return `${one ? 'It sells' : 'They sell'} at ${priceSaid(g.priceName)} for less than ${one ? 'it costs' : 'they cost'} Northside, so every one sold loses money. ${counted(g.lines.length, 'line', 'lines')} of the ${g.tested.toLocaleString('en-AU')} that carry both a ${priceSaid(g.priceName)} and its cost ${g.lines.length === 1 ? 'does' : 'do'}.`
+    }
+    case 'note': {
+      const g = c.group
+      const one = g.lines.length === 1
+      const empty = g.lines.every((l) => l.why === 'empty')
+      return empty
+        ? `${one ? 'It has' : 'They have'} no name, no code and no price, and ${one ? 'is' : 'are'} on sale, so a salesperson could pick a blank line. Taken off sale, ${one ? 'it stays' : 'they stay'} in the price list and nothing offers ${one ? 'it' : 'them'}.`
+        : `${one ? 'It is a note' : 'They are notes and lines'} the price list keeps for whoever orders, on sale as if ${one ? 'it were a product' : 'they were products'}. A note is not priced or named: taken off sale, it stays in the price list and nothing offers it.`
+    }
+    case 'house': {
+      const cl = c.clause
+      return `Your price list says: “${cl.said}” It holds on ${cl.held.toLocaleString('en-AU')} of the ${cl.tested.toLocaleString('en-AU')} offers it writes both sides of; ${cl.breaks.length === 1 ? 'this one breaks it' : `these ${cl.breaks.length} break it`}. Each is a line in the price list, corrected there.`
     }
     case 'twins':
-      return `${c.twin.tableName} has two called “${c.twin.name}”, so anything that reads “${c.twin.name}” could read either.`
+      return `Anything that reads “${c.twin.name}” on a line of ${c.twin.tableName} could read either, and get the wrong one.`
     case 'nameless': {
       const one = c.group.items.length === 1
-      const field = c.group.items[0]?.nameField.name ?? ''
-      return `${one ? 'It is' : 'They are'} on sale with nothing in ${field}, so a salesperson sees a blank line where ${one ? 'its' : 'each'} name should be.`
+      return `${one ? 'It is' : 'They are'} on sale with nothing in ${c.group.items[0]?.nameField.name ?? 'its name'}, so a salesperson sees a blank line where ${one ? 'its' : 'each'} name should be.`
     }
   }
 }
@@ -283,35 +431,40 @@ export function comesBackOf(c: Case): string {
       return 'it comes back if its weight or its size changes.'
     case 'two':
       return 'it comes back if either price changes.'
+    case 'cost':
+      return `${c.group.lines.length === 1 ? 'it comes' : 'each comes'} back if its price changes.`
+    case 'boat':
     case 'none':
       return c.group.kind === 'zero'
         ? `${c.group.lines.length === 1 ? 'it comes' : 'each comes'} back if its $0 is cleared.`
         : `${c.group.lines.length === 1 ? 'it comes' : 'each comes'} back if it is given $0.`
+    case 'note':
+    case 'house':
     case 'twins':
     case 'nameless':
       return 'nothing in the price list changes.'
   }
 }
 
-/** How a case is said in the queue under the stage: its title, and its money where it has some. */
+/** How a case is said in the queue: its title, and its money where it has some. */
 export function peekOf(c: Case, tableKind?: string): { title: string; money: string } {
   const delta = c.kind === 'band' ? (c.line.to?.delta ?? 0) : 0
-  return { title: titleOf(c, tableKind), money: delta === 0 ? '' : signed(delta) }
+  return {
+    title: titleOf(c, tableKind),
+    money: c.kind === 'boat' ? 'a $0 quote' : delta === 0 ? '' : signed(delta),
+  }
 }
 
-/** What leaving it as meant writes, said in the toast. */
-export function leftSaid(c: Case, as: LeftAs): string {
-  const n =
-    c.kind === 'none' ? c.group.lines.length : c.kind === 'nameless' ? c.group.items.length : 1
+/** What leaving it alone writes, said in the toast. */
+export function leftSaid(n: number, as: LeftAs): string {
   const what = n === 1 ? 'It is' : `All ${n} are`
   return as === 'meant' ? `${what} left as meant.` : `${what} left, as a place the check is wrong.`
 }
 
 /**
  * ONE NEIGHBOUR, SAID ONCE (built-critique-m3-2.md, minor): the nine Formosa lines with no price
- * all sit beside the same priced line, and "Beside it: Formosa SRT 675 Enc · Half Cabin · Cash
- * $79,760" was said nine times. When every line of a case has the same priced line beside it,
- * that line is said once over them; null when there is one line, or when they differ.
+ * all have the same boat beside them, so it is said once over them; null when there is one line,
+ * or when they differ.
  */
 export function besideOnce<B extends { rowId: string }>(
   lines: ReadonlyArray<{ beside: B | null }>,
@@ -338,4 +491,23 @@ export function wholeRuns(text: string): Array<{ at: number; text: string; whole
   }
   if (at < text.length) out.push({ at, text: text.slice(at), whole: false })
   return out
+}
+
+/** A heading's letter in the workbook, off the description the file wrote for it ("Rigging Kits!M
+ *  · labelled here …" is column M). '' where the description names none. */
+export const columnLetter = (description: string | undefined): string =>
+  /![A-Z]{1,3}\b/.exec(description ?? '')?.[0].slice(1) ?? ''
+
+/** A day and time as a dealer reads one: "4 Nov 2026, 9:12 am". '' for no instant. */
+export function whenSaid(iso: string): string {
+  if (iso === '') return ''
+  const at = new Date(iso)
+  if (Number.isNaN(at.getTime())) return ''
+  return at.toLocaleString('en-AU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }

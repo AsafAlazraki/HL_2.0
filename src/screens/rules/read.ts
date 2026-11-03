@@ -712,3 +712,219 @@ export function modelsSaid(models: readonly string[]): string {
   if (said.length <= 1) return `the ${said[0] ?? ''}`
   return `the ${said.slice(0, -1).join(', ')} and ${said.at(-1)}`
 }
+
+/* ---------------------------------------------------------- */
+/* Where the workbook and the sheet part                       */
+/* ---------------------------------------------------------- */
+
+/**
+ * WHERE THE WORKBOOK AND THE PRICE LIST LOADED HERE DISAGREE on how many offers break a clause
+ * (verify 1, data round, J2: "the workbook's 16 of 571 on F15 is now 0 of 501, and the page never
+ * says so"). Both figures are the files' own: the workbook's from the ledger, the sheet's counted
+ * here. '' where they agree, where only one of them counted, or on a clause never refused.
+ */
+export function workbookSaid(s: StatedRule): string {
+  if (!s.live || !s.measure || s.under) return ''
+  const book = s.measure.tested - s.measure.held
+  const here = s.live.exceptions.length
+  if (book === here) return ''
+  const was =
+    book === 0
+      ? `none of ${count(s.measure.tested)}`
+      : `${count(book)} of ${count(s.measure.tested)}`
+  const now = here === 0 ? 'none does' : here === 1 ? 'one does' : `${count(here)} do`
+  return `The workbook this rule was found in counted ${was} breaking it; on the price list loaded here, ${now}.`
+}
+
+/* ---------------------------------------------------------- */
+/* Said before it is added                                     */
+/* ---------------------------------------------------------- */
+
+/** "the Highfield Classic 340, Classic 360, Classic 380 and 2 more" — at most `shown` named. */
+export function boatsNamed(boats: readonly string[], shown = 3): string {
+  if (boats.length <= shown) return modelsSaid(boats)
+  const head = modelsSaid(boats.slice(0, shown)).replace(/ and ([^,]+)$/, ', $1')
+  return `${head} and ${count(boats.length - shown)} more`
+}
+
+/** A set of rules as one key, whatever order they were named in. */
+const keyOf = (ids: readonly string[]): string => ids.toSorted().join('+')
+
+/** What the heads-up reads: everything counted off the sheet before it is added. */
+export interface HeadsIn {
+  /** the partner's noun: "motor" */
+  noun: string
+  /** boats it would leave with nothing (`pairEmpties`) */
+  empties: readonly { said: string; made: number; with: readonly string[] }[]
+  /** rules of Northside's it cannot stand beside (`pairClashes`) */
+  clashes: readonly { ruleId: string; boats: readonly string[] }[]
+  /** "except the …" words that spare nothing (`pairExceptsIdle`) */
+  idle: readonly string[]
+  /** the number of a rule of Northside's that already says it, or '' */
+  same: string
+  /** it says what the price list was noticed doing */
+  noticed: boolean
+  /** a rule's number on the page, "2.4", or '' where it has none */
+  numberOf: (id: string) => string
+}
+
+/**
+ * THE THINGS SAID BEFORE IT IS ADDED, in the order they matter, EACH OTHER RULE ONCE (verify 1,
+ * data round: three heads-ups quoted the other rule's whole sentence, two named 2 of the 5
+ * Classics, and the GRT 425 was named twice). A boat it alone would empty; then, for each other
+ * rule, the boats the two together would empty and the boats where nothing on sale keeps both —
+ * a boat said in the first never said again in the second; an exception that spares nothing; a
+ * rule that already says it; a pattern the price list was noticed keeping.
+ */
+export function headsSaid(h: HeadsIn): string[] {
+  const out: string[] = []
+  const rule = (id: string): string => {
+    const n = h.numberOf(id)
+    return n === '' ? 'another of your rules' : `your rule ${n}`
+  }
+  const alone = h.empties.filter((e) => e.with.length === 0)
+  if (alone.length === 1)
+    out.push(
+      `The ${alone[0]!.said} would be offered no ${h.noun}: all ${count(alone[0]!.made)} your price list makes for it are taken.`,
+    )
+  else if (alone.length > 1)
+    out.push(
+      `${boatsNamed(alone.map((e) => e.said)).replace(/^the/, 'The')} would be offered no ${h.noun}: everything your price list makes for them is taken.`,
+    )
+  /* ONE SENTENCE PER SET OF OTHER RULES: the boats they empty together, and — where the set is one
+     rule — the boats where nothing on sale keeps both, a boat said once */
+  const sets: string[][] = []
+  for (const e of h.empties)
+    if (e.with.length > 0 && !sets.some((x) => keyOf(x) === keyOf(e.with))) sets.push([...e.with])
+  for (const c of h.clashes) if (!sets.some((x) => keyOf(x) === c.ruleId)) sets.push([c.ruleId])
+  const together = ['', '', 'the two', 'the three', 'the four']
+  /* every boat already named, so a clash never names one again (verify 1: the GRT 425 twice) */
+  const named = new Set(alone.map((e) => e.said))
+  for (const ids of sets) {
+    const key = keyOf(ids)
+    const emptied = h.empties.filter((e) => keyOf(e.with) === key).map((e) => e.said)
+    const clash = ids.length === 1 ? (h.clashes.find((c) => c.ruleId === ids[0])?.boats ?? []) : []
+    const fights = clash.filter((b) => !emptied.includes(b) && !named.has(b))
+    /* the clash's boats said already, in the sentence before (it alone empties them) */
+    const known = clash.filter((b) => !emptied.includes(b) && named.has(b)).length
+    for (const b of [...emptied, ...fights]) named.add(b)
+    const whose =
+      ids.length === 1
+        ? rule(ids[0]!)
+        : `your rules ${modelsSaid(ids.map((id) => h.numberOf(id) || '…')).replace(/^the /, '')}`
+    const all = together[ids.length + 1] ?? `the ${count(ids.length + 1)}`
+    const lines: string[] = []
+    if (emptied.length > 0)
+      lines.push(
+        `Beside ${whose}, ${boatsNamed(emptied)} would be offered no ${h.noun} at all: ${all} together take everything your price list makes for ${emptied.length === 1 ? 'it' : 'them'}.`,
+      )
+    const more = fights.length === 1 ? 'one more boat' : `${count(fights.length)} more boats`
+    if (fights.length > 0)
+      lines.push(
+        emptied.length > 0
+          ? `On ${more}, ${boatsNamed(fights)}, no ${h.noun} on sale keeps both.`
+          : known > 0
+            ? `It cannot stand beside ${whose}: on those and ${more}, ${boatsNamed(fights)}, no ${h.noun} on sale keeps both.`
+            : `It cannot stand beside ${whose}: on ${boatsNamed(fights)}, no ${h.noun} on sale keeps both.`,
+      )
+    else if (known > 0 && emptied.length === 0)
+      lines.push(
+        `Nor can it stand beside ${whose} on ${known === 1 ? 'it' : 'them'}: no ${h.noun} on sale keeps both.`,
+      )
+    if (lines.length > 0) out.push(lines.join(' '))
+  }
+  for (const x of h.idle)
+    out.push(
+      `The exception changes nothing: the ${x} is not among the boats the rest of the sentence speaks of.`,
+    )
+  if (h.same !== '') out.push(`It says what your rule ${h.same} already says.`)
+  if (h.noticed)
+    out.push(
+      'It says what your price list was noticed doing: nothing it makes breaks it, so it takes nothing today.',
+    )
+  return out
+}
+
+/* ---------------------------------------------------------- */
+/* Looked for and not true                                     */
+/* ---------------------------------------------------------- */
+
+/** One rule somebody might write, in the dealer's words, and what was counted against it. */
+export interface RefutedSaid {
+  said: string
+  counted: string
+}
+
+/**
+ * THE SIX, IN THIS PAGE'S OWN VOICE (verify 1, data round, item 9: straight apostrophes, "PLUS",
+ * "Motor Library!FF WEIGHT", under a lead that claimed the price list as the source). Each is
+ * keyed by the workbook record's own candidate, and every figure in it is one the record's
+ * measure or verdict carries — `read.test.ts` holds each line to that, so nothing here is a new
+ * figure. They were counted on Northside's workbooks, and the lead says so.
+ */
+export const REFUTED_SAID: Readonly<Record<string, RefutedSaid>> = {
+  "A trailer's ATM must cover the boat's weight PLUS its Max Load.": {
+    said: 'A trailer’s ATM covers the boat’s weight and its maximum load together.',
+    counted:
+      'True on 73 of 139 of Highfield’s standard trailer offers. The maximum load is carried afloat, not towed.',
+  },
+  "A trailer's Between Guards must be at least the boat's beam.": {
+    said: 'A trailer’s width between the guards is at least the boat’s beam.',
+    counted: 'True on 0 of 93. The hull sits over the guards, not between them.',
+  },
+  "The trailer's Boat Size band must contain the boat's hull length.": {
+    said: 'A trailer’s boat-size range takes in the boat’s hull length.',
+    counted: 'True on 83 of 166, and it could be tested on only 166 of 674 trailer offers.',
+  },
+  "The trailer's Boat Size must be at least the boat's hull length.": {
+    said: 'A trailer’s boat size is at least the boat’s hull length.',
+    counted:
+      'True on 8 of 85 counted one way and 127 of 166 another. The size is a class, typically 0.34 m under the hull length.',
+  },
+  "Any rule at all on the trailer's Between Guards or Trailer Length dimensions.": {
+    said: 'Any rule on a trailer’s width between the guards, or on its length.',
+    counted:
+      'The width between the guards is written on 74 of 476 trailer lines, and the length on 75: a rule on them could not see six trailers in seven.',
+  },
+  "The motor's weight must not exceed the boat's Max Main Motor Weight.": {
+    said: 'A motor never weighs more than the boat’s maximum motor weight.',
+    counted:
+      'True wherever it could be tested, 49 of 49, but the boat’s maximum motor weight is written on 10 of 2,005 boat lines and a motor’s weight on 121 of 362 models.',
+  },
+}
+
+/* ---------------------------------------------------------- */
+/* The house rules as words, to share                          */
+/* ---------------------------------------------------------- */
+
+/**
+ * THE HOUSE RULES AS PLAIN WORDS, to share or paste where Northside signs things (verify 1, data
+ * round, J15: "no share"). The page's own parts, numbers, sentences and figures — nothing the
+ * page does not say — headed by whose rules they are and the price list they were counted on.
+ */
+export function houseText(book: readonly Part[], who: string, dated: string): string {
+  const lines: string[] = []
+  lines.push(
+    who === ''
+      ? 'The house rules: what may be sold with what'
+      : `${who} — the house rules: what may be sold with what`,
+  )
+  if (dated !== '') lines.push(dated)
+  for (const part of book) {
+    lines.push('', `${part.n} ${part.name}`)
+    for (const { at, item } of part.stated) {
+      const fig = figureOf(item)
+      lines.push(
+        `${at} ${item.said}${fig ? ` (${count(fig.shown)} of ${count(fig.of)} ${item.counted})` : ''}`,
+      )
+    }
+    for (const { at, item } of part.yours) {
+      const noun = KIND_NOUN[item.reach.kind].one
+      const line = verbLine(item.verb, noun, item.rule.severity === 'warn' ? 'warn' : 'block')
+      lines.push(
+        `${at} ${item.said} ${line.lead} ${VERB_WORD[item.verb]} ${line.tail} ${item.rule.because}.`,
+      )
+    }
+  }
+  return lines.join('\n')
+}

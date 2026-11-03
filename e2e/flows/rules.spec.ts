@@ -18,6 +18,8 @@ import { openChapter, pickAndStart, written } from '../mint'
    ============================================================ */
 
 const BECAUSE = 'a tiller boat has no helm to steer a remote motor from'
+/** A list opened from a word: every listbox but the marks', which are a strip on the page. */
+const OPEN_LIST = '[role="listbox"]:not(.hr-field__marks)'
 const TILLER = 'When the boat’s steering is tiller, the motor’s controls must be Tiller handle.'
 
 async function toRules(page: Page, open = ''): Promise<void> {
@@ -28,8 +30,8 @@ async function toRules(page: Page, open = ''): Promise<void> {
 /** Choose one word of the sentence: press the word, then the choice in its list. */
 async function choose(page: Page, word: string | RegExp, choice: RegExp): Promise<void> {
   await page.getByRole('combobox', { name: word }).click()
-  await page.getByRole('option', { name: choice }).click()
-  await expect(page.getByRole('listbox')).toBeHidden()
+  await page.locator(OPEN_LIST).getByRole('option', { name: choice }).click()
+  await expect(page.getByRole('listbox').and(page.locator(OPEN_LIST))).toBeHidden()
 }
 
 async function writeTheTillerRule(page: Page): Promise<void> {
@@ -79,13 +81,18 @@ test('counted before it is added: the tiller rule’s boats, drawn one mark a mo
   const census = page.getByTestId('census')
   /* half answered, it already counts the boats it is about, and lights them */
   await expect(census.locator('.hr-fig[data-n="61 of 289"]')).toHaveCount(1)
-  await expect(census.locator('.hr-mark[data-about]')).toHaveCount(61)
+  /* the marks are the clause's, beside the figures since the count was parted (verify 1) */
+  const marks = page.getByTestId('open-rule').locator('.hr-field')
+  await expect(marks.locator('.hr-mark[data-about]')).toHaveCount(61)
   await choose(page, 'Which of the motor’s specs', /^controls$/)
   await choose(page, 'The motor’s controls', /^Tiller handle\b/)
   await expect(census.locator('.hr-fig[data-n="45 of 540"]')).toHaveCount(1)
   await expect(census.locator('.hr-fig[data-n="171 of 241"]')).toHaveCount(1)
   /* the five Highfield Classics are ringed and named under their maker, once */
-  await expect(census.locator('.hr-mark[data-loses]')).toHaveCount(5)
+  await expect(marks.locator('.hr-mark[data-loses]')).toHaveCount(5)
+  /* each mark is named on a key, not on a hover alone (verify 1, data round) */
+  await marks.getByRole('listbox', { name: /^Highfield:/ }).focus()
+  await expect(marks.getByTestId('field-point').filter({ hasText: /^Highfield / })).toHaveCount(1)
   await expect(page.getByTestId('rule-cost')).toHaveText(
     'The Classic 340, 360, 380, 360 LS and 380 LS lose the Yamaha F25SWTC.',
   )
@@ -266,9 +273,14 @@ test('a rule names a maker and a figure, typed where the sentence says it', asyn
   /* one price list, one size (built-critique-m3-2.md, major 4): each maker counts the models
      Home's door and the picker print — Highfield 67, never its 588 lines */
   await page.getByRole('combobox', { name: 'The boat’s maker' }).click()
-  await expect(page.getByRole('option', { name: /^Highfield\s*67$/ })).toBeVisible()
-  await page.getByRole('option', { name: /^Haines Signature/ }).click()
-  await expect(page.getByRole('listbox')).toBeHidden()
+  await expect(
+    page.locator(OPEN_LIST).getByRole('option', { name: /^Highfield\s*67$/ }),
+  ).toBeVisible()
+  await page
+    .locator(OPEN_LIST)
+    .getByRole('option', { name: /^Haines Signature/ })
+    .click()
+  await expect(page.getByRole('listbox').and(page.locator(OPEN_LIST))).toBeHidden()
   await expect(page.getByTestId('rule-sentence')).toContainText(
     'When the boat’s maker is Haines Signature, the trailer’s',
   )
@@ -282,22 +294,26 @@ test('the finder on a build says what each chapter says, whatever is typed into 
   await throughTheDoor(page)
   await writeTheTillerRule(page)
   await pickAndStart(page, 'boat_highfield', 'CL340')
-  /* the motor chapter's own head, with the refused F25SWTC not counted as offered */
+  /* THE MOTOR CHAPTER'S OWN HEAD, with the refused F25SWTC not counted as offered. The Classic
+     340's price list makes it 3 motors (`pairTaken.test.ts`); with the F25SWTC refused, 2 are
+     left: "1 more offered" beside a chosen motor, or "2 offered" where the draft chose none, as
+     the build now starts one (verify 1, data round: the chapter reads "2 offered") */
   const head = page.locator('[data-chapter="motor"] .cfg-head__rest')
-  await expect(head).toHaveText(/1\smore offered/)
+  await expect(head).toHaveText(/^(1\smore offered|2\soffered)$/)
+  const said = ((await head.textContent()) ?? '').trim()
 
   const finder = page.getByTestId('shell-finder')
   if ((page.viewportSize()?.width ?? 0) >= 768) await page.keyboard.press('Control+k')
   else await page.getByTestId('shell-pill').getByRole('button', { name: 'Find' }).click()
   await expect(finder).toBeVisible()
   const motor = finder.getByRole('option', { name: /^02 Motor/ })
-  await expect(motor).toContainText(/1\smore offered/)
+  await expect(motor).toContainText(said)
   /* TYPED WORDS ARE THE FINDER'S, NEVER THE CHAPTER'S COUNT (built-critique-m3.md, major 11: the
      finder said "2 more offered" where the motor chapter said "1 more offered", reading the
      chapter as searched for what was typed) */
   await page.keyboard.type('f25')
-  await expect(motor).toContainText(/1\smore offered/)
-  await expect(motor).not.toContainText(/2\smore offered/)
+  await expect(motor).toContainText(said)
+  await expect(motor).not.toContainText(/2\smore offered|3\soffered/)
 })
 
 test('at a desk the because being typed stays clear of the pill while the count is read down', async ({
@@ -359,10 +375,10 @@ async function pressAt(page: Page, target: ReturnType<Page['getByRole']>): Promi
 
 async function chooseAt(page: Page, word: string, choice: RegExp): Promise<void> {
   await pressAt(page, page.getByRole('combobox', { name: word }))
-  const option = page.getByRole('option', { name: choice }).first()
+  const option = page.locator(OPEN_LIST).getByRole('option', { name: choice }).first()
   await expect(option).toBeVisible()
   await pressAt(page, option)
-  await expect(page.getByRole('listbox')).toBeHidden()
+  await expect(page.getByRole('listbox').and(page.locator(OPEN_LIST))).toBeHidden()
 }
 
 test('choosing the four words never moves the page, and the act stays clear of the pill', async ({
@@ -409,8 +425,36 @@ test('a measure opens on the offers that break it, each with a door to its line'
   const list = page.getByTestId('exceptions')
   await expect(list.getByRole('listitem')).toHaveCount(3)
   await expect(list).toContainText('Stacer 589 Sea Ranger SDF')
-  await list.getByRole('link').first().click()
+  /* WHERE IT IS FIXED: the boat's transom and the motor's shaft each on their own line, and the
+     offer on its pairing line (verify 1, data round, J2) */
+  const sdf = list.getByRole('listitem').filter({ hasText: 'Stacer 589 Sea Ranger SDF' })
+  await expect(sdf.getByRole('link', { name: /the boat’s transom, on its line/ })).toHaveAttribute(
+    'href',
+    /\/data\/boat_stacer\?at=/,
+  )
+  await expect(sdf.getByRole('link', { name: /the motor’s shaft, on its line/ })).toHaveAttribute(
+    'href',
+    /\/data\/mot_yamaha\?at=/,
+  )
+  await sdf.getByRole('link', { name: /the offer, on its line/ }).click()
   await expect(page).toHaveURL(/\/data\/join_stacer_yam\?at=/)
+})
+
+test('a look at a clause with nothing that breaks it, or a boat not offered, lets the address go', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await page.goto('/rules?look=F15')
+  await expect(page.locator('[data-testid="rules"][data-read]')).toBeVisible({ timeout: 30_000 })
+  await expect(page).not.toHaveURL(/look=/)
+  await expect(page.getByTestId('exceptions')).toHaveCount(0)
+  /* the workbook's 16 breaks are said gone, where the clause is */
+  await expect(page.locator('[data-testid="stated-rule"][data-ref="F15"]')).toContainText(
+    'The workbook this rule was found in counted 16 of 571 breaking it; on the price list loaded here, none does.',
+  )
+  await page.goto('/rules?on=zzz-no-boat')
+  await expect(page.locator('[data-testid="rules"][data-read]')).toBeVisible()
+  await expect(page).not.toHaveURL(/on=/)
 })
 
 test('a stale link says the rule is gone, and lets the address go', async ({ page }) => {
@@ -434,7 +478,11 @@ test('an exception is found by typing, and the boat it names keeps its motor', a
   await page.getByRole('button', { name: 'Except one model' }).click()
   await page.getByRole('combobox', { name: 'The model it makes an exception of' }).click()
   await page.getByRole('combobox', { name: 'Find a boat model' }).fill('classic 340')
-  await page.getByRole('option', { name: 'Highfield Classic 340', exact: true }).click()
+  /* the finder's own option: a mark of the same model is an option of the marks' strip */
+  await page
+    .getByRole('dialog')
+    .getByRole('option', { name: 'Highfield Classic 340', exact: true })
+    .click()
   await expect(page.getByTestId('rule-sentence')).toHaveText(
     'When the boat’s steering is tiller, except the Highfield Classic 340, the motor’s controls must be Tiller handle.',
   )

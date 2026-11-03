@@ -1,4 +1,13 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { motion } from 'motion/react'
 import {
   ArrowCounterClockwiseIcon,
@@ -12,6 +21,7 @@ import {
   PlusIcon,
   PrinterIcon,
   ProhibitIcon,
+  ShareNetworkIcon,
   TrashIcon,
   WarningCircleIcon,
   XIcon,
@@ -65,11 +75,13 @@ import {
   pairBoats,
   pairClashes,
   pairEmpties,
+  pairExceptsIdle,
   pairOnBoat,
   pairOnQuotes,
   pairTaken,
 } from '@/domain/rules/constraints/pairTaken'
 import { groupExceptions, type BuildDoes } from '@/domain/rules/constraints/houseMeasures'
+import { packedOn, provenanceOfSheet } from '@/screens/data/file'
 import {
   WORKBOOK_RULES_REFUTED,
   type WorkbookRuleRef,
@@ -94,9 +106,12 @@ import {
   draftOf,
   exceptionsSaid,
   figureOf,
+  headsSaid,
   houseOf,
   houseSaid,
+  houseText,
   modelsSaid,
+  REFUTED_SAID,
   namesSaid,
   newKindOf,
   onSale,
@@ -110,6 +125,7 @@ import {
   takenSaid,
   verbLine,
   wordsKey,
+  workbookSaid,
   yourRules,
   type AlsoDraft,
   type Columns,
@@ -173,6 +189,8 @@ export interface RulesProps {
   go: (next: Partial<RulesAt>) => void
   /** the sheet at one line: `/data/$table?at=` */
   listHref: (table: string, line: string) => string
+  /** one quote in the build: `/quote/$id` */
+  quoteHref: (id: string) => string
   /** go to an address inside the app */
   follow: (href: string) => void
   /** where a browser with no copy of the price list goes to load one */
@@ -216,10 +234,15 @@ function intoSight(
   const bring = (): void => {
     if (dropped || !el?.isConnected || typeof el.scrollIntoView !== 'function') return
     const r = el.getBoundingClientRect()
+    /* SEEN means clear of the pill and of what stands at the foot — the tab bar and a toast — by
+       the element's own scroll margins, the tokens the scroll itself stops at */
+    const css = getComputedStyle(el)
+    const top = parseFloat(css.scrollMarginBlockStart) || 0
+    const foot = window.innerHeight - (parseFloat(css.scrollMarginBlockEnd) || 0)
     const seen =
       block === 'start'
-        ? r.top >= 0 && r.top < window.innerHeight * 0.5
-        : r.top >= 0 && r.bottom <= window.innerHeight
+        ? r.top >= top && r.top < window.innerHeight * 0.5
+        : r.top >= top && r.bottom <= foot
     if (seen) return
     el.scrollIntoView({ block, behavior: instant || reducedMotion() ? 'instant' : 'smooth' })
   }
@@ -295,12 +318,17 @@ function resolve(
   return null
 }
 
-export function Rules({ at, go, listHref, follow, openTheFile }: RulesProps) {
+export function Rules({ at, go, listHref, quoteHref, follow, openTheFile }: RulesProps) {
   const status = useCatalogue((s) => s.status)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
   const rules = useCatalogue((s) => s.constraintDefs)
   const orgId = useCatalogue((s) => s.orgId)
+  /* WHOSE RULES, AND COUNTED ON WHICH PRICE LIST — printed and shared at their head (verify 1,
+     data round, J15): the name Settings keeps, else the file's own; the file's packing day only
+     where this sheet is the one the app was shipped with (`provenanceOfSheet`, Data's reading) */
+  const who = useCatalogue((s) => (s.org?.name ?? s.business ?? '').trim())
+  const version = useCatalogue((s) => s.version)
   const quotes = useQuotes((s) => s.quotes)
 
   const world = useMemo(() => ({ entities: tables, rowsByEntity: rows }), [tables, rows])
@@ -343,13 +371,52 @@ export function Rules({ at, go, listHref, follow, openTheFile }: RulesProps) {
       at={at}
       go={go}
       listHref={listHref}
+      quoteHref={quoteHref}
       follow={follow}
       world={world}
       rules={rules}
       quotes={quotes}
       orgId={orgId ?? ''}
+      who={who}
+      version={version}
     />
   )
+}
+
+/** "The price list of 16 September 2026", or '' where this sheet's day cannot be said. */
+function datedSaid(version: string | null): string {
+  const p = provenanceOfSheet(version)
+  return p.known ? `The price list of ${packedOn(p.file.packedAt, 'long')}` : ''
+}
+
+const TODAY = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/**
+ * SHARE THE HOUSE RULES as plain words (`houseText`): the device's own share sheet where it has
+ * one, else onto the clipboard, and said either way. A browser that can do neither says so where
+ * it was pressed, and offers Print beside it.
+ */
+async function shareHouse(text: string, title: string): Promise<void> {
+  const nav = typeof navigator === 'undefined' ? null : navigator
+  if (nav && typeof nav.share === 'function') {
+    try {
+      await nav.share({ title, text })
+      return
+    } catch (e) {
+      /* a person who closes the share sheet has decided; nothing more is said */
+      if (e instanceof DOMException && e.name === 'AbortError') return
+    }
+  }
+  if (nav?.clipboard && typeof nav.clipboard.writeText === 'function') {
+    try {
+      await nav.clipboard.writeText(text)
+      say('The house rules are copied, ready to paste where they are wanted.', { id: STEP_TOAST })
+      return
+    } catch {
+      /* falls through to the sentence below */
+    }
+  }
+  say('This computer can neither share nor copy them, so print them instead.', { id: STEP_TOAST })
 }
 
 /* ---------------------------------------------------------- */
@@ -360,14 +427,29 @@ interface Shared {
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
   listHref: (table: string, line: string) => string
+  quoteHref: (id: string) => string
   follow: (href: string) => void
   world: PairWorld
   rules: readonly ConstraintDef[]
   quotes: readonly QuoteDef[]
   orgId: string
+  who: string
+  version: string | null
 }
 
-function House({ at, go, listHref, follow, world, rules, quotes, orgId }: Shared) {
+function House({
+  at,
+  go,
+  listHref,
+  quoteHref,
+  follow,
+  world,
+  rules,
+  quotes,
+  orgId,
+  who,
+  version,
+}: Shared) {
   const cols = useMemo(() => readColumns(world), [world])
   const yours = useMemo(() => yourRules(rules, world), [rules, world])
   /* MEASURED HERE, once per sheet (`houseMeasures.ts` keeps the count by the sheet's rows) */
@@ -387,9 +469,17 @@ function House({ at, go, listHref, follow, world, rules, quotes, orgId }: Shared
   useEffect(() => {
     if (staleNow) go({ open: '' })
   }, [staleNow, go])
+  /* A LOOK AT NOTHING LETS THE ADDRESS GO: a clause that is not on the page, not measured here,
+     or measured with nothing that breaks it has no list to open (verify 1, data round: `?look=F15`
+     drew an empty "offer by offer" panel with no sentence). Its figure already says "none". */
   useEffect(() => {
-    if (at.look !== '' && !stated.some((s) => s.ref === at.look && s.live)) go({ look: '' })
+    if (at.look !== '' && !stated.some((s) => s.ref === at.look && exceptionsSaid(s) !== ''))
+      go({ look: '' })
   }, [at.look, stated, go])
+  /* A BOAT TRIED WITH NO CLAUSE OPEN is tried in nothing, and lets the address go too */
+  useEffect(() => {
+    if (at.on !== '' && at.open === '') go({ on: '' })
+  }, [at.on, at.open, go])
 
   /* THE RULE JUST ADDED takes the focus where it now stands, so a keyboard is never dropped on
      the page's top when the clause it was writing becomes a rule */
@@ -435,12 +525,25 @@ function House({ at, go, listHref, follow, world, rules, quotes, orgId }: Shared
 
   /* the page's count, read once off the parts it numbers (`houseOf`), never summed here */
   const house = useMemo(() => houseSaid(houseOf(book)), [book])
+  /* EACH OF NORTHSIDE'S RULES BY ITS NUMBER, so a heads-up names "your rule 2.4", never its
+     whole sentence again (verify 1, data round) */
+  const numbers = useMemo(() => {
+    const out = new Map<string, string>()
+    for (const part of book) for (const y of part.yours) out.set(y.item.rule.id, y.at)
+    return out
+  }, [book])
+  const dated = datedSaid(version)
 
   return (
     <main className="hr" data-testid="rules" data-read="">
       <header className="hr-head">
         <p className="hr-eyebrow">The house rules</p>
         <h1 className="hr-title">What may be sold with what</h1>
+        {/* PRINTED, the page says whose rules these are and what they were counted on (verify 1,
+            data round, J15: "no Northside name or price-list date is printed") */}
+        <p className="hr-print-head" data-testid="print-head">
+          {[who, dated, `Printed ${TODAY.format(new Date())}`].filter((x) => x !== '').join(' · ')}
+        </p>
         <p className="hr-lede">
           {`${house} `}
           What a rule written here refuses, the build refuses from the next pick, and says its
@@ -449,6 +552,19 @@ function House({ at, go, listHref, follow, world, rules, quotes, orgId }: Shared
         <div className="hr-head__acts">
           <Button intent="quiet" size="sm" icon={PrinterIcon} onClick={() => window.print()}>
             Print the house rules
+          </Button>
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={ShareNetworkIcon}
+            onClick={() =>
+              void shareHouse(
+                houseText(book, who, dated),
+                who === '' ? 'The house rules' : `${who}: the house rules`,
+              )
+            }
+          >
+            Share them
           </Button>
         </div>
       </header>
@@ -471,6 +587,7 @@ function House({ at, go, listHref, follow, world, rules, quotes, orgId }: Shared
             at={at}
             go={go}
             listHref={listHref}
+            quoteHref={quoteHref}
             follow={follow}
             world={world}
             cols={cols}
@@ -478,6 +595,7 @@ function House({ at, go, listHref, follow, world, rules, quotes, orgId }: Shared
             rules={rules}
             quotes={quotes}
             orgId={orgId}
+            numbers={numbers}
             apply={apply}
             setVerbOf={setVerbOf}
             landed={landed}
@@ -508,6 +626,7 @@ interface PartProps {
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
   listHref: (table: string, line: string) => string
+  quoteHref: (id: string) => string
   follow: (href: string) => void
   world: PairWorld
   cols: Columns
@@ -515,6 +634,8 @@ interface PartProps {
   rules: readonly ConstraintDef[]
   quotes: readonly QuoteDef[]
   orgId: string
+  /** each of Northside's rules by its number on the page */
+  numbers: ReadonlyMap<string, string>
   apply: (command: CatalogueCommand, back: keyof typeof BACK, after?: () => void) => void
   setVerbOf: (rule: ConstraintDef, verb: Verb) => void
   landed: string
@@ -713,6 +834,7 @@ function StatedClause({
 }) {
   const breaks = exceptionsSaid(s)
   const listId = `hr-ex-${s.ref}`
+  const book = workbookSaid(s)
   return (
     <div className="hr-clause" data-owner="list" data-testid="stated-rule" data-ref={s.ref}>
       <span className="hr-clause__n">{n}</span>
@@ -731,9 +853,14 @@ function StatedClause({
           <p className="hr-clause__where">
             Counted on the workbook this rule was found in, not on the price list loaded here: the
             price list does not write which propellers each motor is offered with, so it cannot be
-            counted on it.
+            counted on it, and the offers that break it cannot be named here.
           </p>
         ) : null}
+        {book === '' ? null : (
+          <p className="hr-clause__where" data-testid="workbook-said">
+            {book}
+          </p>
+        )}
         {breaks === '' ? null : (
           <div className="hr-clause__look">
             <Button
@@ -796,16 +923,39 @@ function Exceptions({
                 {g.why}
                 {g.lines.length > 1 ? `, written on ${count(g.lines.length)} lines` : ''}
               </p>
-              <Button
-                intent="quiet"
-                size="sm"
-                icon={ArrowSquareOutIcon}
-                href={href}
-                onClick={() => follow(href)}
-                aria-label={`${g.boat}, ${g.what}: its line in ${first.listName}`}
-              >
-                {g.lines.length > 1 ? 'Its first line' : 'Its line'}
-              </Button>
+              {/* WHERE IT IS FIXED: the lines that write the two values in conflict — the boat's
+                  transom, the motor's shaft — and the offer that pairs them (verify 1, data round,
+                  J2: the one door landed on the pairing line, which shows neither) */}
+              <p className="hr-ex__doors">
+                {g.sides.map((side) => {
+                  const at = listHref(side.list, side.line)
+                  const name =
+                    side.what === '' ? `The ${side.noun}` : `The ${side.noun}’s ${side.what}`
+                  return (
+                    <Button
+                      key={`${side.list}|${side.line}|${side.what}`}
+                      intent="quiet"
+                      size="sm"
+                      icon={ArrowSquareOutIcon}
+                      href={at}
+                      onClick={() => follow(at)}
+                      aria-label={`${g.boat}, ${g.what}: ${name.toLowerCase()}, on its line in ${side.listName}`}
+                    >
+                      {name}
+                    </Button>
+                  )
+                })}
+                <Button
+                  intent="quiet"
+                  size="sm"
+                  icon={ArrowSquareOutIcon}
+                  href={href}
+                  onClick={() => follow(href)}
+                  aria-label={`${g.boat}, ${g.what}: the offer, on its ${g.lines.length > 1 ? 'first ' : ''}line in ${first.listName}`}
+                >
+                  {g.lines.length > 1 ? 'The offer’s first line' : 'The offer'}
+                </Button>
+              </p>
             </li>
           )
         })}
@@ -941,6 +1091,15 @@ function YourClause({
     void intoSight(ref.current, 'nearest', false)
     onFocused()
   }, [focus, onFocused])
+  /* WHAT IT DOES CHANGED HERE, SO IT STAYS IN SIGHT ABOVE THE TOAST that answers the change: the
+     clause's own scroll-margin keeps the toast's room at the foot (verify 1, data round, 390: the
+     Undo toast stood where the clause's acts were) */
+  const was = useRef(y.verb)
+  useEffect(() => {
+    if (was.current === y.verb) return
+    was.current = y.verb
+    return intoSight(ref.current, 'nearest', false)
+  }, [y.verb])
   const noun = KIND_NOUN[y.reach.kind]
   const line = verbLine(y.verb, noun.one, y.rule.severity === 'warn' ? 'warn' : 'block')
   return (
@@ -974,9 +1133,12 @@ function YourClause({
         </p>
         <p className="hr-clause__by">
           <span>{`Northside’s, written ${dayOf(y.rule.createdAt)}${y.rule.edited ? `, changed ${dayOf(y.rule.updatedAt)}` : ''}.`}</span>
-          <Button intent="quiet" size="sm" icon={NotePencilIcon} onClick={onRewrite}>
-            {`Rewrite ${n}`}
-          </Button>
+          {/* the quiet press hangs its padding outside the words' edge */}
+          <span className="hr-clause__rewrite">
+            <Button intent="quiet" size="sm" icon={NotePencilIcon} onClick={onRewrite}>
+              {`Rewrite ${n}`}
+            </Button>
+          </span>
         </p>
       </div>
       <p
@@ -1305,23 +1467,34 @@ function OpenClause(props: PartProps & { opened: Opened; n: string }) {
   /* A SENTENCE THAT SAYS WHAT THE PRICE LIST WAS NOTICED DOING says so, so a dealer knows it will
      take nothing today (judge.md, data round, missing item 7) */
   const noticedSame = useMemo(() => {
-    if (draft.from) return ''
+    if (draft.from) return false
     const said = pairSaid(shape)
-    for (const entry of PAIRING_RULES) {
+    return PAIRING_RULES.some((entry) => {
       const from = draftFromPriceList(entry.ref, cols)
-      if (!from || pairSaid(shapeOfDraft(from, cols)) !== said) continue
-      return 'It says what your price list was noticed doing: nothing it makes breaks it, so it takes nothing today.'
-    }
-    return ''
+      return from !== null && pairSaid(shapeOfDraft(from, cols)) === said
+    })
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- read on the sentence, by its key
   }, [shapeKey, cols, draft.from])
 
-  /* SAID BEFORE IT IS ADDED (judge.md, data round, missing item 7) */
-  const heads = useMemo(
-    () => headsUp(shape, world, others, props.yours, noun.one, missing === null, noticedSame),
+  /* SAID BEFORE IT IS ADDED (judge.md, data round, missing item 7), as soon as the sentence is
+     whole — before its because, so the reason is written knowing what it would do — each other
+     rule once and by its number (`headsSaid`) */
+  const numbers = props.numbers
+  const heads = useMemo(() => {
+    if (!reach.ready) return []
+    const said = pairSaid(shape)
+    const same = props.yours.find((y) => y.said === said && others.some((o) => o.id === y.rule.id))
+    return headsSaid({
+      noun: noun.one,
+      empties: pairEmpties(shape, world, others),
+      clashes: pairClashes(shape, world, others),
+      idle: pairExceptsIdle(shape, world),
+      same: same ? (numbers.get(same.rule.id) ?? '') : '',
+      noticed: noticedSame,
+      numberOf: (id) => numbers.get(id) ?? '',
+    })
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- counted on the sentence, by its key
-    [shapeKey, world, others, props.yours, noun.one, missing === null, noticedSame],
-  )
+  }, [shapeKey, reach.ready, world, others, props.yours, noun.one, noticedSame, numbers])
 
   return (
     <motion.div
@@ -1329,6 +1502,7 @@ function OpenClause(props: PartProps & { opened: Opened; n: string }) {
       className="hr-open"
       data-owner={owner}
       data-does={verb}
+      data-kind={reach.kind}
       data-testid="open-rule"
       layout="position"
       initial={{ opacity: 0, y: 6 }}
@@ -1483,54 +1657,11 @@ function OpenClause(props: PartProps & { opened: Opened; n: string }) {
         quotes={quotes}
         on={at.on}
         onOn={(on) => go({ on })}
+        quoteHref={props.quoteHref}
+        follow={props.follow}
       />
     </motion.div>
   )
-}
-
-/**
- * THE THINGS SAID BEFORE IT IS ADDED, in the order they matter: a boat it would leave with
- * nothing, a rule of Northside's it cannot stand beside, a rule that already says it, and a
- * pattern the price list was noticed keeping. Each one counted off the sheet (`pairTaken.ts`).
- */
-function headsUp(
-  shape: PairShape,
-  world: PairWorld,
-  others: readonly ConstraintDef[],
-  yours: readonly YourRule[],
-  noun: string,
-  whole: boolean,
-  noticed: string,
-): string[] {
-  if (!whole) return []
-  const out: string[] = []
-  const numberOf = (id: string): string => {
-    const y = yours.find((r) => r.rule.id === id)
-    return y ? `“${y.said}”` : 'another of your rules'
-  }
-  const empties = pairEmpties(shape, world, others)
-  const alone = empties.filter((e) => e.with.length === 0)
-  if (alone.length > 0) {
-    const first = alone[0]!
-    out.push(
-      alone.length === 1
-        ? `The ${first.said} would be offered no ${noun}: all ${count(first.made)} your price list makes for it are taken.`
-        : `${count(alone.length)} boats would be offered no ${noun}, the ${first.said} among them: everything your price list makes for them is taken.`,
-    )
-  }
-  for (const e of empties.filter((x) => x.with.length > 0).slice(0, 2))
-    out.push(
-      `Beside ${numberOf(e.with[0]!)}, the ${e.said} would be offered no ${noun} at all: the two together take all ${count(e.made)} made for it.`,
-    )
-  for (const c of pairClashes(shape, world, others).slice(0, 2))
-    out.push(
-      `It cannot stand beside ${numberOf(c.ruleId)}: on the ${c.boat} no ${noun} on sale keeps both.`,
-    )
-  const said = pairSaid(shape)
-  const same = yours.find((y) => y.said === said && others.some((o) => o.id === y.rule.id))
-  if (same) out.push(`It says what ${numberOf(same.rule.id)} already says.`)
-  if (noticed !== '') out.push(noticed)
-  return out
 }
 
 const columnOptions = (cols: readonly PairColumn[]): SelectOption<string>[] =>
@@ -1563,6 +1694,8 @@ function Counting({
   quotes,
   on,
   onOn,
+  quoteHref,
+  follow,
 }: {
   shape: PairShape
   shapeKey: string
@@ -1576,6 +1709,8 @@ function Counting({
   quotes: readonly QuoteDef[]
   on: string
   onOn: (on: string) => void
+  quoteHref: (id: string) => string
+  follow: (href: string) => void
 }) {
   const noun = KIND_NOUN[reach.kind]
   const losing = field.makers.filter((m) => m.losing > 0)
@@ -1599,36 +1734,47 @@ function Counting({
       return next
     })
   const head = filed ? 'Counted now' : 'Counted now, before it is added'
+  /* THREE BLOCKS, NOT ONE COLUMN (verify 1, data round, 1920: about 700 by 650px stood blank under
+     the act while the count ran past the fold beside it). Narrow they follow the act in order;
+     wide, the figures stand beside the sentence, and under it the marks take the sentence's width
+     while what it takes by name, one boat and the quotes take the margin's. */
   return (
-    <section className="hr-count" aria-label={head} data-testid="census" data-kind={reach.kind}>
-      <h3 className="hr-count__head">{head}</h3>
-      <dl className="hr-figures">
-        <Count
-          known={reach.conditionReady}
-          value={reach.about}
-          of={reach.boats}
-          what="models it is about"
-        />
-        <Count
-          known={reach.ready}
-          value={reach.taken}
-          /* what the price list makes for them is not known until "them" is: never "– of 0" */
-          of={reach.conditionReady ? reach.made : null}
-          what={`offers your price list makes for them, ${takenSaid(verb)}`}
-          strong
-        />
-        <Count
-          known={reach.ready}
-          value={reach.refused}
-          of={reach.partners}
-          what={`${noun.many} ${doesSaid(verb)}`}
-        />
-      </dl>
-      {reach.ready && blank.length > 0 ? (
-        <p className="hr-count__note">
-          {`${blank.map((b) => `The ${count(b.count)} ${b.maker}`).join(' and ')} carry no ${partnerName}, so it says nothing of them.`}
-        </p>
-      ) : null}
+    <>
+      <section className="hr-count" aria-label={head} data-testid="census">
+        <h3 className="hr-count__head">{head}</h3>
+        <dl className="hr-figures">
+          <Count
+            known={reach.conditionReady}
+            value={reach.about}
+            of={reach.boats}
+            what="models it is about"
+          />
+          <Count
+            known={reach.ready}
+            value={reach.taken}
+            /* what the price list makes for them is not known until "them" is: never "– of 0" */
+            of={reach.conditionReady ? reach.made : null}
+            what={`offers your price list makes for them, ${takenSaid(verb)}`}
+            strong
+          />
+          <Count
+            known={reach.ready}
+            value={reach.refused}
+            of={reach.partners}
+            what={`${noun.many} ${doesSaid(verb)}`}
+          />
+        </dl>
+        {reach.ready && blank.length > 0 ? (
+          <p className="hr-count__note">
+            {`${blank.map((b) => `The ${count(b.count)} ${b.maker}`).join(' and ')} carry no ${partnerName}, so it says nothing of them.`}
+          </p>
+        ) : null}
+        {cost === '' ? null : (
+          <p className="hr-count__cost" data-testid="rule-cost">
+            {cost}
+          </p>
+        )}
+      </section>
 
       <div className="hr-field" aria-label="The models it is about, one mark each">
         {field.makers.map((m) => {
@@ -1651,17 +1797,7 @@ function Counting({
                     : count(m.models.length)}
                 </span>
               </button>
-              <span className="hr-field__marks" aria-hidden="true">
-                {m.models.map((x) => (
-                  <span
-                    key={x.key}
-                    className="hr-mark"
-                    title={`${m.maker} ${x.said}${x.loses && reach.ready ? ', loses an offer' : x.about ? ', it is about it' : ''}`}
-                    data-about={x.about ? '' : undefined}
-                    data-loses={x.loses && reach.ready ? '' : undefined}
-                  />
-                ))}
-              </span>
+              <MakerMarks maker={m.maker} models={m.models} reach={reach} verb={verb} />
               {open && about.length > 0 ? (
                 <p className="hr-field__named" data-testid="field-named">
                   {about.map((x, k) => (
@@ -1686,30 +1822,133 @@ function Counting({
         })}
       </div>
 
-      {cost === '' ? null : (
-        <p className="hr-count__cost" data-testid="rule-cost">
-          {cost}
-        </p>
-      )}
-
-      {reach.ready && taken.length > 0 ? (
-        <Taken taken={taken} verb={verb} total={reach.taken} />
-      ) : null}
-
       {reach.ready ? (
-        <OneBoat
-          shape={shape}
-          shapeKey={shapeKey}
-          world={world}
-          on={on}
-          onOn={onOn}
-          taken={taken}
-        />
+        <div className="hr-reach">
+          {taken.length > 0 ? <Taken taken={taken} verb={verb} total={reach.taken} /> : null}
+          <OneBoat
+            shape={shape}
+            shapeKey={shapeKey}
+            world={world}
+            on={on}
+            onOn={onOn}
+            taken={taken}
+          />
+          <p className="hr-count__when">{standing}</p>
+          <OnQuotes
+            list={onQuotes}
+            quotes={quotes.length}
+            noun={noun.one}
+            quoteHref={quoteHref}
+            follow={follow}
+          />
+        </div>
       ) : null}
+    </>
+  )
+}
 
-      {reach.ready ? <p className="hr-count__when">{standing}</p> : null}
-      {reach.ready ? <OnQuotes list={onQuotes} quotes={quotes.length} noun={noun.one} /> : null}
-    </section>
+/**
+ * ONE MAKER'S MARKS, EACH NAMED ON A PRESS, A TOUCH OR A KEY (verify 1, data round: 289 marks were
+ * named only by a native title on hover — aria-hidden, never focusable, nothing on touch). The
+ * strip is one stop for the keyboard, a listbox whose marks are its options, each named; the
+ * arrows walk them and the line under it names the one pointed at for the eye. A press or a touch points at the nearest mark. 289 stops would
+ * make the page a walk through squares, so it is one per maker.
+ */
+function MakerMarks({
+  maker,
+  models,
+  reach,
+  verb,
+}: {
+  maker: string
+  models: PairField['makers'][number]['models']
+  reach: PairReach
+  verb: Verb
+}) {
+  const [at, setAt] = useState(-1)
+  const strip = useRef<HTMLSpanElement>(null)
+  const id = useId()
+  const x = at >= 0 ? models[at] : undefined
+  const verdict = (m: (typeof models)[number]): string =>
+    m.loses && reach.ready
+      ? `the rule speaks of it, and an offer made for it is ${takenSaid(verb)}`
+      : !reach.conditionReady
+        ? ''
+        : m.about
+          ? 'the rule speaks of it'
+          : 'the rule does not speak of it'
+  const nearest = (clientX: number, clientY: number): number => {
+    const marks = strip.current?.querySelectorAll<HTMLElement>('.hr-mark') ?? []
+    let best = -1
+    let far = Infinity
+    marks.forEach((el, i) => {
+      const r = el.getBoundingClientRect()
+      const d = Math.hypot(clientX - (r.left + r.width / 2), clientY - (r.top + r.height / 2))
+      if (d < far) {
+        far = d
+        best = i
+      }
+    })
+    return best
+  }
+  const first = Math.max(
+    0,
+    models.findIndex((m) => m.about),
+  )
+  return (
+    <>
+      <span
+        ref={strip}
+        className="hr-field__marks"
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <select> cannot draw a strip of marks
+        role="listbox"
+        aria-orientation="horizontal"
+        tabIndex={0}
+        aria-label={`${maker}: ${count(models.length)} models, a mark each`}
+        aria-activedescendant={at >= 0 ? `${id}-${at}` : undefined}
+        data-testid="field-marks"
+        onFocus={() => setAt((v) => (v < 0 ? first : v))}
+        onBlur={() => setAt(-1)}
+        onPointerDown={(e) => {
+          const i = nearest(e.clientX, e.clientY)
+          if (i >= 0) setAt(i)
+        }}
+        onKeyDown={(e) => {
+          const last = models.length - 1
+          const step: Record<string, number> = {
+            ArrowRight: 1,
+            ArrowDown: 1,
+            ArrowLeft: -1,
+            ArrowUp: -1,
+          }
+          if (e.key in step)
+            setAt((v) => Math.min(last, Math.max(0, (v < 0 ? first : v) + step[e.key]!)))
+          else if (e.key === 'Home') setAt(0)
+          else if (e.key === 'End') setAt(last)
+          else return
+          e.preventDefault()
+        }}
+      >
+        {models.map((m, i) => (
+          <span
+            key={m.key}
+            id={`${id}-${i}`}
+            className="hr-mark"
+            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a mark, not an <option> of a <select>
+            role="option"
+            aria-selected={i === at}
+            aria-label={`${maker} ${m.said}${verdict(m) === '' ? '' : `: ${verdict(m)}`}`}
+            data-about={m.about ? '' : undefined}
+            data-loses={m.loses && reach.ready ? '' : undefined}
+            data-pointed={i === at ? '' : undefined}
+          />
+        ))}
+      </span>
+      {/* the mark pointed at, named for the eye; a reader hears the option itself */}
+      <span className="hr-field__point" aria-hidden="true" data-testid="field-point">
+        {x ? `${maker} ${x.said}${verdict(x) === '' ? '' : `: ${verdict(x)}`}` : ''}
+      </span>
+    </>
   )
 }
 
@@ -1776,7 +2015,13 @@ function OneBoat({
 }) {
   const kind = shape.partnerKind
   const boats = useMemo(() => pairBoats(world, kind), [world, kind])
-  const key = on !== '' && boats.some((b) => b.key === on) ? on : (taken[0]?.models[0]?.key ?? '')
+  const known = on !== '' && boats.some((b) => b.key === on)
+  const key = known ? on : (taken[0]?.models[0]?.key ?? '')
+  /* A BOAT THE PRICE LIST DOES NOT OFFER lets the address go (verify 1, data round:
+     `?on=zzz-no-boat` stayed in the address) */
+  useEffect(() => {
+    if (on !== '' && !known) onOn('')
+  }, [on, known, onOn])
   const read = useMemo(
     () => (key === '' ? null : pairOnBoat(shape, world, key)),
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- counted on the sentence, by its key
@@ -1791,14 +2036,16 @@ function OneBoat({
     <div className="hr-boat" data-testid="one-boat">
       <h4 className="hr-taken__head">
         {'Tried on the '}
-        <WordFinder
-          aria-label="The boat it is tried on"
-          placeholder="boat"
-          noun="a boat"
-          values={values}
-          value={key}
-          onValue={(v) => onOn(v)}
-        />
+        <span className="hr-boat__word">
+          <WordFinder
+            aria-label="The boat it is tried on"
+            placeholder="boat"
+            noun="a boat"
+            values={values}
+            value={key}
+            onValue={(v) => onOn(v)}
+          />
+        </span>
       </h4>
       {read ? (
         <>
@@ -1843,10 +2090,14 @@ function OnQuotes({
   list,
   quotes,
   noun,
+  quoteHref,
+  follow,
 }: {
   list: ReturnType<typeof pairOnQuotes>
   quotes: number
   noun: string
+  quoteHref: (id: string) => string
+  follow: (href: string) => void
 }) {
   return (
     <div className="hr-quotes" data-testid="on-quotes">
@@ -1859,7 +2110,19 @@ function OnQuotes({
         <ul className="hr-taken__list">
           {list.map((q) => (
             <li key={q.id} className="hr-taken__item">
-              <span className="hr-taken__boat">{`${q.reference} · ${q.state === 'draft' ? 'draft' : 'given'}`}</span>
+              {/* THE QUOTE IT NAMES IS A DOOR TO IT (verify 1, data round: "20261104-01 · draft"
+                  was plain text) */}
+              <a
+                className="hr-quotes__ref"
+                href={quoteHref(q.id)}
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+                  e.preventDefault()
+                  follow(quoteHref(q.id))
+                }}
+              >
+                {`${q.reference} · ${q.state === 'draft' ? 'draft' : 'given'}`}
+              </a>
               <span className="hr-taken__what">
                 {q.refuses.length === 0
                   ? `${q.boat}: carries no ${noun} it refuses`
@@ -1933,12 +2196,17 @@ function Count({
  * (judge.md, data round, minor 14: "the six refuted workbook candidates"), set quietly at the foot
  * so nobody proposes them again. They are the fitment pass's six (`F10`, `F11`): the others in
  * `WORKBOOK_RULES_REFUTED` are about the workbook's own slots and keys, not about what may be
- * sold with what. The adjudication's words, but one: "rows" is said "lines", the app's word for a
- * line of the price list (DECISIONS 2026-09-24, one naming rule). Closed, it is one line.
+ * sold with what. Said in this page's own voice (`REFUTED_SAID`, every figure the record's own),
+ * numbered, and said as counted on Northside's workbooks, where they were (verify 1, data round,
+ * item 9). A record the page has no words for is left out, never shown in the workbook's grammar.
+ * Closed, it is one line.
  */
-const REFUTED = WORKBOOK_RULES_REFUTED.filter((r) => r.ref === 'F10' || r.ref === 'F11')
-
-const linesSaid = (text: string): string => text.replace(/\brows\b/g, 'lines')
+const REFUTED = WORKBOOK_RULES_REFUTED.filter((r) => r.ref === 'F10' || r.ref === 'F11').flatMap(
+  (r) => {
+    const said = REFUTED_SAID[r.candidate]
+    return said ? [said] : []
+  },
+)
 
 function Refuted() {
   /* A PRESS, NOT A <details>: a closed details keeps its words laid out unpainted, and the rulers
@@ -1947,7 +2215,7 @@ function Refuted() {
   return (
     <section className="hr-refuted" data-ground="plate" data-testid="refuted">
       <p className="hr-refuted__head">
-        {`Looked for in your price list and not true: ${REFUTED.length} rules somebody might write about a trailer or a motor, each with the number that rules it out.`}
+        {`Looked for in Northside’s workbooks and not true: ${REFUTED.length} rules somebody might write about a trailer or a motor, each with what was counted there.`}
       </p>
       <div className="hr-refuted__act">
         <Button
@@ -1962,14 +2230,17 @@ function Refuted() {
         </Button>
       </div>
       {open ? (
-        <ul className="hr-refuted__list" id="hr-refuted-list">
-          {REFUTED.map((r) => (
-            <li key={r.candidate} className="hr-refuted__item">
-              <p className="hr-refuted__said">{linesSaid(r.candidate)}</p>
-              <p className="hr-refuted__why">{`Measured: ${linesSaid(r.measured)}.`}</p>
+        <ol className="hr-refuted__list" id="hr-refuted-list">
+          {REFUTED.map((r, k) => (
+            <li key={r.said} className="hr-refuted__item">
+              <span className="hr-refuted__n" aria-hidden="true">
+                {k + 1}
+              </span>
+              <p className="hr-refuted__said">{r.said}</p>
+              <p className="hr-refuted__why">{r.counted}</p>
             </li>
           ))}
-        </ul>
+        </ol>
       ) : null}
     </section>
   )

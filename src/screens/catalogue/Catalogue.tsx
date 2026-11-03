@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useCatalogue, usePrefs, useQuotes } from '@/app/useStores'
+import { useCatalogue, useQuotes } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx } from '@/domain/model'
@@ -14,7 +14,7 @@ import { unpicturedByUse } from '@/domain/chandlery/worklist'
 import { inShow, showCounts, suppliersShown, type ShowReaders } from '@/domain/chandlery/facets'
 import { saidNames, supplierReadings, suppliersElsewhere } from '@/domain/chandlery/readings'
 import { lineKindOf } from '@/domain/chandlery/prices'
-import { MEANT_PREF, meantOf } from '@/screens/review/read'
+import { useLeftAlone } from '@/screens/review/left'
 import { copyOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
 import { letterheadNow } from '@/app/northside'
 import { RowGallery } from '@/app/RowGallery'
@@ -147,12 +147,10 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
     return n
   }, [quoted])
   /* WHERE EACH PART WITH NO PRICE STANDS ON REVIEW, so its door opens on its own case */
-  const meantPref = usePrefs((s) => s.values[MEANT_PREF])
+  const meantPref = useLeftAlone()
   const standings = useMemo(
     () =>
-      table
-        ? noPriceStandings(table, ctx.rowsByEntity[table.id] ?? [], meantOf(meantPref))
-        : new Map(),
+      table ? noPriceStandings(table, ctx.rowsByEntity[table.id] ?? [], meantPref) : new Map(),
     [table, ctx, meantPref],
   )
   /* only a part takes a picture: labour and the workbook's notes are never drawn with one */

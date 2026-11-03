@@ -4,7 +4,7 @@
    Review.test.tsx, so the words are pinned where they are read.
    ============================================================ */
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, within } from '@testing-library/react'
 import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
@@ -31,14 +31,14 @@ describe('the wrong-size trailer, as the dealer reads it', () => {
   it('says the series, the weight and the labels, and none of the file’s keys or cells', () => {
     render(
       <Review
-        at=""
-        onAt={vi.fn<ReviewProps['onAt']>()}
+        position={{ case: 'band:trl_dunbier:trl_dunbier:67:Small Trailers - Up to 1.02t:1450' }}
+        onPosition={vi.fn<ReviewProps['onPosition']>()}
         listHref={(t) => `/data/${t}`}
         go={vi.fn<ReviewProps['go']>()}
         openTheFile={vi.fn<() => void>()}
       />,
     )
-    const stage = screen.getByRole('region')
+    const stage = document.querySelector<HTMLElement>('.rv-stage')!
     expect(
       within(stage).getByRole('heading', { name: 'Rego the ALP 5.3M-13B as a Large trailer.' }),
     ).toBeInTheDocument()

@@ -7,23 +7,10 @@
    Counted off the same queue Review walks (`queueOf`), so the cases on
    every list add back to the figure on Review's door. Pure.
    ============================================================ */
-import type { Case } from './cases'
+import { tableOfCase, type Case } from './cases'
 
 /** The list a case stands on. */
-export function listOfCase(c: Case): string {
-  switch (c.kind) {
-    case 'band':
-      return c.line.tableId
-    case 'two':
-      return c.tableId
-    case 'none':
-      return c.group.tableId
-    case 'twins':
-      return c.twin.tableId
-    case 'nameless':
-      return c.group.tableId
-  }
-}
+export const listOfCase = (c: Case): string => tableOfCase(c)
 
 /** How many cases stand on each list, by its id. */
 export function casesByList(cases: readonly Case[]): Map<string, number> {

@@ -175,8 +175,12 @@ describe('on sale with no price', () => {
     expect(top.kind).toBe('zero')
     expect(top.lines).toHaveLength(9)
     expect(top.priceNames).toEqual(['Cash', 'Trade', 'Warranty'])
-    expect(none.count).toBe(46)
-    expect(none.groups).toHaveLength(18)
+    /* 43, not 46: the three notes on sale ("OBSOLETE PARTS (NB: …)", "NB: No Rego Decals …",
+       "NB: Fuel Filter …") are said once, as notes, never as lines with no price (`notes.ts`) */
+    expect(none.count).toBe(43)
+    expect(none.groups).toHaveLength(16)
+    expect(none.groups[0]!.boat).toBe(true)
+    expect(none.groups.filter((g) => g.boat)).toHaveLength(1)
     /* Haines Signature's nine boats are sold as factory packages, which carry the price */
     expect(none.packages).toEqual([{ tableName: 'Haines Signature', count: 9 }])
     const formosa = none.groups.find((g) => g.tableName === 'Formosa')
@@ -212,10 +216,11 @@ describe('on sale with no price', () => {
     const zero = none.groups
       .filter((g) => g.kind === 'zero')
       .reduce((n, g) => n + g.lines.length, 0)
-    expect([blank, zero]).toEqual([22, 24])
+    /* the note "OBSOLETE PARTS (NB: …)" was blank, the two "NB: …" notes $0 */
+    expect([blank, zero]).toEqual([21, 22])
   })
 
-  it('says the priced line beside each one, never a price proposed for it', () => {
+  it('says the priced line most like each one, never a price proposed for it', () => {
     const none = noPrice(world())
     const lines = none.groups.flatMap((g) => g.lines)
     expect(lines.find((l) => l.name === 'Lone Star - GX-1 HS4mm Combo Winch Kit')?.beside).toEqual({
@@ -223,6 +228,16 @@ describe('on sale with no price', () => {
       name: 'Lone Star - GX-1 6mm Combo Winch Kit',
       price: 2100,
     })
+    /* the GX-4 HS6mm stood beside a wiring loom, the next priced row (the judge's J3c): it now
+       stands beside the GX-3 its name shares most with, and a line like nothing priced has none */
+    expect(
+      lines.find((l) => l.name === 'Lone Star - GX-4 HS6mm Combo Winch Kit')?.beside?.name,
+    ).toBe('Lone Star - GX-3 HS5mm Combo Winch Kit')
+    expect(lines.find((l) => l.name === 'Lewmar Chain Counter - AA150')?.beside).toBeNull()
+    /* a line with an install type says its fitted price stays blank when Sell is typed (J3b) */
+    expect(
+      lines.find((l) => l.name === 'Lone Star - GX-1 HS4mm Combo Winch Kit')?.staysBlank,
+    ).toEqual(['Sell inc Install (if appl.)'])
     /* nothing in TRAILER PARTS - Trailer Plugs has a price, so nothing is said beside them */
     const plugs = none.groups.find((g) => g.category === 'TRAILER PARTS - Trailer Plugs')!
     expect(plugs.lines).toHaveLength(4)
@@ -256,13 +271,11 @@ describe('on sale with no price', () => {
 })
 
 describe('nothing to name it, and two under one name', () => {
-  it('finds 7 lines on sale with no name, the file’s own “none” lines left out', () => {
+  it('finds 1 line on sale with no name, the file’s own “none” lines and its empty lines left out', () => {
+    /* the three Mackay KR lines and the three under SPECIAL NOTES carry no name, no code and no
+       price: they are empty lines, said once as notes on sale (`notes.ts`) */
     const nl = nameless(world())
-    expect(nl.groups.map((g) => [g.tableName, g.items.length])).toEqual([
-      ['Mackay Trailers', 3],
-      ['Parts & Accessories', 3],
-      ['Rigging Kits', 1],
-    ])
+    expect(nl.groups.map((g) => [g.tableName, g.items.length])).toEqual([['Rigging Kits', 1]])
     expect(nl.groups.flatMap((g) => g.items).map((i) => i.rowId)).not.toContain('rig_kits:1')
   })
 
@@ -271,13 +284,19 @@ describe('nothing to name it, and two under one name', () => {
     const line = nameless(w).groups[0]!.items[0]!
     const done = apply(
       sheet(w),
-      nameLineCommand(line.tableId, line.tableName, line.rowId, line.nameField.id, '  KR 2010 ')!,
+      nameLineCommand(
+        line.tableId,
+        line.tableName,
+        line.rowId,
+        line.nameField.id,
+        '  ePropulsion ',
+      )!,
       '2026-10-22T09:00:00.000Z',
     )
     expect(isDone(done)).toBe(true)
     if (!isDone(done)) return
-    expect(done.said).toBe('A line in Mackay Trailers is now called “KR 2010”.')
-    expect(nameless({ entities: done.next.tables, rowsByEntity: done.next.rows }).count).toBe(6)
+    expect(done.said).toBe('A line in Rigging Kits is now called “ePropulsion”.')
+    expect(nameless({ entities: done.next.tables, rowsByEntity: done.next.rows }).count).toBe(0)
   })
 
   it('finds the four twins and renames one so it stands alone', () => {
@@ -306,8 +325,10 @@ describe('nothing to name it, and two under one name', () => {
 describe('the whole review', () => {
   it('counts every finding still standing, and folds the 138 tidy marks', () => {
     const r = review(world())
-    expect(r.open).toBe(9 + 3 + 46 + 4 + 7)
-    expect(r.open).toBe(69)
+    /* boats 9 and parts 34 with no price, 9 trailers, 6 prices below cost, 3 names at two
+       prices, 10 notes, 3 offers breaking the shaft rule, 4 twins, 1 line with no name */
+    expect(r.open).toBe(43 + 9 + 6 + 3 + 10 + 3 + 4 + 1)
+    expect(r.open).toBe(79)
     expect(r.tidyCount).toBe(138)
     expect(r.tidy.reduce((n, t) => n + t.count, 0)).toBe(r.tidyCount)
     expect(r.tidy[0]).toMatchObject({ ruleId: 'text-low-cardinality', count: 108 })

@@ -20,6 +20,8 @@
                      trailer on sale keeps both.
      · `pairOnQuotes` the quotes standing in this browser whose boat it
                      speaks of, and what on them it would refuse.
+     · `pairExceptsIdle` an "except the …" whose model the rest of the
+                     sentence never speaks of, so it spares nothing.
 
    Nothing here is stored and nothing is typed: every name is a row's
    own, said as every screen says it, and every figure is counted on
@@ -31,6 +33,7 @@ import type { ConstraintDef, EntityDef, QuoteDef, RowData } from '@/domain/model
 import { modelKeyOf } from '@/domain/quote/boats'
 import {
   boatSaid,
+  isExcept,
   judgePair,
   pairAbout,
   pairReady,
@@ -235,8 +238,11 @@ export function pairEmpties(
 /** Another of Northside's rules this sentence cannot stand beside. */
 export interface Clash {
   ruleId: string
-  /** a boat both speak of, as a person says it */
+  /** the first boat both speak of where nothing keeps both, as a person says it */
   boat: string
+  /** every model on sale where nothing keeps both, each once, by name (verify 1, data round:
+   *  "only 2 of the 5 Classics are named") */
+  boats: string[]
 }
 
 /**
@@ -263,18 +269,53 @@ export function pairClashes(
   for (const rule of others) {
     const other = pairShapeOf(rule, world)
     if (!other || other.partnerKind !== s.partnerKind || !pairReady(other)) continue
+    const named = new Set<string>()
     for (const boat of boats) {
       if (!judgeBoat(s, boat) || !judgeBoat(other, boat)) continue
+      const said = boatSaid(boat.table, boat.row)
+      if (named.has(said)) continue
       /* a motor neither rule can read keeps both only by saying nothing: it is no answer */
       const both = partners.some((p) => {
         const a = judgePair(s, boat, p)
         const b = judgePair(other, boat, p)
         return a !== 'breaks' && b !== 'breaks' && (a === 'keeps' || b === 'keeps')
       })
-      if (!both) out.push({ ruleId: rule.id, boat: boatSaid(boat.table, boat.row) })
-      break
+      if (!both) named.add(said)
+    }
+    if (named.size > 0) {
+      const all = [...named].sort(byName)
+      out.push({ ruleId: rule.id, boat: all[0]!, boats: all })
     }
   }
+  return out
+}
+
+/**
+ * AN EXCEPTION THAT SPARES NOTHING (verify 1, data round: "except the Surtees 495 Pro Fisher" on
+ * the tiller rule was taken with the figures unchanged and no word). Each "except the …" whose
+ * model the rest of the sentence does not speak of — no boat on sale of that model meets the
+ * other conditions — said by the words the sentence says it in, so the clause can say the
+ * exception changes nothing. A model with no boat on sale at all is idle too.
+ */
+export function pairExceptsIdle(s: PairShape, world: PairWorld): string[] {
+  if (!pairReady(s)) return []
+  const also = s.also ?? []
+  const boats: Thing[] = []
+  for (const table of Object.values(world.entities)) {
+    if (table.kind !== 'boat' || isRetired(table)) continue
+    for (const row of world.rowsByEntity[table.id] ?? [])
+      if (!isDiscontinued(row)) boats.push({ table, row })
+  }
+  const out: string[] = []
+  also.forEach((side, i) => {
+    if (!isExcept(side) || side.value === '') return
+    /* the model it names, with every other condition of the sentence: is any such boat on sale? */
+    const probe: PairShape = {
+      ...s,
+      also: [...also.filter((_, k) => k !== i), { ...side, op: 'eq' }],
+    }
+    if (!boats.some((b) => pairAbout(probe, b))) out.push(side.said)
+  })
   return out
 }
 

@@ -4,7 +4,7 @@
    the store it filed it in.
    ============================================================ */
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
@@ -40,7 +40,12 @@ function draw(open = '', look = '') {
     if ('open' in next) onOpen(next.open ?? '')
   })
   const openTheFile = vi.fn<() => void>()
-  const props = { go, openTheFile, listHref: (t: string, l: string) => `/data/${t}?at=${l}` }
+  const props = {
+    go,
+    openTheFile,
+    listHref: (t: string, l: string) => `/data/${t}?at=${l}`,
+    quoteHref: (id: string) => `/quote/${id}`,
+  }
   const view = render(<Rules at={{ open, look, on: '' }} follow={() => {}} {...props} />)
   const again = (next: string, nextLook = look) =>
     view.rerender(
@@ -178,15 +183,47 @@ describe('writing one', () => {
     ).toBeTruthy()
     /* the offers it takes, by name */
     expect(within(screen.getByTestId('taken')).getByText('Highfield Classic 340')).toBeTruthy()
-    /* one line of marks a maker, every model the picker counts */
-    expect(census.getAllByTestId('field-maker')).toHaveLength(7)
-    expect(census.getByText('29 of 67')).toBeTruthy()
+    /* one line of marks a maker, every model the picker counts — beside the figures, in the
+       clause, since the count was parted into its figures, its marks and what they name */
+    const clause = within(screen.getByTestId('open-rule'))
+    expect(clause.getAllByTestId('field-maker')).toHaveLength(7)
+    expect(clause.getByText('29 of 67')).toBeTruthy()
     expect(screen.getByTestId('rule-cost').textContent).toBe(
       'The Classic 340, 360, 380, 360 LS and 380 LS lose the Yamaha F25SWTC.',
     )
     expect(
-      census.getByText('From the next pick. No draft is standing today, so none waits on it.'),
+      clause.getByText('From the next pick. No draft is standing today, so none waits on it.'),
     ).toBeTruthy()
+  })
+
+  it('names each mark on a key, one stop a maker (verify 1, data round)', async () => {
+    const user = userEvent.setup()
+    draw('new:motor')
+    await writeTiller(user)
+    const highfield = screen.getByRole('listbox', { name: /^Highfield: 67 models/ })
+    const named = screen.getAllByTestId('field-point')
+    act(() => highfield.focus())
+    const point = () => named.find((n) => n.textContent !== '')?.textContent ?? ''
+    /* focus points at the first model it speaks of, and names it */
+    expect(point()).toMatch(/^Highfield .+: the rule speaks of it/)
+    const first = point()
+    await user.keyboard('{ArrowRight}')
+    expect(point()).not.toBe(first)
+    expect(highfield.getAttribute('aria-activedescendant')).toBeTruthy()
+    const active = document.getElementById(highfield.getAttribute('aria-activedescendant')!)
+    expect(active?.getAttribute('aria-label')).toBe(point())
+    await user.keyboard('{End}')
+    expect(point()).toMatch(/^Highfield /)
+  })
+
+  it('lets a look at a clause with nothing to list go from the address', () => {
+    const { go } = draw('', 'F15')
+    expect(go).toHaveBeenCalledWith({ look: '' })
+  })
+
+  it('heads the printed page with whose rules they are and the price list they were counted on', () => {
+    draw()
+    expect(screen.getByTestId('print-head').textContent).toMatch(/^Northside Marine · /)
   })
 
   it('adds a refusing rule as 2.4 in one press, and it stands as Northside’s clause', async () => {

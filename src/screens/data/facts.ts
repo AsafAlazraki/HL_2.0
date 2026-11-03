@@ -38,7 +38,7 @@ import { aislesOf, UNSORTED } from '@/domain/catalogue/aisles'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { readLadder, undecided, type Column } from '@/screens/levels/read'
 import { houseOf, partsOf, readColumns, statedRules, yourRules } from '@/screens/rules/read'
-import { MEANT_PREF, meantOf } from '@/screens/review/read'
+import { useLeftAlone } from '@/screens/review/left'
 import { hasPicture, shelfOf } from '@/screens/catalogue/shelf'
 import { LAST_COPY_PREF } from '@/screens/shelf/acts'
 import { provenanceOfSheet, type FileProvenance } from './file'
@@ -88,7 +88,8 @@ export function useFileFacts(open: boolean): FileFacts {
   const modules = useCatalogue((s) => s.modules)
   const priceLevels = useCatalogue((s) => s.priceLevels)
   const constraintDefs = useCatalogue((s) => s.constraintDefs)
-  const meantPref = usePrefs((s) => s.values[MEANT_PREF])
+  /* what Northside left alone on Review, read where Review reads it (kept with its file) */
+  const meantPref = useLeftAlone()
   const lastCopy = usePrefs((s) => s.values[LAST_COPY_PREF])
 
   const register = useMemo(
@@ -186,7 +187,7 @@ export function useFileFacts(open: boolean): FileFacts {
     let dropped = false
     const timer = window.setTimeout(() => {
       if (dropped) return
-      const read = review({ entities: tables, rowsByEntity: rows }, meantOf(meantPref))
+      const read = review({ entities: tables, rowsByEntity: rows }, meantPref)
       const cases = queueOf(read)
       setReview({
         cases: cases.length,

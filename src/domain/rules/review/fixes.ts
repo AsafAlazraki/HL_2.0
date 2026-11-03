@@ -12,9 +12,16 @@
    at once would be exactly that. A name is the name the dealer typed.
    ============================================================ */
 
-import { batch, renameField, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
+import {
+  addField,
+  batch,
+  renameField,
+  updateCell,
+  type CatalogueCommand,
+} from '@/domain/catalogue/commands'
+import { changeOrg, withKey } from '@/domain/catalogue/orgCommands'
 import { money } from '@/domain/money'
-import type { CellValue } from '@/domain/model'
+import { DISCONTINUED_FIELD, DISCONTINUED_FIELD_ID, type CellValue } from '@/domain/model'
 import type { Reband } from './checks'
 
 /** Why a re-band cannot be pressed, in the dealer's words; '' when it can. */
@@ -147,4 +154,103 @@ export function onePriceCommand(
     chosen.levels.map((l) => updateCell(tableId, o.rowId, l.fieldId, l.value)),
   )
   return batch(writes, { said: `Every “${name}” now sells at ${money(chosen.price)}.` })
+}
+
+/* ============================================================
+   THE FIXES A LINE REALLY NEEDS (the judge of 2026-11-04, missing
+   item 4): a note is taken off sale, and two lines at two prices
+   whose codes differ are named apart.
+   ============================================================ */
+
+/** The price list's own Discontinued column, put on a list that does not carry it yet. */
+const discontinuedColumn =
+  (tableId: string): CatalogueCommand =>
+  (data, now) =>
+    data.tables[tableId]?.fields.some((f) => f.id === DISCONTINUED_FIELD_ID)
+      ? { refused: '' }
+      : addField(tableId, {
+          fieldId: DISCONTINUED_FIELD_ID,
+          name: DISCONTINUED_FIELD.name,
+          type: 'boolean',
+          description: DISCONTINUED_FIELD.description,
+        })(data, now)
+
+/**
+ * TAKE LINES OFF SALE: the price list's own Discontinued column ticked on each, in one step. The
+ * line is kept — an old quote was written against it — and nothing offers it again
+ * (`isDiscontinued`). A list that has no Discontinued column yet is given it in the same step, so
+ * the tick is a cell a person can see and untick on the sheet, never a hidden flag; the Undo takes
+ * the column back off with the ticks. `said` is how the screen says what was taken off.
+ */
+export function offSaleCommand(
+  tableId: string,
+  rowIds: readonly string[],
+  said: string,
+): CatalogueCommand | null {
+  if (rowIds.length === 0) return null
+  return batch(
+    [
+      discontinuedColumn(tableId),
+      ...rowIds.map((rowId) => updateCell(tableId, rowId, DISCONTINUED_FIELD_ID, true)),
+    ],
+    { said },
+  )
+}
+
+/**
+ * NAME TWO LINES APART: each line of one name at two prices given the name the dealer typed for
+ * it, in one step, so a salesperson who finds it by name finds the one he means. Refused (null)
+ * unless every typed name is new and no two are the same.
+ */
+export function nameApartCommand(
+  tableId: string,
+  fieldId: string,
+  was: string,
+  lines: ReadonlyArray<{ rowId: string; name: string }>,
+): CatalogueCommand | null {
+  const named = lines.map((l) => ({ rowId: l.rowId, name: l.name.replace(/\s+/g, ' ').trim() }))
+  if (named.some((l) => l.name === '')) return null
+  const names = new Set(named.map((l) => l.name.toLowerCase()))
+  if (names.size !== named.length) return null
+  return batch(
+    named.map((l) => updateCell(tableId, l.rowId, fieldId, l.name)),
+    { said: `The two called “${was}” are now “${named.map((l) => l.name).join('” and “')}”.` },
+  )
+}
+
+/** Why a pair of typed names cannot name two lines apart, in the dealer's words; '' when it can. */
+export function nameApartRefusal(names: readonly string[], was: string): string {
+  const clean = names.map((n) => n.replace(/\s+/g, ' ').trim())
+  if (clean.some((n) => n === '')) return 'Type a name for each of them first.'
+  if (clean.every((n) => n.toLowerCase() === was.toLowerCase()))
+    return `Both are still called “${was}”. Change at least one.`
+  if (new Set(clean.map((n) => n.toLowerCase())).size !== clean.length)
+    return 'The names are the same, so they would still read as one. Make them differ.'
+  return ''
+}
+
+/* ============================================================
+   LEFT ALONE, KEPT WITH NORTHSIDE'S FILE (the judge of 2026-11-04,
+   missing item 10, reopening 2026-10-22's "kept in prefs on this
+   computer"): leaving a case alone and bringing it back are settings
+   changes on Northside's own profile, through the same door, with the
+   same Undo, and refused by the same sentence for a person set apart.
+   ============================================================ */
+
+/** Leave every key with one stamp ("meant <ISO> <who>"), in one step. */
+export function leaveCommand(keys: readonly string[], stamp: string, said: string) {
+  return changeOrg(said, 'leftAlone', (org) => {
+    const next = { ...org.leftAlone }
+    for (const k of keys) next[k] = stamp
+    return { ...org, leftAlone: next }
+  })
+}
+
+/** Bring every key back into the queue, in one step. */
+export function bringBackCommand(keys: readonly string[], said: string) {
+  return changeOrg(said, 'leftAlone', (org) => {
+    const next = { ...org.leftAlone }
+    for (const k of keys) delete next[k]
+    return withKey(org, 'leftAlone', Object.keys(next).length > 0 ? next : undefined)
+  })
 }

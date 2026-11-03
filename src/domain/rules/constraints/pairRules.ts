@@ -421,6 +421,7 @@ export function modelsNamed(world: PairWorld, kind: 'boat' | PartnerKind): Named
   const hit = byKind.get(kind)
   if (hit) return hit
   const out: Named = new Map()
+  const trims = new Map<string, string>()
   const spec = specByKey(`${kind}::model`)
   if (spec)
     for (const table of tablesOf(world, kind)) {
@@ -430,8 +431,21 @@ export function modelsNamed(world: PairWorld, kind: 'boat' | PartnerKind): Named
         if (typeof v !== 'string' || out.has(v)) continue
         const said = kind === 'boat' ? boatSaid(table, row) : thingSaid(table, row)
         out.set(v, { said, maker })
+        if (kind === 'boat') trims.set(v, spokenBoat(table.id, rowLabel(table, row)).trim)
       }
     }
+  /* TWO MODELS ONE NAME APART are told apart by the trim the file writes after the name —
+     "Formosa GRT 455 (Tiller)", "(Side Console)" — where that is what parts them (verify 1, data
+     round: the finder offered three "Stabicraft 2350 Ultra Centrecab" and two "Surtees 495 Pro
+     Fisher", and a sentence said "except the Formosa GRT 455" of one of two). A model with no
+     trim to tell it by keeps its name. */
+  const seen = new Map<string, number>()
+  for (const { said } of out.values()) seen.set(said, (seen.get(said) ?? 0) + 1)
+  for (const [v, named] of out) {
+    const trim = trims.get(v) ?? ''
+    if ((seen.get(named.said) ?? 0) > 1 && trim !== '')
+      out.set(v, { ...named, said: `${named.said} (${trim})` })
+  }
   byKind.set(kind, out)
   return out
 }

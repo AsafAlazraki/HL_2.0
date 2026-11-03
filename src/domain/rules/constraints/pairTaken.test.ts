@@ -28,6 +28,7 @@ import {
   pairBoats,
   pairClashes,
   pairEmpties,
+  pairExceptsIdle,
   pairOnBoat,
   pairOnQuotes,
   pairTaken,
@@ -75,7 +76,7 @@ describe('what the tiller rule takes, by name', () => {
 
 describe('said before it is added', () => {
   const ultra: PairShape = {
-    boat: side('boat::model', 'eq', modelOf('Stabicraft 2350 Ultra Centrecab')),
+    boat: side('boat::model', 'eq', modelOf('Stabicraft 2350 Ultra Centrecab (Adventure)')),
     partnerKind: 'trailer',
     partner: side('trailer::series', 'eq', 'ALLOY CENTRE-LINE SERIES'),
   }
@@ -114,11 +115,27 @@ describe('said before it is added', () => {
       'other',
     )
     expect(pairShapeOf(remoteOnly, world)).not.toBeNull()
-    expect(pairClashes(tiller, world, [remoteOnly]).map((c) => c.ruleId)).toEqual(['other'])
+    const clashes = pairClashes(tiller, world, [remoteOnly])
+    expect(clashes.map((c) => c.ruleId)).toEqual(['other'])
+    /* every boat the two cannot share is named once, never only the first: measured 59 names on
+       the pack (2026-11-04) — the 61 tiller models on sale, two pairs of which a person says by
+       one name */
+    const named = clashes[0]!.boats
+    expect(named[0]).toBe(clashes[0]!.boat)
+    expect(new Set(named).size).toBe(named.length)
+    expect(named.length).toBe(59)
+    expect(named.length).toBeLessThanOrEqual(pairReach(tiller, world).about)
   })
 })
 
 describe('"and" and "except", and a model said as a person says it', () => {
+  it('never offers two models by one name: a trim tells them apart', () => {
+    const said = models.values.map((v) => v.said)
+    expect(new Set(said).size).toBe(said.length)
+    expect(said).toContain('Formosa GRT 455 (Tiller)')
+    expect(said).toContain('Formosa GRT 455 (Side Console)')
+  })
+
   it('an exception spares the model it names, and only it', () => {
     const except: PairShape = {
       ...tiller,
@@ -128,6 +145,20 @@ describe('"and" and "except", and a model said as a person says it', () => {
     expect(pairTaken(except, world)[0]!.models.map((x) => x.said)).not.toContain(
       'Highfield Classic 340',
     )
+  })
+
+  it('an exception of a model the sentence never speaks of is said to spare nothing', () => {
+    const idle: PairShape = {
+      ...tiller,
+      also: [side('boat::model', 'neq', modelOf('Surtees 495 Pro Fisher'))],
+    }
+    expect(pairReach(idle, world).taken).toBe(pairReach(tiller, world).taken)
+    expect(pairExceptsIdle(idle, world)).toEqual([idle.also![0]!.said])
+    const spares: PairShape = {
+      ...tiller,
+      also: [side('boat::model', 'neq', modelOf('Highfield Classic 340'))],
+    }
+    expect(pairExceptsIdle(spares, world)).toEqual([])
   })
 
   it('files and reads back with its "and", the sentence the dealer wrote', () => {

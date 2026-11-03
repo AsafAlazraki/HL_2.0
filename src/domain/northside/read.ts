@@ -147,6 +147,9 @@ export function readOrg(raw: unknown, stamp = ''): OrgProfile | undefined {
   if (s) out.suppliers = s
   const a = words(raw.aisles, 400, 40)
   if (a) out.aisles = a
+  /* what Northside left alone on Review: a finding's key and the stamp of the press (2026-11-04) */
+  const left = words(raw.leftAlone, 400, 200)
+  if (left) out.leftAlone = left
   return out
 }
 

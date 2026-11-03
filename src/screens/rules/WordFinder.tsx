@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Combobox } from '@base-ui/react/combobox'
 import { CheckIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
 import { Icon } from '@/ui'
@@ -19,7 +19,17 @@ import type { PairValue } from '@/domain/rules/constraints/pairRules'
    Base UI's Combobox carries the listbox, the arrows, Home/End,
    Escape, the typed filter and focus back to the word. Only the
    drawing is this screen's.
+
+   THE MAKERS IN THE ORDER THE COUNT BESIDE IT READS THEM, A to Z
+   (verify 1, data round: the finder opened on Surtees while the count
+   read Formosa to Surtees). ON A SHORT WINDOW (a phone on its side,
+   390px tall) the list may stand over its own word rather than flip
+   into the 180px left either side of it, so it shows more than two
+   models (`data-short`, read when it opens).
    ============================================================ */
+
+/** A window too short to hold the list on either side of its word. */
+const SHORT = '(max-height: 520px)'
 
 interface Item {
   value: string
@@ -55,7 +65,9 @@ export function WordFinder({
       group.items.push({ value: v.value, label: v.said })
       at.set(maker, group)
     }
-    const out = [...at.values()]
+    const out = [...at.values()].toSorted((a, b) =>
+      a.maker.localeCompare(b.maker, 'en-AU', { numeric: true }),
+    )
     for (const g of out)
       g.items.sort((a, b) => a.label.localeCompare(b.label, 'en-AU', { numeric: true }))
     return out
@@ -65,11 +77,17 @@ export function WordFinder({
     [groups, value],
   )
 
+  const [short, setShort] = useState(false)
+
   return (
     <Combobox.Root<Item>
       items={groups}
       value={chosen}
       onValueChange={(next) => onValue(next?.value ?? '')}
+      onOpenChange={(open) => {
+        if (open && typeof window.matchMedia === 'function')
+          setShort(window.matchMedia(SHORT).matches)
+      }}
       itemToStringLabel={(item) => item.label}
       isItemEqualToValue={(a, b) => a.value === b.value}
     >
@@ -77,8 +95,18 @@ export function WordFinder({
         <Combobox.Value placeholder={placeholder} />
       </Combobox.Trigger>
       <Combobox.Portal>
-        <Combobox.Positioner className="ui-positioner" sideOffset={6} align="start">
-          <Combobox.Popup className="hr-finder" data-ground="plate" aria-label={ariaLabel}>
+        <Combobox.Positioner
+          className="ui-positioner"
+          sideOffset={6}
+          align="start"
+          {...(short ? { collisionAvoidance: { side: 'shift', align: 'shift' } as const } : {})}
+        >
+          <Combobox.Popup
+            className="hr-finder"
+            data-ground="plate"
+            data-short={short ? '' : undefined}
+            aria-label={ariaLabel}
+          >
             <div className="hr-finder__field">
               <Icon glyph={MagnifyingGlassIcon} />
               <Combobox.Input

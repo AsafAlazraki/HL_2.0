@@ -172,6 +172,25 @@ export interface Exception {
   list: string
   listName: string
   line: string
+  /**
+   * THE TWO LINES THAT WRITE WHAT IS IN CONFLICT (verify 1, data round, J2: "the door lands on
+   * the pairing line, which shows neither the shaft nor the transom in conflict"). The pairing
+   * line names the boat and the motor; the transom is written on the boat's own line and the
+   * shaft on the motor's, so a fix is made on one of these two — each named by what it writes.
+   */
+  sides: ExceptionSide[]
+}
+
+/** One line of the price list that writes one of the two values a clause compares. */
+export interface ExceptionSide {
+  /** whose line it is, as the dealer says it: "boat", "motor", "trailer", "kit" */
+  noun: string
+  /** what that line writes that the clause reads: "transom", "shaft"; '' where the line itself
+   *  is the thing (a kit, whose name or range is the reading) */
+  what: string
+  list: string
+  listName: string
+  line: string
 }
 
 export interface HouseMeasure {
@@ -190,7 +209,21 @@ export interface HouseMeasure {
 
 const byName = (a: string, b: string): number => a.localeCompare(b, 'en-AU', { numeric: true })
 
-function exceptionOf(offer: Offer, what: string, why: string): Exception {
+/** One of the two lines a clause reads, named by whose it is and what it writes. */
+const sideOf = (t: Thing, noun: string, what: string): ExceptionSide => ({
+  noun,
+  what,
+  list: t.table.id,
+  listName: t.table.name.trim(),
+  line: t.row.id,
+})
+
+function exceptionOf(
+  offer: Offer,
+  what: string,
+  why: string,
+  sides: readonly ExceptionSide[],
+): Exception {
   return {
     boat: boatSaid(offer.boat.table, offer.boat.row),
     what,
@@ -198,6 +231,7 @@ function exceptionOf(offer: Offer, what: string, why: string): Exception {
     list: offer.join.table.id,
     listName: offer.join.table.name.trim(),
     line: offer.join.row.id,
+    sides: [...sides],
   }
 }
 
@@ -234,7 +268,11 @@ function seriesForBrand(world: PairWorld): HouseMeasure {
     tested += 1
     const own = marqueOfSubject(offer.boat.table, offer.boat.row, marques)
     if (own && own.name === named.name) continue
-    out.push(exceptionOf(offer, said(offer.partner), `its series is built for ${named.name}`))
+    out.push(
+      exceptionOf(offer, said(offer.partner), `its series is built for ${named.name}`, [
+        sideOf(offer.partner, 'trailer', 'series'),
+      ]),
+    )
   }
   return measured(
     'F8',
@@ -262,6 +300,7 @@ function underTheBoat(world: PairWorld): HouseMeasure {
         offer,
         said(offer.partner),
         `rated ${atm.toLocaleString('en-AU')} kg for a ${load.toLocaleString('en-AU')} kg boat`,
+        [sideOf(offer.boat, 'boat', 'weight'), sideOf(offer.partner, 'trailer', 'ATM')],
       ),
     )
   }
@@ -300,7 +339,10 @@ function withinMaxHp(world: PairWorld): HouseMeasure {
     tested += 1
     if (hp <= max) continue
     out.push(
-      exceptionOf(offer, said(offer.partner), `${hpSaid(hp)} on a boat rated to ${hpSaid(max)}`),
+      exceptionOf(offer, said(offer.partner), `${hpSaid(hp)} on a boat rated to ${hpSaid(max)}`, [
+        sideOf(offer.boat, 'boat', 'horsepower rating'),
+        sideOf(offer.partner, 'motor', 'horsepower'),
+      ]),
     )
   }
   return measured('A1', 'standard and first-choice motor offers on today’s boats', tested, out)
@@ -322,7 +364,10 @@ function underMinHp(world: PairWorld): HouseMeasure {
     tested += 1
     if (hp >= min) continue
     out.push(
-      exceptionOf(offer, said(offer.partner), `${hpSaid(hp)} on a boat rated from ${hpSaid(min)}`),
+      exceptionOf(offer, said(offer.partner), `${hpSaid(hp)} on a boat rated from ${hpSaid(min)}`, [
+        sideOf(offer.boat, 'boat', 'lowest rating'),
+        sideOf(offer.partner, 'motor', 'horsepower'),
+      ]),
     )
   }
   return measured(
@@ -350,6 +395,7 @@ function shaftForTransom(world: PairWorld): HouseMeasure {
         offer,
         said(offer.partner),
         `${an(valueSaid(shaft, motor))} shaft on ${an(valueSaid(shaft, boat))} transom`,
+        [sideOf(offer.boat, 'boat', 'transom'), sideOf(offer.partner, 'motor', 'shaft')],
       ),
     )
   }
@@ -369,7 +415,12 @@ function remoteNoTiller(world: PairWorld): HouseMeasure {
     if (typeof controls !== 'string') continue
     tested += 1
     if (!same(controls, TILLER)) continue
-    out.push(exceptionOf(offer, said(offer.partner), 'a tiller motor on a remote boat'))
+    out.push(
+      exceptionOf(offer, said(offer.partner), 'a tiller motor on a remote boat', [
+        sideOf(offer.boat, 'boat', 'steering'),
+        sideOf(offer.partner, 'motor', 'controls'),
+      ]),
+    )
   }
   return measured('F7', 'motor offers on today’s remote boats', tested, out)
 }
@@ -418,7 +469,9 @@ function kitForBrand(world: PairWorld): HouseMeasure {
     tested += 1
     const own = marqueOfSubject(offer.boat.table, offer.boat.row, marques)
     if (own && own.name === named.name) continue
-    out.push(exceptionOf(offer, said(kit), `a kit from the ${named.name} range`))
+    out.push(
+      exceptionOf(offer, said(kit), `a kit from the ${named.name} range`, [sideOf(kit, 'kit', '')]),
+    )
   }
   return measured(
     'F15',
@@ -443,7 +496,12 @@ function mechanicalNoHelmMaster(world: PairWorld): HouseMeasure {
     tested += 1
     const words = `${bannerOf(kit.table, kit.row)} ${said(kit)}`
     if (!HELM_MASTER.test(words)) continue
-    out.push(exceptionOf(offer, said(kit), `a Helm Master kit on a ${controls} motor`))
+    out.push(
+      exceptionOf(offer, said(kit), `a Helm Master kit on a ${controls} motor`, [
+        sideOf(offer.partner, 'motor', 'controls'),
+        sideOf(kit, 'kit', ''),
+      ]),
+    )
   }
   return measured('F16', 'rigging kit offers on a mechanical-control motor', tested, out)
 }
@@ -462,7 +520,12 @@ function tillerOneBattery(world: PairWorld): HouseMeasure {
     if (typeof steering !== 'string') continue
     tested += 1
     if (!same(steering, 'Tiller')) continue
-    out.push(exceptionOf(offer, what, 'two batteries’ kit on a tiller boat'))
+    out.push(
+      exceptionOf(offer, what, 'two batteries’ kit on a tiller boat', [
+        sideOf(offer.boat, 'boat', 'steering'),
+        sideOf(offer.partner, 'kit', ''),
+      ]),
+    )
   }
   return measured('F12', 'two-battery pre-delivery kit offers on today’s boats', tested, out)
 }
@@ -560,6 +623,9 @@ export interface ExceptionGroup {
   what: string
   why: string
   lines: { list: string; listName: string; line: string }[]
+  /** the lines that write what is in conflict, off the group's first offer — the same first
+   *  offer whose pairing line is "Its first line" */
+  sides: ExceptionSide[]
 }
 
 /** The exceptions said once each, in the measure's own order, every line kept. */
@@ -570,7 +636,7 @@ export function groupExceptions(exceptions: readonly Exception[]): ExceptionGrou
     const key = `${e.boat}|${e.what}|${e.why}`
     let group = at.get(key)
     if (!group) {
-      group = { boat: e.boat, what: e.what, why: e.why, lines: [] }
+      group = { boat: e.boat, what: e.what, why: e.why, lines: [], sides: e.sides }
       at.set(key, group)
       out.push(group)
     }

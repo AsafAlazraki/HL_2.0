@@ -7,7 +7,18 @@
    ============================================================ */
 import { describe, expect, it } from 'vitest'
 import { TRAILER_MASS_BANDS } from '@/domain/rules/constraints/registration'
-import { heading, labelRead, nameSaid, trailerSaid, trailerSeries, titleOf } from './read'
+import {
+  capsSaid,
+  columnLetter,
+  heading,
+  labelRead,
+  nameSaid,
+  priceSaid,
+  trailerModel,
+  trailerSaid,
+  trailerSeries,
+  titleOf,
+} from './read'
 
 const ALP = {
   label: 'DUNBIER Alloy Loader Pro Series - ALP 5.3M-13B (1,450kgs) Fibreglass Boat',
@@ -18,6 +29,7 @@ const ALP = {
 describe('a trailer, said', () => {
   it('names the model, and the series beside the maker’s mark, in a person’s casing', () => {
     expect(trailerSaid(ALP).replace(/\s*\(.*$/, '')).toBe('ALP 5.3M-13B')
+    expect(trailerModel(ALP)).toBe('ALP 5.3M-13B')
     expect(trailerSeries(ALP)).toBe('Alloy Loader Pro Series')
     /* a name that does not lead with a series has none to say */
     expect(
@@ -63,6 +75,7 @@ describe('a line with no price, alone in its case', () => {
         tableName: 'Parts & Accessories',
         priceName: 'Sell',
         category: 'BATTERIES - Highfield E163',
+        boat: false,
         kind: 'blank',
         priceFieldId: 'f',
         priceNames: ['Sell'],
@@ -72,6 +85,7 @@ describe('a line with no price, alone in its case', () => {
             rowId: 'r',
             name: 'Battery - E163 t/s E Powered Highfield',
             beside: null,
+            staysBlank: [],
           },
         ],
       },
@@ -80,5 +94,24 @@ describe('a line with no price, alone in its case', () => {
       `Give ${nameSaid('Battery - E163 t/s E Powered Highfield', 'Parts & Accessories')} a price.`,
     )
     expect(title).not.toContain(' - ')
+  })
+})
+
+describe('the file’s capitals, said in a person’s case (the judge’s B5)', () => {
+  it('lowers a run with a long word in it, and keeps short codes and model numbers', () => {
+    expect(capsSaid('Outboard Vented Cover · YAMAHA 4 CYL 2.8L F150D F175A F200F')).toBe(
+      'Outboard Vented Cover · Yamaha 4 CYL 2.8L F150D F175A F200F',
+    )
+    expect(capsSaid('MINN KOTA · RT Terrova')).toBe('Minn Kota · RT Terrova')
+    expect(capsSaid('Hose, Clear PVC · 25mm')).toBe('Hose, Clear PVC · 25mm')
+    expect(capsSaid('NB: No Rego Decals · NOT TO BE SUPPLIED')).toBe(
+      'NB: No Rego Decals · Not To Be Supplied',
+    )
+  })
+
+  it('says a price without its “(if appl.)”, and a column by its letter', () => {
+    expect(priceSaid('Sell inc Install (if appl.)')).toBe('Sell inc Install')
+    expect(columnLetter('Rigging Kits!AE · labelled here by header row 1.')).toBe('AE')
+    expect(columnLetter(undefined)).toBe('')
   })
 })

@@ -625,10 +625,11 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
-    /* REVIEW (Milestone 3, rebuilt 2026-10-28 as board E, "The case queue"): what is wrong in
-       Northside's own price list, one case at a time — a rail counting the 69 lines still wrong,
-       one stage with the first case (a trailer registered as the wrong size, its cells as they
-       read and after the change, one amber press), and the next two cases beneath it.
+    /* REVIEW (Milestone 3, rebuilt 2026-10-28 as board E, "The case queue"; deepened in the data
+       round, 2026-11-04): what is wrong in Northside's own price list, one case at a time — a
+       rail counting the 39 cases still to settle, the index of every case beside the stage at a
+       desk, one stage with the first case (the nine Formosa boats on sale at $0, each with its
+       field and its door, one amber press), and the next two cases beneath it.
        FOUNDATION, not cockpit: one case is read in one look, never worked down eighteen rows,
        so it owes contrast, cut, overlap and focus at six sizes and no row count. THROUGH THE
        DOOR, because it counts the price list this browser keeps; `data-read` is set only once

@@ -59,6 +59,9 @@ import {
   type MassBand,
 } from '@/domain/rules/constraints/registration'
 import { lintProject, type LintFinding } from '@/domain/rules/lint'
+import { isEmptyLine, isNoteName, notesOnSale } from './notes'
+import { belowCost } from './belowCost'
+import { houseBreaks } from './houseBreaks'
 
 export interface ReviewWorld {
   entities: Readonly<Record<string, EntityDef>>
@@ -402,9 +405,15 @@ export interface Unpriced {
   key: string
   rowId: string
   name: string
-  /** the nearest line in the same list and group that has a price, as the dealer would see it
-   *  beside this one in the price list; null when none does */
+  /** the line most like it in the same list and group that has a price — the longest run of
+   *  name words they share, the nearer on a tie — so the dealer types a price knowing what its
+   *  like sells at; null when no priced line shares more than its maker's word */
   beside: { rowId: string; name: string; price: number } | null
+  /** THE PRICE LIST'S OTHER PRICES THAT STAY BLANK when the first is typed, by the list's own
+   *  name, where the line needs them: a part with an install type whose fitted price is blank
+   *  ('Sell inc Install (if appl.)'), a boat whose Trade and Warranty are $0. The judge of
+   *  2026-11-04 (J3b): "stays as it is" meant it stays blank, and the screen must say so. */
+  staysBlank: string[]
 }
 
 export interface NoPriceGroup {
@@ -414,6 +423,8 @@ export interface NoPriceGroup {
   priceName: string
   /** the list's own grouping word for these lines — its Category or Series — or null */
   category: string | null
+  /** a list of boats: a boat on sale with no price is a $0 quote, and leads the queue */
+  boat: boolean
   kind: 'zero' | 'blank'
   /** the price a typed figure is written at: the list's first, the one it is sold at */
   priceFieldId: string
@@ -499,6 +510,8 @@ export function noPrice(world: ReviewWorld, meant: Meant = {}): NoPriceReview {
       const kind = values.some((v) => v === 0) ? 'zero' : 'blank'
       /* a line with no name is said once, under "nothing to name it" */
       if (nameCol && blank(readCell(row, nameCol.id))) continue
+      /* a NOTE is not a product with no price: it is said once, as a note on sale (`notes.ts`) */
+      if (isNoteName(rowLabel(table, row))) continue
       if (packaged.has(row.id)) {
         inPackages += 1
         continue
@@ -516,16 +529,22 @@ export function noPrice(world: ReviewWorld, meant: Meant = {}): NoPriceReview {
         tableName: table.name,
         priceName: level.label,
         category,
+        boat: table.kind === 'boat',
         kind,
         priceFieldId: level.fieldId,
         priceNames: levels.map((l) => l.label),
         lines: [],
       }
+      const installs = installOf(table, row)
       g.lines.push({
         key,
         rowId: row.id,
         name: rowLabel(table, row).replace(/\s+/g, ' ').trim(),
         beside: besideOf(table, all, at, level.fieldId, category, groupOf),
+        staysBlank: levels
+          .slice(1)
+          .filter((l) => (l.contains?.includesInstall === true ? installs : true))
+          .map((l) => l.label),
       })
       byGroup.set(gk, g)
     }
@@ -562,11 +581,39 @@ export function noPrice(world: ReviewWorld, meant: Meant = {}): NoPriceReview {
   }
 }
 
+/** Does this line need a fitted price: an install type written on it, or hours to fit it? */
+function installOf(table: EntityDef, row: RowData): boolean {
+  for (const f of table.fields) {
+    const n = f.name.trim().toLowerCase()
+    const v = readCell(row, f.id)
+    if (n === 'install type' && typeof v === 'string' && v.trim() !== '') return true
+    if (/\b(ttf|hours)\b/.test(n) && typeof v === 'number' && v > 0) return true
+  }
+  return false
+}
+
+/** A name's words, for comparing two names: lower case, split at spaces and dashes. */
+const wordsOf = (name: string): string[] =>
+  name
+    .toLowerCase()
+    .split(/[\s\-–·]+/)
+    .filter((w) => w !== '')
+
+const sharedRun = (a: readonly string[], b: readonly string[]): number => {
+  let n = 0
+  while (n < a.length && n < b.length && a[n] === b[n]) n += 1
+  return n
+}
+
 /**
- * THE PRICED LINE BESIDE AN UNPRICED ONE: the nearest line on sale in the same list and the same
- * group of it (its Category or Series) with a price above $0, the one before it on a tie. It is
- * what the dealer would see next to it in the price list, said so he can type a price knowing
- * what its neighbour sells at — never a price proposed for it.
+ * THE PRICED LINE MOST LIKE AN UNPRICED ONE (the judge of 2026-11-04, J3c: "Beside it" was the
+ * next priced row, so the Lone Star GX-4 HS6mm stood beside a wiring loom). Among the lines on
+ * sale in the same list and the same group of it (its Category or Series) with a price above $0,
+ * the one whose name shares the longest run of words with this one from its start — the GX-4
+ * with the GX-4 — the nearer in the file on a tie. A line that shares no more than one word (its
+ * maker's) is not like it, and then there is none: said so, never a neighbour passed off as one.
+ * It is what the dealer would compare it with, said so he can type a price knowing what its like
+ * sells at — never a price proposed for it.
  */
 function besideOf(
   table: EntityDef,
@@ -576,16 +623,24 @@ function besideOf(
   category: string | null,
   groupOf: (row: RowData) => string | null,
 ): Unpriced['beside'] {
+  const mine = wordsOf(rowLabel(table, rows[at]!))
+  let best: { row: RowData; price: number; run: number } | null = null
   for (let d = 1; at - d >= 0 || at + d < rows.length; d += 1) {
     for (const i of [at - d, at + d]) {
       const row = rows[i]
       if (!row || !onSale(table, row) || groupOf(row) !== category) continue
       const price = num(readCell(row, fieldId))
       if (price === null || price <= 0) continue
-      return { rowId: row.id, name: rowLabel(table, row).replace(/\s+/g, ' ').trim(), price }
+      const run = sharedRun(mine, wordsOf(rowLabel(table, row)))
+      if (!best || run > best.run) best = { row, price, run }
     }
   }
-  return null
+  if (!best || best.run < 2) return null
+  return {
+    rowId: best.row.id,
+    name: rowLabel(table, best.row).replace(/\s+/g, ' ').trim(),
+    price: best.price,
+  }
 }
 
 /**
@@ -723,6 +778,8 @@ export function nameless(world: ReviewWorld, meant: Meant = {}) {
     for (const row of world.rowsByEntity[table.id] ?? []) {
       if (!onSale(table, row) || isSentinel(table, row)) continue
       if (!blank(readCell(row, nameCol.id))) continue
+      /* a line with nothing on it at all is a note, not a product to name (`notes.ts`) */
+      if (isEmptyLine(table, row)) continue
       const key = `nameless:${table.id}:${row.id}`
       if (meant[key]) {
         left += 1
@@ -812,6 +869,12 @@ export interface Review {
   noPrice: NoPriceReview
   twins: ReturnType<typeof twins>
   nameless: ReturnType<typeof nameless>
+  /** the price list's notes on sale as if they were products (`notes.ts`) */
+  notes: ReturnType<typeof notesOnSale>
+  /** lines sold below what they cost Northside (`belowCost.ts`) */
+  belowCost: ReturnType<typeof belowCost>
+  /** offers that break a rule the price list asserts (`houseBreaks.ts`) */
+  house: ReturnType<typeof houseBreaks>
   tidy: TidyLine[]
   /** Σ count across the tidy lines */
   tidyCount: number
@@ -831,6 +894,9 @@ export function review(world: ReviewWorld, meant: Meant = {}): Review {
   const none = noPrice(world, meant)
   const tw = twins(world, findings, meant)
   const nl = nameless(world, meant)
+  const notes = notesOnSale(world, meant)
+  const cost = belowCost(world, meant)
+  const house = houseBreaks(world, meant)
   const tidied = tidy(world, findings)
   return {
     band,
@@ -838,10 +904,29 @@ export function review(world: ReviewWorld, meant: Meant = {}): Review {
     noPrice: none,
     twins: tw,
     nameless: nl,
+    notes,
+    belowCost: cost,
+    house,
     tidy: tidied,
     tidyCount: tidied.reduce((n, t) => n + t.count, 0),
-    open: band.lines.length + two.count + none.count + tw.count + nl.count,
-    meant: band.meant + two.meant + none.meant + tw.meant + nl.meant,
+    open:
+      band.lines.length +
+      two.count +
+      none.count +
+      tw.count +
+      nl.count +
+      notes.count +
+      cost.count +
+      house.count,
+    meant:
+      band.meant +
+      two.meant +
+      none.meant +
+      tw.meant +
+      nl.meant +
+      notes.meant +
+      cost.meant +
+      house.meant,
   }
 }
 

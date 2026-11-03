@@ -108,6 +108,11 @@ export interface OrgProfile {
    *  `heading:<the heading>` or `line:<its id>` → an aisle's id. Absent places nothing, and the
    *  line stands in "Not sorted yet" (src/domain/chandlery/placing.ts). */
   aisles?: Record<string, string>
+  /** WHAT NORTHSIDE LEFT ALONE ON REVIEW (the data round, 2026-11-04): a finding's key → the
+   *  stamp of the press that left it, "meant <ISO> <who>" or "wrong <ISO> <who>"
+   *  (src/domain/rules/review/standing.ts). Kept with Northside's file, so every desk sees the
+   *  same queue. Absent leaves nothing alone. */
+  leftAlone?: Record<string, string>
 }
 
 /** One of Northside's people, as a quote prints them under "Prepared by". */

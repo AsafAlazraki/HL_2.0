@@ -320,6 +320,12 @@
   scroll-margin-block-start: calc(var(--shell-inset) + --spacing(2));
   scroll-margin-block-end: calc(var(--shell-foot) + --spacing(4));
 }
+/* A CLAUSE JUST CHANGED ALSO KEEPS CLEAR OF THE TOAST that answers the change, which stands at the
+   foot over the tab bar (verify 1, data round, 390: the Undo stood where the clause's acts were):
+   the toast's room is the press it carries, a fingertip and its air */
+.hr-clause {
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(24));
+}
 
 .hr-clause {
   display: grid;
@@ -372,11 +378,20 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: --spacing(1) --spacing(3);
+  /* the quiet press hangs its own padding outside the text's edge, so when it wraps under the
+     words at 390 its glyph stands on their line, not 8px in (verify 1, data round) */
+  gap: --spacing(1) --spacing(1);
+  margin-inline-start: 0;
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+}
+.hr-clause__rewrite {
+  margin-inline-start: calc(-1 * --spacing(2));
+}
+.hr-clause__by > :first-child {
+  margin-inline-end: --spacing(2);
 }
 .hr-clause__where {
   margin: 0;
@@ -472,15 +487,17 @@
 }
 .hr-ex__item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0 --spacing(3);
+  gap: --spacing(0.5);
   padding-block: --spacing(1.5);
   border-block-end: var(--hair) solid var(--color-rule);
 }
-.hr-ex__item > :last-child {
-  grid-column: 2;
-  grid-row: 1 / span 2;
+/* WHERE IT IS FIXED: the lines that write the two values, and the offer, as three quiet doors
+   hung from the words' edge */
+.hr-ex__doors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 --spacing(1);
+  margin: --spacing(0.5) 0 0 calc(-1 * --spacing(2));
 }
 .hr-ex__what {
   margin: 0;
@@ -583,15 +600,6 @@
   font-weight: 600;
   color: var(--color-ink);
 }
-/* in the margin's narrow box an exception's door goes under its words */
-.hr-noticed .hr-ex__item {
-  grid-template-columns: minmax(0, 1fr);
-}
-.hr-noticed .hr-ex__item > :last-child {
-  grid-column: 1;
-  grid-row: auto;
-  justify-self: start;
-}
 
 /* ---- where a new rule is written ---- */
 
@@ -611,6 +619,8 @@
 
 .hr-open {
   --open-edge: var(--owner-yours);
+  /* what a model loses is ringed in the ink of what it loses: a motor carmine, a trailer ochre */
+  --lose-ink: var(--accent-carmine);
 
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -621,6 +631,9 @@
 .hr-open[data-owner='noticed'] {
   --open-edge: var(--owner-noticed);
 }
+.hr-open[data-kind='trailer'] {
+  --lose-ink: var(--accent-ochre);
+}
 /* THE SENTENCE AND ITS ACT ARE ONE SIDE (`.hr-open__side`), the count after it. NARROW, the act
    follows its because and the count follows the act, in the order the keyboard walks them too */
 .hr-open__side {
@@ -628,29 +641,42 @@
   gap: --spacing(4);
   min-inline-size: 0;
 }
-/* WIDE, the edge runs down the sentence and its act only: the count beside it is the margin's,
-   and an edge drawn on down the margin's height read as a bar holding nothing. THE SIDE STAYS
-   CLEAR OF THE PILL while the count beside it, often taller than the window, is read down: it
-   sticks under the shell's own clearance (built-critique-m3-2.md, major 6, the because field
-   under the pill at 1440 and 1920). It is a few lines and one act, far shorter than any window
-   the wide sheet is drawn in, so it never hides its own foot. */
+/* WIDE, TWO ROWS (verify 1, data round, 1920: the sentence's side stuck beside a count that ran
+   past the fold, and about 700 by 650px stood blank under the act). The first row is the
+   sentence and its act, with the figures beside it in the margin — they change as the words are
+   chosen, so they stand where the eye is. The second row is what they count: the marks across
+   the sentence's own width, one maker a line, and beside them in the margin the offers taken by
+   name, one boat tried and the quotes. Nothing sticks, so nothing slides over anything; the act
+   is in the first row, never under the fold of a count. The edge runs down the first row only:
+   an edge drawn down the marks read as a bar holding nothing. */
 @media (min-width: 1200px) {
   .hr-open {
     grid-template-columns: subgrid;
     column-gap: inherit;
+    row-gap: --spacing(6);
     padding: 0;
     box-shadow: none;
   }
   .hr-open__side {
     grid-column: 1;
+    grid-row: 1;
     align-self: start;
-    position: sticky;
-    inset-block-start: calc(var(--shell-inset) + --spacing(2));
     padding: --spacing(4) 0 --spacing(4) --spacing(4);
     box-shadow: inset var(--edge-w) 0 0 0 var(--open-edge);
   }
   .hr-open > .hr-count {
     grid-column: 2;
+    grid-row: 1;
+  }
+  .hr-open > .hr-field {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    padding-inline-start: --spacing(4);
+  }
+  .hr-open > .hr-reach {
+    grid-column: 2;
+    grid-row: 2;
   }
 }
 .hr-open__writing {
@@ -720,6 +746,11 @@
   margin-block-start: --spacing(1);
   min-inline-size: 0;
 }
+/* THE BECAUSE BROUGHT INTO SIGHT BRINGS ITS ACT TOO: the act and its line stand under it, so its
+   stop at the foot leaves their room (the side no longer sticks on a wide sheet) */
+.hr-open .hr-because input {
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(28));
+}
 
 /* SAID BEFORE IT IS ADDED: a boat left with nothing, a rule it fights, a rule that says it */
 .hr-heads {
@@ -771,17 +802,12 @@
 /* ---- counted now, before it is added ---- */
 
 .hr-count {
-  --lose-ink: var(--accent-carmine);
-
   display: grid;
   align-content: start;
   gap: --spacing(4);
   min-inline-size: 0;
   padding-block-start: --spacing(3);
   border-block-start: var(--hair) solid var(--color-rule);
-}
-.hr-count[data-kind='trailer'] {
-  --lose-ink: var(--accent-ochre);
 }
 @media (min-width: 1200px) {
   .hr-count {
@@ -903,11 +929,33 @@
   font-variant-numeric: tabular-nums lining-nums;
   color: var(--color-ink-2);
 }
+/* ONE STOP PER MAKER: the arrows walk its marks, and the line under it names the one pointed at */
 .hr-field__marks {
   display: flex;
   flex-wrap: wrap;
   gap: --spacing(1);
+  padding: --spacing(1);
+  border-radius: var(--radius-key);
+  outline: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.hr-field__marks:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+.hr-mark[data-pointed] {
+  outline: var(--mark) solid var(--color-ink);
+  outline-offset: var(--mark);
+}
+.hr-field__point:empty {
+  display: none;
+}
+.hr-field__point {
   padding-inline: --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
 }
 .hr-mark {
   box-sizing: border-box;
@@ -960,6 +1008,12 @@
 
 /* WHAT IT TAKES, BY NAME; ONE BOAT TRIED; THE QUOTES IT SPEAKS OF — three short lists under the
    marks, each with its head in the count's own small capitals */
+.hr-reach {
+  display: grid;
+  align-content: start;
+  gap: --spacing(4);
+  min-inline-size: 0;
+}
 .hr-taken,
 .hr-boat,
 .hr-quotes {
@@ -996,6 +1050,27 @@
 .hr-taken__what {
   color: var(--color-ink-2);
   overflow-wrap: anywhere;
+}
+/* THE QUOTE A RULE SPEAKS OF IS A DOOR TO IT: the file's blue on its underline, a fingertip tall */
+.hr-quotes__ref {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: --spacing(6);
+  border-radius: var(--radius-key);
+  font-weight: 650;
+  color: var(--color-ink-file);
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--hair);
+  text-underline-offset: 0.2em;
+  outline: none;
+}
+.hr-quotes__ref:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+/* the boat's word stands a step clear of "Tried on the", so its focus ring never touches it */
+.hr-boat__word {
+  margin-inline-start: --spacing(1);
 }
 .hr-boat__said {
   margin: 0;
@@ -1059,6 +1134,10 @@
 .hr-finder[data-starting-style],
 .hr-finder[data-ending-style] {
   opacity: 0;
+}
+/* ON A SHORT WINDOW the list stands over its own word, as tall as the window allows */
+.hr-finder[data-short] {
+  max-block-size: calc(100dvh - --spacing(4));
 }
 .hr-finder__field {
   display: flex;
@@ -1164,7 +1243,21 @@
 }
 .hr-refuted__item {
   display: grid;
-  gap: --spacing(0.5);
+  grid-template-columns: --spacing(6) minmax(0, 1fr);
+  gap: --spacing(0.5) 0;
+  padding-inline: --spacing(2);
+}
+.hr-refuted__n {
+  grid-row: 1 / span 2;
+  font-size: var(--text-xs);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink-2);
+}
+.hr-refuted__said,
+.hr-refuted__why {
+  grid-column: 2;
 }
 .hr-refuted__said {
   margin: 0;
@@ -1178,18 +1271,51 @@
   color: var(--color-ink-2);
 }
 
-/* the signature line is the printed page's only */
-.hr-sign {
+/* the signature line and the printed head are the printed page's only */
+.hr-sign,
+.hr-print-head {
   display: none;
 }
 
-/* ---- printed: the one page Northside signs ---- */
+/* ---- printed: the one page Northside signs ----
+
+   ONE A4 PAGE (verify 1, data round, J15: three pages, each part broken to its own and page 1
+   two-thirds blank; no name and no date; "is off" printed with its control's underline). The
+   page says whose rules they are and the price list they were counted on; each part keeps its
+   name in a column beside its clauses; a clause is never split across a page, but a part may be;
+   the type steps down the ramp to the size a signed page is read at. Where a figure was counted
+   on the workbook, or the workbook counted otherwise, it says so on paper too. What is not a rule
+   — the noticed patterns, the offers that break a clause, the presses — stays on the screen. */
 
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm 14mm;
+  }
   .hr {
     min-height: 0;
+    gap: --spacing(3);
     padding: 0;
     background: var(--color-white);
+  }
+  .hr-head {
+    gap: --spacing(1);
+  }
+  .hr-title {
+    font-size: var(--text-2xl);
+  }
+  .hr-print-head {
+    display: block;
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .hr-lede {
+    max-inline-size: none;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
   }
   .hr-sheet {
     padding: 0;
@@ -1199,23 +1325,81 @@
   .hr-write,
   .hr-clause__look,
   .hr-clause__by > :not(:first-child),
-  .hr-noticed__act,
-  .hr-noticed__look,
+  .hr-noticed-stack,
+  .hr-ex,
   .hr-open,
   .hr-stale,
   .hr-refuted {
     display: none;
   }
   .hr-part {
+    grid-template-columns: [name] 120px [main] minmax(0, 1fr);
+    column-gap: --spacing(3);
+    padding-block: --spacing(2);
+  }
+  .hr-part__name {
+    display: grid;
+    gap: --spacing(0.5);
+    grid-column: name;
+  }
+  .hr-part__n {
+    font-size: var(--text-xl);
+  }
+  .hr-part__title {
+    font-size: var(--text-sm);
+  }
+  .hr-clauses {
+    grid-column: main;
+    row-gap: --spacing(1.5);
+  }
+  .hr-clauses__main {
+    row-gap: --spacing(1.5);
+  }
+  /* WHO SAID IT, AS A RULE ON PAPER: an inset shadow printed as a hairline under every clause, so
+     the edge is a border there */
+  .hr-clause {
     break-inside: avoid;
+    row-gap: --spacing(0.5);
+    box-shadow: none;
+    border-inline-start: var(--hair) solid var(--owner-list);
+    /* the figure's column only as wide as it needs, so the words wrap less */
+    grid-template-columns: --spacing(8) minmax(0, 1fr) minmax(--spacing(24), --spacing(36));
+    column-gap: --spacing(2);
+  }
+  .hr-clause__measure {
+    max-inline-size: --spacing(36);
+  }
+  .hr-clause__body {
+    gap: --spacing(0.5);
+  }
+  .hr-clause[data-owner='yours'] {
+    box-shadow: none;
+    border-inline-start: var(--edge-w) solid var(--owner-yours);
+    /* the thicker edge takes its width out of the air, so its number stands in the column */
+    padding-inline-start: calc(--spacing(3) - var(--edge-w) + var(--hair));
+  }
+  .hr-clause__said {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+  .hr-build,
+  .hr-verbline,
+  .hr-clause__by,
+  .hr-clause__where {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+  .hr-held {
+    font-size: var(--text-sm);
   }
   .hr-sign {
     display: flex;
-    gap: --spacing(24);
-    margin: --spacing(8) 0 0;
-    padding-block-start: --spacing(10);
+    gap: --spacing(16);
+    margin: --spacing(2) 0 0;
+    padding-block-start: --spacing(8);
     font-size: var(--text-sm);
     color: var(--color-ink);
+    break-inside: avoid;
   }
   .hr-sign > span {
     flex: 1;
