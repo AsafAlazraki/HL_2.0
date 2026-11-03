@@ -1,0 +1,1230 @@
+[
+  {
+    "id": "tracker-boats",
+    "url": "https://www.trackerboats.com/boats/",
+    "note": "Boat maker range with starting-at prices",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.trackerboats.com/boats/",
+    "title": "Access Denied",
+    "file": "tracker-boats.png"
+  },
+  {
+    "id": "tracker-boats-scrolled",
+    "url": "https://www.trackerboats.com/boats/",
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "note": "Range scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.trackerboats.com/boats/",
+    "title": "Access Denied",
+    "file": "tracker-boats-scrolled.png"
+  },
+  {
+    "id": "williams-tenders",
+    "url": "https://www.williamsjettenders.com/",
+    "note": "Tender maker range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.williamsjettenders.com/",
+    "title": "Williams Jet Tenders | Discover The Joy",
+    "file": "williams-tenders.png"
+  },
+  {
+    "id": "axopar-range",
+    "url": "https://www.axopar.com/boats/",
+    "note": "Boat maker range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.axopar.com/boats/",
+    "title": "Error 404 – Axopar Boats",
+    "file": "axopar-range.png"
+  },
+  {
+    "id": "barcrusher-range",
+    "url": "https://www.barcrusher.com.au/boats/",
+    "note": "AU plate boat maker range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.barcrusher.com.au/boats/",
+    "title": "",
+    "file": "barcrusher-range.png"
+  },
+  {
+    "id": "yellowfin-range",
+    "url": "https://www.yellowfinplate.com.au/",
+    "note": "AU plate boat maker",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.yellowfinplate.com.au/",
+    "title": "",
+    "file": "yellowfin-range.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.yellowfinplate.com.au/"
+  },
+  {
+    "id": "robalo-models",
+    "url": "https://www.robalo.com/",
+    "note": "Boat maker models",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://robalo.com/Robalo_Boats.php",
+    "title": "Robalo Boats :: Home",
+    "file": "robalo-models.png"
+  },
+  {
+    "id": "lund-boats",
+    "url": "https://www.lundboats.com/",
+    "note": "Boat maker with compare",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.lundboats.com/us/en",
+    "title": "LUND Aluminum Fishing Boats for Anglers & Families",
+    "file": "lund-boats.png"
+  },
+  {
+    "id": "kia-au-cars",
+    "url": "https://www.kia.com/au/cars.html",
+    "note": "Car range with from-price",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/en",
+    "title": "Award-Winning New Cars, Family Cars, SUVs & EVs | Kia Australia",
+    "file": "kia-au-cars.png"
+  },
+  {
+    "id": "hyundai-au-cars",
+    "url": "https://www.hyundai.com/au/en/cars",
+    "note": "Car range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.hyundai.com/au/en/cars",
+    "title": "All Car Models and Upcoming Vehicles | Hyundai Australia",
+    "file": "hyundai-au-cars.png"
+  },
+  {
+    "id": "mazda-au-cars",
+    "url": "https://www.mazda.com.au/cars/",
+    "note": "Car range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/cars/",
+    "title": "Mazda Car Range | SUVs, EVs & Utes | Mazda Australia",
+    "file": "mazda-au-cars.png"
+  },
+  {
+    "id": "audi-au-models",
+    "url": "https://www.audi.com.au/en/models/",
+    "note": "Car range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.audi.com.au/en/models/",
+    "title": "Access Denied",
+    "file": "audi-au-models.png"
+  },
+  {
+    "id": "carexpert-hilux",
+    "url": "https://www.carexpert.com.au/toyota/hilux",
+    "note": "Model page with variants and prices",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux",
+    "title": "Toyota HiLux Reviews - Models & Range | CarExpert",
+    "file": "carexpert-hilux.png"
+  },
+  {
+    "id": "carexpert-hilux-price",
+    "url": "https://www.carexpert.com.au/toyota/hilux/price",
+    "note": "Price and specs per variant",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux/price",
+    "title": "404: This page could not be found | CarExpert",
+    "file": "carexpert-hilux-price.png"
+  },
+  {
+    "id": "redbook-ranger",
+    "url": "https://www.redbook.com.au/cars/research/ford/ranger",
+    "note": "Model research with price spans",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.redbook.com.au/cars/research/ford/ranger",
+    "title": "redbook.com.au",
+    "file": "redbook-ranger.png"
+  },
+  {
+    "id": "apple-iphone-compare",
+    "url": "https://www.apple.com/au/iphone/compare/",
+    "note": "Compare side by side",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/iphone/compare/",
+    "title": "iPhone - Compare Models - Apple (AU)",
+    "file": "apple-iphone-compare.png"
+  },
+  {
+    "id": "apple-mac-compare",
+    "url": "https://www.apple.com/au/mac/compare/",
+    "note": "Compare side by side",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/mac/compare/",
+    "title": "Compare Mac Models - Apple (AU)",
+    "file": "apple-mac-compare.png"
+  },
+  {
+    "id": "rtings-compare",
+    "url": "https://www.rtings.com/tv/tools/compare",
+    "note": "Compare tool",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.rtings.com/tv/tools/compare/lg-c5-oled-vs-lg-c6-oled-2026/88602/132977",
+    "title": "Comparison Tool: Which TV Is Better? - RTINGS.com",
+    "file": "rtings-compare.png"
+  },
+  {
+    "id": "gsmarena-compare",
+    "url": "https://www.gsmarena.com/compare.php3?idPhone1=13965&idPhone2=13964",
+    "note": "Spec compare",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.gsmarena.com/compare.php3?idPhone1=13965&idPhone2=13964",
+    "title": "Compare Xiaomi Redmi K80 Ultra vs. Apple iPhone 17 Pro Max - GSMArena.com",
+    "file": "gsmarena-compare.png"
+  },
+  {
+    "id": "suzuki-marine-outboards",
+    "url": "https://www.suzukimarine.com.au/outboards",
+    "note": "Outboard range by HP",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.suzukimarine.com.au/outboards",
+    "title": "Outboards | Suzuki Marine | Suzuki Marine Australia",
+    "file": "suzuki-marine-outboards.png"
+  },
+  {
+    "id": "honda-marine-au",
+    "url": "https://www.hondampe.com.au/marine",
+    "note": "Outboard range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.hondampe.com.au/marine",
+    "title": "",
+    "file": "honda-marine-au.png",
+    "error": "page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.hondampe.com.au/marine"
+  },
+  {
+    "id": "tohatsu-outboards",
+    "url": "https://www.tohatsu.com/outboards",
+    "note": "Outboard HP ladder",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.tohatsuamerica.com/marine",
+    "title": "TOHATSU North America",
+    "file": "tohatsu-outboards.png"
+  },
+  {
+    "id": "mackay-trailers",
+    "url": "https://www.mackaytrailers.com.au/",
+    "note": "Trailer maker range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://mackaytrailers.com.au/",
+    "title": "Mackay Trailers",
+    "file": "mackay-trailers.png"
+  },
+  {
+    "id": "easytow-trailers",
+    "url": "https://www.easytow.com.au/",
+    "note": "Trailer maker range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://easytow.com.au/",
+    "title": "Easytow Boat Trailers – Premium custom trailers",
+    "file": "easytow-trailers.png"
+  },
+  {
+    "id": "rhinorack-fit",
+    "url": "https://www.rhinorack.com.au/",
+    "note": "Fit my vehicle finder",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://rhinorack.com/en-au",
+    "title": "Rhino-Rack AU | Make Space For Adventure",
+    "file": "rhinorack-fit.png"
+  },
+  {
+    "id": "century-battery-finder",
+    "url": "https://www.centurybatteries.com.au/battery-finder",
+    "note": "Fitment finder",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.centurybatteries.com.au/battery-finder",
+    "title": "Page not found | Century Batteries",
+    "file": "century-battery-finder.png"
+  },
+  {
+    "id": "ryco-filter-finder",
+    "url": "https://www.rycofilters.com.au/",
+    "note": "Fitment finder",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.rycofilters.com.au/",
+    "title": "Search Filters | Fuel filters | Air filters | Oil filters - Ryco Filters",
+    "file": "ryco-filter-finder.png"
+  },
+  {
+    "id": "toyota-service-pricing",
+    "url": "https://www.toyota.com.au/owners/service-pricing",
+    "note": "Labour price per model",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.toyota.com.au/owners/service-pricing",
+    "title": "Not Found | Toyota Australia - master",
+    "file": "toyota-service-pricing.png"
+  },
+  {
+    "id": "apple-obsolete",
+    "url": "https://support.apple.com/en-au/102772",
+    "note": "Vintage and obsolete list",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://support.apple.com/en-au/102772",
+    "title": "Getting service for your Apple product after its warranty has expired – Apple Support (AU)",
+    "file": "apple-obsolete.png"
+  },
+  {
+    "id": "stripe-pricing-table",
+    "url": "https://docs.stripe.com/payments/checkout/pricing-table",
+    "note": "Price table",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://docs.stripe.com/payments/checkout/pricing-table",
+    "title": "Embeddable pricing table for subscriptions | Stripe Documentation",
+    "file": "stripe-pricing-table.png"
+  },
+  {
+    "id": "stripe-quotes",
+    "url": "https://docs.stripe.com/quotes",
+    "note": "Quotes",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://docs.stripe.com/quotes",
+    "title": "How quotes work | Stripe Documentation",
+    "file": "stripe-quotes.png"
+  },
+  {
+    "id": "hubspot-quotes",
+    "url": "https://knowledge.hubspot.com/quotes/create-and-share-quotes",
+    "note": "Quotes list",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://knowledge.hubspot.com/404?url=%2Fquotes%2Fcreate-and-share-quotes&domain=knowledge.hubspot.com",
+    "title": "Hubspot 404",
+    "file": "hubspot-quotes.png"
+  },
+  {
+    "id": "shopify-collections",
+    "url": "https://help.shopify.com/en/manual/products/collections",
+    "note": "Collections",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/products/collections",
+    "title": "Shopify Help Center | Collections",
+    "file": "shopify-collections.png"
+  },
+  {
+    "id": "airtable-product-catalog",
+    "url": "https://www.airtable.com/templates/product-catalog",
+    "note": "Product catalogue template",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.airtable.com/templates/product-catalog",
+    "title": "Templates",
+    "file": "airtable-product-catalog.png"
+  },
+  {
+    "id": "retool-inventory",
+    "url": "https://retool.com/templates/inventory-management",
+    "note": "Inventory template",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://retool.com/templates/inventory-management",
+    "title": "Inventory Management App",
+    "file": "retool-inventory.png"
+  },
+  {
+    "id": "linear-initiatives",
+    "url": "https://linear.app/docs/initiatives",
+    "note": "Initiatives: grouped projects",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://linear.app/docs/initiatives",
+    "title": "Initiatives – Linear Docs",
+    "file": "linear-initiatives.png"
+  },
+  {
+    "id": "plytix-pim",
+    "url": "https://www.plytix.com/",
+    "note": "PIM",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.plytix.com/",
+    "title": "Plytix | PIM, DAM & AI Product Content Platform",
+    "file": "plytix-pim.png"
+  },
+  {
+    "id": "tekion-dms",
+    "url": "https://tekion.com/",
+    "note": "Car dealer DMS",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://tekion.com/",
+    "title": "Tekion | End-to-End AI-Native Automotive Retail Platform",
+    "file": "tekion-dms.png"
+  },
+  {
+    "id": "ids-astra",
+    "url": "https://www.idsdms.com/",
+    "note": "Marine/RV dealer DMS",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.idsdms.com/",
+    "title": "",
+    "file": "ids-astra.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.idsdms.com/"
+  },
+  {
+    "id": "porsche-compare",
+    "url": "https://compare.porsche.com/en-AU",
+    "note": "Porsche compare",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://compare.porsche.com/en-AU",
+    "title": "Porsche Model Compare | Porsche (Australia)",
+    "file": "porsche-compare.png"
+  },
+  {
+    "id": "axopar-home",
+    "url": "https://www.axopar.com/",
+    "note": "Boat maker home",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.axopar.com/",
+    "title": "",
+    "file": "axopar-home.png"
+  },
+  {
+    "id": "formosa-boats",
+    "url": "https://www.formosaboats.com.au/",
+    "note": "A Northside maker, own site",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.formosaboats.com.au/",
+    "title": "",
+    "file": "formosa-boats.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.formosaboats.com.au/"
+  },
+  {
+    "id": "surtees-boats",
+    "url": "https://www.surtees.co.nz/",
+    "note": "A Northside maker, own site",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.surtees.co.nz/",
+    "title": "",
+    "file": "surtees-boats.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.surtees.co.nz/"
+  },
+  {
+    "id": "boatsales-highfield",
+    "url": "https://www.boatsales.com.au/boats/new/highfield/",
+    "note": "Classifieds by make",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.boatsales.com.au/boats/new/highfield/",
+    "title": "boatsales.com.au",
+    "file": "boatsales-highfield.png"
+  },
+  {
+    "id": "toyota-hilux",
+    "url": "https://www.toyota.com.au/hilux",
+    "note": "Model page with grades and from-prices",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.toyota.com.au/hilux",
+    "title": "HiLux | Shop 4x4 & 4x2 Utes in 2026 | Toyota Australia",
+    "file": "toyota-hilux.png"
+  },
+  {
+    "id": "toyota-hilux-scrolled",
+    "url": "https://www.toyota.com.au/hilux",
+    "steps": [
+      {
+        "scroll": 1800
+      }
+    ],
+    "note": "Grades scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.toyota.com.au/hilux",
+    "title": "HiLux | Shop 4x4 & 4x2 Utes in 2026 | Toyota Australia",
+    "file": "toyota-hilux-scrolled.png"
+  },
+  {
+    "id": "ford-ranger",
+    "url": "https://www.ford.com.au/showroom/trucks-and-vans/ranger/",
+    "note": "Model page with variants",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.ford.com.au/showroom/trucks-and-vans/ranger/",
+    "title": "Access Denied",
+    "file": "ford-ranger.png"
+  },
+  {
+    "id": "kia-compare",
+    "url": "https://www.kia.com/au/shopping-tools/compare.html",
+    "note": "Compare tool",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/shopping-tools/compare.html",
+    "title": "Error | Kia Australia",
+    "file": "kia-compare.png"
+  },
+  {
+    "id": "mazda-service-pricing",
+    "url": "https://www.mazda.com.au/owners/service-pricing/",
+    "note": "Service price per model",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/owners/service-pricing/",
+    "title": "404",
+    "file": "mazda-service-pricing.png"
+  },
+  {
+    "id": "kia-capped-servicing",
+    "url": "https://www.kia.com/au/owners/service/capped-price-servicing.html",
+    "note": "Labour price per model",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/owners/service/capped-price-servicing.html",
+    "title": "Error | Kia Australia",
+    "file": "kia-capped-servicing.png"
+  },
+  {
+    "id": "hubspot-quotes-2",
+    "url": "https://knowledge.hubspot.com/quotes/create-and-send-quotes",
+    "note": "Quotes",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://knowledge.hubspot.com/quotes/create-and-send-quotes",
+    "title": "Create and send quotes",
+    "file": "hubspot-quotes-2.png"
+  },
+  {
+    "id": "yakima-fit",
+    "url": "https://www.yakima.com.au/fit-guide",
+    "note": "Fit guide",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://yakima.com.au/fit-guide",
+    "title": "404 Not Found – Yakima Australia & NZ | Roof Racks, Bike Racks & Accessories",
+    "file": "yakima-fit.png"
+  },
+  {
+    "id": "polaris-resource-details",
+    "url": "https://polaris.shopify.com/patterns/resource-details-layout",
+    "note": "Shopify admin resource details pattern",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-resource-details.png"
+  },
+  {
+    "id": "polaris-resource-index",
+    "url": "https://polaris.shopify.com/patterns/resource-index-layout",
+    "note": "Shopify admin resource index pattern",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-resource-index.png"
+  },
+  {
+    "id": "stripe-manage-prices",
+    "url": "https://docs.stripe.com/products-prices/manage-prices",
+    "note": "Product and its prices",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://docs.stripe.com/products-prices/manage-prices",
+    "title": "Manage products and prices | Stripe Documentation",
+    "file": "stripe-manage-prices.png"
+  },
+  {
+    "id": "carexpert-hilux-scrolled",
+    "url": "https://www.carexpert.com.au/toyota/hilux",
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "note": "Variants and prices scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux",
+    "title": "Toyota HiLux Reviews - Models & Range | CarExpert",
+    "file": "carexpert-hilux-scrolled.png"
+  },
+  {
+    "id": "redbook-ranger-scrolled",
+    "url": "https://www.redbook.com.au/cars/research/ford/ranger",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "note": "Scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.redbook.com.au/cars/research/ford/ranger",
+    "title": "redbook.com.au",
+    "file": "redbook-ranger-scrolled.png"
+  },
+  {
+    "id": "suzuki-marine-scrolled",
+    "url": "https://www.suzukimarine.com.au/outboards",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "note": "HP ladder scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.suzukimarine.com.au/outboards",
+    "title": "Outboards | Suzuki Marine | Suzuki Marine Australia",
+    "file": "suzuki-marine-scrolled.png"
+  },
+  {
+    "id": "mackay-scrolled",
+    "url": "https://www.mackaytrailers.com.au/",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "note": "Scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://mackaytrailers.com.au/",
+    "title": "Mackay Trailers",
+    "file": "mackay-scrolled.png"
+  },
+  {
+    "id": "williams-scrolled",
+    "url": "https://www.williamsjettenders.com/",
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "note": "Scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.williamsjettenders.com/",
+    "title": "Williams Jet Tenders | Discover The Joy",
+    "file": "williams-scrolled.png"
+  },
+  {
+    "id": "apple-iphone-compare-scrolled",
+    "url": "https://www.apple.com/au/iphone/compare/",
+    "steps": [
+      {
+        "scroll": 1000
+      }
+    ],
+    "note": "Compare rows",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/iphone/compare/",
+    "title": "iPhone - Compare Models - Apple (AU)",
+    "file": "apple-iphone-compare-scrolled.png"
+  },
+  {
+    "id": "porsche-compare-scrolled",
+    "url": "https://compare.porsche.com/en-AU",
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "note": "Compare rows",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://compare.porsche.com/en-AU",
+    "title": "Porsche Model Compare | Porsche (Australia)",
+    "file": "porsche-compare-scrolled.png"
+  },
+  {
+    "id": "kia-au-cars-scrolled",
+    "url": "https://www.kia.com/au/cars.html",
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "note": "Range scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/en",
+    "title": "Award-Winning New Cars, Family Cars, SUVs & EVs | Kia Australia",
+    "file": "kia-au-cars-scrolled.png"
+  },
+  {
+    "id": "lund-scrolled",
+    "url": "https://www.lundboats.com/",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "note": "Scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.lundboats.com/us/en",
+    "title": "LUND Aluminum Fishing Boats for Anglers & Families",
+    "file": "lund-scrolled.png"
+  },
+  {
+    "id": "kia-range",
+    "url": "https://www.kia.com/au/cars.html",
+    "steps": [
+      {
+        "scroll": 2700
+      }
+    ],
+    "note": "Find Your Perfect Kia range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/en",
+    "title": "Award-Winning New Cars, Family Cars, SUVs & EVs | Kia Australia",
+    "file": "kia-range.png"
+  },
+  {
+    "id": "carexpert-variants",
+    "url": "https://www.carexpert.com.au/toyota/hilux",
+    "steps": [
+      {
+        "text": "Variants"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Variants with prices",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux",
+    "title": "Toyota HiLux Reviews - Models & Range | CarExpert",
+    "file": "carexpert-variants.png"
+  },
+  {
+    "id": "suzuki-tiles",
+    "url": "https://www.suzukimarine.com.au/outboards",
+    "steps": [
+      {
+        "scroll": 2300
+      }
+    ],
+    "note": "Outboard tiles with HP",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.suzukimarine.com.au/outboards",
+    "title": "Outboards | Suzuki Marine | Suzuki Marine Australia",
+    "file": "suzuki-tiles.png"
+  },
+  {
+    "id": "easytow-hulls",
+    "url": "https://www.easytow.com.au/",
+    "steps": [
+      {
+        "text": "4.5 - 5.0M HULLS"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Trailers by hull length",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.easytow.com.au/",
+    "title": "",
+    "file": "easytow-hulls.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "rhinorack-dealer-fit",
+    "url": "https://www.rhinorack.com.au/",
+    "steps": [
+      {
+        "text": "Dealership Fitment Tool"
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "note": "Dealer fitment tool",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://rhinorack.com/en-au",
+    "title": "Rhino-Rack AU | Make Space For Adventure",
+    "file": "rhinorack-dealer-fit.png"
+  },
+  {
+    "id": "ryco-vehicle-type",
+    "url": "https://www.rycofilters.com.au/",
+    "steps": [
+      {
+        "text": "VEHICLE TYPE"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Finder by vehicle",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.rycofilters.com.au/search/type/-",
+    "title": "Application Search | Ryco Filters | Air Filters, Oil Filters and Fuel Filters | Automotive Filters",
+    "file": "ryco-vehicle-type.png"
+  },
+  {
+    "id": "hyundai-runout",
+    "url": "https://www.hyundai.com/au/en/cars",
+    "steps": [
+      {
+        "text": "Runout"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Runout tab",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.hyundai.com/au/en/cars",
+    "title": "",
+    "file": "hyundai-runout.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "mazda-range",
+    "url": "https://www.mazda.com.au/cars/",
+    "steps": [
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Range under postcode modal",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/cars/",
+    "title": "Mazda Car Range | SUVs, EVs & Utes | Mazda Australia",
+    "file": "mazda-range.png"
+  },
+  {
+    "id": "arc-boats",
+    "url": "https://arcboats.com/",
+    "note": "Electric boat maker, from Land-book",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://arcboats.com/",
+    "title": "Arc - 100% Electric Boats",
+    "file": "arc-boats.png"
+  },
+  {
+    "id": "arc-boats-scrolled",
+    "url": "https://arcboats.com/",
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "note": "Scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://arcboats.com/",
+    "title": "Arc - 100% Electric Boats",
+    "file": "arc-boats-scrolled.png"
+  },
+  {
+    "id": "quicksilver-boats",
+    "url": "https://www.quicksilver-boats.com/",
+    "note": "Boat maker range",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.quicksilver-boats.com/int/en",
+    "title": "Quicksilver boats",
+    "file": "quicksilver-boats.png"
+  },
+  {
+    "id": "brig-au",
+    "url": "https://www.brig.com.au/",
+    "note": "Inflatable maker AU",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.brig.com.au/",
+    "title": "Home - BRIG Australia",
+    "file": "brig-au.png"
+  },
+  {
+    "id": "honda-marine-outboards",
+    "url": "https://marine.honda.com/outboards",
+    "note": "Outboards by HP",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://marine.honda.com/outboards",
+    "title": "Honda Marine Models | Portable, Mid-Range, High Power Outboards",
+    "file": "honda-marine-outboards.png"
+  },
+  {
+    "id": "apple-iphone-compare-rows",
+    "url": "https://www.apple.com/au/iphone/compare/",
+    "steps": [
+      {
+        "scroll": 2600
+      }
+    ],
+    "note": "Compare rows deeper",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/iphone/compare/",
+    "title": "iPhone - Compare Models - Apple (AU)",
+    "file": "apple-iphone-compare-rows.png"
+  },
+  {
+    "id": "apple-mac-compare-rows",
+    "url": "https://www.apple.com/au/mac/compare/",
+    "steps": [
+      {
+        "scroll": 1100
+      }
+    ],
+    "note": "Compare rows",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/mac/compare/",
+    "title": "Compare Mac Models - Apple (AU)",
+    "file": "apple-mac-compare-rows.png"
+  },
+  {
+    "id": "porsche-compare-select",
+    "url": "https://compare.porsche.com/en-AU",
+    "steps": [
+      {
+        "text": "Select model"
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "note": "Model picker in compare",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://compare.porsche.com/en-AU",
+    "title": "Porsche Model Compare | Porsche (Australia)",
+    "file": "porsche-compare-select.png"
+  },
+  {
+    "id": "hyundai-au-cars-390",
+    "url": "https://www.hyundai.com/au/en/cars",
+    "note": "Range at 390",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.hyundai.com/au/en/cars",
+    "title": "All Car Models and Upcoming Vehicles | Hyundai Australia",
+    "file": "hyundai-au-cars-390.png"
+  },
+  {
+    "id": "apple-iphone-compare-390",
+    "url": "https://www.apple.com/au/iphone/compare/",
+    "steps": [
+      {
+        "scroll": 700
+      }
+    ],
+    "note": "Compare at 390",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/iphone/compare/",
+    "title": "iPhone - Compare Models - Apple (AU)",
+    "file": "apple-iphone-compare-390.png"
+  },
+  {
+    "id": "carexpert-hilux-390",
+    "url": "https://www.carexpert.com.au/toyota/hilux",
+    "note": "Model head at 390",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux",
+    "title": "Toyota HiLux Reviews - Models & Range | CarExpert",
+    "file": "carexpert-hilux-390.png"
+  },
+  {
+    "id": "suzuki-tiles-390",
+    "url": "https://www.suzukimarine.com.au/outboards",
+    "steps": [
+      {
+        "scroll": 1800
+      }
+    ],
+    "note": "Motor tiles at 390",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.suzukimarine.com.au/outboards",
+    "title": "Outboards | Suzuki Marine | Suzuki Marine Australia",
+    "file": "suzuki-tiles-390.png"
+  },
+  {
+    "id": "arc-boats-390",
+    "url": "https://arcboats.com/",
+    "note": "Boat maker at 390",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://arcboats.com/",
+    "title": "Arc - 100% Electric Boats",
+    "file": "arc-boats-390.png"
+  },
+  {
+    "id": "kia-range-all",
+    "url": "https://www.kia.com/au/cars/range.html",
+    "wait": 3000,
+    "note": "All Kia models",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/cars/range.html",
+    "title": "Kia Cars | Our Vehicle Range | Kia Australia",
+    "file": "kia-range-all.png"
+  },
+  {
+    "id": "carexpert-specs",
+    "url": "https://www.carexpert.com.au/toyota/hilux/features-and-specs",
+    "wait": 2500,
+    "note": "Variants features and specs",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux/features-and-specs",
+    "title": "Toyota HiLux Features & Specs | CarExpert",
+    "file": "carexpert-specs.png"
+  },
+  {
+    "id": "carexpert-specs-scrolled",
+    "url": "https://www.carexpert.com.au/toyota/hilux/features-and-specs",
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "wait": 2500,
+    "note": "Scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux/features-and-specs",
+    "title": "Toyota HiLux Features & Specs | CarExpert",
+    "file": "carexpert-specs-scrolled.png"
+  },
+  {
+    "id": "carexpert-variant-sr5",
+    "url": "https://www.carexpert.com.au/toyota/hilux/sr5/features-and-specs",
+    "wait": 2500,
+    "note": "One variant",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux/sr5/features-and-specs",
+    "title": "Toyota HiLux SR5 Features & Specs | CarExpert",
+    "file": "carexpert-variant-sr5.png"
+  },
+  {
+    "id": "rhinorack-dealer-tool",
+    "url": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "wait": 3000,
+    "note": "Dealership fitment lookup",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "title": "Fitment lookup — Rhino-Rack",
+    "file": "rhinorack-dealer-tool.png"
+  },
+  {
+    "id": "rhinorack-build-fitment",
+    "url": "https://rhinorack.com/en-au/pages/build-your-fitment",
+    "wait": 3000,
+    "note": "Simple fitment tool",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://rhinorack.com/en-au/pages/build-your-fitment",
+    "title": "Fit Your Vehicle | Rhino-Rack AU",
+    "file": "rhinorack-build-fitment.png"
+  },
+  {
+    "id": "easytow-hull-51-56",
+    "url": "https://easytow.com.au/fish-sports-boat-trailers/5-1-5-6m-hulls/",
+    "note": "Trailers for 5.1-5.6 m hulls",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://easytow.com.au/fish-sports-boat-trailers/5-1-5-6m-hulls/",
+    "title": "5.1 – 5.6m HULLS – Easytow Boat Trailers",
+    "file": "easytow-hull-51-56.png"
+  },
+  {
+    "id": "arc-sport",
+    "url": "https://arcboats.com/arc-sport",
+    "wait": 2500,
+    "note": "One model page",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://arcboats.com/arc-sport",
+    "title": "Arc Sport - Arc",
+    "file": "arc-sport.png"
+  },
+  {
+    "id": "arc-sport-scrolled",
+    "url": "https://arcboats.com/arc-sport",
+    "steps": [
+      {
+        "scroll": 2200
+      }
+    ],
+    "wait": 2000,
+    "note": "Specs scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://arcboats.com/arc-sport",
+    "title": "Arc Sport - Arc",
+    "file": "arc-sport-scrolled.png"
+  },
+  {
+    "id": "rhinorack-dealer-make",
+    "url": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "note": "Dealer fitment lookup, a make chosen",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "title": "Fitment lookup — Rhino-Rack",
+    "file": "rhinorack-dealer-make.png",
+    "steps": [
+      {
+        "driven": "a one-off Playwright script (selectOption on #fMake, #fModel, #fYear); nothing typed, nothing submitted",
+        "did": "select Make = TOYOTA"
+      }
+    ]
+  },
+  {
+    "id": "rhinorack-dealer-model",
+    "url": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "note": "Dealer fitment lookup, Toyota HiLux chosen",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "title": "Fitment lookup — Rhino-Rack",
+    "file": "rhinorack-dealer-model.png",
+    "steps": [
+      {
+        "driven": "a one-off Playwright script (selectOption on #fMake, #fModel, #fYear); nothing typed, nothing submitted",
+        "did": "select Make = TOYOTA, Model = Hilux"
+      }
+    ]
+  },
+  {
+    "id": "rhinorack-dealer-model-year",
+    "url": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "note": "Dealer fitment lookup, a year chosen",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "title": "Fitment lookup — Rhino-Rack",
+    "file": "rhinorack-dealer-model-year.png",
+    "steps": [
+      {
+        "driven": "a one-off Playwright script (selectOption on #fMake, #fModel, #fYear); nothing typed, nothing submitted",
+        "did": "select Make = TOYOTA, Model = Hilux, Year = 2026"
+      }
+    ]
+  },
+  {
+    "id": "rhinorack-dealer-by-product",
+    "url": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "note": "Dealer fitment lookup, By product",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "title": "Fitment lookup — Rhino-Rack",
+    "file": "rhinorack-dealer-by-product.png",
+    "steps": [
+      {
+        "driven": "a one-off Playwright script (selectOption on #fMake, #fModel, #fYear); nothing typed, nothing submitted",
+        "did": "press By product"
+      }
+    ]
+  },
+  {
+    "id": "rhinorack-dealer-390",
+    "url": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "note": "Dealer fitment lookup at 390, HiLux chosen",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://the-shed.clarusadventure.com/fitment-lookup/",
+    "title": "Fitment lookup — Rhino-Rack",
+    "file": "rhinorack-dealer-390.png",
+    "steps": [
+      {
+        "driven": "a one-off Playwright script (selectOption on #fMake, #fModel, #fYear); nothing typed, nothing submitted",
+        "did": "select Make = TOYOTA, Model = Hilux (390 x 844)"
+      }
+    ]
+  },
+  {
+    "id": "quicksilver-selector",
+    "url": "https://www.quicksilver-boats.com/product-selector/",
+    "wait": 3000,
+    "note": "Boat maker's own product selector, every model",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.quicksilver-boats.com/product-selector/",
+    "title": "Quicksilver boat configurator: pick the boat of your dreams",
+    "file": "quicksilver-selector.png"
+  },
+  {
+    "id": "quicksilver-selector-scrolled",
+    "url": "https://www.quicksilver-boats.com/product-selector/",
+    "steps": [
+      {
+        "scroll": 800
+      }
+    ],
+    "wait": 2500,
+    "note": "Selector scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.quicksilver-boats.com/product-selector/",
+    "title": "Attention Required! | Cloudflare",
+    "file": "quicksilver-selector-scrolled.png"
+  },
+  {
+    "id": "quicksilver-series-open",
+    "url": "https://www.quicksilver-boats.com/int/en/product-selector/open",
+    "wait": 3000,
+    "note": "One series opened in place",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.quicksilver-boats.com/int/en/product-selector/open",
+    "title": "Center consoles: an open invitation | Quicksilver Boats",
+    "file": "quicksilver-series-open.png"
+  },
+  {
+    "id": "quicksilver-605-open",
+    "url": "https://www.quicksilver-boats.com/activ_605-open",
+    "wait": 3000,
+    "note": "One model page",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.quicksilver-boats.com/activ_605-open",
+    "title": "Activ 605 Open | Quicksilver Boats",
+    "file": "quicksilver-605-open.png"
+  },
+  {
+    "id": "quicksilver-605-open-specs",
+    "url": "https://www.quicksilver-boats.com/activ_605-open",
+    "steps": [
+      {
+        "text": "Specifications"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 2000,
+    "note": "Model specs",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.quicksilver-boats.com/activ_605-open?productTab=specifications",
+    "title": "Activ 605 Open | Quicksilver Boats",
+    "file": "quicksilver-605-open-specs.png"
+  },
+  {
+    "id": "kia-capped-price-service",
+    "url": "https://www.kia.com/au/owners/capped-price-service.html",
+    "wait": 3000,
+    "note": "Labour price per model and interval",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/owners/capped-price-service.html",
+    "title": "Capped Price Servicing | Kia Owners | Kia Australia",
+    "file": "kia-capped-price-service.png"
+  },
+  {
+    "id": "kia-capped-price-service-scrolled",
+    "url": "https://www.kia.com/au/owners/capped-price-service.html",
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "wait": 2500,
+    "note": "Scrolled",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.kia.com/au/owners/capped-price-service.html",
+    "title": "Capped Price Servicing | Kia Owners | Kia Australia",
+    "file": "kia-capped-price-service-scrolled.png"
+  },
+  {
+    "id": "shopify-b2b-catalogs",
+    "url": "https://help.shopify.com/en/manual/b2b/catalogs",
+    "note": "Price lists per company",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/b2b/catalogs",
+    "title": "Shopify Help Center | Catalogs and pricing in B2B",
+    "file": "shopify-b2b-catalogs.png"
+  },
+  {
+    "id": "honda-marine-scrolled",
+    "url": "https://marine.honda.com/outboards",
+    "steps": [
+      {
+        "scroll": 550
+      }
+    ],
+    "note": "Outboard tiles with captions",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://marine.honda.com/outboards",
+    "title": "Honda Marine Models | Portable, Mid-Range, High Power Outboards",
+    "file": "honda-marine-scrolled.png"
+  },
+  {
+    "id": "quicksilver-selector-390",
+    "url": "https://www.quicksilver-boats.com/product-selector/",
+    "wait": 3000,
+    "note": "Selector at 390",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.quicksilver-boats.com/product-selector/",
+    "title": "Quicksilver boat configurator: pick the boat of your dreams",
+    "file": "quicksilver-selector-390.png"
+  },
+  {
+    "id": "carexpert-specs-390",
+    "url": "https://www.carexpert.com.au/toyota/hilux/features-and-specs",
+    "steps": [
+      {
+        "scroll": 700
+      }
+    ],
+    "wait": 2500,
+    "note": "Configurations at 390",
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.carexpert.com.au/toyota/hilux/features-and-specs",
+    "title": "Toyota HiLux Features & Specs | CarExpert",
+    "file": "carexpert-specs-390.png"
+  }
+]
