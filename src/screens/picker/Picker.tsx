@@ -48,6 +48,7 @@ import { quotes as quotesStore } from '@/state/quotes'
 import { catalogue } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { money } from '@/domain/money'
+import { wrongOnPick } from '@/domain/rules/review/onPick'
 import {
   featuredOf,
   flagshipOf,
@@ -1653,6 +1654,20 @@ function Plate({
      the stage. */
   const travel = boatTravel(model.tableId, subject?.rowId ?? model.key)
 
+  /* WHAT REVIEW FINDS ON THIS LINE, SAID WHERE IT IS PICKED (Review's J15, the verifier of
+     2026-11-04, round 2: the Fibreglass ALP 5.3M-13B stood here at $11,366 with no word, and the
+     warning came only at the build's finale). A trailer registered as the wrong size and a name at
+     two prices, never a cost, and nothing Northside left alone (`onPick.ts`). */
+  const tables = useCatalogue((s) => s.tables)
+  const rows = useCatalogue((s) => s.rows)
+  const leftAlone = useCatalogue((s) => s.org?.leftAlone)
+  const reviewRow = subject?.rowId ?? model.key
+  const reviewSays = useMemo(
+    () =>
+      wrongOnPick({ entities: tables, rowsByEntity: rows }, model.tableId, reviewRow, leftAlone),
+    [tables, rows, model.tableId, reviewRow, leftAlone],
+  )
+
   return (
     /* A WHITE PLATE, the kit's one material (tokens.css, THE PLATE), drawn
        here rather than by `Plate` because this one is a grid of three parts
@@ -1780,6 +1795,14 @@ function Plate({
               ? `A draft for this ${noun} is already started with nobody named on it, so this reopens it rather than starting a second.`
               : [sells, later].filter((said) => said !== '').join(' ')}
           </p>
+          {reviewSays.map((said) => (
+            <p className="picker-review" key={said}>
+              <span className="picker-review__glyph" aria-hidden="true">
+                <Icon glyph={WarningCircleIcon} weight="fill" />
+              </span>
+              <span>{said}</span>
+            </p>
+          ))}
         </div>
 
         {started ? <Made started={started} goes={goes} /> : null}

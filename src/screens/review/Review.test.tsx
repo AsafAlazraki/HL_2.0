@@ -112,7 +112,7 @@ describe('the first look', () => {
     const next = screen.getByRole('navigation', { name: 'The next cases' })
     expect(
       within(next).getByRole('button', {
-        name: 'Case 2: Rego the ALP 5.3M-13B as a Large trailer.',
+        name: 'Case 2: Rego the ALP 5.3M-13B Fibreglass Boat as a Large trailer.',
       }),
     ).toBeTruthy()
     expect(within(next).getAllByRole('button')).toHaveLength(2)
@@ -197,7 +197,7 @@ describe('a press writes the price list, and comes back', () => {
     expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11366)
     /* the stage stands on the case the press named at once, before the address catches up */
     expect(within(stage()).getByRole('heading', { level: 2 }).textContent).toBe(
-      'Rego the ALP 5.7M-13TB as a Large trailer.',
+      'Rego the ALP 5.7M-13TB Fibreglass Boat as a Large trailer.',
     )
     await user.keyboard('{Enter}')
     expect(row('trl_dunbier', 'trl_dunbier:69')['trl_dunbier.by']).toBe(
@@ -210,7 +210,7 @@ describe('a press writes the price list, and comes back', () => {
     draw(FIRST_TRAILER)
     expect(
       within(stage())
-        .getByRole('link', { name: 'Open the ALP 5.3M-13B in the price list' })
+        .getByRole('link', { name: 'Open the ALP 5.3M-13B Fibreglass Boat in the price list' })
         .getAttribute('href'),
     ).toBe('/data/trl_dunbier?at=trl_dunbier:67')
   })
@@ -285,6 +285,11 @@ describe('a case of several lines, priced as typed', () => {
         name: 'Leave the 4 lines in Trailer Parts - Trailer Plugs at $0, as each says what they come with.',
       }),
     ).toBeTruthy()
+    /* a line that says what it comes with offers no price field (the verifier of 2026-11-04,
+       round 2, minor 3); each keeps its door to its own line in the price list */
+    expect(within(stage()).queryAllByRole('textbox')).toHaveLength(0)
+    expect(within(stage()).queryByRole('button', { name: /^Price / })).toBeNull()
+    expect(within(stage()).getAllByRole('link', { name: /in the price list$/ })).toHaveLength(4)
     /* Enter makes nothing here: the file cannot say which of the two is right */
     await user.keyboard('{Enter}')
     expect(catalogue.getState().org?.leftAlone).toBeUndefined()

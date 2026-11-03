@@ -75,6 +75,9 @@ function textOf(row: ViewRow, fieldId: string, value: CellValue): string {
 /* eslint-disable-next-line eqeqeq -- `== null` catches null AND a missing key */
 const isBlank = (v: CellValue): boolean => v == null || v === ''
 
+/** Text as the search reads it: lower case, trimmed, every run of spaces one space. */
+const spacesOnce = (t: string): string => t.replace(/\s+/g, ' ').trim().toLowerCase()
+
 function toNumber(v: CellValue): number | null {
   if (typeof v === 'number') return Number.isFinite(v) ? v : null
   if (typeof v === 'boolean') return v ? 1 : 0
@@ -250,10 +253,14 @@ export function applyView(
     }
   }
 
-  /* ---------- search: every column's display text, incl. formulas ---------- */
-  const search = (opts.search ?? '').trim().toLowerCase()
+  /* ---------- search: every column's display text, incl. formulas ----------
+     A RUN OF SPACES IS ONE SPACE, on both sides: the price file types "F150D  F175A" with two,
+     a person (and Review's "See both") types one, and the two must find each other (the
+     verifier of Review, 2026-11-04 round 2: "See both" on a name the file spaces twice found
+     "0 match"). */
+  const search = spacesOnce(opts.search ?? '')
   if (search !== '') {
-    out = out.filter((r) => Object.values(r.text).some((t) => t.toLowerCase().includes(search)))
+    out = out.filter((r) => Object.values(r.text).some((t) => spacesOnce(t).includes(search)))
   }
 
   /* ---------- sort ---------- */

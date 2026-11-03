@@ -180,6 +180,9 @@ export interface GridProps {
   tailW: number
   /** the lit rung's column, whose head says so */
   rungFieldId?: string
+  /** COLUMNS ANOTHER SCREEN ASKED TO SEE (`?col=`, behind Every column): their heads are lit and
+   *  the first is brought into the window — Review's "See both" on two headings of one name */
+  litFields?: ReadonlySet<string>
   onRung: (fieldId: string) => void
   collapsed: ReadonlySet<string>
   onToggle: (key: string) => void
@@ -302,6 +305,7 @@ export function Grid(props: GridProps) {
     leadW,
     tailW,
     rungFieldId,
+    litFields,
     onRung,
     collapsed,
     onToggle,
@@ -451,6 +455,27 @@ export function Grid(props: GridProps) {
     },
     [foot, hand, headH, rows, spineW],
   )
+
+  /* THE COLUMNS ASKED FOR ARE BROUGHT INTO THE WINDOW, once each time they are asked for: the
+     first lit head stands just inside the pinned name, so a pair of headings of one name is read
+     side by side where the room allows, and the first of them at least where it does not */
+  const litKey = litFields ? [...litFields].join(',') : ''
+  useEffect(() => {
+    if (litKey === '') return
+    const frame = requestAnimationFrame(() => {
+      const sc = scroller.current
+      const port = headPort.current
+      const lit = port?.querySelector<HTMLElement>('.sh-th[data-lit]')
+      if (!sc || !port || !lit) return
+      const box = lit.getBoundingClientRect()
+      const inside = port.getBoundingClientRect()
+      const pinW = spineW > 0 && !hand ? spineW : 0
+      if (box.left >= inside.left + pinW && box.right <= inside.right) return
+      sc.scrollLeft += box.left - (inside.left + pinW)
+    })
+    return () => cancelAnimationFrame(frame)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- once per columns asked for, not per layout
+  }, [litKey])
 
   const third = useRef(false)
   useEffect(() => {
@@ -1405,6 +1430,7 @@ export function Grid(props: GridProps) {
         showLead={showLead}
         hand={hand}
         rungFieldId={rungFieldId}
+        litFields={litFields}
         onRung={onRung}
         colourFieldId={colourFieldId}
         colourKey={colourKey}
@@ -1541,6 +1567,7 @@ interface HeadProps {
   showLead: boolean
   hand: boolean
   rungFieldId?: string
+  litFields?: ReadonlySet<string>
   onRung: (fieldId: string) => void
   /** the colourway column, whose head carries the colour key */
   colourFieldId?: string
@@ -1564,6 +1591,7 @@ function Head({
   showLead,
   hand,
   rungFieldId,
+  litFields,
   onRung,
   colourFieldId,
   colourKey,
@@ -1628,6 +1656,7 @@ function Head({
               className="sh-th"
               data-num={f.type === 'number' ? '' : undefined}
               data-rung={lit ? '' : undefined}
+              data-lit={litFields?.has(f.id) ? '' : undefined}
               data-job={slot.job}
               style={{ gridColumn }}
             >

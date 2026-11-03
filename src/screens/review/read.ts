@@ -188,11 +188,28 @@ export function trailerSaid(line: TrailerLine): string {
 }
 
 /** The model alone, as a sentence says it: "ALP 5.3M-13B", without its rating in brackets or the
- *  word "Trailer" the sentence already ends on. */
-export const trailerModel = (line: TrailerLine): string =>
-  trailerSaid(line)
-    .replace(/\s*\(.*$/, '')
+ *  word "Trailer" the sentence already ends on. WHAT THE FILE WRITES AFTER THE RATING STAYS (the
+ *  verifier of 2026-11-04, round 2, minor 2): Dunbier carries two ALP 5.3M-13Bs, "… (1,450kgs)"
+ *  and "… (1,450kgs) Fibreglass Boat", and a title that dropped the second's last words named the
+ *  one already registered Large. */
+export function trailerModel(line: TrailerLine): string {
+  const model = trailerSaid(line)
+    /* only a rating in brackets goes, "(1,450kgs)"; a code in brackets is the model */
+    .replace(/\s*\(\s*[\d,.]+\s*(?:kgs?|t)?\s*\)/gi, ' ')
+    /* the rating the namer says after a dot where the file ends on it: "… · 1,450 kgs" */
+    .replace(/\s+·\s+[\d,.]+\s*(?:kgs?|t)?\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
     .replace(/\s+trailer$/i, '')
+  /* A NAME THAT IS ITS CODE KEEPS IT: Tinka's "TINKA Aluminium - TA450MO-B" is said "Aluminium"
+     once its code is set aside, which is also what its TA450 brother is called */
+  const code = line.code.trim()
+  return code !== '' &&
+    line.label.toLowerCase().includes(code.toLowerCase()) &&
+    !model.toLowerCase().includes(code.toLowerCase())
+    ? `${model}${SAID_SEP}${code}`
+    : model
+}
 
 /** What a trailer namer reads off a line: its name in the file, its list and its code. */
 type TrailerLine = Pick<Reband, 'label' | 'tableName' | 'code'>
@@ -529,7 +546,7 @@ export function ledeOf(c: Case, prices?: PricesSaid): string {
       const g = c.group
       const one = g.lines.length === 1
       if (allSayWhatTheyComeWith(c))
-        return `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}, and ${one ? 'its name says' : 'each name says'} it comes with something already priced, so $0 is likely meant. If not, type ${one ? 'its' : 'each one’s'} price.`
+        return `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}, and ${one ? 'its name says' : 'each name says'} it comes with something already priced, so $0 is likely meant. If not, ${one ? 'it is' : 'each is'} priced on its own line in the price list.`
       return g.kind === 'zero'
         ? `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}. If ${one ? 'it comes' : 'they come'} with something else, $0 is meant; if not, type ${one ? 'its' : 'each one’s'} price.`
         : `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}, so a quote with ${one ? 'it' : 'one'} on it is $0.`

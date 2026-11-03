@@ -1524,6 +1524,25 @@
   display: none;
 }
 
+/* WHAT REVIEW FINDS ON THIS LINE (onPick.ts): evidence beside the act, never a refusal of it, in
+   the ink this app spends on a sentence that stops a press — the build's finale says the same */
+.picker-review {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: --spacing(2);
+  align-items: start;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+.picker-review__glyph {
+  display: inline-flex;
+  padding-block-start: --spacing(0.5);
+  color: var(--color-act-ink);
+}
+
 /* WHAT THE ACT JUST WROTE: a white plate in the foot with the draft's own glyph in its own ink
    (tokens.css, --status-draft) beside the words that say it is started — a quote's state is a
    glyph beside its word, never a coloured rule alone. It rises into place on the kit's enter. */

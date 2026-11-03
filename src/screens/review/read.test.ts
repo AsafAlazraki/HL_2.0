@@ -29,7 +29,25 @@ const ALP = {
 describe('a trailer, said', () => {
   it('names the model, and the series beside the maker’s mark, in a person’s casing', () => {
     expect(trailerSaid(ALP).replace(/\s*\(.*$/, '')).toBe('ALP 5.3M-13B')
-    expect(trailerModel(ALP)).toBe('ALP 5.3M-13B')
+    /* the file carries two ALP 5.3M-13Bs in Dunbier; the words after the rating tell them apart
+       (the verifier of 2026-11-04, round 2, minor 2) */
+    expect(trailerModel(ALP)).toBe('ALP 5.3M-13B Fibreglass Boat')
+    expect(
+      trailerModel({
+        ...ALP,
+        label: 'DUNBIER Alloy Loader Pro Series - ALP 5.3M-13B (1,450kgs)',
+        code: '9304',
+      }),
+    ).toBe('ALP 5.3M-13B')
+    /* a model the namer would say only by its maker's word keeps its code: Tinka's two are told
+       apart by it (trl_redco:36 and :37 in the pack) */
+    expect(
+      trailerModel({
+        label: 'TINKA Aluminium - TA450MO-B',
+        tableName: 'REDCO / Tinka Trailers',
+        code: 'TA450MO-B',
+      }),
+    ).toBe('Aluminium · TA450MO-B')
     expect(trailerSeries(ALP)).toBe('Alloy Loader Pro Series')
     /* a name that does not lead with a series has none to say */
     expect(

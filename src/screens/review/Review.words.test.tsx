@@ -40,7 +40,9 @@ describe('the wrong-size trailer, as the dealer reads it', () => {
     )
     const stage = document.querySelector<HTMLElement>('.rv-stage')!
     expect(
-      within(stage).getByRole('heading', { name: 'Rego the ALP 5.3M-13B as a Large trailer.' }),
+      within(stage).getByRole('heading', {
+        name: 'Rego the ALP 5.3M-13B Fibreglass Boat as a Large trailer.',
+      }),
     ).toBeInTheDocument()
     const said = stage.textContent ?? ''
     expect(said).toContain('Dunbier Trailers · Alloy Loader Pro Series')

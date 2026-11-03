@@ -1205,6 +1205,14 @@
   line-height: var(--text-sm--line-height);
   scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
 }
+/* A PHONE ON ITS SIDE: brought just under the pill's clearance, so the rail above it stands wholly
+   under the floor the shell lays there (`.way-edge`, solid to the clearance less its reach) and
+   never half through its fall (the verifier of 2026-11-04, round 2, minor 6) */
+@media (max-height: 500px) and (min-width: 640px) {
+  .rv-done {
+    scroll-margin-block-start: calc(var(--shell-inset) + --spacing(1));
+  }
+}
 .rv-done__glyph {
   flex: none;
   display: inline-flex;

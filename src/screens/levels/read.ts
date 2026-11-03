@@ -12,16 +12,19 @@
    EACH PRICE IS ONE OF THREE THINGS, and the screen says which as a
    fact, never as a hole: it READS a column of the price list (with how
    many lines hold a figure in it), it FALLS to Cash because the list has
-   no column for it ("No Trade price, so a trade quote stays at Sell inc
-   Rego"), or it is NOT PRICED — the list has sell columns and has not
-   said which is its price.
+   no column for it, or it is NOT PRICED — the list has sell columns and
+   has not said which is its price.
 
-   THE ORDINARY IS QUIET AND THE DIFFERENT IS LOUD (the verdict's
-   must-change on board A). `quiet` on a cell means "it says what every
-   list says": Cash on all its lines, Trade the same figure as Cash. A
-   cell that is not quiet is one of the handful of facts that differ —
-   Highfield's 95%, Formosa's nine boats at nought, Jeanneau's eight with
-   no Trade, the Yamahas' two columns, the lists with no price.
+   THE DATA ROUND (the judge of Prices, 2026-11-04) DEEPENED WHAT EACH
+   COLUMN CARRIES, and nothing else of its shape: every figure Northside
+   is asked to choose between says what it is and the workbook cell it
+   comes from, with the workbook's rule checked on every line
+   (`src/domain/pricing/meaning.ts`); two figures are read against each
+   other over the whole list, never on one line (`spread.ts`); a list
+   with no price is offered the WAYS it could be priced, every price a
+   way names written in one step (`ways.ts`); and every count of lines
+   with no figure carries the doors to the sheet that open exactly those
+   lines, one door per kind of nothing.
 
    No figure here is typed. Every count is a count of lines; every
    figure is one line's own cell, and the line is named beside it.
@@ -29,11 +32,16 @@
 
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 import { CASH, ladderOn, priceIn, type LineNoun } from '@/domain/catalogue/priceCommands'
-import { isCostColumn, namedLevelsFor } from '@/domain/quote/pricing'
-import { mayReachCustomer, workedFromCost, type WorkedFromCost } from '@/domain/pricing/worked'
-import { sellColumns } from '@/domain/pricing/unchosen'
+import { isCostColumn } from '@/domain/quote/pricing'
+import { mayReachCustomer, workedFromCost } from '@/domain/pricing/worked'
+import { checkField, meaningOf, type Checked, type Meaning } from '@/domain/pricing/meaning'
+import { linesAbove, noFigureIn, spreadOf, type Spread } from '@/domain/pricing/spread'
+import { pricedBy, wayChosen, waysFor, type Way } from '@/domain/pricing/ways'
+import type { LineEntry } from '@/domain/pricing/buyers'
 import { countBoats } from '@/domain/quote/boats'
 import { factoryPackage, lineSaid, spokenBoat } from '@/domain/quote/spoken'
+import { nameOnPaper } from '@/domain/quote/paperWords'
+import { onlyToken } from '@/domain/catalogue/table/only'
 import {
   isRetired,
   rowLabel,
@@ -66,24 +74,63 @@ export interface Sample {
   rowId: string
   name: string
   tableId: string
-  /** the line's own Image Link, or '' */
+  /** the line's own Image Link, or '' — always '' for a factory package, whose Image Link is
+   *  the picture of the motor it comes with and never of the package (CLAUDE.md: a picture
+   *  belongs only to the exact model it depicts) */
   image: string
   /** the line is the one on the quote that sent the dealer here */
   onQuote?: boolean
+  /** no picture is drawn for it at all: a factory package, whose held picture is its motor's */
+  bare?: boolean
 }
 
-/** A column a list's price could read, with what the price list holds in it. */
-export interface Candidate {
-  fieldId: string
+/** One price a way names, read on the sample line, with what it is. */
+export interface Figure {
+  key: string
   label: string
-  /** lines holding a figure in it, across every list in the column */
-  priced: number
+  fieldId: string
   /** the sample line's figure, or null when it holds none */
   figure: number | null
-  /** worked from cost, so it would start as Northside's only */
-  worked: WorkedFromCost | null
-  /** the column the price reads today */
+  meaning: Meaning | null
+  /** the workbook's rule, checked across the column's every line; null where none is said */
+  checked: Checked | null
+}
+
+/** A way a list could be priced, as the page draws it. */
+export interface WayView {
+  id: string
+  title: string
+  /** every price it names, read on the sample line, Cash first */
+  figures: Figure[]
+  /** lines it would price: those holding a figure in its Cash column, across the column */
+  priced: number
+  /** other columns holding the same figure as its Cash on every line */
+  alsoNamed: string[]
+  /** the ladder stands on it today */
   current: boolean
+  /** the engine starts its Cash as Northside's own: a quote at it cannot be given until he lets
+   *  it reach a customer */
+  kept: boolean
+  /** the way itself, for the write */
+  way: Way
+}
+
+/** Two ways' Cash read against each other over every line holding both: the larger over the
+ *  smaller, so the spread reads "Act Sell is 0.97–27.83 × Sell". */
+export interface Between {
+  more: string
+  less: string
+  spread: Spread
+}
+
+/** A DOOR TO THE LINES BEHIND A COUNT: the sheet, asked exactly the lines counted. */
+export interface Door {
+  tableId: string
+  /** `/data/<table>?only=<token>` */
+  href: string
+  count: number
+  /** what the lines are, as the door says it: "with nothing in Sell", "at $0 in Sell" */
+  said: string
 }
 
 export type CashCell =
@@ -97,22 +144,22 @@ export type CashCell =
       figure: number | null
       /** the dealer chose it on this screen */
       named: boolean
-      /** worked from cost, said when the dealer pointed Cash at such a column */
-      worked: WorkedFromCost | null
       mayReach: boolean
-      /** two columns a customer's quote could print (a motor's Sell Price and its RRP + Freight),
-       *  each with its figure on one motor — the owner's to choose, never chosen for him */
-      fork: Candidate[] | null
-      /** the two columns hold the same figure on every line */
-      forkAgrees: boolean
-      /** A LIST THE DEALER GAVE A PRICE ON THIS SCREEN keeps the figures it was chosen from, so
-       *  the choice can be changed where it was made: the fork, or the sell figures a list that
-       *  was Not priced named one of. Null where nothing was ever chosen between. */
-      choices: Candidate[] | null
+      /** the ways a customer's quote could be priced that a dealer may choose between: a motor's
+       *  Sell Price and its RRP + Freight, or the ways a list he priced here was chosen from, so
+       *  it can be changed where it was made. Null where there is nothing to choose between. */
+      ways: WayView[] | null
+      /** two figures a customer's quote could print, never chosen between: the owner's to choose */
+      fork: boolean
+      /** the list's sell columns hold one figure under two names on every line */
+      forkAgrees: string[]
+      between: Between | null
+      meaning: Meaning | null
     }
   | {
       state: 'not-priced'
-      candidates: Candidate[]
+      ways: WayView[]
+      between: Between | null
       sample: Sample | null
     }
 
@@ -126,7 +173,7 @@ export type TradeCell =
       priced: number
       /** of those, the same figure as Cash */
       same: number
-      /** of those, no Trade figure — a trade quote stays at Cash on them */
+      /** of those, no Trade figure — a trade quote cannot price them */
       blank: number
       /** the one share of Cash every other line holds, rounded down as the price list does */
       share: number | null
@@ -136,6 +183,7 @@ export type TradeCell =
       sample: Sample | null
       cash: number | null
       trade: number | null
+      meaning: Meaning | null
     }
 
 export interface WarrantyCell {
@@ -145,6 +193,8 @@ export interface WarrantyCell {
   high: number
   /** lines whose Warranty figure is above their Cash */
   above: number
+  /** those lines, named */
+  aboveNames: string[]
   mayReach: boolean
   /** the widest gap on the list: the line, its Cash and its Warranty */
   widest: { sample: Sample; cash: number; warranty: number } | null
@@ -162,16 +212,18 @@ export interface Column {
   /** lines on the list(s) */
   lines: number
   /** A BOAT MAKER IS COUNTED IN MODELS, by the one count Home, the picker and Data read
-   *  (`countBoats`): Highfield's 588 lines are its 67 boats in their finishes, so its head says
-   *  "67 boats" as every other maker's head counts boats, and its lines are named as finishes. Null
-   *  where a line is a model. */
+   *  (`countBoats`). Null where a line is a model. */
   models: number | null
   noun: LineNoun
   cash: CashCell
   trade: TradeCell
-  /** Parts' second customer price, chosen line by line */
-  fitted: { label: string; priced: number } | null
+  /** the fitted price, chosen line by line: Parts' Sell inc Install, a kit's Sell Price */
+  fitted: { label: string; priced: number; meaning: Meaning | null } | null
   warranty: WarrantyCell | null
+  /** the file's sub-dealer figure, where the list carries one; no quote is priced at it */
+  sub: { label: string; held: number; sameAsTrade: number } | null
+  /** the doors to the lines behind each count of no figure */
+  doors: { cash: Door[]; trade: Door[]; warranty: Door[] }
   /** the cost names on the list(s), Northside's only, never a price */
   costs: string[]
   /** a sample cost column, for the engine's refusal sentence */
@@ -184,11 +236,12 @@ export interface Column {
 /* Small readers                                               */
 /* ---------------------------------------------------------- */
 
-/* WHAT COUNTS AS A SELL FIGURE is the domain's (`sellColumns`, src/domain/pricing/unchosen.ts), so
-   the figures Prices offers and the figures the build says exist are one reading */
-
 /** The maker's word for a list: the first word of its name ("Highfield Inflatables" → Highfield). */
 const makerOf = (table: EntityDef): string => table.name.split(/\s+/)[0] ?? table.name
+
+/** A factory package's own picture is not on the price list: its Image Link is its motor's. */
+const isFactoryPackage = (table: EntityDef): boolean =>
+  table.kind === 'package' && /factory packages?/i.test(table.name)
 
 /** A line's name as a person reads it — the maker's prefix the price list writes on every line
  *  ("Stacer - 309 Skimma") taken off, since the column already names the maker. */
@@ -197,17 +250,17 @@ export function sampleOf(table: EntityDef, row: RowData): Sample {
     rowId: row.id,
     name: spokenLine(table, rowLabel(table, row)),
     tableId: table.id,
-    image: imageOf(table, row),
+    image: isFactoryPackage(table) ? '' : imageOf(table, row),
+    ...(isFactoryPackage(table) ? { bare: true } : {}),
   }
 }
 
 /** A LINE AS A PERSON SAYS IT, by the one namer the build, the cascade and the paper ask
- *  (`src/domain/quote/spoken.ts`), so Prices never prints the file's key where the build says a
- *  name (built-critique-m3-2.md, M13: "Highfield SP560 (HYP) W-W-WB", "Tiller Conversion Kit -
- *  F20G", "SIG 525F w Yamaha - F90XB"). The maker the list already names comes off: Stacer's line
- *  is the "309 Skimma", Highfield's the "Sport 560 · Hypalon · White / White / White/Blue". A
- *  factory package keeps its boat beside the motor it comes with. */
-function spokenLine(table: EntityDef, label: string): string {
+ *  (`src/domain/quote/spoken.ts`), with the file's shorthand said in full as the build and the
+ *  paper say it (`nameOnPaper`): "3.4 m", never "3.4 Mtr" (the judge of Prices, 2026-11-04: the
+ *  Tube Covers were "3.4 Mtr" here and "3.4 m" on the build). The maker the list already names
+ *  comes off. A factory package keeps its boat beside the motor it comes with. */
+export function spokenLine(table: EntityDef, label: string): string {
   if (table.kind === 'boat') {
     const boat = spokenBoat(table.id, label)
     return boat.say.startsWith(`${boat.maker} `) ? boat.say.slice(boat.maker.length + 1) : boat.say
@@ -218,7 +271,7 @@ function spokenLine(table: EntityDef, label: string): string {
   const bare = label.toLowerCase().startsWith(`${maker.toLowerCase()} - `)
     ? label.slice(maker.length + 3)
     : label
-  return lineSaid(bare, table.name)
+  return nameOnPaper(lineSaid(bare, table.name))
 }
 
 /** The price list's own Image Link on a line, for the one picture reader, or ''. */
@@ -233,19 +286,86 @@ function imageOf(table: EntityDef, row: RowData): string {
 const rowsOf = (data: Sheet, tableIds: readonly string[]): RowData[] =>
   tableIds.flatMap((id) => data.rows[id] ?? [])
 
-/** Lines holding a figure in a column, by its name, across every list in a column. */
-function pricedIn(data: Sheet, tables: readonly EntityDef[], name: string): number {
+/** The same column on another list of the column, by its name and its place among columns of
+ *  that name (Rigging Kits carries "Trade Price" twice). */
+export function sameField(
+  lead: EntityDef,
+  fieldId: string,
+  other: EntityDef,
+): FieldDef | undefined {
+  const f = lead.fields.find((x) => x.id === fieldId)
+  if (!f) return undefined
+  if (other.id === lead.id) return f
+  const nth = lead.fields.filter((x) => x.name === f.name).findIndex((x) => x.id === f.id)
+  return other.fields.filter((x) => x.name === f.name)[nth]
+}
+
+/** Lines holding a figure in a column, across every list of the column. */
+function heldAcross(data: Sheet, tables: readonly EntityDef[], fieldId: string): number {
+  const lead = tables[0]!
   let n = 0
   for (const t of tables) {
-    const f = t.fields.find((x) => x.name === name)
+    const f = sameField(lead, fieldId, t)
     if (!f) continue
     for (const r of data.rows[t.id] ?? []) if (priceIn(r, f.id) !== null) n += 1
   }
   return n
 }
 
+/** Two checks of one rule, on two lists, as one. */
+const plus = (a: Checked | null, b: Checked): Checked =>
+  a ? { holds: a.holds + b.holds, of: a.of + b.of } : b
+
+/** The workbook's rule for a column, checked across every list of the column. */
+function checkedAcross(data: Sheet, tables: readonly EntityDef[], fieldId: string): Checked | null {
+  const lead = tables[0]!
+  let out: Checked | null = null
+  for (const t of tables) {
+    const f = sameField(lead, fieldId, t)
+    if (!f) continue
+    const c = checkField(t, data.rows[t.id] ?? [], f)
+    if (!c) continue
+    out = plus(out, c)
+  }
+  return out
+}
+
+const sheetHref = (tableId: string, token: string): string =>
+  `/data/${encodeURIComponent(tableId)}?only=${encodeURIComponent(token)}`
+
+/**
+ * THE DOORS TO THE LINES WITH NO FIGURE IN A COLUMN, across every list of the column: one door
+ * per list and per kind of nothing — nothing written, or a nought — each with the count the sheet
+ * will show. A figure written as a word ("POA") has no question the sheet can ask, so no door.
+ */
+export function doorsOf(data: Sheet, tables: readonly EntityDef[], fieldId: string): Door[] {
+  const lead = tables[0]!
+  const out: Door[] = []
+  for (const t of tables) {
+    const f = sameField(lead, fieldId, t)
+    if (!f) continue
+    const none = noFigureIn(data.rows[t.id] ?? [], f.id)
+    const where = tables.length > 1 ? ` on ${t.name}` : ''
+    if (none.blank > 0)
+      out.push({
+        tableId: t.id,
+        href: sheetHref(t.id, onlyToken({ kind: 'empty', fieldId: f.id })),
+        count: none.blank,
+        said: `with nothing in ${f.name}${where}`,
+      })
+    if (none.nought > 0)
+      out.push({
+        tableId: t.id,
+        href: sheetHref(t.id, onlyToken({ kind: 'at-most', fieldId: f.id, value: 0 })),
+        count: none.nought,
+        said: `at $0 in ${f.name}${where}`,
+      })
+  }
+  return out
+}
+
 /* ---------------------------------------------------------- */
-/* Cash                                                        */
+/* The ways a list is priced                                   */
 /* ---------------------------------------------------------- */
 
 /** The motor a customer's quote was matched on to the dollar: Mark McWilliams matched the
@@ -254,128 +374,165 @@ function pricedIn(data: Sheet, tables: readonly EntityDef[], name: string): numb
  *  motor's two prices are shown on when the list carries it; the figures are read off its line. */
 export const MATCHED_ON = 'F90XB'
 
-function forkSample(table: EntityDef, rows: readonly RowData[], a: string, b: string): RowData {
+/** The line a list's ways are read on: the matched motor where the list carries it, else a line
+ *  holding every way's figures, else any line holding one. */
+function sampleRow(
+  table: EntityDef,
+  rows: readonly RowData[],
+  ways: readonly Way[],
+): RowData | null {
   const code = table.fields.find((f) => f.name === 'Model Code')
   const matched = code ? rows.find((r) => r.values[code.id] === MATCHED_ON) : undefined
+  if (matched) return matched
+  const ids = ways.flatMap((w) => w.rungs.map((r) => r.fieldId))
   return (
-    matched ??
-    rows.find((r) => {
-      const x = priceIn(r, a)
-      const y = priceIn(r, b)
-      return x !== null && y !== null && x !== y
-    }) ??
-    rows.find((r) => priceIn(r, a) !== null) ??
-    rows[0]!
+    rows.find((r) => ids.every((id) => priceIn(r, id) !== null)) ??
+    rows.find((r) => ways.every((w) => priceIn(r, w.rungs[0]!.fieldId) !== null)) ??
+    rows.find((r) => ids.some((id) => priceIn(r, id) !== null)) ??
+    null
   )
 }
 
-function cashOf(data: Sheet, tables: readonly EntityDef[]): CashCell {
+/** One way as the page draws it, read on the sample line. */
+function viewOf(
+  data: Sheet,
+  tables: readonly EntityDef[],
+  way: Way,
+  row: RowData | null,
+  current: boolean,
+): WayView {
   const lead = tables[0]!
-  const ladders = tables.map((t) => ladderOn(data, t))
-  const cash = ladders[0]!.find((l) => l.key === CASH)
   const rows = rowsOf(
     data,
     tables.map((t) => t.id),
   )
+  const cash = lead.fields.find((f) => f.id === way.rungs[0]!.fieldId)
+  return {
+    id: way.id,
+    title: way.title,
+    figures: way.rungs.map((r) => {
+      const f = lead.fields.find((x) => x.id === r.fieldId)!
+      return {
+        key: r.key,
+        label: r.label,
+        fieldId: r.fieldId,
+        figure: row ? priceIn(row, r.fieldId) : null,
+        meaning: meaningOf(lead, f),
+        checked: checkedAcross(data, tables, r.fieldId),
+      }
+    }),
+    priced:
+      tables.length === 1 ? pricedBy(way, rows) : heldAcross(data, tables, way.rungs[0]!.fieldId),
+    alsoNamed: way.alsoNamed,
+    current,
+    kept: cash ? workedFromCost(cash) !== null : false,
+    way,
+  }
+}
+
+/** Two single-figure ways read against each other over the whole column. */
+function betweenOf(
+  data: Sheet,
+  tables: readonly EntityDef[],
+  ways: readonly WayView[],
+): Between | null {
+  if (ways.length !== 2) return null
+  const [a, b] = ways
+  const rows = rowsOf(
+    data,
+    tables.map((t) => t.id),
+  )
+  const fa = a!.figures[0]!
+  const fb = b!.figures[0]!
+  if (tables.length > 1 || fa.fieldId === fb.fieldId) return null
+  const ab = spreadOf(rows, fa.fieldId, fb.fieldId)
+  if (!ab) return null
+  return ab.median >= 1
+    ? { more: fa.label, less: fb.label, spread: ab }
+    : { more: fb.label, less: fa.label, spread: spreadOf(rows, fb.fieldId, fa.fieldId)! }
+}
+
+/* ---------------------------------------------------------- */
+/* Cash                                                        */
+/* ---------------------------------------------------------- */
+
+function cashOf(data: Sheet, tables: readonly EntityDef[]): CashCell {
+  const lead = tables[0]!
+  const leadRows = data.rows[lead.id] ?? []
+  const ladder = ladderOn(data, lead)
+  const cash = ladder.find((l) => l.key === CASH)
+  const all = waysFor(lead, leadRows)
 
   if (!cash) {
-    /* NOT PRICED: the candidates every list in the column carries, by name */
-    const named = sellColumns(lead).filter((f) =>
-      tables.every((t) => t.fields.some((x) => x.name === f.name)),
+    /* NOT PRICED: the ways every list in the column could name */
+    const ways = all.filter((w) =>
+      w.rungs.every((r) => tables.every((t) => sameField(lead, r.fieldId, t))),
     )
-    const leadRows = data.rows[lead.id] ?? []
-    const row =
-      leadRows.find((r) => named.every((f) => priceIn(r, f.id) !== null)) ??
-      leadRows.find((r) => named.some((f) => priceIn(r, f.id) !== null)) ??
-      null
+    const row = sampleRow(lead, leadRows, ways)
+    const views = ways.map((w) => viewOf(data, tables, w, row, false))
     return {
       state: 'not-priced',
       sample: row ? sampleOf(lead, row) : null,
-      candidates: named.map((f) => ({
-        fieldId: f.id,
-        label: f.name,
-        priced: pricedIn(data, tables, f.name),
-        figure: row ? priceIn(row, f.id) : null,
-        worked: workedFromCost(f),
-        current: false,
-      })),
+      ways: views,
+      between: betweenOf(data, tables, views),
     }
   }
 
-  let priced = 0
-  for (const t of tables) {
-    const rung = ladderOn(data, t).find((l) => l.key === CASH)
-    if (!rung) continue
-    for (const r of data.rows[t.id] ?? []) if (priceIn(r, rung.fieldId) !== null) priced += 1
-  }
+  const priced = heldAcross(data, tables, cash.fieldId)
+  const lines = rowsOf(
+    data,
+    tables.map((t) => t.id),
+  ).length
   const field = lead.fields.find((f) => f.id === cash.fieldId)
+  const chosen = wayChosen(all, ladder)
 
-  /* THE FORK: a list carrying a column worked from cost beside the one Cash reads — the motor's
-     RRP + Freight beside its Sell Price — shows both, and the owner chooses */
-  const ladder = ladders[0]!
-  const worked = lead.fields.find(
-    (f) =>
-      workedFromCost(f) !== null &&
-      (f.type === 'number' || f.type === 'formula') &&
-      /* Warranty is a price of its own on the boat lists, not a second Cash */
-      !ladder.some((l) => l.fieldId === f.id && l.key !== CASH),
+  /* THE FORK: a list carrying a figure a customer's quote could print beside the one its Cash
+     reads, and not already one of its prices — the motor's RRP + Freight beside its Sell Price.
+     A part's Sell inc Install is its fitted price already, so it is no rival. */
+  const rivals = all.filter(
+    (w) =>
+      w.rungs.length === 1 &&
+      (w.rungs[0]!.fieldId === cash.fieldId ||
+        !ladder.some((l) => l.fieldId === w.rungs[0]!.fieldId)),
   )
-  const plainId = namedLevelsFor(lead).find((l) => l.key === CASH)?.fieldId
-  const plain = lead.fields.find((f) => f.id === plainId)
-  let fork: Candidate[] | null = null
-  let forkAgrees = false
-  let sampleRow: RowData | undefined = rows.find((r) => priceIn(r, cash.fieldId) !== null)
-  if (tables.length === 1 && worked && plain && worked.id !== plain.id) {
-    const leadRows = data.rows[lead.id] ?? []
-    sampleRow = forkSample(lead, leadRows, plain.id, worked.id)
-    forkAgrees = leadRows.every((r) => priceIn(r, plain.id) === priceIn(r, worked.id))
-    fork = [plain, worked].map((f) => ({
-      fieldId: f.id,
-      label: f.name,
-      priced: pricedIn(data, tables, f.name),
-      figure: sampleRow ? priceIn(sampleRow, f.id) : null,
-      worked: workedFromCost(f),
-      current: f.id === cash.fieldId,
-    }))
-  }
-
-  /* THE FIGURES A NAMED LIST WAS CHOSEN FROM, offered again where the choice was made */
-  let choices: Candidate[] | null = fork && !forkAgrees ? fork : null
-  if (!choices && cash.named === true) {
-    const named = sellColumns(lead).filter((f) =>
-      tables.every((t) => t.fields.some((x) => x.name === f.name)),
-    )
-    if (named.length > 1) {
-      const leadRows = data.rows[lead.id] ?? []
-      const row =
-        leadRows.find((r) => named.every((f) => priceIn(r, f.id) !== null)) ??
-        leadRows.find((r) => named.some((f) => priceIn(r, f.id) !== null))
-      if (row) sampleRow = row
-      choices = named.map((f) => ({
-        fieldId: f.id,
-        label: f.name,
-        priced: pricedIn(data, tables, f.name),
-        figure: row ? priceIn(row, f.id) : null,
-        worked: workedFromCost(f),
-        current: f.name === cash.label,
-      }))
-    }
-  }
-
-  const sampleTable = sampleRow ? (tables.find((t) => t.id === sampleRow.entityId) ?? lead) : lead
+  const fork = tables.length === 1 && rivals.length > 1 && cash.named !== true
+  const forkAgrees = all.find((w) => w.rungs[0]!.fieldId === cash.fieldId)?.alsoNamed ?? []
+  /* the ways a choice made here can be changed among, where it was made */
+  const choosable =
+    tables.length === 1 && rivals.length > 1
+      ? rivals
+      : cash.named === true && all.length > 1
+        ? all
+        : null
+  const row =
+    sampleRow(lead, leadRows, choosable ?? []) ??
+    leadRows.find((r) => priceIn(r, cash.fieldId) !== null) ??
+    null
+  const views = choosable
+    ? choosable.map((w) =>
+        viewOf(
+          data,
+          tables,
+          w,
+          row,
+          chosen ? w.id === chosen.id : w.rungs[0]!.fieldId === cash.fieldId,
+        ),
+      )
+    : null
   return {
     state: 'reads',
     label: cash.label,
     priced,
-    none: rows.length - priced,
-    sample: sampleRow ? sampleOf(sampleTable, sampleRow) : null,
-    figure: sampleRow ? priceIn(sampleRow, cash.fieldId) : null,
+    none: lines - priced,
+    sample: row ? sampleOf(lead, row) : null,
+    figure: row ? priceIn(row, cash.fieldId) : null,
     named: cash.named === true,
-    worked: field ? workedFromCost(field) : null,
     mayReach: mayReachCustomer(lead, cash),
+    ways: views,
     fork,
     forkAgrees,
-    choices,
+    between: views ? betweenOf(data, tables, views) : null,
+    meaning: field ? meaningOf(lead, field) : null,
   }
 }
 
@@ -431,6 +588,7 @@ function tradeOf(data: Sheet, tables: readonly EntityDef[], cash: CashCell): Tra
     high = Math.max(high, pc)
   }
   const only = shares.size === 1 ? [...shares][0]! : null
+  const field = lead.fields.find((f) => f.id === t.fieldId)
   return {
     state: 'reads',
     label: t.label,
@@ -443,6 +601,7 @@ function tradeOf(data: Sheet, tables: readonly EntityDef[], cash: CashCell): Tra
     sample: sample ? sampleOf(lead, sample) : null,
     cash: sample ? priceIn(sample, c.fieldId) : null,
     trade: sample ? priceIn(sample, t.fieldId) : null,
+    meaning: field ? meaningOf(lead, field) : null,
   }
 }
 
@@ -455,29 +614,30 @@ function warrantyOf(data: Sheet, table: EntityDef): WarrantyCell | null {
   const c = ladder.find((l) => l.key === CASH)
   const w = ladder.find((l) => l.key === 'warranty')
   if (!c || !w) return null
+  const rows = data.rows[table.id] ?? []
   let priced = 0
-  let above = 0
   let low = Infinity
   let high = -Infinity
   let widest: WarrantyCell['widest'] = null
-  for (const r of data.rows[table.id] ?? []) {
+  for (const r of rows) {
     const cv = priceIn(r, c.fieldId)
     const wv = priceIn(r, w.fieldId)
     if (cv === null || wv === null) continue
     priced += 1
-    if (wv > cv) above += 1
     const pc = (wv / cv) * 100
     low = Math.min(low, pc)
     high = Math.max(high, pc)
     if (!widest || cv - wv > widest.cash - widest.warranty)
       widest = { sample: sampleOf(table, r), cash: cv, warranty: wv }
   }
+  const above = linesAbove(rows, w.fieldId, c.fieldId)
   return {
     label: w.label,
     priced,
     low: Number.isFinite(low) ? Math.round(low) : 0,
     high: Number.isFinite(high) ? Math.round(high) : 0,
-    above,
+    above: above.length,
+    aboveNames: above.map((r) => sampleOf(table, r).name),
     mayReach: mayReachCustomer(table, w),
     widest,
   }
@@ -503,8 +663,8 @@ const shapeOf = (data: Sheet, t: EntityDef): string => {
   const ladder = ladderOn(data, t)
   return ladder.length > 0
     ? ladder.map((l) => `${l.key}:${l.label}`).join('|')
-    : `none:${sellColumns(t)
-        .map((f) => f.name)
+    : `none:${waysFor(t, [])
+        .map((w) => w.rungs.map((r) => r.label).join('+'))
         .join('|')}`
 }
 
@@ -534,6 +694,12 @@ function nameOf(shelf: Shelf, tables: readonly EntityDef[]): string {
   return lead.name
 }
 
+/** A sub-dealer figure, by the price list's own name for it. */
+const isSub = (f: FieldDef): boolean => /^sub ?dealer price$/i.test(f.name.trim())
+
+/** The column the pack marks a line no longer sold with. */
+const DISCONTINUED = '__discontinued'
+
 /** The column for a group of lists that read alike. */
 function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
   const lead = tables[0]!
@@ -559,6 +725,35 @@ function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
       ? (countBoats([lead], data.rows).byMaker[0]?.boats ?? null)
       : null
   const models = counted !== null && counted > 0 && counted !== lines ? counted : null
+  const cashRung = ladder.find((l) => l.key === CASH)
+  const tradeRung = ladder.find((l) => l.key === 'trade')
+  const warrantyRung = ladder.find((l) => l.key === 'warranty')
+
+  /* THE FILE'S SUB-DEALER FIGURE, where the list carries one beside its trade figure */
+  const tradeAt = tradeRung ? lead.fields.findIndex((f) => f.id === tradeRung.fieldId) : -1
+  const subField =
+    (tradeAt >= 0 ? lead.fields.slice(tradeAt + 1).find(isSub) : undefined) ??
+    lead.fields.find(isSub)
+  const kitTrade = tradeRung ?? null
+  const sub =
+    subField && tables.length === 1
+      ? (() => {
+          const rows = data.rows[lead.id] ?? []
+          const tradeId =
+            kitTrade?.fieldId ?? lead.fields.find((f) => f.name === 'Trade Price')?.id ?? ''
+          let held = 0
+          let same = 0
+          for (const r of rows) {
+            const s = priceIn(r, subField.id)
+            if (s === null) continue
+            held += 1
+            if (s === priceIn(r, tradeId)) same += 1
+          }
+          return { label: subField.name, held, sameAsTrade: same }
+        })()
+      : null
+
+  const fittedField = fittedRung ? lead.fields.find((f) => f.id === fittedRung.fieldId) : undefined
   return {
     id: tables.length > 1 ? `${shelf}:${lead.id}` : lead.id,
     tableIds: tables.map((t) => t.id),
@@ -575,18 +770,41 @@ function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
           label: fittedRung.label,
           priced: (data.rows[lead.id] ?? []).filter((r) => priceIn(r, fittedRung.fieldId) !== null)
             .length,
+          meaning: fittedField ? meaningOf(lead, fittedField) : null,
         }
       : null,
     warranty: shelf === 'boats' ? warrantyOf(data, lead) : null,
+    sub,
+    doors: {
+      cash: cashRung ? doorsOf(data, tables, cashRung.fieldId) : [],
+      trade:
+        tradeRung && trade.state === 'reads' && trade.blank > 0
+          ? doorsOf(data, tables, tradeRung.fieldId)
+          : [],
+      warranty:
+        warrantyRung && cashRung && shelf === 'boats' && tables.length === 1
+          ? [
+              {
+                tableId: lead.id,
+                href: sheetHref(
+                  lead.id,
+                  onlyToken({
+                    kind: 'under',
+                    fieldId: cashRung.fieldId,
+                    than: warrantyRung.fieldId,
+                  }),
+                ),
+                count: linesAbove(data.rows[lead.id] ?? [], warrantyRung.fieldId, cashRung.fieldId)
+                  .length,
+                said: `with ${warrantyRung.label} above ${cashRung.label}`,
+              },
+            ].filter((d) => d.count > 0)
+          : [],
+    },
     costs: [...costs],
     costField,
     quiet: {
-      cash:
-        cash.state === 'reads' &&
-        cash.none === 0 &&
-        cash.fork === null &&
-        cash.worked === null &&
-        cash.mayReach,
+      cash: cash.state === 'reads' && cash.none === 0 && !cash.fork && cash.mayReach,
       trade:
         trade.state === 'falls' ||
         (trade.state === 'reads' && trade.same === trade.priced && trade.blank === 0),
@@ -608,10 +826,7 @@ export function readLadder(data: Sheet): Column[] {
   )
   for (const table of ordered) {
     if (table.role === 'join') continue
-    /* A LIST NO LONGER SOLD IS NOT ON THE LADDER (built-critique-m3.md, major 11: Prices counted
-       "444 trailers" where Rules and Fitment count the 434 on sale). The obsolete trailers are
-       history the price list keeps so an old quote still opens; nothing is priced from them
-       again, so there is nothing about their price to decide here. */
+    /* A LIST NO LONGER SOLD IS NOT ON THE LADDER (built-critique-m3.md, major 11) */
     if (isRetired(table)) continue
     const shelf = table.kind ? SHELF_OF[table.kind] : undefined
     if (!shelf) continue
@@ -641,37 +856,32 @@ export const warrantyTargets = (columns: readonly Column[]) =>
    THE PAGE, BY WHO HAS TO ACT — direction F, "Yours to decide"
    (docs/directions/levels-boards/, judged 2026-10-28).
 
-   Three groups, and every list stands in exactly one place:
-
    YOURS TO CHOOSE — a question only Northside can answer: a motor's
    two figures nobody has chosen between, or a list with sell figures
    and no price. In the order of how many lines each answer prices.
 
-   WORKED FROM COST — a price the price list works from what something
-   cost Northside (Warranty on every boat; a motor's RRP + Freight once
-   it is chosen), with the one switch that says whether it may reach a
-   customer.
+   KEPT FROM CUSTOMERS — a price that starts as Northside's own
+   (Warranty on every boat; a motor's RRP + Freight once it is chosen),
+   with the one switch that says whether it may reach a customer.
 
-   SETTLED BY YOUR PRICE LIST — everything else, in the price list's
-   own order, each with the one fact that says how it prices.
+   SETTLED — everything else, in the price list's own order, each with
+   the one fact that says how it prices: by the price list, or by you.
    ============================================================ */
 
 /** A question only the dealer can answer is still open on this list. */
 export function undecided(col: Column): boolean {
   const c = col.cash
   if (c.state === 'not-priced') return true
-  return c.fork !== null && !c.forkAgrees && !c.named
+  return c.fork
 }
 
 /** THE LINE WARRANTY IS READ ON: the Highfield SP560 (HYP) W-W-WB, model code HBS114 (Boat
  *  Module!R837), the line the customer's-paper analysis measured Warranty on — $32,166 against
- *  Cash $48,350 (docs/research/proposal/analysis.md §4; the formula,
- *  docs/reference/MPF_GROUND_TRUTH.md line 885). The figures are read off its line, never
- *  typed; a price list without it reads Warranty on the widest gap instead. */
+ *  Cash $48,350 (docs/research/proposal/analysis.md §4). The figures are read off its line,
+ *  never typed; a price list without it reads Warranty on the widest gap instead. */
 export const WARRANTY_READ_ON = 'HBS114'
 
-/** One line a price worked from cost is read on: the line, its figure, and the one it stands
- *  against. */
+/** One line a kept price is read on: the line, its figure, and the one it stands against. */
 export interface KeptSpecimen {
   sample: Sample
   /** the maker, in one word */
@@ -681,7 +891,21 @@ export interface KeptSpecimen {
   againstLabel: string
 }
 
-/** A PRICE WORKED FROM COST, and its one switch. */
+/** ONE MAKER'S WARRANTY ACROSS ITS LIST, for the well's scale. */
+export interface KeptRange {
+  maker: string
+  tableId: string
+  /** lines holding both figures */
+  priced: number
+  low: number
+  high: number
+  above: number
+  aboveNames: string[]
+  /** the door to the lines above Cash */
+  door: Door | null
+}
+
+/** A PRICE THAT STARTS AS NORTHSIDE'S OWN, and its one switch. */
 export interface Kept {
   /** where its step is said: 'warranty', or the list's id with '#reach' */
   id: string
@@ -690,8 +914,12 @@ export interface Kept {
   on: string
   targets: Array<{ tableId: string; key: string }>
   mayReach: boolean
-  worked: WorkedFromCost
+  /** what it is, and its cell; for Warranty the workbook's rule, checked */
+  meaning: Meaning | null
+  checked: Checked | null
   specimen: KeptSpecimen | null
+  /** each maker's range against Cash, where the price is read against Cash */
+  ranges: KeptRange[]
   /** what a quote cannot do while it is Northside's only */
   whileOff: string
 }
@@ -729,7 +957,6 @@ function warrantySpecimen(data: Sheet, columns: readonly Column[]): KeptSpecimen
       againstLabel: c.label,
     }
   }
-  /* the widest gap, where the price list carries no SP560 (HYP) */
   const widest = columns.filter((c) => c.warranty?.widest).toSorted((a, b) => gap(b) - gap(a))[0]
   const w = widest?.warranty?.widest
   const table = widest ? data.tables[widest.tableIds[0]!] : undefined
@@ -743,7 +970,7 @@ function warrantySpecimen(data: Sheet, columns: readonly Column[]): KeptSpecimen
   }
 }
 
-/** The page: what is the dealer's to choose, what is worked from cost, what is settled. */
+/** The page: what is the dealer's to choose, what starts as Northside's own, what is settled. */
 export function readDesk(data: Sheet, columns: readonly Column[]): Desk {
   const choose = columns
     .filter(undecided)
@@ -751,45 +978,68 @@ export function readDesk(data: Sheet, columns: readonly Column[]): Desk {
   const settled = columns.filter((c) => !undecided(c))
   const kept: Kept[] = []
 
-  const boats = columns.filter((c) => c.warranty !== null)
+  const boats = columns.filter((c) => c.warranty !== null && c.warranty.priced > 0)
   const label = boats[0]?.warranty?.label
-  const worked = label ? workedFromCost({ name: label }) : null
-  if (label && worked) {
+  if (label) {
+    const lead = data.tables[boats[0]!.tableIds[0]!]
+    const field = lead?.fields.find((f) => f.name === label)
+    let checked: Checked | null = null
+    for (const col of boats) {
+      const t = data.tables[col.tableIds[0]!]
+      const f = t?.fields.find((x) => x.name === label)
+      const c = t && f ? checkField(t, data.rows[t.id] ?? [], f) : null
+      if (c) checked = plus(checked, c)
+    }
     kept.push({
       id: 'warranty',
       label,
       on: `every boat, from ${boats.length} ${boats.length === 1 ? 'maker' : 'makers'}`,
-      targets: warrantyTargets(boats),
+      targets: warrantyTargets(columns.filter((c) => c.warranty !== null)),
       mayReach: boats.some((c) => c.warranty?.mayReach === true),
-      worked,
+      meaning: lead && field ? meaningOf(lead, field) : null,
+      checked,
       specimen: warrantySpecimen(data, boats),
+      ranges: boats.map((col) => ({
+        maker: makerOf(data.tables[col.tableIds[0]!]!),
+        tableId: col.tableIds[0]!,
+        priced: col.warranty!.priced,
+        low: col.warranty!.low,
+        high: col.warranty!.high,
+        above: col.warranty!.above,
+        aboveNames: col.warranty!.aboveNames,
+        door: col.doors.warranty[0] ?? null,
+      })),
       whileOff: `While it is off, a quote with a line at ${label} cannot be given.`,
     })
   }
 
-  /* A MOTOR'S PRICE THE DEALER POINTED AT A FIGURE WORKED FROM COST */
+  /* A PRICE THE DEALER POINTED AT A FIGURE THE ENGINE STARTS AS NORTHSIDE'S OWN */
   for (const col of settled) {
     const c = col.cash
-    if (c.state !== 'reads' || !c.named || !c.worked) continue
-    const other = c.choices?.find((k) => !k.current && k.figure !== null)
-    const table = data.tables[col.tableIds[0]!]
+    if (c.state !== 'reads' || !c.named) continue
+    const lead = data.tables[col.tableIds[0]!]
+    const field = lead?.fields.find((f) => f.name === c.label)
+    if (!lead || !field || workedFromCost(field) === null) continue
+    const other = c.ways?.find((w) => !w.current && w.figures[0]?.figure !== null)
     kept.push({
       id: `${col.id}#reach`,
       label: c.label,
       on: `every ${col.noun.one}`,
       targets: col.tableIds.map((tableId) => ({ tableId, key: CASH })),
       mayReach: c.mayReach,
-      worked: c.worked,
+      meaning: meaningOf(lead, field),
+      checked: null,
       specimen:
-        c.sample && table && c.figure !== null && other && other.figure !== null
+        c.sample && c.figure !== null && other && other.figures[0]!.figure !== null
           ? {
               sample: c.sample,
-              maker: makerOf(table),
+              maker: makerOf(lead),
               figure: c.figure,
-              against: other.figure,
-              againstLabel: other.label,
+              against: other.figures[0]!.figure,
+              againstLabel: other.title,
             }
           : null,
+      ranges: [],
       whileOff: `While it is off, a quote with a ${col.noun.one} on it cannot be given.`,
     })
   }
@@ -798,36 +1048,40 @@ export function readDesk(data: Sheet, columns: readonly Column[]): Desk {
 
 /** THE QUESTION an undecided list asks, in the dealer's words. */
 export function questionOf(col: Column): string {
-  if (col.cash.state === 'not-priced')
-    /* what a quote does until it is chosen, as the build says it (built-critique-m3.md, blocker
-       1): "Not priced" was a word no other screen printed, and the build now refuses to give a
-       quote with such a line until it is priced */
+  const c = col.cash
+  if (c.state === 'not-priced') {
+    /* one figure under several names is still a price nobody has named, and a quote with one of
+       these lines cannot be given until it is — but there is nothing to choose between */
+    if (c.ways.length === 1)
+      return `Your price list names no price for a ${col.noun.one}, and holds one figure for it under ${c.ways[0]!.alsoNamed.length + 1} names. Until you name it, each one on a quote is priced by hand.`
+    /* a way of several prices is a way of selling: Rigging Kits supplied or fitted */
+    if (c.ways.some((w) => w.figures.length > 1))
+      return `How is a ${col.noun.one} sold: supplied, or always fitted? Until you choose, each one on a quote is priced by hand.`
     return `Which figure is a ${col.noun.one}’s price? Until you choose, each one on a quote is priced by hand.`
-  /* WHAT A QUOTE SHOWS TODAY, said with the question (built-critique-m3-2.md, minor: the Yamaha
-     line asked which figure without saying which one a quote prints until it is answered) */
-  return `Which figure does a customer’s quote show? Today it shows ${col.cash.label}.`
+  }
+  return `Which figure does a customer’s quote show? Today it shows ${c.label}.`
 }
 
 /** THE SAME LIST READ ON THE LINE THE DEALER CAME FROM — the line on the quote that sent him
- *  here (built-critique-m3-2.md, major 2): Prices from the Classic 340's finale showed a VHF
- *  Radio's figures while the quote carried the Tube Covers. The line's name and its own figures
- *  stand where any line of the list stood, so the choice is made on what the customer is looking
- *  at. The list is returned as it was when the line is not on it. */
+ *  here (built-critique-m3-2.md, major 2). The line's name and its own figures stand where any
+ *  line of the list stood, so the choice is made on what the customer is looking at. */
 export function onLine(data: Sheet, col: Column, tableId: string, rowId: string): Column {
   if (!col.tableIds.includes(tableId)) return col
   const table = data.tables[tableId]
   const row = data.rows[tableId]?.find((r) => r.id === rowId)
   if (!table || !row) return col
   const sample: Sample = { ...sampleOf(table, row), onQuote: true }
-  const figureOf = (label: string): number | null => {
-    const field = table.fields.find((f) => f.name === label)
-    return field ? priceIn(row, field.id) : null
-  }
-  const again = (cs: Candidate[]): Candidate[] =>
-    cs.map((k) => ({ ...k, figure: figureOf(k.label) }))
+  const lead = data.tables[col.tableIds[0]!]!
+  const again = (ws: WayView[]): WayView[] =>
+    ws.map((w) => ({
+      ...w,
+      figures: w.figures.map((f) => {
+        const field = sameField(lead, f.fieldId, table)
+        return { ...f, figure: field ? priceIn(row, field.id) : null }
+      }),
+    }))
   const c = col.cash
-  if (c.state === 'not-priced')
-    return { ...col, cash: { ...c, sample, candidates: again(c.candidates) } }
+  if (c.state === 'not-priced') return { ...col, cash: { ...c, sample, ways: again(c.ways) } }
   const cashField = ladderOn(data, table).find((l) => l.key === CASH)?.fieldId
   return {
     ...col,
@@ -835,8 +1089,7 @@ export function onLine(data: Sheet, col: Column, tableId: string, rowId: string)
       ...c,
       sample,
       figure: cashField ? priceIn(row, cashField) : null,
-      fork: c.fork ? again(c.fork) : null,
-      choices: c.choices ? again(c.choices) : null,
+      ways: c.ways ? again(c.ways) : null,
     },
   }
 }
@@ -844,7 +1097,7 @@ export function onLine(data: Sheet, col: Column, tableId: string, rowId: string)
 const count = (value: number): string => new Intl.NumberFormat('en-AU').format(value)
 
 /** A name's trailing note taken off: "Sell inc Install (if appl.)" → "Sell inc Install". */
-const plainName = (label: string): string => label.replace(/\s*\([^)]*\)\s*$/, '')
+export const plainName = (label: string): string => label.replace(/\s*\([^)]*\)\s*$/, '')
 
 /** THE ONE FACT a settled list's tile says: how it prices, then what differs. */
 export function settledFact(col: Column): string {
@@ -881,4 +1134,70 @@ export function soldAsPackage(data: Sheet, col: Column): string | null {
     (t) => t.kind === 'package' && t.id !== lead.id && t.name.startsWith(`${lead.name} `),
   )
   return pkg ? pkg.name : null
+}
+
+/* ---------------------------------------------------------- */
+/* Every line a person could look up                           */
+/* ---------------------------------------------------------- */
+
+const CODE_COLUMNS = ['Model Code', 'Code', 'Part Number']
+
+/** EVERY LINE ON SALE, named as the build names it, with the code the dealer orders by — what the
+ *  look-up finds by. A line marked no longer sold, and a kit list's banner rows, are not lines. */
+export function lineEntries(data: Sheet, columns: readonly Column[]): LineEntry[] {
+  const out: LineEntry[] = []
+  for (const col of columns)
+    for (const tableId of col.tableIds) {
+      const table = data.tables[tableId]
+      if (!table) continue
+      const code = CODE_COLUMNS.map((n) => table.fields.find((f) => f.name === n)).find(Boolean)
+      for (const row of data.rows[tableId] ?? []) {
+        if (row.values[DISCONTINUED] === true) continue
+        if (row.values[`${tableId}.sentinel`] === true) continue
+        const label = rowLabel(table, row)
+        if (label.trim() === '') continue
+        const c = code ? row.values[code.id] : null
+        out.push({
+          tableId,
+          rowId: row.id,
+          name: spokenLine(table, label),
+          code: typeof c === 'string' ? c : '',
+          list: col.shelf === 'boats' ? makerOf(table) : col.name,
+        })
+      }
+    }
+  return out
+}
+
+/* ---------------------------------------------------------- */
+/* Who chose, as far as this browser holds it                  */
+/* ---------------------------------------------------------- */
+
+/** One step the catalogue kept this session: what the store's audit hands a screen. */
+interface Kept0 {
+  kind: string
+  at: string
+  by?: string
+  tableId?: string
+  events?: Kept0[]
+}
+
+const touches = (e: Kept0, ids: ReadonlySet<string>): boolean =>
+  (e.tableId !== undefined && ids.has(e.tableId)) || (e.events ?? []).some((x) => touches(x, ids))
+
+/** WHO LAST CHOSE A LIST'S PRICE AND WHEN, read off the steps this browser kept this session
+ *  (the judge of Prices, 2026-11-04, L14). The store keeps a session's steps and no more
+ *  (EVENTS_KEPT, src/state/catalogue.ts), so after a reload nothing is said rather than a guess. */
+export function chosenBy(
+  events: readonly Kept0[],
+  tableIds: readonly string[],
+): { by: string; at: string } | null {
+  const ids = new Set(tableIds)
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const e = events[i]!
+    if (e.kind !== 'prices-changed' && e.kind !== 'batch' && e.kind !== 'redone') continue
+    if (!touches(e, ids)) continue
+    return { by: e.by ?? '', at: e.at }
+  }
+  return null
 }

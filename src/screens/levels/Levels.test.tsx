@@ -68,14 +68,14 @@ describe('at rest', () => {
     const choose = screen.getByRole('heading', { level: 2, name: /^Yours to choose/ })
     expect(choose.textContent).toBe('Yours to choose 4')
     const rows = screen
-      .getAllByRole('button', { name: /\. Which figure/ })
+      .getAllByRole('button', { name: /\. (Which figure|How is|Your price list names no price)/ })
       .map((b) => b.getAttribute('aria-label')?.split(',')[0])
     expect(rows).toEqual(['Dealer Fit', 'Rigging Kits', 'Yamaha Outboards', 'Factory packages'])
     expect(screen.getAllByText('To choose')).toHaveLength(4)
 
-    expect(
-      screen.getByRole('heading', { level: 2, name: /^Settled by your price list/ }).textContent,
-    ).toBe('Settled by your price list 10')
+    expect(screen.getByRole('heading', { level: 2, name: /^Settled/ }).textContent).toBe(
+      'Settled 10',
+    )
   })
 
   it('reads the Yamahas’ two figures on the F90XB, neither chosen', () => {
@@ -89,7 +89,7 @@ describe('at rest', () => {
 
   it('says each settled list’s one fact, the different one in its own words', () => {
     draw()
-    const settled = group(/^Settled by your price list/)
+    const settled = group(/^Settled/)
     expect(settled.getByRole('button', { name: /^Highfield.*67 boats: Trade is 95% of Cash$/ }))
     expect(
       settled.getByRole('button', {
@@ -113,12 +113,18 @@ describe('at rest', () => {
 describe('the boundary', () => {
   it('reads Warranty on the Sport 560 on Northside’s ground, switched off', () => {
     const { container } = draw()
-    const kept = group(/^Worked from cost/)
+    const kept = group(/^Kept from customers/)
     expect(kept.getByText('Northside only')).toBeTruthy()
     expect(kept.getByText('$32,166')).toBeTruthy()
+    expect(kept.getByText('against Cash $48,350 · 66.5% of Cash,', { exact: false })).toBeTruthy()
+    /* the gap is one phrase that never breaks: "$16,184 under", never "$16,184 ⏎ under" */
+    expect(kept.getByText('$16,184 under').className).toBe('lv-nowrap')
+    /* and every maker's Warranty across its list, the eight Stacer boats above Cash named */
+    expect(container.querySelector('.lv-range')?.textContent).toBe('Stacer93–110% of Cash on 91')
+    expect(kept.getByText(/^Above Cash on 8 Stacer boats:/)).toBeTruthy()
     expect(
-      kept.getByText('against Cash $48,350 · 66.5% of Cash, $16,184 under', { exact: false }),
-    ).toBeTruthy()
+      kept.getByRole('link', { name: 'Open the 8 with Warranty above Cash' }).getAttribute('href'),
+    ).toBe('/data/boat_stacer?only=under~boat_stacer.qr~boat_stacer.rb')
     expect(
       kept.getByText('While it is off, a quote with a line at Warranty cannot be given.', {
         exact: false,
@@ -138,7 +144,7 @@ describe('the boundary', () => {
     /* let out, the well rises to a plate; the badge says so in words, not only by depth */
     expect(container.querySelector('.lv-kept[data-reach]')).not.toBeNull()
     expect(
-      group(/^Worked from cost/).getByText('May reach a customer', { selector: 'p' }),
+      group(/^Kept from customers/).getByText('May reach a customer', { selector: 'p' }),
     ).toBeTruthy()
     expect(boats()).toHaveLength(7)
     for (const b of boats())
@@ -151,14 +157,18 @@ describe('the boundary', () => {
 })
 
 describe('a list with no price', () => {
-  it('counts what a figure would price before it names it, and the list then settles', async () => {
+  it('asks how a kit is sold, counts what a way would price before it names it, and the list then settles', async () => {
     const user = userEvent.setup()
     const { onList, again } = draw('rig_kits')
     const kits = opened()
-    const tiles = ['Kit Sell Price', 'Install Retail Sell', 'Sell Price'].map((name) =>
+    /* two ways, never the fitting labour alone as a rival to the kit (the judge, L6) */
+    const tiles = ['Supplied, or fitted', 'Always fitted'].map((name) =>
       kits.getByRole('button', { name: new RegExp(`^${name}, `) }),
     )
     for (const t of tiles) expect(t.getAttribute('aria-pressed')).toBe('false')
+    expect(kits.queryByRole('button', { name: /^Install Retail Sell, / })).toBeNull()
+    /* each figure says what it is */
+    expect(kits.getAllByText(/^The kit alone, supplied and not fitted/).length).toBeGreaterThan(0)
     expect(priceLevelsFor(catalogue.getState().tables.rig_kits)).toEqual([])
 
     /* pressed, it is counted and nothing is written */
@@ -166,12 +176,17 @@ describe('a list with no price', () => {
     expect(
       kits.getByText(/^628 of 650 rigging kits are priced at their Kit Sell Price/),
     ).toBeTruthy()
+    expect(kits.getByText(/^No quote on this computer carries a rigging kit/)).toBeTruthy()
     expect(priceLevelsFor(catalogue.getState().tables.rig_kits)).toEqual([])
 
-    await user.click(kits.getByRole('button', { name: 'Price 628 at Kit Sell Price' }))
+    await user.click(kits.getByRole('button', { name: 'Price 628 kits supplied, or fitted' }))
     expect(
-      priceLevelsFor(catalogue.getState().tables.rig_kits).map((l) => [l.key, l.label]),
-    ).toEqual([['cash', 'Kit Sell Price']])
+      priceLevelsFor(catalogue.getState().tables.rig_kits).map((l) => [l.key, l.fieldId]),
+    ).toEqual([
+      ['cash', 'rig_kits.k'],
+      ['trade', 'rig_kits.l'],
+      ['fitted', 'rig_kits.ac'],
+    ])
     expect(onList).toHaveBeenLastCalledWith('')
 
     /* folded: it stands under Settled now, with its step and one Undo */
@@ -179,13 +194,15 @@ describe('a list with no price', () => {
     expect(screen.getByRole('heading', { level: 2, name: /^Yours to choose/ }).textContent).toBe(
       'Yours to choose 3',
     )
-    const settled = group(/^Settled by your price list/)
+    const settled = group(/^Settled/)
+    expect(settled.getByRole('button', { name: /^Rigging Kits, 650 kits: .* · 22 not priced$/ }))
+    const step = within(settled.getByTestId('last-step'))
     expect(
-      settled.getByRole('button', {
-        name: /^Rigging Kits.*Priced at Kit Sell Price · 22 not priced$/,
-      }),
-    )
-    await user.click(within(settled.getByTestId('last-step')).getByRole('button', { name: 'Undo' }))
+      step.getByText(
+        'Every rigging kit is priced at its Kit Sell Price, a trade buyer at Trade Price and fitted at Sell Price, from the next quote.',
+      ),
+    ).toBeTruthy()
+    await user.click(step.getByRole('button', { name: 'Undo' }))
     expect(priceLevelsFor(catalogue.getState().tables.rig_kits)).toEqual([])
   })
 
@@ -282,6 +299,12 @@ describe('the motor’s two figures', () => {
     expect(
       opened().getByText(/the F90XB goes from \$14,531 to \$17,643/, { exact: false }),
     ).toBeTruthy()
+    /* the two read against each other over all 209, never on one motor (the judge, L3) */
+    expect(
+      opened().getByText(
+        /On the 209 lines holding both, RRP \+ Freight Inc GST is 1\.01–1\.26 × Sell Price/,
+      ),
+    ).toBeTruthy()
     await user.click(opened().getByRole('button', { name: 'Show RRP + Freight Inc GST' }))
 
     const motor = catalogue.getState().tables.mot_yamaha!
@@ -292,7 +315,7 @@ describe('the motor’s two figures', () => {
 
     /* it stands on Northside's ground now, beside Warranty, with its own switch */
     again('')
-    const kept = group(/^Worked from cost/)
+    const kept = group(/^Kept from customers/)
     expect(kept.getByRole('heading', { name: /^RRP \+ Freight Inc GST on every Yamaha motor/ }))
     const switches = kept.getAllByRole('switch', { name: 'May reach a customer' })
     expect(switches).toHaveLength(2)
@@ -319,7 +342,7 @@ describe('a share of Cash, written into every line', () => {
     await user.type(field, '95')
     const census = stacer.getByTestId('census')
     expect(census.textContent?.replace(/\s+/g, ' ')).toBe(
-      '91 written · 91 equal Cash today · 0 already · 0 with no Cash · 309 Skimma $1,730 → $1,643',
+      '91 written · 0 already at 95% · 0 with no Cash · 309 Skimma $1,730 → $1,643',
     )
     expect(skimma()).toBe(1730)
 
@@ -332,7 +355,7 @@ describe('a share of Cash, written into every line', () => {
 
     /* folded back: the tile says its new fact, and its one Undo stands under it */
     again('')
-    const settled = group(/^Settled by your price list/)
+    const settled = group(/^Settled/)
     expect(settled.getByRole('button', { name: /^Stacer, 91 boats: Trade is 95% of Cash$/ }))
     const line = within(settled.getByTestId('last-step'))
     expect(line.getByText('Trade is 95% of Cash on 91 Stacer boats.')).toBeTruthy()
@@ -369,5 +392,52 @@ describe('a share of Cash, written into every line', () => {
         'No Trade price on this list, so a trade buyer’s quote stays at Sell inc Rego.',
       ),
     ).toBeTruthy()
+  })
+})
+
+describe('each buyer’s price', () => {
+  it('finds a motor by its code and says what a customer and a trade buyer pay, with each cell', async () => {
+    const user = userEvent.setup()
+    const onLine = vi.fn<(line: string) => void>()
+    const props = { onList: () => {}, openTheFile: () => {}, onLine }
+    const view = render(<Levels list="" {...props} />)
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Find a line by its name or its code' }),
+      'F90XB',
+    )
+    const hits = within(screen.getByRole('list', { name: 'Lines found' }))
+    await user.click(hits.getAllByRole('button')[0]!)
+    const token = onLine.mock.calls.at(-1)![0]
+    view.rerender(<Levels list="" line={token} {...props} />)
+    const buyers = within(screen.getByTestId('buyers'))
+    expect(buyers.getByText('$14,531')).toBeTruthy()
+    expect(buyers.getByText('Motor Library!BF', { exact: false })).toBeTruthy()
+    expect(buyers.getByText('A trade buyer')).toBeTruthy()
+  })
+
+  it('says, where nothing is found, that nothing on sale is called it', async () => {
+    const user = userEvent.setup()
+    draw()
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Find a line by its name or its code' }),
+      'zzqq',
+    )
+    expect(screen.getByText(/^Nothing on sale is called “zzqq”/)).toBeTruthy()
+  })
+})
+
+describe('Dealer Fit’s two figures, with their grounds', () => {
+  it('says what Act Sell and Sell are, the rule checked, and how far apart they run', () => {
+    draw('dealer_fit')
+    const fit = opened()
+    expect(fit.getByText(/^The whole package fitted/)).toBeTruthy()
+    expect(fit.getByText(/primary accessory alone/)).toBeTruthy()
+    expect(fit.getByText(/holds on 1,721 of 1,733/)).toBeTruthy()
+    expect(
+      fit.getByText(
+        /On the 789 lines holding both, Act Sell is 0\.97–27\.83 × Sell; on the middle line, 2\.08 ×/,
+      ),
+    ).toBeTruthy()
+    expect(fit.getByText('They are never the same figure.', { exact: false })).toBeTruthy()
   })
 })

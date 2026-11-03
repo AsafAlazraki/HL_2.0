@@ -85,6 +85,7 @@ import { houseHeld } from '@/domain/rules/review/houseHeld'
 import { pricesNow, pricesSaid } from '@/domain/rules/review/pricesNow'
 import { quotesTouching, type QuoteTouch } from '@/domain/rules/review/touching'
 import { caseFound, wordsOfCase } from '@/domain/rules/review/finding'
+import { seeBothSearch } from '@/domain/rules/review/seeBoth'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import { packedOn, provenanceOfSheet } from '@/screens/data/file'
 import {
@@ -328,6 +329,7 @@ function Queue({
      the sentence of what was done and, under it, the next case; a step that kept the case (two of
      eight kits priced) brings its sentence into view only where it is out of it */
   const saidAt = useRef(0)
+  const railRef = useRef<HTMLElement>(null)
   useEffect(() => {
     const behavior = still ? 'auto' : 'smooth'
     const freshStep = done !== null && done.at !== saidAt.current
@@ -336,7 +338,7 @@ function Queue({
       const d = doneRef.current
       if (!freshStep || !d) return
       const box = d.getBoundingClientRect()
-      if (box.top < 0 || box.bottom > window.innerHeight)
+      if (box.top < clearOf(d) || box.bottom > window.innerHeight)
         d.scrollIntoView({ block: 'nearest', behavior })
       return
     }
@@ -348,8 +350,12 @@ function Queue({
     h.focus({ preventScroll: true })
     const top = doneRef.current ?? h
     const box = h.getBoundingClientRect()
-    if (top.getBoundingClientRect().top < 0 || box.bottom > window.innerHeight * 0.6)
+    /* UNDER THE PILL'S CLEARANCE IS OUT OF VIEW TOO: a press from a case's foot let the page clamp
+       to its new height with the sentence at y 20 of 390, half under the floor the shell lays there */
+    if (top.getBoundingClientRect().top < clearOf(top) || box.bottom > window.innerHeight * 0.6) {
       top.scrollIntoView({ block: 'start', behavior })
+      holdWhileTheRailSettles(top, railRef.current)
+    }
   })
   const goTo = useCallback(
     (key: string, also: Partial<ReviewPosition> = {}) => {
@@ -562,6 +568,7 @@ function Queue({
         Skip to the case
       </a>
       <Rail
+        railRef={railRef}
         data={data}
         cases={cases}
         perKind={perKind}
@@ -665,11 +672,41 @@ function Queue({
   )
 }
 
+/** The room an element keeps above it when it is brought into view: its own scroll margin, which
+ *  is the pill's clearance. */
+function clearOf(el: HTMLElement): number {
+  return Number.parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+}
+
+/**
+ * WHERE A PRESS BROUGHT THE PAGE, IT STAYS WHILE THE RAIL ABOVE IT SETTLES (the verifier of
+ * 2026-11-04, round 2, minor 6: at 844 × 390 the page stood 77px down, the rail's count and the
+ * index's press half under the pill). The first write since the price file sends the rail a line
+ * more a moment after the press ("1 case settled since the Master Price File …", once the file is
+ * read), and the sentence the window was brought to slid 34px down with everything under it. For
+ * the next few seconds a change in the rail's height brings it back to where it was brought.
+ */
+function holdWhileTheRailSettles(el: HTMLElement, rail: HTMLElement | null): void {
+  if (!rail || typeof ResizeObserver === 'undefined') return
+  let first = true
+  const watch = new ResizeObserver(() => {
+    /* the first call is the observer saying the size it starts from */
+    if (first) {
+      first = false
+      return
+    }
+    if (el.isConnected) el.scrollIntoView({ block: 'start', behavior: 'auto' })
+  })
+  watch.observe(rail)
+  setTimeout(() => watch.disconnect(), 3000)
+}
+
 /* ============================================================
    THE RAIL — what is left, what it risks, and what it costs
    ============================================================ */
 
 function Rail({
+  railRef,
   data,
   cases,
   perKind,
@@ -685,6 +722,7 @@ function Rail({
   indexOpen,
   onIndex,
 }: {
+  railRef: RefObject<HTMLElement | null>
   data: ReviewData
   cases: readonly Case[]
   perKind: Record<CaseKind, number>
@@ -717,7 +755,7 @@ function Rail({
      names its check and count on hover */
   const barSaid = kinds.map((k) => `${CHECK_WORDS[k].chip} ${perKind[k]}`).join(', ')
   return (
-    <header className="rv-rail">
+    <header className="rv-rail" ref={railRef}>
       {/* THE SCREEN SAYS ITS NAME, once, small, over the figure it is named for */}
       <h1 className="rv-count">
         <span className="rv-count__name">Review</span>{' '}
@@ -905,7 +943,7 @@ function Index({
     const column = list?.closest<HTMLElement>('.rv-side')
     const lit =
       onKey === '' ? null : list?.querySelector<HTMLElement>(`[data-case="${CSS.escape(onKey)}"]`)
-    if (!column || !lit || column.scrollHeight <= column.clientHeight) return
+    if (!list || !column || !lit || column.scrollHeight <= column.clientHeight) return
     if (getComputedStyle(column).overflowY !== 'auto') return
     const box = column.getBoundingClientRect()
     const top = lit.getBoundingClientRect().top - box.top + column.scrollTop
@@ -915,8 +953,19 @@ function Index({
       lit.offsetHeight,
       Math.min(column.clientHeight, window.innerHeight - Math.max(box.top, 0)),
     )
-    if (top < column.scrollTop || top + lit.offsetHeight > column.scrollTop + shows)
-      column.scrollTop = Math.max(0, top - shows / 4)
+    if (top >= column.scrollTop && top + lit.offsetHeight <= column.scrollTop + shows) return
+    /* THE COLUMN STOPS ON A WHOLE CASE (the verifier of 2026-11-04, round 2, minor 5: "two
+       apart." stood at its top edge, the rest of the case above it): the case a quarter of the way
+       up from the lit one is found, and the column stands at its top, or at a group's name */
+    /* never past the column's own end, where the browser would clamp it back onto half a case */
+    const want = Math.min(Math.max(0, top - shows / 4), column.scrollHeight - column.clientHeight)
+    let stop = 0
+    for (const el of list.querySelectorAll<HTMLElement>('.rv-index__name, .rv-index__list > li')) {
+      const at = el.getBoundingClientRect().top - box.top + column.scrollTop
+      if (at > want) break
+      stop = at
+    }
+    column.scrollTop = stop
   }, [onKey])
   /* AN EMPTY QUEUE HAS NOTHING TO FIND: the index says so, and offers no find over nothing */
   if (cases.length === 0)
@@ -1049,7 +1098,6 @@ function Frame({
   lede,
   children,
   acts,
-  actsFirst,
   evidence,
   leaveRow,
   kept,
@@ -1063,9 +1111,11 @@ function Frame({
   titleRef: RefObject<HTMLHeadingElement | null>
   lede: ReactNode
   children?: ReactNode
+  /** THE PRESS STANDS UNDER THE LEDE ON EVERY CASE, the evidence and the lines after it (the
+   *  verifier of 2026-11-04, round 2, minor 7: it stood above the lines on some cases and below
+   *  them on others, and c19's was below a phone's first window). Enter in a line's field
+   *  presses it, wherever the field stands. */
   acts?: ReactNode
-  /** the press stands right under the lede, the evidence after it (the trailer: one press) */
-  actsFirst?: boolean
   evidence?: ReactNode
   leaveRow?: ReactNode
   kept?: ReactNode
@@ -1102,10 +1152,9 @@ function Frame({
         )}
       </h2>
       <p className="rv-stage__lede">{lede}</p>
-      {actsFirst ? actRow : null}
+      {actRow}
       {evidence}
       {children}
-      {actsFirst ? null : actRow}
       {leaveRow}
       {touches}
       {kept ? (
@@ -1429,7 +1478,6 @@ function BandStage({
       title={titleOf(c)}
       titleRef={titleRef}
       lede={ledeOf(c)}
-      actsFirst
       acts={
         <>
           {to ? (
@@ -1656,7 +1704,7 @@ function TwoStage({
                   c.tableId,
                   nameField.id,
                   c.item.name,
-                  lines.map((l) => ({ rowId: l.rowId, name: names[l.rowId] ?? '' })),
+                  lines.map((l) => ({ rowId: l.rowId, code: l.code, name: names[l.rowId] ?? '' })),
                 )
                 if (nameApartRefusal(typedNames, c.item.name) !== '' || !command) {
                   setTried(true)
@@ -1748,9 +1796,6 @@ function NoneStage({
     g.lines.map((l) => ({ needs: l.staysBlank, now: nowOf.get(l.rowId) ?? [] })),
     boat,
   )
-  /* MORE THAN A FEW LINES, AND THE PRESS STANDS UNDER THE LEDE (the verifier's gap 9): nine boats'
-     fields stood before it, at y 1509 of 844 on a phone. Enter in any field presses it. */
-  const long = g.lines.length > 3
   return (
     <Frame
       kind={c.kind}
@@ -1762,23 +1807,27 @@ function NoneStage({
       title={titleOf(c, tables[g.tableId]?.kind)}
       titleRef={titleRef}
       lede={ledeOf(c, prices)}
-      actsFirst={long}
       acts={
         <>
           <span className="rv-acts__main">
+            {/* A LINE THAT SAYS WHAT IT COMES WITH IS NOT PRICED HERE (the verifier of 2026-11-04,
+                round 2, minor 3: "FF · Factory Fitted" and "Supplied with Motor" each carried a
+                "$ at Sell" field). It is left at $0, or taken off sale; one that is not meant is
+                priced on its own line, through its door. */}
             {comesWith ? (
               <Button intent="secondary" icon={TagIcon} onClick={() => leave('meant')}>
                 {one ? 'Leave it at $0' : 'Leave them at $0'}
               </Button>
-            ) : null}
-            <Button
-              intent={meantByDefault ? 'secondary' : 'act'}
-              icon={meantByDefault ? TagIcon : ArrowRightIcon}
-              {...t.onPress()}
-              onClick={() => press()}
-            >
-              {label}
-            </Button>
+            ) : (
+              <Button
+                intent={meantByDefault ? 'secondary' : 'act'}
+                icon={meantByDefault ? TagIcon : ArrowRightIcon}
+                {...t.onPress()}
+                onClick={() => press()}
+              >
+                {label}
+              </Button>
+            )}
           </span>
           <Button
             intent="quiet"
@@ -1807,10 +1856,14 @@ function NoneStage({
         </>
       }
       touches={touchesNode}
-      kept={`Typed at ${priceSaid(priceName)}, the price ${g.tableName} is sold at.${stays !== '' ? ` ${stays}` : ''} Every price typed is written in one step, said with its Undo; taken off sale, a line stays in the price list with its Discontinued ticked.`}
+      kept={
+        comesWith
+          ? `Left at $0, nothing in the price list changes; taken off sale, ${one ? 'it stays' : 'each stays'} in the price list with its Discontinued ticked. Either is one step, said with its Undo.`
+          : `Typed at ${priceSaid(priceName)}, the price ${g.tableName} is sold at.${stays !== '' ? ` ${stays}` : ''} Every price typed is written in one step, said with its Undo; taken off sale, a line stays in the price list with its Discontinued ticked.`
+      }
     >
       {/* a boat's like is said once, in the lede, as its sense of scale */}
-      {shared && !boat ? (
+      {comesWith ? null : shared && !boat ? (
         <p className="rv-lines__beside">
           Most like them in the price list: {lineName(shared.name)} · {priceSaid(priceName)}{' '}
           {money(shared.price)}
@@ -1823,12 +1876,14 @@ function NoneStage({
         </p>
       ) : null}
       <div className="rv-lines">
-        <p className="rv-lines__head" aria-hidden="true">
-          <span>As the price list reads</span>
-          <span className="rv-lines__will">
-            <Icon glyph={PencilSimpleIcon} /> Will read at {priceSaid(priceName)}
-          </span>
-        </p>
+        {comesWith ? null : (
+          <p className="rv-lines__head" aria-hidden="true">
+            <span>As the price list reads</span>
+            <span className="rv-lines__will">
+              <Icon glyph={PencilSimpleIcon} /> Will read at {priceSaid(priceName)}
+            </span>
+          </p>
+        )}
         {g.lines.map((l) => {
           const here = t.onField(l.rowId)
           return (
@@ -1846,7 +1901,7 @@ function NoneStage({
                     label={`Open ${lineName(l.name)} in the price list`}
                   />
                 </span>
-                {l.beside && !shared && !boat ? (
+                {comesWith ? null : l.beside && !shared && !boat ? (
                   <span className="rv-line__beside">
                     Most like it: {lineName(l.beside.name)} · {priceSaid(priceName)}{' '}
                     {money(l.beside.price)}
@@ -1858,25 +1913,27 @@ function NoneStage({
                   </span>
                 ) : null}
               </span>
-              <span className="rv-line__field">
-                <Input
-                  mono
-                  inputMode="decimal"
-                  ref={t.fieldRef(l.rowId)}
-                  aria-label={`${priceSaid(priceName)} for ${lineName(l.name)}`}
-                  aria-invalid={here?.invalid ? true : undefined}
-                  aria-describedby={here ? t.reasonId : undefined}
-                  placeholder={`$ at ${priceSaid(priceName)}`}
-                  value={t.typed[l.rowId] ?? ''}
-                  onValueChange={(v) => t.set(l.rowId, v)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault()
-                      press(l.rowId)
-                    }
-                  }}
-                />
-              </span>
+              {comesWith ? null : (
+                <span className="rv-line__field">
+                  <Input
+                    mono
+                    inputMode="decimal"
+                    ref={t.fieldRef(l.rowId)}
+                    aria-label={`${priceSaid(priceName)} for ${lineName(l.name)}`}
+                    aria-invalid={here?.invalid ? true : undefined}
+                    aria-describedby={here ? t.reasonId : undefined}
+                    placeholder={`$ at ${priceSaid(priceName)}`}
+                    value={t.typed[l.rowId] ?? ''}
+                    onValueChange={(v) => t.set(l.rowId, v)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        press(l.rowId)
+                      }
+                    }}
+                  />
+                </span>
+              )}
               {here?.reason}
             </div>
           )
@@ -1938,7 +1995,6 @@ function CostStage({
       title={titleOf(c)}
       titleRef={titleRef}
       lede={ledeOf(c)}
-      actsFirst={g.lines.length > 3}
       acts={
         <>
           <span className="rv-acts__main">
@@ -2269,7 +2325,16 @@ function TwinsStage({
   usePrimary(setPrimary, null)
   const tw = c.twin
   const table = tables[tw.tableId]
-  const every = `${listHref(tw.tableId)}?door=every`
+  /* SEE BOTH LANDS ON THE TWO (the verifier of 2026-11-04, round 2, minor 4): Every column with the
+     two headings lit and in the window, every section that holds neither folded (`seeBoth.ts`) */
+  const every = `${listHref(tw.tableId)}${
+    table
+      ? seeBothSearch(
+          table,
+          tw.columns.map((col) => col.fieldId),
+        )
+      : '?door=every'
+  }`
   return (
     <Frame
       kind="twins"

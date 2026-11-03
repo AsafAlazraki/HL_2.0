@@ -796,6 +796,14 @@
   font-weight: 700;
 }
 
+/* A COLUMN ANOTHER SCREEN ASKED TO SEE (`?col=`): its head in the accent, underlined, so two
+   headings of one name read as the pair Review sent the dealer to */
+.sh-th[data-lit] {
+  color: var(--color-accent);
+  font-weight: 700;
+  box-shadow: inset 0 calc(--spacing(0.5) * -1) 0 var(--color-accent);
+}
+
 /* the lit rung wears the accent itself once its thumb has landed — the lit series' reason */
 .sh-th[data-rung] .sh-th__rung {
   color: var(--color-ink-on-accent);

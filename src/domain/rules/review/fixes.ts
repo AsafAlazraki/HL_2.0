@@ -206,15 +206,27 @@ export function nameApartCommand(
   tableId: string,
   fieldId: string,
   was: string,
-  lines: ReadonlyArray<{ rowId: string; name: string }>,
+  lines: ReadonlyArray<{ rowId: string; name: string; code?: string }>,
 ): CatalogueCommand | null {
-  const named = lines.map((l) => ({ rowId: l.rowId, name: l.name.replace(/\s+/g, ' ').trim() }))
+  const named = lines.map((l) => ({
+    rowId: l.rowId,
+    code: l.code ?? '',
+    name: l.name.replace(/\s+/g, ' ').trim(),
+  }))
   if (named.some((l) => l.name === '')) return null
   const names = new Set(named.map((l) => l.name.toLowerCase()))
   if (names.size !== named.length) return null
+  /* WHICH CODE TOOK WHICH NAME, and the old name never said again (the verifier of 2026-11-04,
+     round 2, minor 8: the step spoke the file's whole string twice and said neither code) */
+  const kept = was.replace(/\s+/g, ' ').trim().toLowerCase()
+  const said = named.map((l, i) => {
+    const which = l.code !== '' ? `code ${l.code}` : i === 0 ? 'the first' : 'the other'
+    return l.name.toLowerCase() === kept ? `${which} keeps its name` : `${which} is now “${l.name}”`
+  })
+  const sentence = said.length === 2 ? said.join(', and ') : said.join('; ')
   return batch(
     named.map((l) => updateCell(tableId, l.rowId, fieldId, l.name)),
-    { said: `The two called “${was}” are now “${named.map((l) => l.name).join('” and “')}”.` },
+    { said: `${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}.` },
   )
 }
 

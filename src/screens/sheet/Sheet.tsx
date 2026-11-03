@@ -267,6 +267,8 @@ export interface SheetPosition {
   fold?: string
   /** the questions asked of the list's values, comma-joined tokens (`domain/catalogue/table/only`) */
   only?: string
+  /** columns asked to be seen behind Every column, comma-joined: their heads lit, the first in view */
+  col?: string
 }
 
 export interface SheetProps extends SheetPosition {
@@ -663,6 +665,7 @@ export function Sheet({
   rung: rungIn,
   fold: foldIn = '',
   only: onlyIn,
+  col: colIn,
   onPosition,
   openTheFile,
   goTo,
@@ -686,13 +689,14 @@ export function Sheet({
     rung: rungIn,
     fold: foldIn,
     only: onlyIn,
+    col: colIn,
   }
   const incomingKey = JSON.stringify(incoming)
   const [asked, setAsked] = useState<{ key: string; want: Partial<SheetPosition> } | null>(null)
   const live =
     asked !== null && asked.key === incomingKey ? { ...incoming, ...asked.want } : incoming
   const door: Door = live.door ?? 'price'
-  const { chapter, read, flip, show, rung, only } = live
+  const { chapter, read, flip, show, rung, only, col: colAsked } = live
   const fold = live.fold ?? ''
 
   const status = useCatalogue((s) => s.status)
@@ -1080,6 +1084,7 @@ export function Sheet({
 
   const hasSpine = spineLevel >= 0
   const foldSet = useMemo(() => new Set(splitList(fold)), [fold])
+  const litFields = useMemo(() => new Set(splitList(colAsked)), [colAsked])
   const every = useMemo(
     () => (table && door === 'every' ? buildSections(leafFields, table.sections, foldSet) : null),
     [table, door, leafFields, foldSet],
@@ -1670,6 +1675,7 @@ export function Sheet({
       rung: rung && rung !== prices[0]?.fieldId ? rung : undefined,
       fold: fold === '' ? undefined : fold,
       only: joinOnly(onlyList),
+      col: door === 'every' && colAsked ? colAsked : undefined,
     }),
     [
       door,
@@ -1684,6 +1690,7 @@ export function Sheet({
       prices,
       fold,
       onlyList,
+      colAsked,
     ],
   )
   const lastPosition = useRef('')
@@ -2603,6 +2610,7 @@ export function Sheet({
             leadW={m.lead}
             tailW={TAIL_W}
             rungFieldId={door === 'price' ? rungId : undefined}
+            litFields={door === 'every' ? litFields : undefined}
             onRung={(id) => go({ rung: id })}
             collapsed={collapsed}
             onToggle={onToggle}

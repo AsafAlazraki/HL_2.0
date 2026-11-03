@@ -32,7 +32,8 @@ import { Sheet, type Door, type Reading, type SheetPosition } from '@/screens/sh
    ones differ from that (`flip`), the columns pressed into the grid
    (`show`), the lit price rung (`rung`), and the sections folded behind
    the Every column door (`fold`), and the questions asked of the list's
-   values (`only` — "No Trade", "Cash under its landed cost") — every one is in the address, so a
+   values (`only` — "No Trade", "Cash under its landed cost"), and the columns another screen
+   asked to see behind Every column (`col`, Review's two headings of one name) — every one is in the address, so a
    link to one row of one table opens on that row, and a write, which
    rebuilds every row, cannot shut or open anything. The screen is
    handed them once and hands its position back; this route writes it
@@ -57,6 +58,7 @@ export interface SheetSearch {
   rung?: string
   fold?: string
   only?: string
+  col?: string
 }
 
 const word = (value: unknown, max = 200): string | undefined => {
@@ -89,6 +91,8 @@ export const Route = createFileRoute('/data/$table')({
        (`readOnly`), so a token naming no column of this list is simply absent */
     const only = word(search.only, 1000)
     if (only) out.only = only
+    const col = word(search.col, 400)
+    if (col) out.col = col
     return out
   },
   beforeLoad: () => {
@@ -141,6 +145,7 @@ function SheetRoute() {
       rung={search.rung}
       fold={search.fold ?? ''}
       only={search.only}
+      col={search.col}
       fileOf={loadTable}
       onPosition={onPosition}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}

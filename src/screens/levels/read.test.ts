@@ -9,7 +9,15 @@ import { loadPack } from '@/test/fixtures/pack'
 import { catalogue } from '@/state/catalogue'
 import { namePrice, CASH } from '@/domain/catalogue/priceCommands'
 import { isDone } from '@/domain/catalogue/commands'
-import { readDesk, readLadder, settledFact, soldAsPackage, type Sheet } from './read'
+import {
+  lineEntries,
+  questionOf,
+  readDesk,
+  readLadder,
+  settledFact,
+  soldAsPackage,
+  type Sheet,
+} from './read'
 
 const sheet = (): Sheet => {
   const s = catalogue.getState()
@@ -43,7 +51,8 @@ describe('the desk', () => {
     expect(desk.kept).toHaveLength(1)
     const [warranty] = desk.kept
     expect(warranty!.label).toBe('Warranty')
-    expect(warranty!.on).toBe('every boat, from 7 makers')
+    /* Haines Signature holds no Warranty figure: its boats are sold as factory packages */
+    expect(warranty!.on).toBe('every boat, from 6 makers')
     expect(warranty!.mayReach).toBe(false)
     expect(warranty!.targets).toHaveLength(7)
     const s = warranty!.specimen!
@@ -65,6 +74,60 @@ describe('the desk', () => {
     expect(fact('parts')).toBe('Sell, or Sell inc Install fitted · 146 not priced')
     const haines = cols.find((c) => c.id === 'boat_haines')!
     expect(soldAsPackage(sheet(), haines)).toBe('Haines Signature Factory Packages')
+  })
+})
+
+describe('what Northside is asked, with its grounds', () => {
+  it('offers Dealer Fit its two ways, each saying what it is, and reads them over the whole list', () => {
+    const fit = readLadder(sheet()).find((c) => c.id === 'dealer_fit')!
+    expect(fit.cash.state).toBe('not-priced')
+    if (fit.cash.state !== 'not-priced') return
+    const [act, sell] = fit.cash.ways
+    expect([act!.title, act!.priced, sell!.title, sell!.priced]).toEqual([
+      'Act Sell',
+      1733,
+      'Sell',
+      815,
+    ])
+    expect(act!.figures[0]!.meaning?.cell).toBe('Dealer Fit Module!R')
+    expect(act!.figures[0]!.checked).toEqual({ holds: 1721, of: 1733 })
+    const b = fit.cash.between!
+    expect([b.more, b.less, b.spread.both, b.spread.equal]).toEqual(['Act Sell', 'Sell', 789, 0])
+  })
+
+  it('asks the factory packages one figure under two names, never a cost the engine would refuse', () => {
+    const pkgs = readLadder(sheet()).find((c) => c.name === 'Factory packages')!
+    if (pkgs.cash.state !== 'not-priced') throw new Error('priced')
+    expect(pkgs.cash.ways.map((w) => [w.title, w.alsoNamed, w.kept])).toEqual([
+      ['Sell Price', ['RRP + Freight Inc GST'], false],
+    ])
+    expect(pkgs.cash.sample?.bare).toBe(true)
+  })
+
+  it('asks Rigging Kits how a kit is sold, and says a sub-dealer pays the trade figure', () => {
+    const kits = readLadder(sheet()).find((c) => c.id === 'rig_kits')!
+    expect(questionOf(kits)).toMatch(/^How is a rigging kit sold: supplied, or always fitted?/)
+    expect(kits.sub).toEqual({ label: 'Sub Dealer Price', held: 628, sameAsTrade: 628 })
+  })
+
+  it('opens the lines behind each count of no figure, one door per kind of nothing', () => {
+    const parts = readLadder(sheet()).find((c) => c.id === 'parts')!
+    expect(parts.doors.cash.map((d) => [d.count, d.said])).toEqual([
+      [27, 'with nothing in Sell'],
+      [119, 'at $0 in Sell'],
+    ])
+    expect(parts.doors.cash[1]!.href).toBe('/data/parts?only=at-most~parts.l~0')
+    const stacer = readLadder(sheet()).find((c) => c.id === 'boat_stacer')!
+    expect(stacer.warranty?.above).toBe(8)
+    expect(stacer.doors.warranty[0]?.count).toBe(8)
+  })
+
+  it('names every line on sale for the look-up, as the build names it', () => {
+    const entries = lineEntries(sheet(), readLadder(sheet()))
+    const f90 = entries.find((e) => e.code === 'F90XB')!
+    expect([f90.name, f90.list]).toEqual(['F90XB', 'Yamaha Outboards'])
+    expect(entries.some((e) => e.name === 'Tube Covers to suit PVC Boat · 3.4 m')).toBe(true)
+    expect(entries.filter((e) => /\d\s*Mtr$/.test(e.name)).map((e) => e.name)).toEqual([])
   })
 })
 

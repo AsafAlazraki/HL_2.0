@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { written } from '../mint'
+import { bringInTheNewerFile } from '../trailerFile'
 
 /* ============================================================
    REVIEW, EVERY STATE AT EVERY SIZE — the screenshots the data round
@@ -27,6 +28,8 @@ const LONE_STAR = 'none:parts:ANCHOR WINCHES - Lone Star:blank'
 const NOTES = 'none:parts:SPECIAL NOTES:zero'
 const PLUGS = 'none:parts:TRAILER PARTS - Trailer Plugs:zero'
 const TWINS_LAST = 'field-dup-name:rig_kits:rig_kits.l,rig_kits.ad'
+const TWIN = 'two:parts:outboard vented cover - yamaha 4 cyl 2.8l f150d f175a f200f (2023>):129/133'
+const ANCHOR_KITS = 'none:parts:ANCHOR KITS:blank'
 
 test('every state of Review, photographed', async ({ page }) => {
   test.setTimeout(600_000)
@@ -76,7 +79,9 @@ test('every state of Review, photographed', async ({ page }) => {
   await to(page, at(TRAILER))
   await page.locator('.rv-kept').scrollIntoViewIfNeeded()
   await page.getByRole('button', { name: /^Make it Large/ }).click()
-  await expect(page.locator(READY)).toHaveText('Rego the ALP 5.7M-13TB as a Large trailer.')
+  await expect(page.locator(READY)).toHaveText(
+    'Rego the ALP 5.7M-13TB Fibreglass Boat as a Large trailer.',
+  )
   await page.waitForTimeout(800)
   await shot('03-trailer-pressed')
   await measure('trailer pressed', 'Make it Large')
@@ -91,7 +96,9 @@ test('every state of Review, photographed', async ({ page }) => {
     .scrollIntoViewIfNeeded()
   await shot('14-settled-since')
   await page.locator('.rv-done').getByRole('button', { name: 'Undo' }).click()
-  await expect(page.locator(READY)).toHaveText('Rego the ALP 5.3M-13B as a Large trailer.')
+  await expect(page.locator(READY)).toHaveText(
+    'Rego the ALP 5.3M-13B Fibreglass Boat as a Large trailer.',
+  )
   await page.waitForTimeout(600)
   await shot('03b-trailer-undone')
 
@@ -103,11 +110,44 @@ test('every state of Review, photographed', async ({ page }) => {
   await expect(page.getByText(/^“abc” is not a price\./)).toBeInViewport()
   await shot('04b-lone-abc')
 
-  /* the cases that say what they come with: one sentence each, no duplicate act (gaps 4, 5) */
+  /* the cases that say what they come with: one sentence each, no duplicate act (gaps 4, 5),
+     and no price field on a line that says what it comes with (round 2, minor 3) */
   await to(page, at(NOTES))
+  await shot('c17-notes')
   await shot('c17-notes-full', true)
   await to(page, at(PLUGS))
   await shot('c18-plugs-full', true)
+
+  /* the press under the lede on every case (round 2, minor 7): c19 on a phone */
+  await to(page, at(ANCHOR_KITS))
+  await shot('c19-anchor-kits')
+  await measure('anchor kits', 'Price them at Sell')
+
+  /* one name at two prices: See both finds both (round 2, the major gap), and naming them apart
+     says which code took which name (minor 8) */
+  await to(page, at(TWIN))
+  await shot('05a-twin')
+  await page.getByRole('link', { name: 'See both in the price list' }).click()
+  await expect(page.getByText(/ 2 match “Outboard Vented Cover/)).toBeAttached({ timeout: 30_000 })
+  await page.waitForTimeout(800)
+  await shot('06-twin-see-both')
+  await to(page, at(TWIN))
+  const grey = page.getByRole('textbox', { name: /for code Y10A-V$/ })
+  await grey.fill(`${await grey.inputValue()} Grey`)
+  await page.getByRole('button', { name: 'Name them apart' }).click()
+  await expect(page.locator('.rv-done__said')).toContainText('keeps its name')
+  await shot('05b-twin-named')
+  await page.locator('.rv-done').getByRole('button', { name: 'Undo' }).click()
+  await expect(page.locator('.rv-done__said')).toContainText('Undone')
+  /* the undo is on this computer before the page is left */
+  await written(page)
+
+  /* two headings of one name: See both lands on the two (round 2, minor 4) */
+  await to(page, at(TWINS_LAST))
+  await page.getByRole('link', { name: 'See both in the price list' }).click()
+  await expect(page.locator('.sh-th[data-lit]')).toHaveCount(2, { timeout: 30_000 })
+  await page.waitForTimeout(800)
+  await shot('06c-see-both-headings')
 
   /* the price list's other rules, with their measures (gap 10) */
   await to(page, at('house:F6'))
@@ -172,4 +212,42 @@ test('what Review finds on a quote’s own lines, in the build’s finale, photo
   await said.scrollIntoViewIfNeeded()
   await page.waitForTimeout(800)
   await page.screenshot({ path: `${OUT}/20-build-warns-${size}.png` })
+})
+
+test('Review’s word where the wrong trailer is picked, photographed', async ({ page }) => {
+  test.setTimeout(120_000)
+  const size = `${page.viewportSize()!.width}x${page.viewportSize()!.height}`
+  await throughTheDoor(page)
+  await page.goto('/quote/new?brand=trl_dunbier')
+  await page.getByRole('searchbox', { name: 'Find a model' }).fill('ALP 5.3M-13B')
+  await page
+    .getByRole('region', { name: 'Models' })
+    .getByRole('button', { name: /ALP 5\.3M-13B \(1,450kgs\) Fibreglass Boat/ })
+    .click()
+  const said = page.locator('.picker-review')
+  await expect(said).toBeVisible()
+  await said.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(800)
+  await page.screenshot({ path: `${OUT}/21c-picker-warns-${size}.png` })
+})
+
+test('a newer price file brought in on Shelf, and what Review says of it, photographed', async ({
+  page,
+}) => {
+  test.setTimeout(180_000)
+  const size = `${page.viewportSize()!.width}x${page.viewportSize()!.height}`
+  await throughTheDoor(page)
+  await bringInTheNewerFile(page)
+  await to(page, '')
+  await expect(page.locator('.rv-money')).toContainText('settled since the Master Price File', {
+    timeout: 20_000,
+  })
+  await page.waitForTimeout(500)
+  await page.screenshot({ path: `${OUT}/14b-newer-file-${size}.png` })
+  await page.getByRole('button', { name: 'See what was settled' }).click()
+  await page
+    .getByRole('list', { name: 'Settled since the Master Price File' })
+    .scrollIntoViewIfNeeded()
+  await page.waitForTimeout(500)
+  await page.screenshot({ path: `${OUT}/14c-newer-file-settled-${size}.png` })
 })

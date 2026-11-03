@@ -27,7 +27,7 @@ async function toPrices(page: Page, list = ''): Promise<void> {
 }
 
 const opened = (page: Page) => page.getByTestId('prices-open')
-const settled = (page: Page) => page.getByRole('region', { name: /^Settled by your price list/ })
+const settled = (page: Page) => page.getByRole('region', { name: /^Settled/ })
 
 /** Nothing the screen drew is under the pill: the open panel's top is clear of its foot. */
 async function clearOfThePill(page: Page): Promise<boolean> {
@@ -117,7 +117,10 @@ test('a share of Cash is counted before it is written, written for real, and one
 
   await share.fill('95')
   await expect(stacer.getByTestId('census')).toHaveText(
-    '91 written · 91 equal Cash today · 0 already · 0 with no Cash · 309 Skimma $1,730 → $1,643',
+    '91 written · 0 already at 95% · 0 with no Cash · 309 Skimma $1,730 → $1,643',
+  )
+  await expect(stacer.locator('.lv-buyer[data-key="trade"] .lv-buyer__figure')).toHaveText(
+    '$1,730 $1,643',
   )
   await stacer.getByRole('button', { name: 'Write 91 Trade figures' }).click()
 
@@ -147,35 +150,62 @@ test('a share of Cash is counted before it is written, written for real, and one
   /* and written for real: the page read again, the 309 Skimma's Trade is still $1,643 */
   await written(page)
   await toPrices(page, 'boat_stacer')
-  await expect(opened(page).locator('.lv-figures')).toContainText('$1,643')
-  await expect(opened(page).locator('.lv-figures')).toContainText('95% of Cash, $87 less')
+  const trade = opened(page).locator('.lv-buyer[data-key="trade"]')
+  await expect(trade.locator('.lv-buyer__figure')).toHaveText('$1,643')
+  await expect(trade).toContainText('95% of Cash on 91 of 91.')
 })
 
-test('Rigging Kits are given a price from their own figures, counted first, and leave the questions', async ({
+test('Rigging Kits are priced supplied or fitted, cash and trade, counted first, and leave the questions', async ({
   page,
 }) => {
   await throughTheDoor(page)
   await toPrices(page, 'rig_kits')
   const kits = opened(page)
-  const kit = kits.getByRole('button', { name: /^Kit Sell Price, \$/ })
-  await expect(kit).toHaveAttribute('aria-pressed', 'false')
-  await kit.click()
+  const way = kits.getByRole('button', { name: /^Supplied, or fitted, \$/ })
+  await expect(way).toHaveAttribute('aria-pressed', 'false')
+  await way.click()
   await expect(
     kits.getByText(/^628 of 650 rigging kits are priced at their Kit Sell Price/),
   ).toBeVisible()
-  await kits.getByRole('button', { name: 'Price 628 at Kit Sell Price' }).click()
+  const act = kits.getByRole('button', { name: 'Price 628 kits supplied, or fitted' })
+  /* the act stands in the window once a way is pressed, at every size */
+  await expect(act).toBeInViewport({ ratio: 1 })
+  await act.click()
 
   await expect(page.getByRole('heading', { level: 2, name: /^Yours to choose/ })).toHaveText(
     'Yours to choose 3',
   )
   await expect(
-    settled(page).getByRole('button', {
-      name: /^Rigging Kits, 650 kits: Priced at Kit Sell Price/,
-    }),
+    settled(page).getByRole('button', { name: /^Rigging Kits, 650 kits: .* · 22 not priced$/ }),
   ).toBeVisible()
   await expect(settled(page).getByTestId('last-step')).toContainText(
-    'Every Rigging Kits line is priced at its Kit Sell Price from the next quote.',
+    'Every rigging kit is priced at its Kit Sell Price, a trade buyer at Trade Price and fitted at Sell Price, from the next quote.',
   )
+})
+
+test('a line is looked up by its code, and each buyer’s price stands with its cell, kept in the address', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await toPrices(page)
+  await page.getByRole('searchbox', { name: 'Find a line by its name or its code' }).fill('F90XB')
+  await page.getByRole('list', { name: 'Lines found' }).getByRole('button').first().click()
+  await expect(page).toHaveURL(/line=mot_yamaha(~|%7E)/)
+  const buyers = page.getByTestId('buyers')
+  await expect(buyers).toContainText('$14,531')
+  await expect(buyers).toContainText('Sell Price · Motor Library!BF')
+  /* the position survives a reload */
+  await page.reload()
+  await expect(page.getByTestId('buyers')).toContainText('$14,531')
+})
+
+test('a count opens the lines behind it on the sheet', async ({ page }) => {
+  await throughTheDoor(page)
+  await toPrices(page, 'parts')
+  await opened(page).getByRole('link', { name: 'Open the 119 at $0 in Sell' }).click()
+  await expect(page).toHaveURL(/\/data\/parts\?only=at-most(~|%7E)parts\.l(~|%7E)0/)
+  /* the sheet asked exactly that question: its chip says it */
+  await expect(page.getByText('Sell at most 0').first()).toBeVisible()
 })
 
 test('a settled tile opens across its own row, after the row’s last tile', async ({ page }) => {

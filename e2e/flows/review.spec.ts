@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { written } from '../mint'
+import { bringInTheNewerFile } from '../trailerFile'
 
 /* ============================================================
    REVIEW, THE CASE QUEUE — what the rulers cannot see. Every press
@@ -34,11 +35,13 @@ const stage = (page: Page) => page.locator('.rv-stage')
 const title = (page: Page) => stage(page).getByRole('heading', { level: 2 })
 
 const BOATS = 'Price the 9 Formosa boats on sale at $0.'
-const FIRST = 'Rego the ALP 5.3M-13B as a Large trailer.'
-const SECOND = 'Rego the ALP 5.7M-13TB as a Large trailer.'
+const FIRST = 'Rego the ALP 5.3M-13B Fibreglass Boat as a Large trailer.'
+const SECOND = 'Rego the ALP 5.7M-13TB Fibreglass Boat as a Large trailer.'
 const FIRST_TRAILER = 'band:trl_dunbier:trl_dunbier:67:Small Trailers - Up to 1.02t:1450'
 const LONE_STAR = 'none:parts:ANCHOR WINCHES - Lone Star:blank'
 const PLUGS = 'none:parts:TRAILER PARTS - Trailer Plugs:zero'
+const TWINS_LAST = 'field-dup-name:rig_kits:rig_kits.l,rig_kits.ad'
+const TWIN = 'two:parts:outboard vented cover - yamaha 4 cyl 2.8l f150d f175a f200f (2023>):129/133'
 
 test.describe('review', () => {
   test('at rest: what is left, what it costs, and what risks a quote on the stage', async ({
@@ -76,9 +79,12 @@ test.describe('review', () => {
        the stage where the next case lands — and no toast stands over the page (gap 6) */
     const done = page.locator('.rv-done')
     await expect(
-      done.getByText('The ALP 5.3M-13B is registered Large at $283, and sells at $11,483.', {
-        exact: true,
-      }),
+      done.getByText(
+        'The ALP 5.3M-13B Fibreglass Boat is registered Large at $283, and sells at $11,483.',
+        {
+          exact: true,
+        },
+      ),
     ).toBeVisible()
     await expect(done).toBeInViewport()
     await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
@@ -89,7 +95,7 @@ test.describe('review', () => {
     await expect(count(page, 39)).toBeVisible()
     await expect(
       page.getByText(
-        /^Undone\. No longer so: The ALP 5\.3M-13B is registered Large at \$283, and sells at \$11,483\.$/,
+        /^Undone\. No longer so: The ALP 5\.3M-13B Fibreglass Boat is registered Large at \$283, and sells at \$11,483\.$/,
       ),
     ).toBeVisible()
     await expect(title(page)).toHaveText(FIRST)
@@ -213,6 +219,24 @@ test.describe('review', () => {
     await act.click()
     await expect(title(page)).toHaveText(SECOND)
     await expect(title(page)).toBeInViewport()
+    /* AND THE RAIL ABOVE IT IS NEVER LEFT HALF UNDER THE PILL (the verifier of 2026-11-04, round
+       2, minor 6): once the rail has its line of what was settled since the file, the sentence
+       the window was brought to is where it was brought, and the rail stands wholly under the
+       solid floor the shell lays at the top of a short window (to the clearance less its reach) */
+    await expect(page.locator('.rv-money')).toContainText(/since the Master Price File/, {
+      timeout: 20_000,
+    })
+    await page.waitForTimeout(800)
+    const at = await page.evaluate(() => {
+      const css = getComputedStyle(document.documentElement)
+      const inset = parseFloat(css.getPropertyValue('--shell-inset'))
+      const reach = parseFloat(css.getPropertyValue('--edge-reach'))
+      const rail = document.querySelector('.rv-rail')!.getBoundingClientRect()
+      const done = document.querySelector('.rv-done')!.getBoundingClientRect()
+      return { floor: inset - reach, rail: rail.bottom, done: done.top, inset }
+    })
+    expect(at.done).toBeGreaterThanOrEqual(at.inset)
+    if (page.viewportSize()!.height <= 500) expect(at.rail).toBeLessThanOrEqual(at.floor)
   })
 
   test('the case on the stage and Data’s door count the same file', async ({ page }) => {
@@ -345,6 +369,68 @@ test.describe('review', () => {
     await expect(page).toHaveURL(/since=open/)
   })
 
+  test('a newer price file brought in on Shelf settles a case, and Review says so', async ({
+    page,
+  }, info) => {
+    test.skip(
+      !['laptop', 'phone'].includes(info.project.name),
+      'the newer file is walked at a desk and in a hand; the shots photograph all six',
+    )
+    test.setTimeout(180_000)
+    await throughTheDoor(page)
+    await bringInTheNewerFile(page)
+    await toReview(page)
+    await expect(count(page, 38)).toBeVisible()
+    await expect(page.locator('.rv-money')).toContainText(
+      /1 case settled since the Master Price File of 16 Sept? 2026/,
+      { timeout: 20_000 },
+    )
+    await expect(page.locator('.rv-foot')).toContainText(
+      'or by a newer price list brought in on Shelf.',
+    )
+    await page.getByRole('button', { name: 'See what was settled' }).click()
+    const settled = page.getByRole('list', { name: 'Settled since the Master Price File' })
+    await expect(settled.getByRole('listitem')).toHaveCount(1)
+    await expect(settled).toContainText(FIRST)
+    /* the newer file brought no new case, so nothing is marked New */
+    await expect(page.locator('.rv-index__tag', { hasText: 'New' })).toHaveCount(0)
+  })
+
+  test('See both opens both: a name at two prices, and two headings of one name', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000)
+    await throughTheDoor(page)
+    /* the file spaces "F150D  F175A" twice; the sheet's find reads it as once (the major gap) */
+    await toReview(page, TWIN)
+    await page.getByRole('link', { name: 'See both in the price list' }).click()
+    await expect(page).toHaveURL(/\/data\/parts\?find=/)
+    await expect(page.getByText(/ 2 match “Outboard Vented Cover/)).toBeAttached({
+      timeout: 30_000,
+    })
+    await expect(page.getByText(/Nothing on Parts & Accessories matches/)).toHaveCount(0)
+
+    await toReview(page, TWINS_LAST)
+    await page.getByRole('link', { name: 'See both in the price list' }).click()
+    await expect(page).toHaveURL(/[?&]col=rig_kits\.l(%2C|,)rig_kits\.ad(&|$)/)
+    await expect(page).toHaveURL(/[?&]door=every(&|$)/)
+    const lit = page.locator('.sh-th[data-lit]')
+    await expect(lit).toHaveCount(2, { timeout: 30_000 })
+    /* the first of the two stands in the window */
+    await expect(lit.first()).toBeInViewport()
+  })
+
+  test('the named-apart step says which code took which name', async ({ page }) => {
+    await throughTheDoor(page)
+    await toReview(page, TWIN)
+    const field = page.getByRole('textbox', { name: /for code Y10A-V$/ })
+    await field.fill(`${await field.inputValue()} Grey`)
+    await page.getByRole('button', { name: 'Name them apart' }).click()
+    await expect(page.locator('.rv-done__said')).toHaveText(
+      /^Code Y10A-V is now “Outboard Vented Cover .+ Grey”, and code Y10A-VW keeps its name\.$/,
+    )
+  })
+
   test('the price list’s other rules are said with their measures, the workbook’s 16 and 127 among them', async ({
     page,
   }) => {
@@ -389,6 +475,17 @@ test.describe('review', () => {
     await expect(stage(page).getByText('Case 37 of 39')).toBeVisible()
     const lit = page.locator('.rv-index__case[aria-current="true"]')
     await expect(lit).toBeInViewport()
+    /* and the column stops on a whole case or a group's name, never half of one at its top edge
+       (the verifier of 2026-11-04, round 2, minor 5) */
+    const edge = await page.evaluate(() => {
+      const column = document.querySelector<HTMLElement>('.rv-side')!
+      const top = column.getBoundingClientRect().top
+      const starts = [
+        ...column.querySelectorAll<HTMLElement>('.rv-index__name, .rv-index__list > li'),
+      ].map((el) => Math.round(el.getBoundingClientRect().top - top))
+      return { scrolled: column.scrollTop, whole: starts.some((s) => Math.abs(s) <= 1) }
+    })
+    expect(edge.scrolled === 0 || edge.whole).toBe(true)
   })
 })
 
@@ -404,9 +501,12 @@ test('the build says what Review finds on its own lines before the quote is give
     .getByRole('region', { name: 'Models' })
     .getByRole('button', { name: /ALP 5\.3M-13B \(1,450kgs\) Fibreglass Boat/ })
   await card.click()
-  const act = page
-    .getByRole('complementary', { name: 'What is chosen' })
-    .getByRole('button', { name: 'Start the quote' })
+  const chosen = page.getByRole('complementary', { name: 'What is chosen' })
+  /* SAID WHERE IT IS PICKED, before the quote holds it (the verifier of 2026-11-04, round 2, J15) */
+  await expect(chosen.locator('.picker-review')).toHaveText(
+    'The price list registers it as Small, though it is rated 1,450 kg, so its rego is $117 short. Review has it.',
+  )
+  const act = chosen.getByRole('button', { name: 'Start the quote' })
   await act.scrollIntoViewIfNeeded()
   await act.click()
   await expect(page).toHaveURL(/\/quote\/(?!new)[^/?]+$/)

@@ -269,6 +269,25 @@ describe('the fixes a line needs, each one step with its inverse', () => {
     ).toBeNull()
   })
 
+  it('says which code took which name, and never speaks the old name again', () => {
+    const was = 'Outboard Vented Cover - YAMAHA 4 CYL 2.8L F150D F175A F200F (2023>)'
+    const data = sheet(world())
+    const out = apply(
+      data,
+      nameApartCommand('parts', 'parts.c', was, [
+        { rowId: 'parts:399', code: 'Y10A-V', name: `${was} Grey` },
+        { rowId: 'parts:400', code: 'Y10A-VW', name: was },
+      ])!,
+      'n',
+    )
+    expect(isDone(out)).toBe(true)
+    if (!isDone(out)) return
+    expect(out.said).toBe(`Code Y10A-V is now “${was} Grey”, and code Y10A-VW keeps its name.`)
+    expect(out.next.rows['parts']!.find((r) => r.id === 'parts:399')?.values['parts.c']).toBe(
+      `${was} Grey`,
+    )
+  })
+
   it('leaves keys alone on Northside’s profile and brings them back, each with its Undo', () => {
     const data = sheet(world())
     const left = apply(data, leaveCommand(['k1', 'k2'], 'meant t Asaf', 'Left.'), 'n')
