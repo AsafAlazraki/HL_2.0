@@ -28,7 +28,8 @@
 import { readCell } from '@/domain/model'
 import type { CatalogueCtx, EntityDef, QuoteDef, QuoteLine, RowData } from '@/domain/model'
 import { PAIR_SPECS, specValue, valueSaid } from '@/domain/rules/constraints/pairSpecs'
-import { candidateOffer } from '@/domain/quote/freeze'
+import { candidateOffer, mintLine } from '@/domain/quote/freeze'
+import { joinRefFor, makeEngine } from '@/domain/catalogue/views'
 import { makerOfTable } from '@/domain/catalogue/makers'
 import { offeredIn, type BoatFit, type Made, type Place } from './boat'
 import { TRAILER_ATM_FLOOR, loadFieldFor } from './trailerFitment'
@@ -52,6 +53,9 @@ export interface RigKit {
   price: number | null
   /** the sell figures the line holds where its price is not chosen; null where it is priced */
   unchosen: SellFigure[] | null
+  /** THE PRICE LIST MARKS IT NO LONGER SOLD (the fitment verifier, 2026-11-03: 146 Yamaha
+   *  pairings on 30 boats name one). Never priced, never put on a quote: named, and said so. */
+  retired: boolean
 }
 
 export interface RigFact {
@@ -72,7 +76,8 @@ export interface Rigged {
   kit: RigKit | null
   /** the prop and the engine hole, as the pairing names them */
   with: RigFact[]
-  /** the motor and its kit, where both are priced (or no kit is named); null otherwise */
+  /** the motor and its kit, where both are priced (or no kit is named); null otherwise, and null
+   *  where the kit it names is no longer sold: the motor alone is not the rig */
   total: number | null
 }
 
@@ -84,8 +89,13 @@ function pairFacts(made: Made): RigFact[] {
   const of = (label: string): string =>
     made.goesWith.find((g) => g.label.trim().toLowerCase() === label)?.value.trim() ?? ''
   const out: RigFact[] = []
-  const prop = [of('prop description'), of('prop part no.')].filter((s) => s !== '')
-  if (prop.length > 0) out.push({ label: 'Prop', value: prop.map(seriesSaid).join(' · ') })
+  /* the description in its own case, the part number as the maker prints it: "6CE-45976-20",
+     never "6Ce-45976-20" (round 2 of the fitment fixes, 2026-11-03) */
+  const description = of('prop description')
+  const prop = [description === '' ? '' : seriesSaid(description), of('prop part no.')].filter(
+    (s) => s !== '',
+  )
+  if (prop.length > 0) out.push({ label: 'Prop', value: prop.join(' · ') })
   const hole = of('engine hole')
   if (hole !== '') {
     out.push({
@@ -103,43 +113,71 @@ export function riggedOf(ctx: CatalogueCtx, fit: BoatFit): Rigged[] {
   const table = motor ? ctx.entities[motor.tableId] : undefined
   if (!motor || !table) return []
   const maker = makerOfTable(table)
-  return offeredIn(motor.made).map((made): Rigged => {
-    const row = rowOf(ctx, made.place)
-    const rig = row ? rigOf(table, row) : null
-    const kitMade = motor.kits.get(made.key) ?? null
-    const kit: RigKit | null = kitMade
-      ? {
-          name: kitMade.name,
-          place: kitMade.place,
-          price: kitMade.price,
-          unchosen: kitMade.unchosen,
-        }
-      : null
-    const total =
-      made.price === null
-        ? null
-        : kit === null
-          ? made.price
-          : kit.price === null
-            ? null
-            : made.price + kit.price
-    return {
-      key: made.key,
-      motor: made,
-      model: modelOf(made.name, maker),
-      hp: rig ? rig.each : null,
-      rig: rig ? rig.count : 1,
-      kit,
-      with: pairFacts(made),
-      total,
-    }
-  })
+  /* IN THE PRICE LIST'S OWN ORDER, the recommended where the file puts it (the fitment verifier,
+     2026-11-03: Recommend it moved the pressed tile to the front, and another tile's Recommend it
+     landed under the pointer). The star marks it; the row stands still. */
+  return offeredIn(motor.made)
+    .toSorted((a, b) => a.at - b.at)
+    .map((made): Rigged => {
+      const row = rowOf(ctx, made.place)
+      const rig = row ? rigOf(table, row) : null
+      const kitMade = motor.kits.get(made.key) ?? null
+      const gone = kitMade ? null : (motor.retiredKits.get(made.key) ?? null)
+      const kit: RigKit | null = kitMade
+        ? {
+            name: kitMade.name,
+            place: kitMade.place,
+            price: kitMade.price,
+            unchosen: kitMade.unchosen,
+            retired: false,
+          }
+        : gone
+          ? { name: gone.name, place: gone.place, price: null, unchosen: null, retired: true }
+          : null
+      const total =
+        made.price === null
+          ? null
+          : kit === null
+            ? made.price
+            : kit.price === null
+              ? null
+              : made.price + kit.price
+      return {
+        key: made.key,
+        motor: made,
+        model: modelOf(made.name, maker),
+        hp: rig ? rig.each : null,
+        rig: rig ? rig.count : 1,
+        kit,
+        with: pairFacts(made),
+        total,
+      }
+    })
+}
+
+/** A kit no longer sold, said of one pairing. */
+const RETIRED_KIT =
+  'The rigging kit its pairing names is no longer sold, so the figure is the motor alone and a quote takes the motor without it.'
+
+/**
+ * THE KITS NO LONGER SOLD, SAID ONCE OVER THE TILES (the fitment verifier, 2026-11-03: on the
+ * Stabicraft 2350 Ultra Centrecab, 10 of 11 tiles said "Its pairing names no rigging kit." while
+ * each names one the price list marks discontinued). Counted, with its denominator; '' where
+ * none is.
+ */
+export function retiredKitsSaid(rigs: readonly Rigged[]): string {
+  const n = rigs.filter((r) => r.kit?.retired).length
+  if (n === 0) return ''
+  if (rigs.length === 1) return RETIRED_KIT
+  const of = n === rigs.length ? `All ${figure(n)}` : `${figure(n)} of the ${figure(rigs.length)}`
+  return `${of} name a rigging kit the price list marks no longer sold, so ${n === 1 ? 'its figure is' : 'their figures are'} the motor alone and a quote takes the motor without it.`
 }
 
 /** The sentence under a rig's figures: what is in the figure, and what is not. */
 export function rigSaid(r: Rigged): string {
   if (r.motor.price === null) return 'The motor has no price on the price list.'
   if (!r.kit) return 'Its pairing names no rigging kit.'
+  if (r.kit.retired) return RETIRED_KIT
   if (r.kit.price !== null) return 'The motor and its rigging kit, on this boat.'
   return r.kit.unchosen
     ? 'The rigging kit’s price is not chosen yet, so it is not added in.'
@@ -203,7 +241,13 @@ export function compareOf(ctx: CatalogueCtx, rigs: readonly Rigged[]): CompareRo
     {
       label: 'Rigging kit price',
       cells: rigs.map((r) =>
-        r.kit === null ? '—' : r.kit.price === null ? 'Not chosen' : money(r.kit.price),
+        r.kit === null
+          ? '—'
+          : r.kit.retired
+            ? 'No longer sold'
+            : r.kit.price === null
+              ? 'Not chosen'
+              : money(r.kit.price),
       ),
       money: true,
     },
@@ -296,6 +340,10 @@ export interface Pick {
   tableId: string
   /** the pairing's row id (`Made.key`), which is also the build's candidate key */
   key: string
+  /** a rigging kit's own row and the motor's pairing that names it: where several pairings name one
+   *  kit, the build offers it once, under one of them, and this mints it under the right one */
+  rowId?: string
+  pairing?: Place | null
 }
 
 export interface PickedLines {
@@ -322,14 +370,50 @@ export function pickedLines(
     if (!section) continue
     const offer = candidateOffer(ctx, quote, section)
     const hit = offer.candidates.find((c) => c.key === pick.key)
-    if (!hit || hit.alreadyLineId) continue
+    /* ONE KIT, NAMED BY SEVERAL PAIRINGS (803 live pairings on 311 boats, measured 2026-11-03):
+       the build offers it once, keyed by one of them, so the kit of the motor chosen here is the
+       same thing the build offers, minted through this motor's own pairing */
+    const line = hit
+      ? hit.alreadyLineId
+        ? null
+        : hit.line
+      : pick.rowId && pick.pairing && offer.candidates.some((c) => c.line.rowId === pick.rowId)
+        ? sameKitLine(ctx, quote, pick.tableId, pick.rowId, pick.pairing)
+        : null
+    if (!line) continue
+    if (quote.lines.some((l) => l.pairRowId === pick.key && l.entityId === pick.tableId)) continue
     if (section.lineIds.length > 0) {
       kept.push(`${section.title} already holds a line on this quote, so it is kept as it was.`)
       continue
     }
-    adds.push({ blockId: section.blockId, line: hit.line })
+    adds.push({ blockId: section.blockId, line })
   }
   return { adds, kept }
+}
+
+/** The build's own line for a kit, minted through the pairing that names it, at the quote's price. */
+function sameKitLine(
+  ctx: CatalogueCtx,
+  quote: QuoteDef,
+  tableId: string,
+  rowId: string,
+  pairing: Place,
+): QuoteLine | null {
+  const entity = ctx.entities[tableId]
+  const row = (ctx.rowsByEntity[tableId] ?? []).find((r) => r.id === rowId)
+  const joinRow = (ctx.rowsByEntity[pairing.tableId] ?? []).find((r) => r.id === pairing.rowId)
+  const join = joinRefFor(ctx.entities, pairing.tableId, quote.rootTableId, tableId)
+  if (!entity || !row || !joinRow || !join) return null
+  return mintLine({
+    ctx,
+    engine: makeEngine(ctx),
+    entity,
+    row,
+    levelKey: quote.levelKey,
+    join,
+    joinRow,
+    recommended: false,
+  })
 }
 
 /**

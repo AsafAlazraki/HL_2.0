@@ -210,7 +210,7 @@ const within = (at: number, from: number, n: number): number =>
   at >= from && at < from + n ? 1 : 0
 
 /** A colourway drawn part by part, and said (`stripesOf`). */
-type Stripes = { parts: StripePart[]; say: string }
+type Stripes = { pieces: StripePart[]; say: string }
 
 /** One id per cell, so `aria-activedescendant` can name it. */
 export const cellDomId = (rowId: string, col: number): string => `sh-cell-${rowId}-${col}`
@@ -241,10 +241,6 @@ interface Pill {
 
 /** A shut line's toggle column, px — `sheet.css`'s `--shut-toggle`, and `SHUT_BOX` in Sheet.tsx. */
 const SHUT_TOGGLE_W = 24
-
-/** A band over a list's products, px: `.sh-spine[data-band] .sh-spine__in`'s 36 and its 1px rule
- *  (sheet.css) — the air left under a banded block's last product, so the band slides over air. */
-const BAND_TAIL = 37
 
 /** A length the script decided, as a track size. */
 const px = (n: number): string => `${n}px`
@@ -935,6 +931,10 @@ export function Grid(props: GridProps) {
     ? slots.findIndex((s) => s.kind === 'field' && s.field.id === rungFieldId)
     : -1
   const bandRung = banded && !hand && rungAt >= 0 ? firstData + rungAt : undefined
+  /* where the lit price is the list's last column, what a band's lines share goes under its name:
+     beside it there is only the row's tail, and "Boat Size 3.9M · +4 more" stood in three lines
+     of 96px there (Dunbier at 834) */
+  const bandOneUnder = bandRung !== undefined && rungAt === slots.length - 1
 
   /* what a cell prints when it is not its own painted value: a variant
      with its leading word said at the head of its run, or a picture
@@ -1127,8 +1127,10 @@ export function Grid(props: GridProps) {
   }
   /* A LIST OF LONG NAMES LETS A NAME TAKE A SECOND LINE: Parts, Dealer Fit and Rigging Kits name a
      line in a sentence ("Minn Kota - Instinct Quest 60" (Black) with Quick Realease Bracket & 24v
-     100AMP Lithium Battery"), cut at 443-525px on a tablet (the verifier) */
-  const leafTrack = banded && !hand ? `minmax(${px(rowH)}, auto)` : px(rowH)
+     100AMP Lithium Battery"), cut at 443-525px on a tablet (the verifier); and a pairing list's
+     hull takes a second line on its spine, the rows beside it growing to hold it */
+  const leafTrack =
+    (banded || table.role === 'join') && !hand ? `minmax(${px(rowH)}, auto)` : px(rowH)
 
   const renderBlock = (p: Extract<Piece, { kind: 'block' }>) => {
     const says = spineOf(p)
@@ -1149,7 +1151,7 @@ export function Grid(props: GridProps) {
        own block, and without the air it slid over the block's last products as it went (the
        overlap ruler, Parts at 844 × 390 and 834 × 1112) — with it, it slides over nothing */
     const rowsTemplate = (
-      headed ? ['auto', ...tracks, ...(banded && !hand ? [px(BAND_TAIL)] : [])] : tracks
+      headed ? ['auto', ...tracks, ...(banded && !hand ? ['auto'] : [])] : tracks
     ).join(' ')
     const gridOf = (i: number): number =>
       headRow + i + 1 + (openAt >= 0 && i > openAt ? 1 : 0) + (pillAt >= 0 && i > pillAt ? 1 : 0)
@@ -1170,6 +1172,7 @@ export function Grid(props: GridProps) {
         span={Math.max(1, drawn)}
         shutCols={shutCols}
         rungCol={bandRung}
+        oneUnder={bandOneUnder}
         onToggle={() => onToggle(p.key)}
       />
     )
@@ -1245,6 +1248,26 @@ export function Grid(props: GridProps) {
           </div>
         ) : null}
         {out}
+        {headed && banded && !hand ? (
+          /* THE AIR UNDER A BAND'S LAST PRODUCT IS THE BAND'S OWN HEIGHT, whatever it wraps to: a
+             sticky band is pushed off by the end of its block, and it slid over the last products
+             when its name took a second line and the air stayed one line tall (the overlap ruler,
+             Parts at 844 × 390). The same band, unseen and out of reach, holds the room */
+          <div className="sh-bandtail" aria-hidden="true" inert style={{ gridRow: drawn + 2 }}>
+            <Spine
+              says={says}
+              shut={false}
+              hand={false}
+              banded
+              place={{ gridRow: 1, gridColumn: '1 / -1' }}
+              span={1}
+              shutCols={shutCols}
+              rungCol={bandRung}
+              oneUnder={bandOneUnder}
+              onToggle={() => {}}
+            />
+          </div>
+        ) : null}
       </div>
     )
   }
@@ -1663,6 +1686,7 @@ function Spine({
   span,
   shutCols,
   rungCol,
+  oneUnder = false,
   onToggle,
 }: {
   says: SpineSays
@@ -1678,6 +1702,8 @@ function Spine({
   shutCols: { name: number; figures: number }
   /** a band's words on the rows' own columns: the grid line of the lit price's column */
   rungCol?: number
+  /** what the lines share said under the name rather than after the price */
+  oneUnder?: boolean
   onToggle: () => void
 }) {
   /* THE ORDER THE SPINE SAYS THINGS IN: the name and how many rows it
@@ -1798,7 +1824,7 @@ function Spine({
       data-fit={says.fit}
       data-shut={shut ? '' : undefined}
       data-band={banded ? '' : undefined}
-      data-aligned={banded && rungCol !== undefined ? '' : undefined}
+      data-aligned={banded && rungCol !== undefined ? (oneUnder ? 'under' : '') : undefined}
       data-small={small ? '' : undefined}
       style={
         banded && rungCol !== undefined
@@ -2019,12 +2045,12 @@ function Cell({
                    a radio button. A narrow upright stripe is a paint sample, and reads as no
                    control; each part's colour is its token (`--swatch-<name>`) */
                 <span className="sh-cell__paint" aria-hidden="true">
-                  {colour.parts.map((part, i) => (
+                  {colour.pieces.map((part, i) => (
                     /* a part's identity IS its place in the code: B-G-B is two parts of the
                        same black, and the list never reorders; a part nobody has named is a
                        stripe drawn as not named (the colour key) */
-                    // eslint-disable-next-line react/no-array-index-key
                     <span
+                      // eslint-disable-next-line react/no-array-index-key
                       key={i}
                       className="sh-cell__stripe"
                       data-unnamed={part.name === null ? '' : undefined}

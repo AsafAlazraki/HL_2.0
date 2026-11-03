@@ -1619,9 +1619,9 @@ export function Sheet({
       const fact = active instanceof HTMLElement ? active.closest<HTMLElement>('.sh-fact') : null
       const foot = over?.querySelector<HTMLElement>('.sh-foot')
       if (!over || !fact || !foot || !over.contains(fact)) return
-      const at = fact.getBoundingClientRect()
-      const room = foot.getBoundingClientRect().top - at.bottom
-      const want = at.height * 3
+      const box = fact.getBoundingClientRect()
+      const room = foot.getBoundingClientRect().top - box.bottom
+      const want = box.height * 3
       if (room >= want) return
       over.scrollBy({ top: want - room, behavior: reducedMotion() ? 'auto' : 'smooth' })
     })

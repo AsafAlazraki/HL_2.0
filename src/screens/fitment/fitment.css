@@ -309,6 +309,16 @@
 .ft-ln__part {
   white-space: nowrap;
 }
+/* ON A PHONE, EACH LIST ON ITS OWN LINE, with no dot to end a line alone ("Dealer Fit Packages 1 ·",
+   the fitment verifier, 2026-11-03) */
+@media (max-width: 699px) {
+  .ft-ln__value > span:has(> .ft-ln__part) {
+    display: block;
+  }
+  .ft-ln__dot {
+    display: none;
+  }
+}
 .ft-ln__sub {
   font-size: var(--text-sm);
   font-weight: 400;
@@ -431,12 +441,12 @@
    tiles, the reasons and the boat's facts each wrap as a row of shares, every one told by the
    screen how many share its row at each width (`rows.ts`), so seven tiles stand 4 + 3 on the
    desk and 3 + 2 + 2 at 834, and every row is full. */
-:is(.ft-tiles, .ft-reasons, .ft-facts) {
+.ft-tiles {
   display: flex;
   flex-wrap: wrap;
   column-gap: var(--ft-col-gap);
 }
-:is(.ft-tiles, .ft-reasons, .ft-facts) > * {
+.ft-tiles > * {
   /* one to a row where the screen says nothing; its inline shares win over these */
   --ft-k-desk: 1;
   --ft-k-mid: 1;
@@ -447,13 +457,94 @@
   min-inline-size: 0;
 }
 @media (max-width: 1179px) {
-  :is(.ft-tiles, .ft-reasons, .ft-facts) > * {
+  .ft-tiles > * {
     --ft-k: var(--ft-k-mid, 1);
   }
 }
 @media (max-width: 699px) {
-  :is(.ft-tiles, .ft-reasons, .ft-facts) > * {
+  .ft-tiles > * {
     --ft-k: var(--ft-k-phone, 1);
+  }
+}
+
+/* THE BOAT'S FACTS AND THE REASONS ON ONE SET OF COLUMNS AT EACH WIDTH (`gridOf`; the fitment verifier,
+   2026-11-03: seven facts stood 3 + 2 + 2 at 390 and 4 + 3 at 834, rows 2 and 3 off row 1's
+   columns). A row one short is filled by its first fact taking two columns, so every edge lines up
+   with the row above and nothing stands alone. */
+:is(.ft-facts, .ft-reasons) {
+  /* the columns where the screen says nothing; its inline ones win over these */
+  --ft-c-desk: 1;
+  --ft-c-mid: 1;
+  --ft-c-phone: 1;
+  --ft-c: var(--ft-c-desk, 1);
+  display: grid;
+  grid-template-columns: repeat(var(--ft-c), minmax(0, 1fr));
+  column-gap: var(--ft-col-gap);
+}
+:is(.ft-facts, .ft-reasons) > * {
+  --ft-s-desk: 1;
+  --ft-s-mid: 1;
+  --ft-s-phone: 1;
+  --ft-s: var(--ft-s-desk, 1);
+  grid-column: span var(--ft-s);
+}
+@media (max-width: 1179px) {
+  :is(.ft-facts, .ft-reasons) {
+    --ft-c: var(--ft-c-mid, 1);
+  }
+  :is(.ft-facts, .ft-reasons) > * {
+    --ft-s: var(--ft-s-mid, 1);
+  }
+}
+@media (max-width: 699px) {
+  :is(.ft-facts, .ft-reasons) {
+    --ft-c: var(--ft-c-phone, 1);
+  }
+  :is(.ft-facts, .ft-reasons) > * {
+    --ft-s: var(--ft-s-phone, 1);
+  }
+}
+
+/* WHO A MOTOR IS, AND WHAT IT IS RIGGED WITH: no box of their own in a standing tile */
+/* NO WORD LEFT ALONE ON A LINE ("here.", the fitment verifier, 2026-11-03) */
+/* inherited, so every line of the screen's text is set the same way */
+.ft {
+  text-wrap: pretty;
+}
+
+.ft-tile__who,
+.ft-tile__rigged {
+  display: contents;
+}
+/* ONE TO A ROW, LAID ACROSS, at 834 and 844 where the motors would not share their rows evenly
+   (the fitment verifier, 2026-11-03: seven stood 3 + 2 + 2, rows 2 and 3 wider than row 1). Every
+   tile is the row's width: who it is, what it is rigged with, and its presses, side by side. */
+@media (min-width: 700px) and (max-width: 1179px) {
+  .ft-tiles[data-mid='across'] > .ft-tile {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: --spacing(4);
+  }
+  .ft-tiles[data-mid='across'] :is(.ft-tile__who, .ft-tile__rigged) {
+    display: grid;
+    gap: --spacing(1.5);
+    min-inline-size: 0;
+  }
+  .ft-tiles[data-mid='across'] .ft-tile__rigged {
+    align-self: stretch;
+    padding-inline-start: --spacing(4);
+    border-inline-start: 1px solid var(--color-rule);
+  }
+  .ft-tiles[data-mid='across'] .ft-tile[data-star] .ft-tile__rigged {
+    border-color: --alpha(var(--color-ink-on-accent) / 30%);
+  }
+  .ft-tiles[data-mid='across'] .ft-rig {
+    padding-block-start: 0;
+    border-block-start: 0;
+  }
+  .ft-tiles[data-mid='across'] .ft-acts {
+    margin-block-start: 0;
   }
 }
 .ft-tile {
@@ -545,7 +636,9 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-  align-items: stretch;
+  /* each trailer its own height: stretched to its neighbour's, the REDCO stood 100 px blank above
+     its presses (the fitment verifier, 2026-11-03) */
+  align-items: start;
   gap: --spacing(3);
 }
 .ft-trl {
@@ -653,6 +746,9 @@
   margin-block-start: --spacing(3);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  /* each list its own height: stretched to Dealer Fit's, Parts stood 170 px blank (the fitment
+     verifier, 2026-11-03) */
+  align-items: start;
   gap: --spacing(3);
 }
 .ft-also__list {
@@ -726,9 +822,9 @@
   list-style: none;
   margin: --spacing(3) 0 0;
   padding: 0;
-  /* AS MANY TO A ROW AS THE REASONS SHARE EVENLY (each told its row's share, `rows.ts`), so
-     none stands alone on a row and no row ends in a blank cell (the fitment judge, minor 17; the
-     fitment verifier, 2026-11-03: five stood 3 + 2 with a blank third at 834) */
+  /* ON ONE SET OF COLUMNS (`gridOf`): none alone on a row, no row ending in a blank cell (the
+     fitment judge, minor 17; the fitment verifier, 2026-11-03), and every edge under the row
+     above's — five at 834 are 3, then 2 + 1 */
   --ft-col-gap: --spacing(6);
   row-gap: --spacing(8);
   color: var(--color-ink);
@@ -810,8 +906,9 @@
 .ft-rules {
   margin: --spacing(3) 0 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  /* the pencil stays beside its sentence's first line: wrapped, it stood alone above it at 390
+     (the fitment verifier, 2026-11-03); the press follows the sentence inside it */
+  align-items: start;
   gap: --spacing(1) --spacing(2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
@@ -823,6 +920,14 @@
 .ft-rules > span:nth-child(2) {
   flex: 0 1 auto;
   min-inline-size: 0;
+}
+.ft-rules > :first-child {
+  margin-block-start: 1px;
+}
+.ft-rules__write {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-inline-start: --spacing(1);
 }
 
 /* ============================================================
@@ -1360,7 +1465,9 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
-@media (pointer: coarse) {
+/* the keys are a keyboard's: not on a touch screen, nor on a window a phone or tablet is
+   (the fitment verifier, 2026-11-03: the hint stood on a phone held sideways at 844) */
+@media (pointer: coarse), (hover: none), (max-width: 899px) {
   .ft-whole__keys {
     display: none;
   }
@@ -2074,4 +2181,9 @@
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr) 5.5rem 7rem 9.5rem;
     column-gap: --spacing(3);
   }
+}
+
+/* a part number on one line: "6AW-459xx-xx" never broken at its hyphen */
+.ft-code {
+  white-space: nowrap;
 }

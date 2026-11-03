@@ -89,14 +89,14 @@ export function partOf(token: string, named: Readonly<Record<string, string>> = 
 export function stripesOf(
   code: string,
   named: Readonly<Record<string, string>> = {},
-): { parts: StripePart[]; say: string } | null {
+): { pieces: StripePart[]; say: string } | null {
   const clean = code.trim()
   if (!looksLikeColourway(clean)) return null
-  const parts = clean.split('-').map((t) => partOf(t, named))
-  if (parts.every((p) => p.name === null)) return null
+  const pieces = clean.split('-').map((t) => partOf(t, named))
+  if (pieces.every((p) => p.name === null)) return null
   return {
-    parts,
-    say: parts.map((p) => p.name ?? `${p.token}, not named`).join(' / '),
+    pieces,
+    say: pieces.map((p) => p.name ?? `${p.token}, not named`).join(' / '),
   }
 }
 
@@ -146,7 +146,7 @@ export function nameColour(token: string, name: string | null): CatalogueCommand
   return changeOrg(said, 'colours', (org: OrgProfile) => {
     if (!LETTER.test(token)) return `“${token}” is not a letter of a colourway code.`
     if (colourwayOf(token).read)
-      return `${token} is named by the price file itself, as ${colourwayOf(token).say}, so it is not renamed here.`
+      return `${token} is named by the Master Price File itself, as ${colourwayOf(token).say}, so it is not renamed here.`
     if (name !== null && !swatchOfName(name)) return NOT_A_COLOUR(name)
     const next = { ...org.colours }
     if (name === null) delete next[token]

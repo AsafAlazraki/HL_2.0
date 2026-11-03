@@ -39,7 +39,7 @@ import type {
   TableKind,
   ViewBlock,
 } from '@/domain/model'
-import { joinRefFor, makeEngine, relatedRows } from '@/domain/catalogue/views'
+import { joinRefFor, makeEngine, relatedRows, type JoinRef } from '@/domain/catalogue/views'
 import { defaultBlocksFor } from '@/domain/catalogue/views/relations'
 import { defaultLevelKey } from '@/domain/quote/pricing'
 import { mintLine } from '@/domain/quote/freeze'
@@ -49,6 +49,7 @@ import { modelKeyOf } from '@/domain/quote/boats'
 import { makerOfTable } from '@/domain/catalogue/makers'
 import { trailOf } from '@/domain/modules/read'
 import { goodsFacts } from '@/domain/quote/goodsFacts'
+import { nameOnPaper } from '@/domain/quote/paperWords'
 import { envelopeOf, measureRig, rigOf, type HullEnvelope } from './envelope'
 import {
   NAMES_NO_MAKER,
@@ -120,6 +121,9 @@ export const refusedIn = <T extends { rule: RuleSaid | null }>(made: readonly T[
 export interface Made {
   /** the pairing where there is one, the row otherwise — unique in a list */
   key: string
+  /** its place in the price list's own order for this boat, before the recommended is put first:
+   *  what a row of tiles keeps, so a press of Recommend it never moves a tile under the pointer */
+  at: number
   place: Place
   /** the pairing that makes it this boat's, for "open it on the price list" */
   pairing: Place | null
@@ -199,6 +203,10 @@ export interface MotorFit {
   /** THE RIGGING KIT EACH MOTOR'S OWN PAIRING NAMES, keyed by the pairing (`Made.key`): the list
    *  the boat's page reads through the motor's own pairing, priced as the build prices it */
   kits: Map<string, Made>
+  /** THE RIGGING KIT A PAIRING NAMES THAT THE PRICE LIST MARKS NO LONGER SOLD, keyed the same way
+   *  (the fitment verifier, 2026-11-03: 146 Yamaha pairings on 30 boats name one, and the tile said
+   *  the pairing named no kit). Never offered and never priced: named, so a tile can say so. */
+  retiredKits: Map<string, Made>
   /** the boat's own shaft and steering, as the trade says them: "extra-long (25″)", "remote" */
   boatShaft: string
   boatSteering: string
@@ -468,39 +476,52 @@ export function readBoatFit(ctx: CatalogueCtx, place: Place): BoatFit | null {
   /* the boat's own line, minted as the quote's first line is (`mintQuoteFromView`) */
   const subject = mintLine({ ctx, engine, entity: root, row, levelKey })
   let priceName = subject.unitPrice === null ? '' : lineLevelSaid(subject)
+  /** One thing on one of the boat's lists, minted at the boat's own price through its pairing. */
+  const madeFrom = (
+    target: EntityDef,
+    join: JoinRef | null,
+    thing: RowData,
+    joinRow: RowData | undefined,
+    recommended: boolean,
+    at: number,
+  ): Made => {
+    const line = mintLine({
+      ctx,
+      engine,
+      entity: target,
+      row: thing,
+      levelKey,
+      join,
+      ...(joinRow ? { joinRow } : {}),
+      recommended,
+    })
+    if (priceName === '' && line.unitPrice !== null) priceName = lineLevelSaid(line)
+    return {
+      key: joinRow?.id ?? thing.id,
+      at,
+      place: { tableId: target.id, rowId: thing.id },
+      pairing: join && joinRow ? { tableId: join.entityId, rowId: joinRow.id } : null,
+      /* the file's shorthand said in full, as the build and the paper say it (`nameOnPaper`;
+         the fitment verifier, 2026-11-03: "6.6 Mtr" here, "6.6 m" on the build) */
+      name: nameOnPaper(lineSaid(line.label, target.name)),
+      label: line.label,
+      facts: goodsFacts(target, thing),
+      price: line.unitPrice,
+      starred: recommended,
+      goesWith: line.pairFacts ?? [],
+      rule: rules.get(thing.id) ?? null,
+      unchosen: line.unitPrice === null ? unchosenOn(target, thing) : null,
+    }
+  }
   const madeOf = (entry: (typeof read)[number]): Made[] => {
     const { target, join, result } = entry
     return result.rows
-      .map((r) => {
+      .map((r, at) => {
         const joinRow =
           join && r.pair
             ? (ctx.rowsByEntity[join.entityId] ?? []).find((j) => j.id === r.pair?.rowId)
             : undefined
-        const line = mintLine({
-          ctx,
-          engine,
-          entity: target,
-          row: r.row,
-          levelKey,
-          join,
-          ...(joinRow ? { joinRow } : {}),
-          recommended: r.recommended,
-        })
-        if (priceName === '' && line.unitPrice !== null) priceName = lineLevelSaid(line)
-        const made: Made = {
-          key: r.pair?.rowId ?? r.row.id,
-          place: { tableId: target.id, rowId: r.row.id },
-          pairing: join && joinRow ? { tableId: join.entityId, rowId: joinRow.id } : null,
-          name: lineSaid(line.label, target.name),
-          label: line.label,
-          facts: goodsFacts(target, r.row),
-          price: line.unitPrice,
-          starred: r.recommended,
-          goesWith: line.pairFacts ?? [],
-          rule: rules.get(r.row.id) ?? null,
-          unchosen: line.unitPrice === null ? unchosenOn(target, r.row) : null,
-        }
-        return made
+        return madeFrom(target, join ?? null, r.row, joinRow, r.recommended, at)
       })
       .sort((a, b) => Number(b.starred) - Number(a.starred))
   }
@@ -512,9 +533,32 @@ export function readBoatFit(ctx: CatalogueCtx, place: Place): BoatFit | null {
   const kitEntry = read.find(
     (e) => e.target.kind !== 'motor' && motorJoin !== undefined && e.join?.entityId === motorJoin,
   )
-  const kits = new Map((kitEntry ? madeOf(kitEntry) : []).map((k) => [k.key, k]))
+  const motorMade = motorEntry ? madeOf(motorEntry) : []
+  /* EACH PAIRING'S OWN KIT, READ OFF ITS OWN ROW (the fitment verifier, 2026-11-03: on the
+     Stabicraft 2350 the F225UCB's and the F250UCB's pairings both name kit 625, and a list read
+     kit by kit holds one pairing per kit, so one of them "named no rigging kit"). A kit the price
+     list no longer sells is kept apart: named, never priced, never offered. */
+  const kits = new Map<string, Made>()
+  const retiredKits = new Map<string, Made>()
+  const kitJoin = kitEntry?.join ?? null
+  if (kitEntry && kitJoin) {
+    const kitTable = kitEntry.target
+    const kitRows = new Map((ctx.rowsByEntity[kitTable.id] ?? []).map((r) => [r.id, r]))
+    const joinRows = new Map((ctx.rowsByEntity[kitJoin.entityId] ?? []).map((r) => [r.id, r]))
+    const joinTable = ctx.entities[kitJoin.entityId]
+    const historic = isRetired(kitTable) || (joinTable !== undefined && isRetired(joinTable))
+    for (const m of motorMade) {
+      const joinRow = m.pairing ? joinRows.get(m.pairing.rowId) : undefined
+      const kitId = joinRow ? readCell(joinRow, kitJoin.targetFieldId) : null
+      const kitRow = typeof kitId === 'string' ? kitRows.get(kitId) : undefined
+      if (!kitRow || !joinRow) continue
+      const gone = historic || isDiscontinued(kitRow)
+      const kit = madeFrom(kitTable, kitJoin, kitRow, joinRow, false, m.at)
+      ;(gone ? retiredKits : kits).set(m.key, gone ? { ...kit, price: null, unchosen: null } : kit)
+    }
+  }
   const motor = motorEntry
-    ? readMotor(ctx, root, row, motorEntry, madeOf(motorEntry), rules, kits)
+    ? readMotor(ctx, root, row, motorEntry, motorMade, rules, kits, retiredKits)
     : null
 
   /* ── the trailers ── */
@@ -578,6 +622,7 @@ function readMotor(
   made: Made[],
   rules: Map<string, RuleSaid>,
   kits: Map<string, Made>,
+  retiredKits: Map<string, Made>,
 ): MotorFit {
   const { target } = entry
   const envelope = envelopeOf(root, row)
@@ -679,10 +724,10 @@ function readMotor(
     rigs === 0
       ? ''
       : twins.length > 0
-        ? `${count(rigs)} twin and triple rigs. This boat takes ${twins.map(envelopeSaid).join(', or ')}.`
+        ? `Twin and triple rigs. This boat takes ${twins.map(envelopeSaid).join(', or ')}.`
         : madeRigs > 0
-          ? `${count(rigs)} more twin and triple rigs. This boat’s own figures name one motor, so a rig goes on it only where the price list makes it for this boat, as it makes ${count(madeRigs)}.`
-          : `${count(rigs)} twin and triple rigs. This boat’s own figures name ${single ? 'one motor' : 'no horsepower'}, so they are not placed on it.`
+          ? `More twin and triple rigs. This boat’s own figures name one motor, so a rig goes on it only where the price list makes it for this boat, as it makes ${count(madeRigs)}.`
+          : `Twin and triple rigs. This boat’s own figures name ${single ? 'one motor' : 'no horsepower'}, so they are not placed on it.`
 
   return {
     tableId: target.id,
@@ -692,6 +737,7 @@ function readMotor(
     takes: envelope ? hullEnvelopeSaid(envelope) : '',
     made,
     kits,
+    retiredKits,
     boatShaft: boatShaft === null ? '' : spec('boat', 'shaft').say(String(boatShaft)),
     boatSteering: boatSteering === null ? '' : spec('boat', 'steering').say(String(boatSteering)),
     dots,

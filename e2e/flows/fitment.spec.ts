@@ -428,12 +428,13 @@ test('a wrong-shaft motor and a trailer over its ATM are refused where they are 
   await expect(trailer.getByText('Over its ATM, so not for a quote')).toBeVisible()
   await trailer.getByRole('button', { name: /^Put the GFAB .* on the quote/ }).click()
   await expect(page).not.toHaveURL(/trailer=/)
+  /* said under the weighing that holds its figures, never the figures again */
   await expect(trailer.getByRole('alert')).toHaveText(
-    /750 kg over, so it is not put on the quote\. Its ATM decides that\.$/,
+    'Not put on the quote: its ATM, weighed above, decides that.',
   )
   await trailer.getByRole('button', { name: /^Make the GFAB .* the recommended/ }).click()
   await expect(trailer.getByRole('alert')).toHaveText(
-    /750 kg over, so it is not made the recommended trailer\. Its ATM decides that\.$/,
+    'Not made the recommended trailer: its ATM, weighed above, decides that.',
   )
   /* the quote the plate starts still carries the REDCO, which clears it */
   const start = page.getByRole('heading', { name: 'A quote with' }).locator('..').locator('..')

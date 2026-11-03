@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rowsFor, shareOf } from './rows'
+import { evenly, gridOf, rowsFor, shareOf } from './rows'
 
 describe('sharing things over rows, none alone and no blank cell', () => {
   it('shares seven motor tiles 4 + 3 at four to a row, and 3 + 2 + 2 at three', () => {
@@ -29,5 +29,48 @@ describe('sharing things over rows, none alone and no blank cell', () => {
     expect(shareOf(1, 4)).toEqual([1])
     expect(shareOf(0, 4)).toEqual([])
     expect(shareOf(3, 1)).toEqual([1, 1, 1])
+  })
+})
+
+describe('one set of columns for every row', () => {
+  it('draws seven facts at three as 3 / 2+1 / 2+1, and at four as 4 / 2+1+1', () => {
+    expect(gridOf(7, 3)).toEqual({ columns: 3, spans: [1, 1, 1, 2, 1, 2, 1] })
+    expect(gridOf(7, 4)).toEqual({ columns: 4, spans: [1, 1, 1, 1, 2, 1, 1] })
+  })
+
+  it('draws four at three as 2 + 2, and eight at four as 4 + 4', () => {
+    expect(gridOf(4, 3)).toEqual({ columns: 2, spans: [1, 1, 1, 1] })
+    expect(gridOf(8, 4)).toEqual({ columns: 4, spans: [1, 1, 1, 1, 1, 1, 1, 1] })
+  })
+
+  it('fills every row to its columns, and never leaves one alone, from 1 to 40', () => {
+    for (let n = 1; n <= 40; n += 1) {
+      for (const most of [2, 3, 4, 5, 8]) {
+        const { columns, spans } = gridOf(n, most)
+        expect(spans).toHaveLength(n)
+        expect(columns).toBeLessThanOrEqual(most)
+        /* walk the rows: each sums to the columns exactly */
+        let used = 0
+        let inRow = 0
+        for (const s of spans) {
+          used += s
+          inRow += 1
+          expect(used).toBeLessThanOrEqual(columns)
+          if (used === columns) {
+            if (n > 1 && columns > 1) expect(inRow).toBeGreaterThan(1)
+            used = 0
+            inRow = 0
+          }
+        }
+        expect(used).toBe(0)
+      }
+    }
+  })
+
+  it('says whether things share their rows evenly', () => {
+    expect(evenly(7, 3)).toBe(false)
+    expect(evenly(6, 3)).toBe(true)
+    expect(evenly(2, 3)).toBe(true)
+    expect(evenly(7, 7)).toBe(true)
   })
 })

@@ -54,3 +54,14 @@ export function atmRefusal(
   const tow = overAtm(ctx, fit, trailer)
   return tow ? atmSaid(trailer.name, tow, act) : ''
 }
+
+/**
+ * THE SAME REFUSAL, ON THE TILE THAT WEIGHS IT (the fitment verifier, 2026-11-03: the GFAB's
+ * refusal said 2,200 / 2,950 / 750 directly under the weighing that had just said them). Where the
+ * figures stand right above the press, the sentence says what is refused and points to them.
+ */
+export function atmNear(act: Exclude<AtmAct, 'start'>): string {
+  return act === 'quote'
+    ? 'Not put on the quote: its ATM, weighed above, decides that.'
+    : 'Not made the recommended trailer: its ATM, weighed above, decides that.'
+}

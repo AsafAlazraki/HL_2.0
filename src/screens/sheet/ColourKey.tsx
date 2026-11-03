@@ -76,9 +76,9 @@ export function ColourKey({
     >
       <div className="sh-keylist">
         <p className="sh-keylist__lead">
-          Each letter of a colourway code, as its stripe is drawn.
+          Each letter of a colourway code and the stripe it draws.
           {unnamed > 0
-            ? ` ${unnamed === 1 ? 'One letter is' : `${unnamed} letters are`} not named by the price file; name ${unnamed === 1 ? 'it' : 'them'} here and every line that carries ${unnamed === 1 ? 'it' : 'them'} draws its colour.`
+            ? ` The Master Price File does not name ${unnamed === 1 ? 'one letter' : `${unnamed} letters`}: name ${unnamed === 1 ? 'it' : 'them'} here, and every line that carries ${unnamed === 1 ? 'it' : 'them'} draws its colour.`
             : ''}
         </p>
         <ul className="sh-keylist__lines">
@@ -115,7 +115,6 @@ export function ColourKey({
               )}
               <span className="sh-keyline__count">
                 {l.lines.toLocaleString('en-AU')} {l.lines === 1 ? noun.one : noun.many}
-                {l.by === 'northside' ? ' · named by Northside' : ''}
               </span>
             </li>
           ))}

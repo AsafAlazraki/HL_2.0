@@ -971,4 +971,118 @@ test.describe('the sheet', () => {
       /\/levels\?list=dealer_fit/,
     )
   })
+
+  /* ---- the sheet's verifier, round 1 (docs/directions/data-round/sheet/verify-1.md) ---- */
+
+  test('sheet — a band’s price range ends under the lit price’s figures', async ({
+    page,
+    viewport,
+  }) => {
+    test.skip(!desk(viewport?.width), 'a hand reads a band as the block’s head')
+    await openSheet(page, 'parts')
+    const range = (await page
+      .locator('.sh-spine[data-band] .sh-spine__figures')
+      .first()
+      .boundingBox())!
+    const lit = (await page.locator('.sh-cell[data-rung]').first().boundingBox())!
+    /* within the lit column, ending where its figures end: both pad 12 from the column's edge */
+    expect(range.x).toBeGreaterThanOrEqual(lit.x - 1)
+    expect(Math.abs(range.x + range.width - (lit.x + lit.width))).toBeLessThanOrEqual(2)
+  })
+
+  test('sheet — reading at Trade says so on every head, in words', async ({ page, viewport }) => {
+    await openSheet(page, HIGHFIELD)
+    const trade = page.getByRole('button', {
+      name: "Read every model's head at Trade",
+      exact: true,
+    })
+    test.skip((await trade.count()) === 0 || !desk(viewport?.width), 'Trade is drawn as a column')
+    await trade.click()
+    await expect(page).toHaveURL(/rung=/)
+    await expect(page.locator('.sh-spine__figures').first()).toContainText(/^Trade: /)
+  })
+
+  test('sheet — a refusal takes a line of its own, and covers no figure under it', async ({
+    page,
+    viewport,
+  }) => {
+    test.skip(!desk(viewport?.width), 'a hand edits in the record')
+    await openSheet(page, HIGHFIELD)
+    await page.getByRole('grid', { name: hf.name }).focus()
+    const cash = page.locator('.sh-th', { hasText: 'Cash' }).first()
+    const col = Number(await cash.getAttribute('aria-colindex')) - 1
+    for (let i = 0; i < col; i += 1) await page.keyboard.press('ArrowRight')
+    await page.keyboard.press('Enter')
+    await page.keyboard.type('12abc')
+    await page.keyboard.press('Enter')
+    const pill = page.locator('.sh-pillcell .sh-pill')
+    await expect(pill).toContainText('is not a number')
+    const box = (await pill.boundingBox())!
+    /* whatever stands at the pill's middle is the pill */
+    const hit = await page.evaluate(
+      ([x, y]) => !!document.elementFromPoint(x!, y!)?.closest('.sh-pill'),
+      [box.x + box.width / 2, box.y + box.height / 2],
+    )
+    expect(hit).toBe(true)
+    /* and the next line's figures stand under it, not beneath it */
+    const next = (await page.locator('.sh-cell[data-rung]').nth(1).boundingBox())!
+    expect(next.y).toBeGreaterThanOrEqual(box.y + box.height)
+    await page.keyboard.press('Escape')
+  })
+
+  test('sheet — a move below $0 says why before the press, and draws no figure under $0', async ({
+    page,
+    viewport,
+  }) => {
+    test.skip(!desk(viewport?.width), 'a selection is a desk’s')
+    await openSheet(page, HIGHFIELD)
+    await page.getByRole('grid', { name: hf.name }).focus()
+    const cash = page.locator('.sh-th', { hasText: 'Cash' }).first()
+    const col = Number(await cash.getAttribute('aria-colindex')) - 1
+    for (let i = 0; i < col; i += 1) await page.keyboard.press('ArrowRight')
+    for (let i = 0; i < 3; i += 1) await page.keyboard.press('Shift+ArrowDown')
+    const plate = page.getByTestId('sheet-selection')
+    await plate.getByRole('button', { name: 'By $', exact: true }).click()
+    await plate.getByRole('textbox', { name: 'Cash, By $' }).fill('-100000')
+    await expect(plate.getByTestId('sheet-move-plan')).toContainText('would go below $0')
+    await expect(plate).not.toContainText('−$')
+    await expect(plate.getByRole('button', { name: 'Change', exact: true })).toBeVisible()
+  })
+
+  test('sheet — the colour key names each letter, and the unnamed are drawn as unnamed', async ({
+    page,
+    viewport,
+  }) => {
+    test.skip(!desk(viewport?.width), 'the key stands in the colourway column’s head')
+    await openSheet(page, HIGHFIELD, '?find=HBS128')
+    /* HBS128 is I-B-C: three stripes, the I drawn as not named */
+    const stripes = page.locator('.sh-row .sh-cell__paint').first().locator('.sh-cell__stripe')
+    await expect(stripes).toHaveCount(3)
+    await expect(stripes.first()).toHaveAttribute('data-unnamed', '')
+    await page.getByRole('button', { name: /^The colour key/ }).click()
+    await expect(page.getByRole('combobox', { name: 'What I is' })).toBeVisible()
+  })
+
+  test('sheet — a new variant’s picture is offered in a whole sentence', async ({ page }) => {
+    const first = inFirstSeries[0]!
+    await openSheet(page, HIGHFIELD, `?at=${first.id}`)
+    const record = page.locator('[data-testid="sheet-record"]').first()
+    await record.getByRole('button', { name: /^Add a variant to / }).click()
+    await expect(
+      page.getByRole('button', {
+        name: new RegExp(`^Add a picture of the new variant of ${firstModelSaid}$`),
+      }),
+    ).toBeVisible()
+    await page.getByTestId('last-step').getByRole('button', { name: 'Undo' }).click()
+  })
+
+  test('sheet — a money column keeps its cents on every line', async ({ page }) => {
+    await openSheet(page, 'labour_rates')
+    const inc = page.locator('.sh-th', { hasText: 'Rate (inc GST)' }).first()
+    test.skip((await inc.count()) === 0, 'the column is drawn where the window has room for it')
+    const col = Number(await inc.getAttribute('aria-colindex')) - 1
+    const figures = await page.locator(`[id^="sh-cell-"][id$="-${col}"]`).allInnerTexts()
+    expect(figures.length).toBeGreaterThan(0)
+    for (const f of figures) expect(f.trim()).toMatch(/^\$[\d,]+\.\d\d$/)
+  })
 })

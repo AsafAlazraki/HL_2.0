@@ -130,6 +130,7 @@ import {
 } from '@/domain/quote/nought'
 import type { ShownFact } from '@/domain/quote/distinguish'
 import { swapLines } from '@/domain/quote/swap'
+import { atmOnQuote } from '@/domain/fitment/quoteAtm'
 import { axisOnePrice } from '@/domain/quote/axisPrice'
 import { ownChoices } from '@/domain/quote/choices'
 import { SUBJECT_BLOCK } from '@/domain/quote'
@@ -676,6 +677,27 @@ function Build({
      command minted; nothing is phrased here. */
   const press = useCallback(
     (act: Act) => {
+      /* A TRAILER OVER ITS ATM IS NOT PUT ON, here as on Fitment, with Fitment's own sentence and
+         its figures (`atmOnQuote`; the fitment verifier, 2026-11-03: one press of Add put the
+         SP660's GFAB on at $111,778 with no word). Said in the step's place, which it replaces. */
+      if (act.do === 'add' || act.do === 'swap') {
+        const standing = quotesStore.getState().quotes.find((q) => q.id === quoteId)
+        const over = standing
+          ? act.do === 'add'
+            ? atmOnQuote(ctx, standing, [act.line])
+            : atmOnQuote(
+                ctx,
+                standing,
+                act.swap.on.map((o) => o.line),
+                act.swap.off,
+              )
+          : ''
+        if (over !== '') {
+          setStep(null)
+          setRefused(over)
+          return
+        }
+      }
       const command =
         act.do === 'add'
           ? addLine(act.blockId, act.line)

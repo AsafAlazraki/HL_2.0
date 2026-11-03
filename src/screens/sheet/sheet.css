@@ -361,7 +361,7 @@
   font: inherit;
   color: var(--color-blue-700);
   text-decoration: underline dotted;
-  text-underline-offset: 3px;
+  text-underline-offset: --spacing(0.75);
   cursor: pointer;
 }
 
@@ -941,18 +941,20 @@
   display: block;
 }
 
+/* A SERIES BAND SAYS WHAT ITS MODELS SHARE WHOLE, on a second line where it must: "short shaft ·
+   tiller steer · external tank · 3 air chambers" was cut to "3 air ch…" at 834 (the verifier) */
 .sh-band__cell {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: --spacing(3);
-  block-size: var(--band-h);
+  gap: --spacing(0.5) --spacing(3);
+  min-block-size: var(--band-h);
+  padding-block: --spacing(1);
   padding-inline: --spacing(4);
   background: var(--color-blue-50);
   border-block-end: 1px solid var(--color-blue-100);
   font-size: var(--text-xs);
   color: var(--ink-soft);
-  white-space: nowrap;
-  overflow: hidden;
 }
 
 .sh-band__name {
@@ -980,10 +982,9 @@
 }
 
 .sh-band__says {
+  flex: 1 1 --spacing(60);
   min-inline-size: 0;
   color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .sh-band__every {
@@ -1231,9 +1232,9 @@
   line-height: var(--text-2xs--line-height);
   color: var(--ink-quiet);
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* said whole, on a second line where it must: "shown in White / White / White/Blue" was cut at
+     "White…" under Sport 560 at 1280 and 1440 (the verifier) */
+  text-wrap: balance;
 }
 
 .sh-spine__toggle {
@@ -1770,10 +1771,13 @@
    the label went to 0 px — "held as a link: https://www.highfieldboat…" ran into the label
    column on PA700EW B-B-B at 1440 (built-critique-m2-close.md, minor 14). The label takes its
    own width up to three fifths of the fact, and the value the rest. */
+/* LABEL AND VALUE STAND ON ONE TOP LINE, at one leading: a value on two lines ("Boat
+   Registration / Not Required") set its label beside its LAST line by baseline, because a button's
+   baseline is its last line's */
 .sh-fact {
   display: grid;
   grid-template-columns: fit-content(60%) minmax(0, 1fr);
-  align-items: baseline;
+  align-items: start;
   gap: --spacing(2);
   min-inline-size: 0;
 }
@@ -1782,6 +1786,7 @@
    Required" was cut to "Not Requir…" in the record even at 1920 (the verifier) */
 .sh-fact__label {
   font-size: var(--text-xs);
+  line-height: --spacing(5);
   color: var(--ink-quiet);
   overflow-wrap: anywhere;
 }
@@ -1799,6 +1804,7 @@
   background: transparent;
   font: inherit;
   font-size: var(--text-sm);
+  line-height: --spacing(5);
   color: var(--ink);
   text-align: end;
   cursor: pointer;
@@ -2798,6 +2804,14 @@
 /* A TABLET STANDING UP (834 × 1112): the chapters take the bar's whole width and the doors
    stand under them, because seven series and three doors do not share 786px */
 @media (max-width: 1099.98px) and (min-width: 640px) and (min-height: 521px) {
+  /* AND THE HEAD IN TWO ROWS: the maker's mark and the list's whole name, then the find field
+     the width of the list. Beside the field, "Highfield × Yamaha — Motor Fitment" was pressed to
+     three lines in 170px (the verifier, 22-join-tablet) */
+  .sh-mast {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: --spacing(3);
+  }
+
   .sh-bar {
     flex-direction: column;
     align-items: stretch;
@@ -2835,6 +2849,27 @@
 
   .sh-count {
     display: none;
+  }
+
+  /* THE DOORS ARE THEIR GLYPHS, their words their names to a reader, and the open one stands on
+     its white thumb: seven series and three worded doors do not share 796px, and the series strip
+     was cut at "Patro" under the pill (the verifier, 844 × 390). With the series a little closer,
+     all seven stand whole, and the strip's fade falls on no word */
+  .sh-chapters {
+    flex: 1 1 auto;
+  }
+
+  .sh-chapter {
+    padding-inline: --spacing(2);
+  }
+
+  .sh-door :is(.sh-door__word, .sh-door__count) {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 
@@ -3174,6 +3209,9 @@
 /* A BAND ON THE ROWS' OWN COLUMNS (Grid.tsx `bandRung`): the name in every column before the lit
    price, the range in it, ending where its figures end, and what the lines share after it */
 .sh-spine[data-band][data-aligned]:not([data-hand]) {
+  /* the lit price's grid line and the one after it, written by Grid.tsx on each band */
+  --rung-col: 2;
+  --after-col: 3;
   display: grid;
   grid-template-columns: subgrid;
 }
@@ -3213,8 +3251,30 @@
   white-space: normal;
 }
 
-/* the air under a band's last product is as tall as the band and its rule: 37px, which
-   `BAND_TAIL` in Grid.tsx repeats as the block's last track */
+.sh-spine[data-band][data-aligned='under']:not([data-hand]) .sh-spine__one {
+  grid-row: 2;
+  grid-column: 1 / var(--rung-col);
+  padding-inline: --spacing(14) --spacing(3);
+}
+
+/* a name on two lines reads as one: its lines at the name's own leading, its count after it */
+.sh-spine[data-band]:not([data-hand]) .sh-spine__name {
+  row-gap: 0;
+  line-height: 1.3;
+}
+
+/* the air under a band's last product is the band itself, unseen (Grid.tsx `sh-bandtail`): the
+   same words in the same columns, so it is exactly as tall as the band it makes room for */
+.sh-bandtail {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  visibility: hidden;
+}
+
+.sh-bandtail .sh-spine[data-band] {
+  position: static;
+}
 
 /* ---- what Northside changed (G12) -------------------------------------------------------- */
 
@@ -3860,7 +3920,8 @@
 .sh-keylist {
   display: grid;
   gap: --spacing(3);
-  inline-size: min(--spacing(110), calc(100vw - --spacing(8)));
+  /* the popover's own room (360px, less its padding): nothing in the key runs past its edge */
+  inline-size: min(--spacing(82), calc(100vw - --spacing(16)));
 }
 
 .sh-keylist__lead {
@@ -3918,4 +3979,24 @@
 .sh-move__refused {
   margin: --spacing(2) 0 0;
   font-size: var(--text-sm);
+}
+
+/* ---- a pairing list's hull, said whole ------------------------------------------------------ */
+
+/* A HULL IS NAMED WHOLE, on two lines where its spine is short: "Roll Up 230 KAM · Hypalon · Light
+   Grey" was cut to "· Lig…" at 834 and 844 (the verifier). Its row grows to hold the second line
+   (Grid.tsx `leafTrack`); at a desk, where it fits, it is one line as before */
+.sh-spine[data-small] .sh-spine__name {
+  flex-wrap: wrap;
+  white-space: normal;
+  line-height: --spacing(5);
+}
+
+.sh-spine[data-small] .sh-spine__called {
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+.sh-spine[data-small][data-fit='name'] .sh-spine__in {
+  padding-block: --spacing(1);
 }

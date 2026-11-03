@@ -192,12 +192,13 @@ describe('the trailer line', () => {
     const before = positions.length
     await userEvent.click(screen.getByRole('button', { name: /^Put the GFAB .* on the quote/ }))
     expect(positions.length).toBe(before)
+    /* said under the weighing that holds its figures, never the figures again (the verifier) */
     expect(screen.getByRole('alert')).toHaveTextContent(
-      /is rated 2,200 kg and would carry 2,950 kg, 750 kg over, so it is not put on the quote\. Its ATM decides that\.$/,
+      'Not put on the quote: its ATM, weighed above, decides that.',
     )
     await userEvent.click(screen.getByRole('button', { name: /^Make the GFAB .* the recommended/ }))
     expect(screen.getByRole('alert')).toHaveTextContent(
-      /so it is not made the recommended trailer\. Its ATM decides that\.$/,
+      'Not made the recommended trailer: its ATM, weighed above, decides that.',
     )
   })
 

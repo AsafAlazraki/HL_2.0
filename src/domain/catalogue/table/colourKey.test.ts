@@ -19,11 +19,11 @@ const data = (colours?: Record<string, string>): CatalogueData =>
 describe('the colour key', () => {
   it('draws a code part by part: the parts it knows, and the one nobody has named', () => {
     const s = stripesOf('I-B-C')!
-    expect(s.parts.map((p) => p.name)).toEqual([null, 'Black', 'Carbon'])
-    expect(s.parts.map((p) => p.swatches)).toEqual([[], ['black'], ['carbon']])
+    expect(s.pieces.map((p) => p.name)).toEqual([null, 'Black', 'Carbon'])
+    expect(s.pieces.map((p) => p.swatches)).toEqual([[], ['black'], ['carbon']])
     expect(s.say).toBe('I, not named / Black / Carbon')
     /* a two-colour part draws both */
-    expect(stripesOf('W-W-WB')!.parts[2]!.swatches).toEqual(['white', 'blue'])
+    expect(stripesOf('W-W-WB')!.pieces[2]!.swatches).toEqual(['white', 'blue'])
   })
 
   it('draws nothing for a code it knows nothing of, or one that is not a colourway', () => {
@@ -34,7 +34,12 @@ describe('the colour key', () => {
 
   it('draws a letter Northside named, and says it is Northside’s', () => {
     const s = stripesOf('WH', { WH: 'White' })!
-    expect(s.parts[0]).toEqual({ token: 'WH', name: 'White', swatches: ['white'], by: 'northside' })
+    expect(s.pieces[0]).toEqual({
+      token: 'WH',
+      name: 'White',
+      swatches: ['white'],
+      by: 'northside',
+    })
   })
 
   it('lists every letter the codes carry, counted, the unnamed first', () => {
@@ -60,7 +65,7 @@ describe('the colour key', () => {
       refused: expect.stringContaining('“Ivory” is not a colour the key can draw'),
     })
     expect(nameColour('B', 'White')(data(), NOW)).toEqual({
-      refused: 'B is named by the price file itself, as Black, so it is not renamed here.',
+      refused: 'B is named by the Master Price File itself, as Black, so it is not renamed here.',
     })
     const cleared = nameColour('I', null)(data({ I: 'White' }), NOW)
     expect('next' in cleared && cleared.next.org?.colours).toBeUndefined()

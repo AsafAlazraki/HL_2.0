@@ -555,8 +555,13 @@ const numberIn = (row: RowData | undefined, field: FieldDef | null | undefined):
 const fieldNamed = (entity: EntityDef, name: string): FieldDef | undefined =>
   entity.fields.find((f) => f.name.trim().toLowerCase() === name.toLowerCase())
 
-/** What this boat puts on a trailer: the boat, and the motor that comes on a new quote. */
-export function loadOf(ctx: CatalogueCtx, fit: BoatFit): Load {
+/** What this boat puts on a trailer: the boat, and the motor that comes on a new quote — or, given
+ *  `on`, the motor a quote carries (its row), or none (null): what a build weighs a trailer against. */
+export function loadOf(
+  ctx: CatalogueCtx,
+  fit: BoatFit,
+  on?: { tableId: string; rowId: string } | null,
+): Load {
   const root = ctx.entities[fit.place.tableId]
   const row = (ctx.rowsByEntity[fit.place.tableId] ?? []).find((r) => r.id === fit.place.rowId)
   const field = root ? loadFieldFor(root, TRAILER_ATM_FLOOR) : null
@@ -575,12 +580,22 @@ export function loadOf(ctx: CatalogueCtx, fit: BoatFit): Load {
     }
   }
   const motor = fit.motor
-  const table = motor ? ctx.entities[motor.tableId] : undefined
-  const star = motor?.made.find((m) => m.starred && !refusedByRule(m)) ?? null
+  const table = on ? ctx.entities[on.tableId] : motor ? ctx.entities[motor.tableId] : undefined
+  const starred = motor?.made.find((m) => m.starred && !refusedByRule(m)) ?? null
+  const motorPlace = on === undefined ? (starred?.place ?? null) : on
   const motorRow =
-    star && table
-      ? (ctx.rowsByEntity[table.id] ?? []).find((r) => r.id === star.place.rowId)
+    motorPlace && table
+      ? (ctx.rowsByEntity[table.id] ?? []).find((r) => r.id === motorPlace.rowId)
       : undefined
+  const star =
+    motorRow && table
+      ? {
+          name:
+            on === undefined && starred
+              ? starred.name
+              : lineSaid(rowLabel(table, motorRow), table.name),
+        }
+      : null
   const motorKg = table && motorRow ? motorFactsOf(table, motorRow).kg : null
   const model = star && table ? modelOf(star.name, makerOfTable(table)) : ''
   const parts = [{ said: `the ${boat}`, kg: boatKg }]
@@ -596,7 +611,11 @@ export function loadOf(ctx: CatalogueCtx, fit: BoatFit): Load {
 
 /** One trailer's ATM against what goes on it. A warning and never a removal, as the engine's own
  *  floor is (`trailerFitment.ts`, F9): a trailer made for this boat stays offered. */
-export function towOf(ctx: CatalogueCtx, load: Load, trailer: TrailerMade): Tow {
+export function towOf(
+  ctx: CatalogueCtx,
+  load: Load,
+  trailer: Pick<TrailerMade, 'key' | 'place'>,
+): Tow {
   const entity = ctx.entities[trailer.place.tableId]
   const row = (ctx.rowsByEntity[trailer.place.tableId] ?? []).find(
     (r) => r.id === trailer.place.rowId,

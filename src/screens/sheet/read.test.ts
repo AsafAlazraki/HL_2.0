@@ -4,11 +4,13 @@ import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { cellText } from '@/domain/catalogue/table/helpers'
 import { splitUnit } from '@/domain/catalogue/views/columns'
 import {
+  centsColumns,
   changeSaid,
   factLines,
   factText,
   handSentence,
   lineSaid,
+  paintOf,
   pathSaid,
   recordSaid,
   sourceSaid,
@@ -266,5 +268,31 @@ describe('what the record is headed', () => {
       'Roll-Up',
       'Roll Up 230 KAM',
     ])
+  })
+})
+
+describe('a money column says every figure the same way', () => {
+  it('keeps Labour Rates to the cent, and Highfield and Parts in whole dollars', () => {
+    const labour = pack.byKey('labour_rates')
+    const rows = pack.rowsByEntity.labour_rates ?? []
+    const cents = centsColumns(labour, rows)
+    const inc = fieldOf(labour, 'Rate (inc GST)')
+    const exc = fieldOf(labour, 'Rate (Exc GST)')
+    expect(cents.has(inc.id)).toBe(true)
+    expect(cents.has(exc.id)).toBe(true)
+    /* Retail Labour's $159 is said $159.00 beside $143.10 */
+    const retail = rows.find((r) => r.values[inc.id] === 159)!
+    const row = { rowId: retail.id, values: retail.values, text: {} }
+    expect(paintOf(labour, inc, row, cents)).toBe('$159.00')
+    expect(paintOf(labour, inc, row)).toBe('$159')
+
+    const hf = pack.byKey('boat_highfield')
+    expect(
+      centsColumns(hf, pack.rowsByEntity.boat_highfield ?? []).has(fieldOf(hf, 'Cash').id),
+    ).toBe(false)
+    const parts = pack.byKey('parts')
+    expect(centsColumns(parts, pack.rowsByEntity.parts ?? []).has(fieldOf(parts, 'Sell').id)).toBe(
+      false,
+    )
   })
 })

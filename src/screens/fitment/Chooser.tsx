@@ -76,7 +76,7 @@ const modelSaid = (m: BoatModel): string => (m.trim === '' ? m.name : `${m.name}
  *  "SP300" beside "Sport 330" reads as the file's word, not a slip (the fitment verifier,
  *  2026-11-03; the names ledger: Highfield's site has no Sport 300). */
 const withCode = (m: BoatModel, note: string): string =>
-  m.coded ? [note, 'the price list’s code'].join(' · ') : note
+  m.coded ? [note, 'named by code'].join(' · ') : note
 
 /** The maker said once, above its models, not again on each of them. */
 const bare = (maker: string, name: string): string =>

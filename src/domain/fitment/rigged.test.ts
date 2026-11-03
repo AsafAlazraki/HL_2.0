@@ -11,7 +11,15 @@ import { makeCtx, type CatalogueCtx } from '@/domain/model'
 import { createViewFor } from '@/domain/catalogue/views'
 import { mintQuoteFromView } from '@/domain/quote/freeze'
 import { readBoatFit } from './boat'
-import { boatFacts, compareOf, pickedLines, riggedOf, rigSaid, sharedFacts } from './rigged'
+import {
+  boatFacts,
+  compareOf,
+  pickedLines,
+  retiredKitsSaid,
+  riggedOf,
+  rigSaid,
+  sharedFacts,
+} from './rigged'
 
 vi.setConfig({ testTimeout: 60_000 })
 
@@ -157,5 +165,97 @@ describe('the lines a quote started here begins with', () => {
     ])
     expect(adds[0]!.line.unitPrice).toBe(27565)
     expect(adds[0]!.line.pairRowId).toBe(rig.key)
+  })
+})
+
+describe('the rigging kit each pairing names, read off its own row', () => {
+  const STABI_2350 = { tableId: 'boat_stabicraft', rowId: 'boat_stabicraft:30' }
+
+  it('names the kit the price list no longer sells, and never prices it into the rig', () => {
+    /* the fitment verifier, 2026-11-03: 10 of the 2350 Ultra Centrecab's 11 tiles said "Its
+       pairing names no rigging kit." while each pairing names a kit marked discontinued */
+    const rigs = riggedOf(ctx, readBoatFit(ctx, STABI_2350)!)
+    expect(rigs).toHaveLength(11)
+    expect(rigs.every((r) => r.kit !== null)).toBe(true)
+    const gone = rigs.filter((r) => r.kit?.retired)
+    expect(gone).toHaveLength(10)
+    const f225 = rigs.find((r) => r.model === 'F225UCB')!
+    expect(f225.kit).toMatchObject({
+      place: { tableId: 'rig_kits', rowId: 'rig_kits:625' },
+      price: null,
+      retired: true,
+    })
+    expect(f225.total).toBeNull()
+    expect(rigSaid(f225)).toBe(
+      'The rigging kit its pairing names is no longer sold, so the figure is the motor alone and a quote takes the motor without it.',
+    )
+    expect(retiredKitsSaid(rigs)).toBe(
+      '10 of the 11 name a rigging kit the price list marks no longer sold, so their figures are the motor alone and a quote takes the motor without it.',
+    )
+    const price = compareOf(ctx, rigs).find((r) => r.label === 'Rigging kit price')!
+    expect(price.cells.filter((c) => c === 'No longer sold')).toHaveLength(10)
+  })
+
+  it('gives two pairings that name one kit that kit each, the F225UCB’s and the F250UCB’s 625', () => {
+    const rigs = riggedOf(ctx, readBoatFit(ctx, STABI_2350)!)
+    const named = ['F225UCB', 'F250UCB'].map(
+      (m) => rigs.find((r) => r.model === m)!.kit?.place.rowId,
+    )
+    expect(named).toEqual(['rig_kits:625', 'rig_kits:625'])
+  })
+
+  it('prints a prop’s part number as the maker does, 6CE and never 6Ce', () => {
+    const rigs = riggedOf(ctx, readBoatFit(ctx, STABI_2350)!)
+    const f225 = rigs.find((r) => r.model === 'F225UCB')!
+    expect(f225.with.find((w) => w.label === 'Prop')?.value).toMatch(/ · 6CE-45976-20$/)
+  })
+
+  it('keeps the price list’s own order, so the recommended does not move a tile', () => {
+    const rigs = riggedOf(ctx, fit)
+    expect(rigs.map((r) => r.motor.at)).toEqual(
+      rigs.map((r) => r.motor.at).toSorted((a, b) => a - b),
+    )
+  })
+
+  it('puts a kit two pairings share on the quote, through the pairing of the motor chosen', () => {
+    /* the Stacer 409S Proline Angler's F30LA and F40LA both name rig_kits:6 */
+    const stacer = ctx.rowsByEntity['boat_stacer']!.map((r) => ({
+      tableId: 'boat_stacer',
+      rowId: r.id,
+    }))
+    const place = stacer.find((p) => readBoatFit(ctx, p)?.name === 'Stacer 409S Proline Angler')!
+    const angler = readBoatFit(ctx, place)!
+    const rigs = riggedOf(ctx, angler)
+    const sharing = rigs.filter((r) => r.kit?.place.rowId === 'rig_kits:6')
+    expect(sharing.length).toBeGreaterThan(1)
+    const world = makeCtx({ ...ctx, views: { ...ctx.views }, orgId: 'northside' })
+    const view = createViewFor(world, place.tableId)
+    for (const rig of sharing) {
+      const quote = mintQuoteFromView(world, {
+        viewId: view.id,
+        rowId: place.rowId,
+        reference: 'T-3',
+        hullAlone: true,
+      })!
+      const { adds } = pickedLines(world, quote, [
+        { tableId: rig.motor.place.tableId, key: rig.key },
+        {
+          tableId: rig.kit!.place.tableId,
+          key: rig.key,
+          rowId: rig.kit!.place.rowId,
+          pairing: rig.motor.pairing,
+        },
+      ])
+      expect(adds.map((a) => [a.line.rowId, a.line.pairRowId])).toEqual([
+        [rig.motor.place.rowId, rig.key],
+        ['rig_kits:6', rig.key],
+      ])
+    }
+  })
+
+  it('says the file’s shorthand in full in a dealer fit name, as the build does', () => {
+    const names = fit.lists.flatMap((l) => l.made.map((m) => m.name))
+    expect(names).toContain('Tube Covers to suit PVC Boat · 6.6 m')
+    expect(names.some((n) => /\dmtr|Mtr\b/i.test(n))).toBe(false)
   })
 })

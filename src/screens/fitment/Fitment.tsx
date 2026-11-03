@@ -102,6 +102,7 @@ import {
 import {
   boatFacts,
   compareOf,
+  retiredKitsSaid,
   riggedOf,
   rigSaid,
   sharedFacts,
@@ -109,8 +110,8 @@ import {
   type Rigged,
 } from '@/domain/fitment/rigged'
 import { acrossSaid, sameAcross, versionSaid, versionsOf } from '@/domain/fitment/versions'
-import { atmRefusal } from '@/domain/fitment/atm'
-import { shareOf } from '@/domain/fitment/rows'
+import { atmNear, atmRefusal, overAtm } from '@/domain/fitment/atm'
+import { evenly, gridOf, shareOf } from '@/domain/fitment/rows'
 import { spokenBoat } from '@/domain/quote/spoken'
 import { Whole } from './Whole'
 import { useFitChange, type FitAct, type FitRefusal } from './useFitChange'
@@ -163,6 +164,17 @@ export interface FitmentProps {
   openQuote?: (quoteId: string) => void
 }
 
+/** A fact's words, its part numbers never broken at their hyphens ("6AW-" / "459xx-xx"): a
+ *  part of the value with no space in it is a code, and is kept on one line. */
+function codesKept(value: string): ReactNode {
+  return value.split(' · ').map((part, i) => (
+    <span key={part}>
+      {i > 0 ? ' · ' : ''}
+      {/\s/.test(part) ? part : <span className="ft-code">{part}</span>}
+    </span>
+  ))
+}
+
 /** a door with nowhere to go, for a component test with no router */
 const NOWHERE = (): void => {}
 
@@ -171,6 +183,33 @@ const count = (n: number): string => AU.format(n)
 
 /** Each of n things' share of its row at the three widths the stylesheet reflows at (`rows.ts`),
  *  as the custom properties it reads: nothing alone on a row, no blank cell at a row's end. */
+/** ONE SET OF COLUMNS AT EACH WIDTH (`gridOf`): the grid's columns on the list, and each thing's
+ *  span on it, so every row's edges line up with the row above (the boat's facts). */
+function gridStyle(
+  n: number,
+  most: { desk: number; mid: number; phone: number },
+): { list: CSSProperties; items: CSSProperties[] } {
+  const desk = gridOf(n, most.desk)
+  const mid = gridOf(n, most.mid)
+  const phone = gridOf(n, most.phone)
+  return {
+    list: {
+      '--ft-c-desk': String(desk.columns),
+      '--ft-c-mid': String(mid.columns),
+      '--ft-c-phone': String(phone.columns),
+    } as CSSProperties,
+    items: Array.from(
+      { length: n },
+      (_, i) =>
+        ({
+          '--ft-s-desk': String(desk.spans[i] ?? 1),
+          '--ft-s-mid': String(mid.spans[i] ?? 1),
+          '--ft-s-phone': String(phone.spans[i] ?? 1),
+        }) as CSSProperties,
+    ),
+  }
+}
+
 function rowsStyle(n: number, most: { desk: number; mid: number; phone: number }): CSSProperties[] {
   const desk = shareOf(n, most.desk)
   const mid = shareOf(n, most.mid)
@@ -283,15 +322,28 @@ export function Fitment({
   const chooseTrailer = useCallback(
     (key: string) => {
       const t = fit?.trailer?.made.find((m) => m.key === key)
-      const why = fit && t ? atmRefusal(ctx, fit, t, 'quote') : ''
-      if (t && why !== '') {
-        refuse(t.place.rowId, why)
+      /* said on the tile that weighs it, under its figures, so not with them again */
+      if (fit && t && overAtm(ctx, fit, t)) {
+        refuse(t.place.rowId, atmNear('quote'))
         return
       }
       refuse('', '')
       onPosition({ trailer: key })
     },
     [ctx, fit, refuse, onPosition],
+  )
+  /* and its Recommend it, on the same tile: the domain refuses it too, with the figures, for a
+     press that is not under them (Show all) */
+  const changeTrailer = useCallback(
+    (target: Place, act: FitAct, where?: 'motor' | 'trailer') => {
+      const t = fit?.trailer?.made.find((m) => m.place.rowId === target.rowId)
+      if (act === 'star' && fit && t && overAtm(ctx, fit, t)) {
+        refuse(target.rowId, atmNear('star'))
+        return
+      }
+      change(target, act, where)
+    },
+    [ctx, fit, refuse, change],
   )
 
   const showAll = useCallback(
@@ -352,7 +404,16 @@ export function Fitment({
   const pressed = lines.find((l) => l.id === line) ?? lines[0] ?? null
   const picks: Pick[] = [
     ...(motorPick ? [{ tableId: motorPick.motor.place.tableId, key: motorPick.key }] : []),
-    ...(motorPick?.kit ? [{ tableId: motorPick.kit.place.tableId, key: motorPick.key }] : []),
+    ...(motorPick?.kit && !motorPick.kit.retired
+      ? [
+          {
+            tableId: motorPick.kit.place.tableId,
+            key: motorPick.key,
+            rowId: motorPick.kit.place.rowId,
+            pairing: motorPick.motor.pairing,
+          },
+        ]
+      : []),
     ...(trailerPick ? [{ tableId: trailerPick.place.tableId, key: trailerPick.key }] : []),
   ]
 
@@ -452,7 +513,7 @@ export function Fitment({
                     ctx={ctx}
                     chosen={trailerPick?.key ?? null}
                     onChoose={chooseTrailer}
-                    change={change}
+                    change={changeTrailer}
                     refusal={refusal}
                     showAll={showAll}
                     sheetHref={sheetHref}
@@ -526,8 +587,9 @@ function BoatPlate({
     .join(' · ')
   const tiles = motorTiles(ctx, fit)
   const facts = boatFacts(ctx, fit.place)
-  /* one row on the desk; four to a row at 834 and 844, three on a phone, none alone */
-  const factRows = rowsStyle(facts.length, { desk: facts.length, mid: 4, phone: 3 })
+  /* one row on the desk; four columns at 834 and 844, three on a phone, every row on the same
+     columns and none alone (`gridOf`) */
+  const factGrid = gridStyle(facts.length, { desk: facts.length, mid: 4, phone: 3 })
 
   return (
     <section className="ft-plate" data-ground="night" aria-labelledby="ft-name">
@@ -616,9 +678,9 @@ function BoatPlate({
 
       {/* THE BOAT'S OWN FACTS, off its own row (the fitment judge, major 5) */}
       {facts.length > 0 ? (
-        <dl className="ft-facts" aria-label={`The ${fit.name}’s own figures`}>
+        <dl className="ft-facts" style={factGrid.list} aria-label={`The ${fit.name}’s own figures`}>
           {facts.map((f, i) => (
-            <div key={f.label} className="ft-facts__one" style={factRows[i]}>
+            <div key={f.label} className="ft-facts__one" style={factGrid.items[i]}>
               <dt className="ft-facts__label">{f.label}</dt>
               <dd className="ft-facts__value">{f.value}</dd>
             </div>
@@ -636,7 +698,9 @@ function BoatPlate({
                   {l.id === 'also'
                     ? l.value.split(' · ').map((part, i) => (
                         <span key={part}>
-                          {i > 0 ? ' · ' : ''}
+                          {/* the dot is the next list's, and a phone sets each list on its own
+                              line without it: it never ends a line alone (the fitment verifier) */}
+                          {i > 0 ? <span className="ft-ln__dot"> · </span> : ''}
                           <span className="ft-ln__part">{part}</span>
                         </span>
                       ))
@@ -743,7 +807,12 @@ function StartLine({
   onStart: () => void
 }) {
   const named: string[] = [`this ${fit.name}`]
-  if (motor) named.push(`the ${motor.motor.name}${motor.kit ? ' and its rigging kit' : ''}`)
+  const kit = motor?.kit ?? null
+  if (motor) {
+    named.push(
+      `the ${motor.motor.name}${kit === null ? '' : kit.retired ? ', without the rigging kit its pairing names, which is no longer sold,' : ' and its rigging kit'}`,
+    )
+  }
   if (trailer) named.push(`the ${trailer.name}`)
   const said =
     named.length === 1
@@ -757,8 +826,8 @@ function StartLine({
   ]
   const priced = figures.filter((n): n is number => n !== null)
   const together = priced.reduce((n, p) => n + p, 0)
-  const kitOut = motor?.kit && motor.kit.price === null
-  const kitIn = motor?.kit && motor.kit.price !== null ? motor.kit.price : 0
+  const kitOut = kit !== null && !kit.retired && kit.price === null
+  const kitIn = kit !== null && kit.price !== null ? kit.price : 0
   const missing = figures.length - priced.length
   return (
     <div className="ft-start" aria-labelledby="ft-start">
@@ -930,9 +999,15 @@ function MotorOpen({
   const outside = new Map(tiles.tiles.map((t) => [t.made.key, t.outside]))
   /* the kit list's price, said once over the tiles where Northside has not chosen it */
   const unchosenKit = rigs.find((r) => r.kit?.unchosen)?.kit ?? null
+  /* the kits no longer sold, said once over the tiles, with the door to the first one's pairing */
+  const retired = retiredKitsSaid(rigs)
+  const firstRetired = rigs.find((r) => r.kit?.retired && r.motor.pairing) ?? null
   const shared = sharedFacts(rigs)
-  /* four to a row on the desk, three at 834 and 844, one on a phone, none alone */
-  const tileRows = rowsStyle(rigs.length, { desk: 4, mid: 3, phone: 1 })
+  /* four to a row on the desk, one on a phone; at 834 and 844 three to a row where they share
+     their rows evenly, else ONE TO A ROW, LAID ACROSS (the fitment verifier, 2026-11-03: seven at
+     three stood 3 + 2 + 2, the tiles of rows 2 and 3 wider than row 1's) */
+  const midEven = evenly(rigs.length, 3)
+  const tileRows = rowsStyle(rigs.length, { desk: 4, mid: midEven ? 3 : 1, phone: 1 })
   return (
     <section className="ft-place" aria-labelledby="ft-motor">
       <div className="ft-bar">
@@ -973,6 +1048,30 @@ function MotorOpen({
           </Button>
         </p>
       ) : null}
+      {retired === '' ? null : (
+        <p className="ft-unchosen" data-tone="gone">
+          <span>{retired}</span>
+          {firstRetired?.motor.pairing ? (
+            <Button
+              intent="quiet"
+              size="sm"
+              icon={ArrowUpRightIcon}
+              href={sheetHref({
+                tableId: firstRetired.motor.pairing.tableId,
+                at: firstRetired.motor.pairing.rowId,
+              })}
+              onClick={() =>
+                openSheet({
+                  tableId: firstRetired.motor.pairing!.tableId,
+                  at: firstRetired.motor.pairing!.rowId,
+                })
+              }
+            >
+              {`Open the ${firstRetired.model}’s line`}
+            </Button>
+          ) : null}
+        </p>
+      )}
       {shared.length > 0 && !compare ? (
         <div className="ft-shared">
           <p className="ft-shared__lead">{`Alike on all ${count(rigs.length)}`}</p>
@@ -980,7 +1079,7 @@ function MotorOpen({
             {shared.map((f) => (
               <div key={f.label} className="ft-shared__one">
                 <dt>{f.label}</dt>
-                <dd>{f.value}</dd>
+                <dd>{codesKept(f.value)}</dd>
               </div>
             ))}
           </dl>
@@ -991,7 +1090,7 @@ function MotorOpen({
       ) : compare ? (
         <CompareTable ctx={ctx} rigs={rigs} chosen={chosen} />
       ) : (
-        <ul className="ft-tiles" aria-label="Made for it">
+        <ul className="ft-tiles" aria-label="Made for it" data-mid={midEven ? undefined : 'across'}>
           {rigs.map((r, i) => (
             <RigTile
               key={r.key}
@@ -1057,64 +1156,74 @@ function RigTile({
       data-star={star ? '' : undefined}
       data-chosen={chosen ? '' : undefined}
     >
-      <p className="ft-tile__name">
-        {star ? (
-          <span className="ft-tile__star" aria-label="Recommended">
-            <Icon glyph={StarIcon} weight="fill" size="sm" />
-          </span>
-        ) : null}
-        <span className="ft-tile__model">{r.model}</span>
-        {r.motor.price === null ? null : (
-          <span className="ft-tile__price">
-            <PriceFigure amount={r.motor.price} />
-          </span>
+      {/* WHO IT IS, AND WHAT IT IS RIGGED WITH: one column each where the tile is laid across a
+          row (834 and 844, `data-mid`), and nothing at all in a standing tile */}
+      <div className="ft-tile__who">
+        <p className="ft-tile__name">
+          {star ? (
+            <span className="ft-tile__star" aria-label="Recommended">
+              <Icon glyph={StarIcon} weight="fill" size="sm" />
+            </span>
+          ) : null}
+          <span className="ft-tile__model">{r.model}</span>
+          {r.motor.price === null ? null : (
+            <span className="ft-tile__price">
+              <PriceFigure amount={r.motor.price} />
+            </span>
+          )}
+        </p>
+        {r.motor.facts === '' ? null : <p className="ft-tile__facts">{r.motor.facts}</p>}
+        {outside === '' ? null : (
+          <p className="ft-tile__warn">
+            <Icon glyph={WarningIcon} size="sm" />
+            {outside}
+          </p>
         )}
-      </p>
-      {r.motor.facts === '' ? null : <p className="ft-tile__facts">{r.motor.facts}</p>}
-      {outside === '' ? null : (
-        <p className="ft-tile__warn">
-          <Icon glyph={WarningIcon} size="sm" />
-          {outside}
-        </p>
-      )}
-      {r.motor.rule && r.motor.rule.because !== '' ? (
-        <p className="ft-tile__rule">{r.motor.rule.because}</p>
-      ) : null}
-      <dl className="ft-rig">
-        {r.kit ? (
-          <div className="ft-rig__one">
-            <dt>Rigging kit</dt>
-            <dd>
-              <span className="ft-rig__kit">{r.kit.name}</span>
-              {r.kit.price === null ? (
-                <span className="ft-rig__note">
-                  {r.kit.unchosen ? 'Price not chosen' : 'No price'}
-                </span>
-              ) : (
-                <PriceFigure amount={r.kit.price} />
-              )}
-            </dd>
-          </div>
+        {r.motor.rule && r.motor.rule.because !== '' ? (
+          <p className="ft-tile__rule">{r.motor.rule.because}</p>
         ) : null}
-        {r.with
-          .filter((w) => !shared.some((f) => f.label === w.label && f.value === w.value))
-          .map((w) => (
-            <div key={w.label} className="ft-rig__one">
-              <dt>{w.label}</dt>
-              <dd>{w.value}</dd>
+      </div>
+      <div className="ft-tile__rigged">
+        <dl className="ft-rig">
+          {r.kit ? (
+            <div className="ft-rig__one">
+              <dt>Rigging kit</dt>
+              <dd>
+                <span className="ft-rig__kit">{r.kit.name}</span>
+                {r.kit.price === null ? (
+                  <span className="ft-rig__note">
+                    {r.kit.retired
+                      ? 'No longer sold'
+                      : r.kit.unchosen
+                        ? 'Price not chosen'
+                        : 'No price'}
+                  </span>
+                ) : (
+                  <PriceFigure amount={r.kit.price} />
+                )}
+              </dd>
             </div>
-          ))}
-      </dl>
-      {r.total !== null && r.kit !== null ? (
-        <p className="ft-tile__total">
-          <span className="ft-tile__on">On this boat</span>
-          <PriceFigure amount={r.total} />
-        </p>
-      ) : saidAbove && r.kit?.unchosen ? null : (
-        <p className="ft-tile__total">
-          <span className="ft-rig__note">{rigSaid(r)}</span>
-        </p>
-      )}
+          ) : null}
+          {r.with
+            .filter((w) => !shared.some((f) => f.label === w.label && f.value === w.value))
+            .map((w) => (
+              <div key={w.label} className="ft-rig__one">
+                <dt>{w.label}</dt>
+                <dd>{codesKept(w.value)}</dd>
+              </div>
+            ))}
+        </dl>
+        {r.total !== null && r.kit !== null ? (
+          <p className="ft-tile__total">
+            <span className="ft-tile__on">On this boat</span>
+            <PriceFigure amount={r.total} />
+          </p>
+        ) : (saidAbove && r.kit?.unchosen) || r.kit?.retired ? null : (
+          <p className="ft-tile__total">
+            <span className="ft-rig__note">{rigSaid(r)}</span>
+          </p>
+        )}
+      </div>
       <TileActs
         name={r.motor.name}
         boatName={boatName}
@@ -1224,7 +1333,13 @@ function TrailerOpen({
   const scale =
     Math.max(0, ...[...tows.values()].flatMap((w) => [w.rated ?? 0, w.total ?? 0])) * 1.06
   /* what is offered, and only that: a trailer a rule refuses is one of the reasons below */
-  const shown = offeredIn(trailer.made)
+  const shown = offeredIn(trailer.made).toSorted(
+    /* in the price list's own order, list by list, so Recommend it never moves a tile under the
+       pointer (the fitment verifier, 2026-11-03) */
+    (a, b) =>
+      trailer.lists.findIndex((l) => l.tableId === a.place.tableId) -
+        trailer.lists.findIndex((l) => l.tableId === b.place.tableId) || a.at - b.at,
+  )
   /* NOTHING MADE FOR IT, NOTHING TO WEIGH OR TALLY. Where the price list makes no trailer for a
      boat, its line says so once, and every one on sale is still a press away in Show all. */
   const none = trailer.made.length === 0
@@ -1584,14 +1699,14 @@ function Reasons({
   if (held.groups.length === 0) return null
   /* five to a row on the desk, three at 834 and 844 (five are 3 + 2, each row full), one on a
      phone: never one alone, never a blank cell (`rows.ts`) */
-  const rows = rowsStyle(held.groups.length, { desk: 5, mid: 3, phone: 1 })
+  const rows = gridStyle(held.groups.length, { desk: 5, mid: 3, phone: 1 })
   return (
     <>
       <h3 className="ft-why">The other {count(held.others)}, and why</h3>
       {/* A ROW OF GAUGES ON THE ROOM, NOT A WHITE CARD OF ROWS: each reason stands in its own
           column under a track filled to its share of the others. The share is drawn only; the
           count is said. */}
-      <ul className="ft-reasons" data-n={held.groups.length}>
+      <ul className="ft-reasons" data-n={held.groups.length} style={rows.list}>
         {held.groups.map((h, i) => {
           const door = h.door ? doorSaid(h.door, boatName, h.example?.name ?? '') : null
           const opens = h.door && h.door.kind !== 'rules' ? h.door.opens : null
@@ -1599,7 +1714,7 @@ function Reasons({
             <li
               key={h.id}
               className="ft-reason"
-              style={rows[i]}
+              style={rows.items[i]}
               data-ruled={h.id === 'ruled' ? '' : undefined}
             >
               <span className="ft-reason__gauge" aria-hidden="true">
@@ -1665,10 +1780,14 @@ function RulesLine({ said, openRules }: { said: string; openRules: () => void })
   return (
     <p className="ft-rules">
       <Icon glyph={NotePencilIcon} size="sm" />
-      <span>{said}</span>
-      <Button intent="quiet" size="sm" href="/rules" onClick={openRules}>
-        Write a rule
-      </Button>
+      <span>
+        {said}{' '}
+        <span className="ft-rules__write">
+          <Button intent="quiet" size="sm" href="/rules" onClick={openRules}>
+            Write a rule
+          </Button>
+        </span>
+      </span>
     </p>
   )
 }
