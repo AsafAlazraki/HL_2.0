@@ -103,6 +103,13 @@ async function openSheet(page: Page, tableId: string, search = ''): Promise<void
 }
 
 const desk = (w: number | undefined): boolean => (w ?? 0) >= 640
+/** A SHORT WINDOW, a phone turned (844 × 390): the desk's columns, and the record is the screen
+ *  there, over the list, as in a hand (Sheet.tsx `SHORT`, the sheet's verifier 2026-11-03) */
+const short = (v: { width: number; height: number } | null): boolean =>
+  (v?.width ?? 0) >= 640 && (v?.height ?? 0) <= 520
+/** The record opens under its row: a desk that is not a short window. */
+const underTheRow = (v: { width: number; height: number } | null): boolean =>
+  desk(v?.width) && !short(v)
 
 /** The address a picture cell names: the file stores a list of { src }. */
 const pictureAddress = (v: unknown): string =>
@@ -235,8 +242,9 @@ test.describe('the sheet', () => {
     const record = page.getByTestId('sheet-record')
     await expect(record).toBeVisible({ timeout: 30_000 })
     await recordOn(record, target)
-    /* the lit row is the found row: its own code, in its own chapter */
-    if (desk(viewport?.width)) {
+    /* the lit row is the found row: its own code, in its own chapter (under the record, out of
+       reach, where the record is the screen) */
+    if (underTheRow(viewport)) {
       await expect(page.locator('.sh-row[data-on]')).toContainText(cell(target, 'Model Code'))
       await expect(
         page.getByRole('link', { name: new RegExp(`^${cell(target, 'Series')}`) }),
@@ -293,7 +301,10 @@ test.describe('the sheet', () => {
     page,
     viewport,
   }) => {
-    test.skip(!desk(viewport?.width), 'in a hand the found row’s record is the whole screen')
+    test.skip(
+      !underTheRow(viewport),
+      'in a hand and in a short window the found row’s record is the whole screen',
+    )
     await openSheet(page, HIGHFIELD, `?at=${encodeURIComponent(target.id)}`)
     const record = page.getByTestId('sheet-record')
     await recordOn(record, target, 30_000)
@@ -487,7 +498,10 @@ test.describe('the sheet', () => {
     page,
     viewport,
   }) => {
-    test.skip(!desk(viewport?.width), 'a hand opens a record by a press, which the hand case walks')
+    test.skip(
+      !underTheRow(viewport),
+      'a hand opens a record by a press, which the hand case walks; a short window’s is the screen',
+    )
     await openSheet(page, HIGHFIELD)
     const grid = page.getByRole('grid', { name: hf.name })
     await grid.focus()
@@ -1084,5 +1098,72 @@ test.describe('the sheet', () => {
     const figures = await page.locator(`[id^="sh-cell-"][id$="-${col}"]`).allInnerTexts()
     expect(figures.length).toBeGreaterThan(0)
     for (const f of figures) expect(f.trim()).toMatch(/^\$[\d,]+\.\d\d$/)
+  })
+
+  /* ---- the sheet's verifier, round 2 (docs/directions/data-round/sheet/verify-2.md) ---- */
+
+  test('sheet — an Undo pressed while the step is still being written is what a reload reads', async ({
+    page,
+  }) => {
+    /* the blocker: Cash 850 written, the warning up, Undo about 350 ms later and a reload at once
+       read $850 — a price under cost nobody chose, kept for good */
+    const first = inFirstSeries[0]!
+    const was = Number(first.values[byName('Cash').id])
+    await openSheet(page, HIGHFIELD, `?at=${first.id}`)
+    const record = page.locator('[data-testid="sheet-record"]').first()
+    await record.getByRole('button', { name: /^Cash: .*Press to change it\.$/ }).click()
+    await record.getByRole('textbox', { name: 'Cash, editing' }).fill('850')
+    await page.keyboard.press('Enter')
+    await expect(page.getByTestId('step-warning').first()).toBeVisible()
+    /* the step's own write has started (300 ms behind) and is landing */
+    await page.waitForTimeout(350)
+    await page.getByTestId('last-step').first().getByRole('button', { name: 'Undo' }).click()
+    await expect(page.getByTestId('last-step').first()).toContainText('Undone')
+    await page.reload()
+    await expect(page.locator('[data-testid="sheet"][data-read]')).toBeVisible({ timeout: 30_000 })
+    const again = page
+      .locator('[data-testid="sheet-record"]')
+      .first()
+      .getByRole('button', { name: /^Cash: .*Press to change it\.$/ })
+    await expect(again).toHaveText(`$${was.toLocaleString('en-AU')}`)
+  })
+
+  test('sheet — a changed cell says who changed it and when after a reload too', async ({
+    page,
+  }) => {
+    const first = inFirstSeries[0]!
+    const was = Number(first.values[byName('Cash').id])
+    await openSheet(page, HIGHFIELD, `?at=${first.id}`)
+    const record = page.locator('[data-testid="sheet-record"]').first()
+    await record.getByRole('button', { name: /^Cash: .*Press to change it\.$/ }).click()
+    await record.getByRole('textbox', { name: 'Cash, editing' }).fill(String(was + 80))
+    await page.keyboard.press('Enter')
+    await expect(record).toContainText(/changed by Asaf on \d+ \w+/)
+    /* the store writes behind; the reload reads what it wrote */
+    await page.waitForTimeout(1_000)
+    await page.reload()
+    await expect(page.locator('[data-testid="sheet"][data-read]')).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator('[data-testid="sheet-record"]').first()).toContainText(
+      `The Master Price File had $${was.toLocaleString('en-AU')} · changed by Asaf on`,
+    )
+  })
+
+  test('sheet — a list with no declared price shows the figures its file sells by, none lit', async ({
+    page,
+    viewport,
+  }) => {
+    test.skip(!desk(viewport?.width), 'a hand reads the name and the lit figure only')
+    await openSheet(page, 'registration')
+    const sell = page.locator('.sh-th', { hasText: /^SELL$/i }).first()
+    await expect(sell).toBeVisible()
+    const col = Number(await sell.getAttribute('aria-colindex')) - 1
+    const figures = (await page.locator(`[id^="sh-cell-"][id$="-${col}"]`).allInnerTexts())
+      .map((f) => f.trim())
+      .filter((f) => f !== '')
+    expect(figures.length).toBeGreaterThan(0)
+    for (const f of figures) expect(f).toMatch(/^\$[\d,]+(\.\d\d)?$/)
+    /* and none is lit: which of them is the price is still Prices' to say */
+    await expect(page.getByTestId('sheet-noprice')).toBeVisible()
+    await expect(page.locator('.sh-th[data-rung]')).toHaveCount(0)
   })
 })

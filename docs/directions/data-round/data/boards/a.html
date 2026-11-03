@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data A · The Monday list</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans);
+  font-size: var(--text-base); line-height: 1.45; overflow-wrap: break-word; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
+h1 { font-weight: 800; } h2, h3 { font-weight: 700; } h4 { font-weight: 700; }
+.nw { white-space: nowrap; }
+ul, ol { list-style: none; }
+.num, b, td.n { font-variant-numeric: tabular-nums lining-nums; }
+
+/* THE BAR, as the app floats it: top on a desk, the foot on a phone. */
+.bar { position: fixed; z-index: 20; inset-block-start: 8px; inset-inline: 0; margin-inline: auto; inline-size: max-content;
+  display: flex; align-items: center; gap: 2px; padding: 4px 6px 4px 4px; border-radius: var(--radius-pill);
+  background: var(--color-door); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+.bar a { display: inline-flex; align-items: center; gap: 6px; min-block-size: 36px; padding-inline: 12px; border-radius: var(--radius-pill);
+  font-weight: 600; color: var(--color-ink-2); }
+.bar a.on { background: var(--color-blue-800); color: var(--color-white); }
+.bar .bar-find { box-shadow: inset 0 0 0 1px var(--color-rule-strong); background: var(--color-plate-tint); margin-inline-end: 6px; }
+.bar-disc { display: grid; place-items: center; inline-size: 40px; block-size: 40px; border-radius: 50%; background: var(--color-blue-800); color: var(--color-white); margin-inline-end: 4px; box-shadow: 0 0 0 3px var(--color-blue-200); }
+.bar-count { min-inline-size: 20px; padding-inline: 6px; border-radius: var(--radius-pill); background: var(--color-wash); font-size: var(--text-xs); text-align: center; color: var(--color-ink); }
+body { padding-block: 72px 48px; }
+@media (max-width: 599px) {
+  .bar { inset-block: auto 8px; inline-size: calc(100% - 16px); justify-content: space-between; padding: 4px; }
+  .bar a { flex-direction: column; gap: 0; padding-inline: 4px; min-block-size: 44px; font-size: var(--text-xs); justify-content: center; }
+  .bar .bar-find span, .bar .bar-count { display: none; }
+  .bar .bar-find { inline-size: 40px; block-size: 40px; border-radius: 50%; padding: 0; margin: 0; }
+  .bar-disc { inline-size: 44px; block-size: 44px; margin: 0; }
+  body { padding-block: 20px 104px; }
+}
+
+/* THE FRAME: one measure that grows with the window, so 1920 is used and 390 holds 16px. */
+.frame { inline-size: min(100% - 32px, 1360px); margin-inline: auto; }
+@media (min-width: 600px) { .frame { inline-size: min(100% - 48px, 1360px); } }
+@media (min-width: 1600px) { .frame { inline-size: min(100% - 96px, 1760px); } }
+
+.plate { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+.eyebrow { font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--color-ink-3); }
+.door { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--color-ink-file); white-space: nowrap; }
+.door:hover { text-decoration: underline; }
+.find { display: flex; align-items: center; gap: 10px; min-block-size: 44px; padding-inline: 14px 8px; border-radius: var(--radius-field);
+  background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-control-edge); color: var(--color-ink-3); }
+.find input { all: unset; flex: 1; min-inline-size: 0; color: var(--color-ink); font-size: var(--text-lg); }
+.find input::placeholder { color: var(--color-ink-3); }
+.mark-img { display: block; max-block-size: 26px; max-inline-size: 132px; inline-size: auto; object-fit: contain; }
+.mark-word { font-weight: 800; font-size: var(--text-lg); letter-spacing: -0.01em; color: var(--color-ink); line-height: 26px; }
+.sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* THE NOTES: the board's own words, under the screen. Paper, so it never reads as the app. */
+.notes { margin-block-start: 72px; padding-block: 48px 24px; background: var(--color-paper); border-block-start: 1px solid var(--color-rule-strong); }
+.notes .frame { display: grid; gap: 36px; }
+.notes h2 { font-size: var(--text-3xl); line-height: 1.15; letter-spacing: -0.01em; }
+.notes h3 { font-size: var(--text-xl); margin-block-end: 8px; }
+.notes p, .notes li { max-inline-size: 72ch; color: var(--color-ink-2); font-size: var(--text-lg); line-height: 1.55; }
+.notes li { margin-block: 4px; }
+.notes ul.dash li::before { content: '— '; color: var(--color-ink-3); }
+.notes code { font-family: var(--font-mono); font-size: 0.9em; overflow-wrap: anywhere; }
+.notes .cols { display: grid; gap: 28px 40px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); }
+.notes table { border-collapse: collapse; inline-size: 100%; font-size: var(--text-base); }
+.notes th, .notes td { text-align: start; vertical-align: top; padding: 8px 10px 8px 0; border-block-end: 1px solid var(--color-rule); }
+.notes th { color: var(--color-ink-3); font-weight: 700; font-size: var(--text-sm); }
+.notes td:first-child { white-space: nowrap; font-weight: 700; color: var(--color-ink); }
+.notes .state { padding: 24px; border-radius: var(--radius-plate); background: var(--color-ground); box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.notes .state > .eyebrow { margin-block-end: 14px; display: block; }
+.specimen { display: grid; gap: 10px; }
+.specimen > div { display: grid; grid-template-columns: minmax(0, 140px) minmax(0, 1fr); gap: 16px; align-items: baseline; border-block-end: 1px solid var(--color-rule); padding-block-end: 8px; }
+.specimen span:first-child { font-size: var(--text-sm); color: var(--color-ink-3); font-family: var(--font-mono); }
+.board-name { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; }
+.board-name .eyebrow { color: var(--color-ink-file); }
+.rec { display: inline-flex; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-weight: 700; font-size: var(--text-sm); }
+@media (max-width: 599px) { .notes p, .notes li { font-size: var(--text-base); } .notes .state { padding: 14px; } .notes table { font-size: var(--text-sm); } .notes td:first-child { white-space: normal; } }
+
+
+.a { display: grid; gap: 28px; }
+.a-head { display: grid; gap: 16px 32px; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); align-items: end; }
+.a-head h1 { font-size: var(--text-6xl); line-height: 1; letter-spacing: -0.02em; }
+.a-stamp { margin-block-start: 10px; font-size: var(--text-lg); color: var(--color-ink-2); }
+.a-stamp b { color: var(--color-ink); }
+.a-dates { margin-block-start: 2px; color: var(--color-ink-3); }
+.a-dates b { color: var(--color-ink-2); }
+.ui-kbd { margin-inline-start: auto; }
+
+.a-state { display: grid; gap: 20px; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+.a-sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 22px 10px; }
+.a-sec-head h2 { font-size: var(--text-2xl); letter-spacing: -0.01em; }
+.a-sec-count { color: var(--color-ink-3); }
+.a-sec-count b { color: var(--color-ink); }
+
+.need { display: grid; grid-template-columns: 96px minmax(0, 1fr) 150px 116px; gap: 4px 16px; align-items: start; padding: 14px 22px; border-block-start: 1px solid var(--color-rule); }
+.need-dot { flex: none; inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--accent-ochre); box-shadow: 0 0 0 4px oklch(from var(--accent-ochre) l c h / 18%); }
+.need-of { color: var(--color-ink-3); font-size: var(--text-sm); text-align: end; padding-block-start: 4px; }
+.need-say { font-size: var(--text-lg); font-weight: 600; }
+.need-say b { font-weight: 800; }
+.need-sub { color: var(--color-ink-2); margin-block-start: 2px; }
+.need-sub .q { font-style: italic; }
+.need-fig { display: flex; align-items: center; gap: 12px; }
+.need-fig b { font-size: var(--text-4xl); line-height: 1; font-weight: 800; letter-spacing: -0.01em; }
+.need-door { justify-self: end; margin-block-start: 4px; }
+.need.is-done .need-dot { display: grid; place-items: center; inline-size: 18px; block-size: 18px; margin-inline: -4px; background: var(--accent-viridian); color: var(--color-white); box-shadow: none; }
+.need.is-done .need-dot .ui-icon { inline-size: 13px; block-size: 13px; }
+.need.is-done .need-say { color: var(--color-ink-2); font-weight: 600; }
+.need.is-done .need-fig b { font-size: var(--text-2xl); color: var(--color-ink-2); }
+.track { display: block; block-size: 6px; margin-block-start: 10px; border-radius: 3px; background: var(--color-wash); max-inline-size: 360px; }
+.years { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-block-start: 10px; }
+.years li { display: grid; grid-template-columns: auto auto; gap: 0 6px; align-items: baseline; }
+.years-bar { grid-column: 1 / -1; block-size: 6px; inline-size: calc(var(--n) * 14px); border-radius: 3px; background: var(--accent-ochre); opacity: 0.75; }
+.years-y { font-weight: 700; font-size: var(--text-sm); }
+.years-n { color: var(--color-ink-3); font-size: var(--text-sm); }
+
+.a-new { padding-block-end: 18px; }
+.a-zero { display: flex; align-items: baseline; gap: 12px; padding: 4px 22px 14px; }
+.a-zero b { font-size: var(--text-mark); line-height: 0.9; font-weight: 800; color: var(--color-ink); }
+.a-zero span { color: var(--color-ink-2); font-size: var(--text-lg); max-inline-size: 24ch; }
+.a-new-list { display: grid; padding-inline: 22px; }
+.a-new-list div { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 10px; border-block-start: 1px solid var(--color-rule); }
+.a-new-list dt { color: var(--color-ink-2); }
+.a-new-list dd { margin: 0; display: flex; gap: 12px; align-items: baseline; color: var(--color-ink); font-weight: 600; }
+.a-new-say { padding: 10px 22px 0; color: var(--color-ink-3); font-size: var(--text-sm); }
+
+.a-side { display: grid; gap: 20px; }
+.a-rooms { display: grid; gap: 10px; }
+.a-rooms ul { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.room { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding: 14px 16px; border-radius: var(--radius-tile);
+  background: var(--color-plate); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); block-size: 100%; }
+.room > .ui-icon { position: absolute; inset-block-start: 50%; translate: 0 -50%; inset-inline-end: 14px; color: var(--color-ink-file); }
+.room { grid-template-columns: auto minmax(0, 92px) minmax(0, 1fr); align-items: center; gap: 0 10px; padding: 7px 40px 7px 8px; }
+.room-glyph { align-self: center; display: grid; place-items: center; inline-size: 36px; block-size: 36px; border-radius: var(--radius-glyph); background: var(--color-plate-tint); color: var(--color-ink-file); }
+.room-name { font-weight: 700; color: var(--color-ink-file); font-size: var(--text-lg); }
+.room-fig { color: var(--color-ink); }
+.room-fig b { font-weight: 800; }
+.room-sub { grid-column: 3; color: var(--color-ink-3); font-size: var(--text-sm); line-height: 1.3; }
+.room-fig { grid-column: 3; grid-row: 1; line-height: 1.3; }
+.room-glyph, .room-name { grid-row: 1 / span 2; }
+
+.a-hold { display: grid; gap: 14px; }
+.a-hold-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+.a-hold-head h2 { font-size: var(--text-2xl); }
+.a-hold-head p { color: var(--color-ink-3); }
+.a-makers { display: grid; gap: 12px; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.maker { display: grid; gap: 4px; align-content: start; padding: 14px; border-radius: var(--radius-tile); background: var(--color-plate); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); block-size: 100%; }
+.maker-mark { display: flex; align-items: center; gap: 8px; block-size: 30px; margin-block-end: 6px; font-weight: 800; }
+.maker-mark.sm { block-size: 22px; margin: 0; }
+.maker-mark.sm .mark-img { max-block-size: 18px; max-inline-size: 104px; }
+.maker-mark.sm .mark-word { font-size: var(--text-base); line-height: 18px; }
+.maker-a { font-weight: 600; font-size: var(--text-sm); }
+.maker-b { color: var(--color-ink-3); font-size: var(--text-sm); }
+.maker-all { background: var(--color-plate-tint); }
+
+.a-ledgers { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+.a-ledger { padding-block-end: 10px; }
+.a-ledger-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 16px 18px 6px; }
+.a-ledger-head h3 { font-size: var(--text-xl); }
+.a-ledger-head p { color: var(--color-ink-3); }
+.a-ledger-head .ui-button { margin-inline-start: auto; }
+.a-group { padding: 12px 18px 4px; }
+.a-group-maker { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 600; font-size: var(--text-sm); color: var(--color-ink-3); border-block-start: 1px solid var(--color-rule); margin-block-start: 6px; padding-block-start: 12px; }
+.row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 150px); gap: 12px; align-items: center; padding: 7px 18px; }
+.row:hover { background: var(--color-wash); }
+.row-name { font-weight: 600; }
+.row-n { color: var(--color-ink-2); text-align: end; white-space: nowrap; }
+.row-n b { color: var(--color-ink); }
+.row-fits { color: var(--color-ink-2); }
+.row-fits .zero { color: var(--accent-ochre); font-weight: 600; }
+.row-fits .gone, .row.is-gone .row-name { color: var(--color-ink-3); }
+.row-join { grid-template-columns: 20px minmax(0, 1fr) auto; }
+.x { color: var(--color-ink-3); text-align: center; font-weight: 700; }
+
+/* the spread, drawn in the notes */
+.spread { display: grid; gap: 20px 32px; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); padding: 22px; }
+.spread-head h3 { font-size: var(--text-4xl); line-height: 1.1; margin-block: 6px; }
+.spread-head p:not(.eyebrow) { color: var(--color-ink-2); }
+.spread-head .eyebrow { display: flex; align-items: center; gap: 8px; }
+.spread-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 14px; }
+.spread .eyebrow { margin-block-end: 8px; }
+.bar-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 40px; gap: 10px; align-items: center; padding-block: 4px; font-weight: 600; }
+.bar-row:hover { color: var(--color-ink-file); }
+.bar-track { block-size: 8px; border-radius: 4px; background: var(--color-wash); }
+.bar-track span { display: block; block-size: 100%; border-radius: 4px; background: var(--accent-blue); }
+.bar-row b { text-align: end; }
+.spread-fits .row { padding-inline: 0; }
+.spread-choose { margin-block-start: 10px; color: var(--color-ink-2); }
+.spread-foot { grid-column: 1 / -1; border-block-start: 1px solid var(--color-rule); padding-block-start: 12px; color: var(--color-ink-2); }
+
+@media (min-width: 1600px) {
+  .a-state { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .a-rooms ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .room { grid-template-columns: auto minmax(0, 1fr); }
+  .room-glyph { grid-row: 1 / span 3; } .room-name { grid-row: 1; grid-column: 2; } .room-fig { grid-row: 2; grid-column: 2; } .room-sub { grid-row: 3; grid-column: 2; }
+  .a-ledgers { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@media (max-width: 1365px) {
+  .a-makers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 1099px) {
+  .a-head { grid-template-columns: minmax(0, 1fr); }
+  .a-state { grid-template-columns: minmax(0, 1fr); }
+  .a-side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .a-ledgers { grid-template-columns: minmax(0, 1fr); }
+  .need { grid-template-columns: 84px minmax(0, 1fr) 140px; }
+  .need-door { grid-column: 2; justify-self: start; }
+  .room { grid-template-columns: auto minmax(0, 1fr); }
+  .room-glyph { grid-row: 1 / span 3; } .room-name { grid-row: 1; grid-column: 2; } .room-fig { grid-row: 2; grid-column: 2; } .room-sub { grid-row: 3; grid-column: 2; }
+  .spread { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 599px) {
+  .a { gap: 20px; }
+  .a-head h1 { font-size: var(--text-5xl); }
+  .a-stamp { font-size: var(--text-base); }
+  .a-dates { font-size: var(--text-sm); }
+  .a-find input { font-size: var(--text-base); }
+  .a-find .ui-kbd { display: none; }
+  .a-sec-head { padding: 14px 14px 8px; }
+  .a-side { grid-template-columns: minmax(0, 1fr); }
+  .need { grid-template-columns: 64px minmax(0, 1fr); gap: 2px 8px; padding: 12px 14px 12px 10px; }
+  .need-fig { grid-column: 1; grid-row: 1 / span 3; align-self: start; gap: 6px; }
+  .need-fig b { font-size: var(--text-2xl); }
+  .need-dot { inline-size: 8px; block-size: 8px; box-shadow: 0 0 0 3px oklch(from var(--accent-ochre) l c h / 18%); }
+  .need-words { grid-column: 2; }
+  .need-of { grid-column: 2; grid-row: 2; text-align: start; padding: 0; }
+  .need-door { grid-column: 2; grid-row: 3; margin-block-start: 2px; }
+  .track { display: none; }
+  .need-say { font-size: var(--text-base); }
+  .need-sub { font-size: var(--text-sm); }
+  .years { display: none; }
+  .a-zero { padding-inline: 14px; }
+  .a-zero b { font-size: var(--text-6xl); }
+  .a-new-list, .a-new-say { padding-inline: 14px; }
+  .a-rooms ul { grid-template-columns: minmax(0, 1fr); gap: 0; border-radius: var(--radius-tile); overflow: hidden; box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+  .room { border-radius: 0; box-shadow: none; border-block-end: 1px solid var(--color-rule); border-inline-start: 4px solid var(--color-ink-file); padding: 10px 40px 10px 12px; }
+  .room-glyph { inline-size: 30px; block-size: 30px; }
+  .a-makers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .maker { padding: 12px; }
+  .maker-mark .mark-img { max-inline-size: 100%; }
+  .row { grid-template-columns: auto minmax(0, 1fr); gap: 0 12px; padding-inline: 14px; }
+  .row > .ui-kind { grid-row: 1 / span 3; align-self: start; }
+  .row-n { grid-column: 2; text-align: start; white-space: normal; font-size: var(--text-sm); }
+  .row-fits { grid-column: 2; font-size: var(--text-sm); }
+  .row-join { grid-template-columns: 20px minmax(0, 1fr) auto; }
+  .row-join .row-n { grid-column: 3; text-align: end; }
+  .a-ledger-head, .a-group { padding-inline: 14px; }
+  .spread { padding: 14px; }
+  .spread-head h3 { font-size: var(--text-3xl); }
+}
+
+</style>
+</head>
+<body data-board="a">
+
+<nav class="bar" aria-label="The bar">
+  <span class="bar-disc" aria-hidden="true"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M225.24,174.74a12,12,0,0,1-1.58,16.89C205.49,206.71,189.06,212,174.15,212c-19.76,0-36.86-9.29-51.88-17.44-25.06-13.62-44.86-24.37-74.61.3a12,12,0,1,1-15.32-18.48c42.25-35,75-17.23,101.39-2.92,25.06,13.61,44.86,24.37,74.61-.3A12,12,0,0,1,225.24,174.74Zm-16.9-57.59c-29.75,24.67-49.55,13.91-74.61.3-26.35-14.3-59.14-32.11-101.39,2.92a12,12,0,0,0,15.32,18.48c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48ZM47.66,82.84c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48c-29.75,24.67-49.55,13.92-74.61.3-26.35-14.3-59.14-32.11-101.39,2.93A12,12,0,1,0,47.66,82.84Z"></path></svg></span>
+  <a class="bar-find" href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span>Find</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M222.14,105.85l-80-80a20,20,0,0,0-28.28,0l-80,80A19.86,19.86,0,0,0,28,120v96a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V164h24v52a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V120A19.86,19.86,0,0,0,222.14,105.85ZM204,204H164V152a12,12,0,0,0-12-12H104a12,12,0,0,0-12,12v52H52V121.65l76-76,76,76Z"></path></svg><span>Home</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,79.52l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.52ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Zm112-80a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,132Zm0,40a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,172Z"></path></svg><span>Quotes</span><b class="bar-count">0</b></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M125.18,156.94a64,64,0,1,0-82.36,0,100.23,100.23,0,0,0-39.49,32,12,12,0,0,0,19.35,14.2,76,76,0,0,1,122.64,0,12,12,0,0,0,19.36-14.2A100.33,100.33,0,0,0,125.18,156.94ZM44,108a40,40,0,1,1,40,40A40,40,0,0,1,44,108Zm206.1,97.67a12,12,0,0,1-16.78-2.57A76.31,76.31,0,0,0,172,172a12,12,0,0,1,0-24,40,40,0,1,0-10.3-78.67,12,12,0,1,1-6.16-23.19,64,64,0,0,1,57.64,110.8,100.23,100.23,0,0,1,39.49,32A12,12,0,0,1,250.1,205.67Z"></path></svg><span>Customers</span></a>
+  <a href="#" class="on" aria-current="page"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M196,35.52C177.62,25.51,153.48,20,128,20S78.38,25.51,60,35.52C39.37,46.79,28,62.58,28,80v96c0,17.42,11.37,33.21,32,44.48,18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52c20.66-11.27,32-27.06,32-44.48V80C228,62.58,216.63,46.79,196,35.52ZM204,128c0,17-31.21,36-76,36s-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94ZM128,44c44.79,0,76,19,76,36s-31.21,36-76,36S52,97,52,80,83.21,44,128,44Zm0,168c-44.79,0-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94V176C204,193,172.79,212,128,212Z"></path></svg><span>Data</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M140,80v41.21l34.17,20.5a12,12,0,1,1-12.34,20.58l-40-24A12,12,0,0,1,116,128V80a12,12,0,0,1,24,0ZM128,28A99.38,99.38,0,0,0,57.24,57.34c-4.69,4.74-9,9.37-13.24,14V64a12,12,0,0,0-24,0v40a12,12,0,0,0,12,12H72a12,12,0,0,0,0-24H57.77C63,86,68.37,80.22,74.26,74.26a76,76,0,1,1,1.58,109,12,12,0,0,0-16.48,17.46A100,100,0,1,0,128,28Z"></path></svg><span>History</span></a>
+</nav>
+
+<main class="frame a" id="main">
+  <header class="a-head">
+    <div class="a-title">
+      <h1>Data</h1>
+      <p class="a-stamp">The price list of <b class="nw">16 September 2026</b> · <span class="nw"><b>53</b> lists · <b>15,691</b> lines</span></p>
+      <p class="a-dates">Prices dated in their own headings from <b>19&nbsp;May&nbsp;2022</b> to <b>5&nbsp;August&nbsp;2026</b> · Northside’s last change: <b>none&nbsp;yet</b></p>
+    </div>
+    <label class="find a-find"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span class="sr">Find in the price list</span><input placeholder="Find a maker, a list, a section or a code"><kbd class="ui-kbd"><span class="ui-kbd-key">/</span></kbd></label>
+  </header>
+  <div class="a-state">
+<section class="a-needs plate" aria-labelledby="a-needs-h">
+  <header class="a-sec-head">
+    <h2 id="a-needs-h">Needs Northside</h2>
+    <p class="a-sec-count"><b>5</b> open · <b>1</b> done</p>
+  </header>
+  <ol>
+    
+<li class="need">
+  <p class="need-fig"><span class="need-dot" aria-hidden="true"></span><b>37</b></p>
+  <div class="need-words"><p class="need-say">to settle in the price list, the most money first</p><p class="need-sub">9 the wrong size · 3 two prices · 18 no price · 4 two under one name · 3 nothing to name it. Then 138 to tidy.</p><span class="track" role="img" aria-label="0 of 37 settled"><span style="inline-size:0%"></span></span></div>
+  <p class="need-of">0 of 37 settled</p>
+  <a class="door need-door" href="#">Settle them <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a>
+</li>
+    
+<li class="need">
+  <p class="need-fig"><span class="need-dot" aria-hidden="true"></span><b>4</b></p>
+  <div class="need-words"><p class="need-say">answers about price that only Northside can give</p><p class="need-sub">They decide how 2,725 lines price: Dealer Fit 1,777 · Rigging Kits 650 · Yamaha Outboards 209 · Factory packages 89. Until then each quotes as it does today.</p></div>
+  <p class="need-of">0 of 4 chosen</p>
+  <a class="door need-door" href="#">Choose <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a>
+</li>
+    
+<li class="need">
+  <p class="need-fig"><span class="need-dot" aria-hidden="true"></span><b>25</b></p>
+  <div class="need-words"><p class="need-say">sections say in their heading the date they were priced</p><p class="need-sub">The oldest, <span class="q">RIGGING KITS - Jeanneau DB/43 OB (as at 19/5/2022)</span> in Rigging Kits, says 19 May 2022. 4 say 2022, over 175 lines.</p><ol class="years" aria-label="The 25 dated headings by the year they say"><li style="--n:4"><span class="years-bar"></span><span class="years-y">2022</span><span class="years-n">4 · 175 lines</span></li><li style="--n:5"><span class="years-bar"></span><span class="years-y">2023</span><span class="years-n">5 · 49 lines</span></li><li style="--n:3"><span class="years-bar"></span><span class="years-y">2024</span><span class="years-n">3 · 103 lines</span></li><li style="--n:5"><span class="years-bar"></span><span class="years-y">2025</span><span class="years-n">5 · 58 lines</span></li><li style="--n:8"><span class="years-bar"></span><span class="years-y">2026</span><span class="years-n">8 · 77 lines</span></li></ol></div>
+  <p class="need-of">of 222 headings in the 5 lists that date any</p>
+  <a class="door need-door" href="#">Oldest first <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a>
+</li>
+    
+<li class="need">
+  <p class="need-fig"><span class="need-dot" aria-hidden="true"></span><b>311</b></p>
+  <div class="need-words"><p class="need-say">lines sit in 4 lists that no list of what fits names</p><p class="need-sub">ePropulsion Outboards 32 · Dunbier Trailers 102 · Mackay Trailers 125 · REDCO / Tinka Trailers 52. No boat is offered them on Fitment.</p></div>
+  <p class="need-of">in 4 of the 18 lists you sell from</p>
+  <a class="door need-door" href="#">Show them <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a>
+</li>
+    
+<li class="need">
+  <p class="need-fig"><span class="need-dot" aria-hidden="true"></span><b>3</b></p>
+  <div class="need-words"><p class="need-say">rules are noticed in the file, and not written</p><p class="need-sub">Your price list keeps 7 on its own. Northside has written none, so the build does nothing with these three.</p></div>
+  <p class="need-of">0 written by Northside</p>
+  <a class="door need-door" href="#">Read them <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a>
+</li>
+    <li class="need is-done">
+      <p class="need-fig"><span class="need-dot" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"></path></svg></span><b>53</b></p>
+      <div class="need-words"><p class="need-say">lists of 53 are on this computer, read in full</p><p class="need-sub">15,691 lines, loaded at the door.</p></div>
+      <p class="need-of">nothing left to load</p>
+      <span class="need-door"></span>
+    </li>
+  </ol>
+</section><div class="a-side">
+<section class="a-new plate" aria-labelledby="a-new-h">
+  <header class="a-sec-head"><h2 id="a-new-h">New since 16 September 2026</h2></header>
+  <p class="a-zero"><b>0</b><span>lines changed by Northside, of 15,691</span></p>
+  <dl class="a-new-list">
+    <div><dt>Lists made here</dt><dd><b>0</b></dd></div>
+    <div><dt>A new price list brought in</dt><dd>None yet <a class="door" href="#">Shelf <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></dd></div>
+    <div><dt>A copy of Northside’s work</dt><dd>None saved <a class="door" href="#">Shelf <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></dd></div>
+  </dl>
+  <p class="a-new-say">A price changed here is counted by its list, and each list opens its sheet at the lines changed.</p>
+</section>
+<section class="a-rooms" aria-labelledby="a-rooms-h">
+  <h2 id="a-rooms-h" class="eyebrow">The rooms of the price list</h2>
+  <ul><li><a class="room" href="#"><span class="room-glyph"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M228.75,100.05c-3.52-3.67-7.15-7.46-8.34-10.33-1.06-2.56-1.14-7.83-1.21-12.47-.15-10-.34-22.44-9.18-31.27s-21.27-9-31.27-9.18c-4.64-.07-9.91-.15-12.47-1.21-2.87-1.19-6.66-4.82-10.33-8.34C148.87,20.46,140.05,12,128,12s-20.87,8.46-27.95,15.25c-3.67,3.52-7.46,7.15-10.33,8.34-2.56,1.06-7.83,1.14-12.47,1.21C67.25,37,54.81,37.14,46,46S37,67.25,36.8,77.25c-.07,4.64-.15,9.91-1.21,12.47-1.19,2.87-4.82,6.66-8.34,10.33C20.46,107.13,12,116,12,128S20.46,148.87,27.25,156c3.52,3.67,7.15,7.46,8.34,10.33,1.06,2.56,1.14,7.83,1.21,12.47.15,10,.34,22.44,9.18,31.27s21.27,9,31.27,9.18c4.64.07,9.91.15,12.47,1.21,2.87,1.19,6.66,4.82,10.33,8.34C107.13,235.54,116,244,128,244s20.87-8.46,27.95-15.25c3.67-3.52,7.46-7.15,10.33-8.34,2.56-1.06,7.83-1.14,12.47-1.21,10-.15,22.44-.34,31.27-9.18s9-21.27,9.18-31.27c.07-4.64.15-9.91,1.21-12.47,1.19-2.87,4.82-6.66,8.34-10.33C235.54,148.87,244,140.05,244,128S235.54,107.13,228.75,100.05Zm-17.32,39.29c-4.82,5-10.28,10.72-13.19,17.76-2.82,6.8-2.93,14.16-3,21.29-.08,5.36-.19,12.71-2.15,14.66s-9.3,2.07-14.66,2.15c-7.13.11-14.49.22-21.29,3-7,2.91-12.73,8.37-17.76,13.19C135.78,214.84,130.4,220,128,220s-7.78-5.16-11.34-8.57c-5-4.82-10.72-10.28-17.76-13.19-6.8-2.82-14.16-2.93-21.29-3-5.36-.08-12.71-.19-14.66-2.15s-2.07-9.3-2.15-14.66c-.11-7.13-.22-14.49-3-21.29-2.91-7-8.37-12.73-13.19-17.76C41.16,135.78,36,130.4,36,128s5.16-7.78,8.57-11.34c4.82-5,10.28-10.72,13.19-17.76,2.82-6.8,2.93-14.16,3-21.29C60.88,72.25,61,64.9,63,63s9.3-2.07,14.66-2.15c7.13-.11,14.49-.22,21.29-3,7-2.91,12.73-8.37,17.76-13.19C120.22,41.16,125.6,36,128,36s7.78,5.16,11.34,8.57c5,4.82,10.72,10.28,17.76,13.19,6.8,2.82,14.16,2.93,21.29,3,5.36.08,12.71.19,14.66,2.15s2.07,9.3,2.15,14.66c.11,7.13.22,14.49,3,21.29,2.91,7,8.37,12.73,13.19,17.76,3.41,3.56,8.57,8.94,8.57,11.34S214.84,135.78,211.43,139.34ZM176.49,95.51a12,12,0,0,1,0,17l-56,56a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L112,143l47.51-47.52A12,12,0,0,1,176.49,95.51Z"></path></svg></span><span class="room-name">Review</span><span class="room-fig"><b>37</b> to settle</span><span class="room-sub">then 138 to tidy</span><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></li><li><a class="room" href="#"><span class="room-glyph"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M246.15,133.18,146.83,33.86A19.85,19.85,0,0,0,132.69,28H40A12,12,0,0,0,28,40v92.69a19.85,19.85,0,0,0,5.86,14.14l99.32,99.32a20,20,0,0,0,28.28,0l84.69-84.69A20,20,0,0,0,246.15,133.18Zm-98.83,93.17L52,131V52h79l95.32,95.32ZM104,88A16,16,0,1,1,88,72,16,16,0,0,1,104,88Z"></path></svg></span><span class="room-name">Prices</span><span class="room-fig"><b>4</b> to choose</span><span class="room-sub">10 settled by the price list</span><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></li><li><a class="room" href="#"><span class="room-glyph"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M243.14,131.54l-32-80h0a12,12,0,0,0-13.73-7.25L140,57V40a12,12,0,0,0-24,0V62.37L53.4,76.29a12,12,0,0,0-8.54,7.25h0l0,0v0l-32,79.92A12,12,0,0,0,12,168c0,12.13,6.2,22.43,17.45,29A55,55,0,0,0,56,204a55,55,0,0,0,26.55-7C93.8,190.43,100,180.13,100,168a12,12,0,0,0-.86-4.46L72.38,96.65,116,87V204H104a12,12,0,0,0,0,24h48a12,12,0,0,0,0-24H140V81.63l40.42-9-23.56,58.9A12,12,0,0,0,156,136c0,12.13,6.2,22.43,17.45,29a53.78,53.78,0,0,0,53.1,0C237.8,158.43,244,148.13,244,136A12,12,0,0,0,243.14,131.54ZM56,180c-3.71,0-18-1.87-19.81-10.18L56,120.31l19.81,49.51C74,178.13,59.71,180,56,180Zm144-32c-3.71,0-18-1.87-19.81-10.18L200,88.31l19.81,49.51C218,146.13,203.71,148,200,148Z"></path></svg></span><span class="room-name">Rules</span><span class="room-fig"><b>7</b> kept by the file</span><span class="room-sub">0 written · 3 noticed</span><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></li><li><a class="room" href="#"><span class="room-glyph"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,93.65A60.08,60.08,0,0,0,164,36a20,20,0,0,0-20,20V172H128V72a12,12,0,0,0-12-12H20A20,20,0,0,0,0,80V184a36,36,0,0,0,60,26.8A36,36,0,0,0,117.94,196h68.12A36,36,0,0,0,256,184V136A44.08,44.08,0,0,0,224,93.65ZM168,60.22A36.06,36.06,0,0,1,200,96v8a12,12,0,0,0,12,12,20,20,0,0,1,20,20v14.06A36,36,0,0,0,186.06,172H168ZM104,84v70.08a35.92,35.92,0,0,0-44,3.12,35.93,35.93,0,0,0-36-7.14V84ZM36,196a12,12,0,1,1,12-12A12,12,0,0,1,36,196Zm48,0a12,12,0,1,1,12-12A12,12,0,0,1,84,196Zm136,0a12,12,0,1,1,12-12A12,12,0,0,1,220,196Z"></path></svg></span><span class="room-name">Fitment</span><span class="room-fig"><b>289</b> models</span><span class="room-sub">from 7 makers, 28 lists of what fits</span><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></li><li><a class="room" href="#"><span class="room-glyph"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M225.6,62.64l-88-48.17a19.91,19.91,0,0,0-19.2,0l-88,48.17A20,20,0,0,0,20,80.19v95.62a20,20,0,0,0,10.4,17.55l88,48.17a19.89,19.89,0,0,0,19.2,0l88-48.17A20,20,0,0,0,236,175.81V80.19A20,20,0,0,0,225.6,62.64ZM128,36.57,200,76,178.57,87.73l-72-39.42Zm0,78.83L56,76,81.56,62l72,39.41ZM44,96.79l72,39.4v76.67L44,173.44Zm96,116.07V136.19l24-13.13V152a12,12,0,0,0,24,0V109.92l24-13.13v76.65Z"></path></svg></span><span class="room-name">Catalogue</span><span class="room-fig"><b>2,238</b> parts on sale</span><span class="room-sub">in 18 aisles · 197 pictured</span><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></li><li><a class="room" href="#"><span class="room-glyph"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216,36H40A20,20,0,0,0,20,56V192a20,20,0,0,0,20,20H52v12a12,12,0,0,0,24,0V212H180v12a12,12,0,0,0,24,0V212h12a20,20,0,0,0,20-20V56A20,20,0,0,0,216,36ZM44,188V60H212v52H190.32a44,44,0,1,0,0,24H212v52Zm124-64a20,20,0,1,1-20-20A20,20,0,0,1,168,124Z"></path></svg></span><span class="room-name">Shelf</span><span class="room-fig"><b>No</b> copy saved yet</span><span class="room-sub">no new price list brought in</span><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></li></ul>
+</section></div></div>
+  <section class="a-hold" aria-labelledby="a-hold-h">
+    <header class="a-hold-head"><h2 id="a-hold-h">What the file holds</h2><p>7 makers · 53 lists · 15,691 lines</p></header>
+    
+<ul class="a-makers">
+  <li><a class="maker" href="#"><span class="maker-mark"><img class="mark-img" src="../../../../../public/brand-marks/highfield.svg" alt="Highfield"></span>
+      <span class="maker-a">67 models · 7 series</span>
+      <span class="maker-b">5 lists of what fits · 5,765 lines</span></a></li><li><a class="maker" href="#"><span class="maker-mark"><span class="mark-word">Stabicraft</span></span>
+      <span class="maker-a">37 models · 5 series</span>
+      <span class="maker-b">5 lists of what fits · 685 lines</span></a></li><li><a class="maker" href="#"><span class="maker-mark"><img class="mark-img" src="../../../../../public/brand-marks/stacer.png" alt="Stacer"></span>
+      <span class="maker-a">91 models · 22 series</span>
+      <span class="maker-b">3 lists of what fits · 939 lines</span></a></li><li><a class="maker" href="#"><span class="maker-mark"><img class="mark-img" src="../../../../../public/brand-marks/formosa.png" alt="Formosa"></span>
+      <span class="maker-a">39 models</span>
+      <span class="maker-b">3 lists of what fits · 492 lines</span></a></li><li><a class="maker" href="#"><span class="maker-mark"><img class="mark-img" src="../../../../../public/brand-marks/jeanneau.svg" alt="Jeanneau"></span>
+      <span class="maker-a">27 models · 2 series</span>
+      <span class="maker-b">5 lists of what fits · 410 lines</span></a></li><li><a class="maker" href="#"><span class="maker-mark"><img class="mark-img" src="../../../../../public/brand-marks/surtees.png" alt="Surtees"></span>
+      <span class="maker-a">19 models · 3 series</span>
+      <span class="maker-b">5 lists of what fits · 253 lines</span></a></li><li><a class="maker" href="#"><span class="maker-mark"><img class="mark-img" src="../../../../../public/brand-marks/haines-signature.png" alt="Haines Signature"></span>
+      <span class="maker-a">9 models · 3 series</span>
+      <span class="maker-b">2 lists of what fits · 135 lines</span></a></li>
+  <li><a class="maker maker-all" href="#"><span class="maker-mark"><span class="ui-kind" data-ink="blue" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"></path></svg></span><span>Every maker</span></span>
+    <span class="maker-a">289 models · 810 lines</span>
+    <span class="maker-b">28 lists of what fits · 8,679 lines</span></a></li>
+</ul>
+    <div class="a-ledgers">
+<section class="a-ledger plate" aria-labelledby="a-base-h">
+  <header class="a-ledger-head"><h3 id="a-base-h">18 lists you sell from</h3><p>6,202 lines</p>
+    <button class="ui-button" data-intent="quiet" type="button"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z"></path></svg>New list</button></header>
+  <h4 class="eyebrow a-group">Motors</h4><ul><li><a class="row" href="#"><span class="ui-kind" data-ink="carmine" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M256,120v48a16,16,0,0,1-16,16H227.31L192,219.31A15.86,15.86,0,0,1,180.69,224H103.31A15.86,15.86,0,0,1,92,219.31L52.69,180A15.86,15.86,0,0,1,48,168.69V148H24v24a8,8,0,0,1-16,0V108a8,8,0,0,1,16,0v24H48V80A16,16,0,0,1,64,64h60V40H100a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16H140V64h40.69A15.86,15.86,0,0,1,192,68.69L227.31,104H240A16,16,0,0,1,256,120Z"></path></svg></span><span class="row-name">Yamaha Outboards</span><span class="row-n"><b>209</b> motors in 9 series</span><span class="row-fits">fits 264 boats</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="carmine" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M256,120v48a16,16,0,0,1-16,16H227.31L192,219.31A15.86,15.86,0,0,1,180.69,224H103.31A15.86,15.86,0,0,1,92,219.31L52.69,180A15.86,15.86,0,0,1,48,168.69V148H24v24a8,8,0,0,1-16,0V108a8,8,0,0,1,16,0v24H48V80A16,16,0,0,1,64,64h60V40H100a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16H140V64h40.69A15.86,15.86,0,0,1,192,68.69L227.31,104H240A16,16,0,0,1,256,120Z"></path></svg></span><span class="row-name">ePropulsion Outboards</span><span class="row-n"><b>32</b> motors in 1 series</span><span class="row-fits"><span class="zero">named by no boat</span></span></a></li></ul><h4 class="eyebrow a-group">Factory packages</h4><ul><li><a class="row" href="#"><span class="ui-kind" data-ink="violet" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.35,44L178.57,92.29l-80.35-44Zm0,88L47.65,76,81.56,57.43l80.35,44Zm88,55.85h0l-80,43.79V133.83l32-17.51V152a8,8,0,0,0,16,0V107.56l32-17.51v85.76Z"></path></svg></span><span class="row-name">Haines Signature Factory Packages</span><span class="row-n"><b>39</b> packages in 1 series</span><span class="row-fits">fits 9 boats</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="violet" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.35,44L178.57,92.29l-80.35-44Zm0,88L47.65,76,81.56,57.43l80.35,44Zm88,55.85h0l-80,43.79V133.83l32-17.51V152a8,8,0,0,0,16,0V107.56l32-17.51v85.76Z"></path></svg></span><span class="row-name">Jeanneau Factory Packages</span><span class="row-n"><b>50</b> packages in 4 series</span><span class="row-fits">fits 12 boats</span></a></li></ul><h4 class="eyebrow a-group">Trailers</h4><ul><li><a class="row" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">NSM Custom Trailers</span><span class="row-n"><b>73</b> trailers in 8 series</span><span class="row-fits">fits 116 boats</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">Dunbier Trailers</span><span class="row-n"><b>102</b> trailers in 15 series</span><span class="row-fits"><span class="zero">named by no boat</span></span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">Dunbier / Haines BMT Trailers</span><span class="row-n"><b>16</b> trailers in 3 series</span><span class="row-fits">fits 9 boats</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">Mackay Trailers</span><span class="row-n"><b>125</b> trailers in 6 series</span><span class="row-fits"><span class="zero">named by no boat</span></span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">REDCO / Tinka Trailers</span><span class="row-n"><b>52</b> trailers in 4 series</span><span class="row-fits"><span class="zero">named by no boat</span></span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">GFAB Trailers</span><span class="row-n"><b>32</b> trailers in 5 series</span><span class="row-fits">fits 52 boats</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">Stacer Trailers</span><span class="row-n"><b>34</b> trailers in 6 series</span><span class="row-fits">fits 88 boats</span></a></li><li><a class="row is-gone" href="#"><span class="ui-kind" data-ink="ochre" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span class="row-name">OBSOLETE Trailers — No Longer Available</span><span class="row-n"><b>10</b> trailers in 1 series</span><span class="row-fits"><span class="gone">no longer sold</span></span></a></li></ul><h4 class="eyebrow a-group">Parts and accessories</h4><ul><li><a class="row" href="#"><span class="ui-kind" data-ink="viridian" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,64H176V56a24,24,0,0,0-24-24H104A24,24,0,0,0,80,56v8H32A16,16,0,0,0,16,80v28a4,4,0,0,0,4,4H64V96.27A8.17,8.17,0,0,1,71.47,88,8,8,0,0,1,80,96v16h96V96.27A8.17,8.17,0,0,1,183.47,88,8,8,0,0,1,192,96v16h44a4,4,0,0,0,4-4V80A16,16,0,0,0,224,64Zm-64,0H96V56a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8Zm80,68v60a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V132a4,4,0,0,1,4-4H64v16a8,8,0,0,0,8.53,8A8.17,8.17,0,0,0,80,143.73V128h96v16a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25V128h44A4,4,0,0,1,240,132Z"></path></svg></span><span class="row-name">Parts & Accessories</span><span class="row-n"><b>2,937</b> products in 187 categories</span><span class="row-fits">fits 273 boats</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="viridian" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,64H176V56a24,24,0,0,0-24-24H104A24,24,0,0,0,80,56v8H32A16,16,0,0,0,16,80v28a4,4,0,0,0,4,4H64V96.27A8.17,8.17,0,0,1,71.47,88,8,8,0,0,1,80,96v16h96V96.27A8.17,8.17,0,0,1,183.47,88,8,8,0,0,1,192,96v16h44a4,4,0,0,0,4-4V80A16,16,0,0,0,224,64Zm-64,0H96V56a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8Zm80,68v60a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V132a4,4,0,0,1,4-4H64v16a8,8,0,0,0,8.53,8A8.17,8.17,0,0,0,80,143.73V128h96v16a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25V128h44A4,4,0,0,1,240,132Z"></path></svg></span><span class="row-name">Rigging Kits</span><span class="row-n"><b>650</b> rigging kits in 26 sections</span><span class="row-fits">fits 232 boats</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="violet" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.35,44L178.57,92.29l-80.35-44Zm0,88L47.65,76,81.56,57.43l80.35,44Zm88,55.85h0l-80,43.79V133.83l32-17.51V152a8,8,0,0,0,16,0V107.56l32-17.51v85.76Z"></path></svg></span><span class="row-name">Dealer Fit Packages</span><span class="row-n"><b>1,777</b> packages in 91 categories</span><span class="row-fits">fits 118 boats</span></a></li></ul><h4 class="eyebrow a-group">Northside’s own rates</h4><ul><li><a class="row" href="#"><span class="ui-kind" data-ink="graphite" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM40,112H80v32H40Zm56,0H216v32H96ZM40,160H80v32H40Zm176,32H96V160H216v32Z"></path></svg></span><span class="row-name">Labour Rates</span><span class="row-n"><b>18</b> rates</span><span class="row-fits">not tied to a boat</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="graphite" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM40,112H80v32H40Zm56,0H216v32H96ZM40,160H80v32H40Zm176,32H96V160H216v32Z"></path></svg></span><span class="row-name">Oils & Consumables</span><span class="row-n"><b>27</b> consumables</span><span class="row-fits">not tied to a boat</span></a></li><li><a class="row" href="#"><span class="ui-kind" data-ink="graphite" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM40,112H80v32H40Zm56,0H216v32H96ZM40,160H80v32H40Zm176,32H96V160H216v32Z"></path></svg></span><span class="row-name">Registration Costs</span><span class="row-n"><b>19</b> bands in 4 sections</span><span class="row-fits">not tied to a boat</span></a></li></ul>
+</section>
+<section class="a-ledger plate" aria-labelledby="a-join-h">
+  <header class="a-ledger-head"><h3 id="a-join-h">28 lists of what fits which boat</h3><p>8,679 lines</p></header>
+  <h4 class="a-group a-group-maker"><span class="maker-mark sm"><img class="mark-img" src="../../../../../public/brand-marks/highfield.svg" alt="Highfield"></span><span>5 lists · 5,765 lines</span></h4><ul><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Yamaha</span><span class="row-n"><b>2,519</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">NSM Custom</span><span class="row-n"><b>146</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">GFAB</span><span class="row-n"><b>51</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Dealer Fit</span><span class="row-n"><b>1,342</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">P/D Parts</span><span class="row-n"><b>1,707</b> pairings</span></a></li></ul><h4 class="a-group a-group-maker"><span class="maker-mark sm"><span class="mark-word">Stabicraft</span></span><span>5 lists · 685 lines</span></h4><ul><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Yamaha</span><span class="row-n"><b>239</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">NSM Custom</span><span class="row-n"><b>84</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">GFAB</span><span class="row-n"><b>47</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Dealer Fit</span><span class="row-n"><b>111</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">P/D Parts</span><span class="row-n"><b>204</b> pairings</span></a></li></ul><h4 class="a-group a-group-maker"><span class="maker-mark sm"><img class="mark-img" src="../../../../../public/brand-marks/stacer.png" alt="Stacer"></span><span>3 lists · 939 lines</span></h4><ul><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Yamaha</span><span class="row-n"><b>434</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Stacer Trailers</span><span class="row-n"><b>142</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">P/D Parts</span><span class="row-n"><b>363</b> pairings</span></a></li></ul><h4 class="a-group a-group-maker"><span class="maker-mark sm"><img class="mark-img" src="../../../../../public/brand-marks/formosa.png" alt="Formosa"></span><span>3 lists · 492 lines</span></h4><ul><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Yamaha</span><span class="row-n"><b>270</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">NSM Custom</span><span class="row-n"><b>92</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">P/D Parts</span><span class="row-n"><b>130</b> pairings</span></a></li></ul><h4 class="a-group a-group-maker"><span class="maker-mark sm"><img class="mark-img" src="../../../../../public/brand-marks/jeanneau.svg" alt="Jeanneau"></span><span>5 lists · 410 lines</span></h4><ul><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Yamaha</span><span class="row-n"><b>78</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Factory Packages</span><span class="row-n"><b>156</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">NSM Custom</span><span class="row-n"><b>16</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Dealer Fit</span><span class="row-n"><b>42</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">P/D Parts</span><span class="row-n"><b>118</b> pairings</span></a></li></ul><h4 class="a-group a-group-maker"><span class="maker-mark sm"><img class="mark-img" src="../../../../../public/brand-marks/surtees.png" alt="Surtees"></span><span>5 lists · 253 lines</span></h4><ul><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Yamaha</span><span class="row-n"><b>144</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">NSM Custom</span><span class="row-n"><b>29</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">GFAB</span><span class="row-n"><b>11</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">P/D Parts</span><span class="row-n"><b>39</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">OBSOLETE Trailers</span><span class="row-n"><b>30</b> pairings</span></a></li></ul><h4 class="a-group a-group-maker"><span class="maker-mark sm"><img class="mark-img" src="../../../../../public/brand-marks/haines-signature.png" alt="Haines Signature"></span><span>2 lists · 135 lines</span></h4><ul><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Factory Packages</span><span class="row-n"><b>117</b> pairings</span></a></li><li><a class="row row-join" href="#"><span class="x" aria-hidden="true">×</span><span class="row-name">Dunbier/Haines BMT</span><span class="row-n"><b>18</b> pairings</span></a></li></ul>
+</section></div>
+  </section>
+</main>
+
+<section class="notes" aria-label="The board">
+  <div class="frame">
+    <header class="board-name"><span class="eyebrow">Data · Direction A</span><h2>The Monday list</h2><span class="rec">Recommended</span></header>
+    <div class="cols">
+      <div>
+        <h3>The one job</h3>
+        <p>The Master Price File as one place: what needs Northside, what is new, the rooms, and every list it carries, each a door (docs/SCREENS.md, the owner on 2026-10-31).</p>
+        <h3 style="margin-top:18px">What only this screen does</h3>
+        <p>It is the only screen that says, in one list, everything the price file is waiting on Northside for, from five rooms at once, and turns each one to a tick when it is done. Review settles cases one at a time and Prices decides one question at a time. Only Data counts them together over the whole file.</p>
+      </div>
+      <div>
+        <h3>Order and grouping</h3>
+        <ol class="dash">
+          <li>1. The head: which file, how big, and its three dates (packed, Northside’s last change, and the span its own headings date).</li>
+          <li>2. <b>Needs Northside</b>: a checklist of five open items and one done. Each item has a figure, its numerator and denominator, and a door.</li>
+          <li>3. <b>New since 16 September 2026</b>: the zero said as a figure.</li>
+          <li>4. The six rooms, each a counted door, under New since on a desk and after it on a phone.</li>
+          <li>5. What the file holds: eight maker tiles, then the 18 lists you sell from beside the 28 lists of what fits, grouped by maker.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="cols">
+      <div>
+        <h3>References new to this board</h3>
+        <ul class="dash">
+          <li><b>GitHub Insights, Community standards</b>, at <code>docs/research/refs/data/round-2/live/github-insights-community.png</code>. A checklist where each missing item is a dot with its door and a present one is a tick. This is where Needs Northside comes from.</li>
+          <li><b>Wikipedia, Page information</b>, at <code>live/wiki-page-info.png</code>. “Recent number of edits: 0” is printed as a figure under the total. That is the source of “0 lines changed by Northside, of 15,691”.</li>
+        </ul>
+        <p>It also draws on <code>hand/npm-versions-390.png</code> for the rooms as full-width rows with an edge at 390, and on <code>shelf/live/dolthub-pull-compare.png</code> (stock) for the per-list change count the zero becomes.</p>
+      </div>
+      <div>
+        <h3>The mark</h3>
+        <p>Each maker’s own mark sits on its tile, once, at 26 px tall, from <code>public/brand-marks</code>. Stabicraft is set as a word, because the ledger holds only its white mark. On a pressed maker the mark is not drawn a second time. The spread’s head is the maker’s name, and a cover appears only where the heroes ledger holds that maker’s on-water photograph.</p>
+        <h3 style="margin-top:18px">What a dealer can replace</h3>
+        <p>The accent (the doors and the room glyphs read <code>--color-ink-file</code>), the ochre of an open item, and the type ramp. Nothing here leans on a photograph, so the page holds without one.</p>
+      </div>
+    </div>
+    
+<div class="state">
+  <span class="eyebrow">Pressed: the Highfield plate · /data?at=boat_highfield</span>
+  <div class="spread plate">
+    <div class="spread-head">
+      <p class="eyebrow"><span class="ui-kind" data-ink="blue" data-size="sm" aria-hidden="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"></path></svg></span> Boats · from the workbook’s Boat Module tab</p>
+      <h3>Highfield Inflatables</h3>
+      <p>588 lines: 67 models in 7 series. No Review case, no dated heading, 0 changed here.</p>
+      <div class="spread-acts"><a class="ui-button" data-intent="primary" href="#">Open the list <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a><a class="ui-button" data-intent="quiet" href="#">Highfield’s own page</a></div>
+    </div>
+    <div class="spread-series">
+      <p class="eyebrow">Its 7 series · 588 lines · each opens the sheet at its heading</p>
+      <ul><li><a href="#" class="bar-row"><span>Roll-Up</span><span class="bar-track"><span style="inline-size:16.1%"></span></span><b>32</b></a></li><li><a href="#" class="bar-row"><span>Ultralite</span><span class="bar-track"><span style="inline-size:32.2%"></span></span><b>64</b></a></li><li><a href="#" class="bar-row"><span>Classic</span><span class="bar-track"><span style="inline-size:72.4%"></span></span><b>144</b></a></li><li><a href="#" class="bar-row"><span>Coaster</span><span class="bar-track"><span style="inline-size:3.5%"></span></span><b>7</b></a></li><li><a href="#" class="bar-row"><span>Patrol</span><span class="bar-track"><span style="inline-size:65.3%"></span></span><b>130</b></a></li><li><a href="#" class="bar-row"><span>Sport</span><span class="bar-track"><span style="inline-size:100.0%"></span></span><b>199</b></a></li><li><a href="#" class="bar-row"><span>Adventure</span><span class="bar-track"><span style="inline-size:6.0%"></span></span><b>12</b></a></li></ul>
+    </div>
+    <div class="spread-fits">
+      <p class="eyebrow">What goes with it · 5 lists of what fits</p>
+      <ul><li><a class="row row-join" href="#"><span class="x">×</span><span class="row-name">Yamaha</span><span class="row-n"><b>2,519</b></span></a></li><li><a class="row row-join" href="#"><span class="x">×</span><span class="row-name">NSM Custom</span><span class="row-n"><b>146</b></span></a></li><li><a class="row row-join" href="#"><span class="x">×</span><span class="row-name">GFAB</span><span class="row-n"><b>51</b></span></a></li><li><a class="row row-join" href="#"><span class="x">×</span><span class="row-name">Dealer Fit</span><span class="row-n"><b>1,342</b></span></a></li><li><a class="row row-join" href="#"><span class="x">×</span><span class="row-name">P/D Parts</span><span class="row-n"><b>1,707</b></span></a></li></ul>
+      <p class="spread-choose">What fits one Highfield? <a class="door" href="#">Choose its series, then its boat <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></p>
+    </div>
+    <div class="spread-foot"><p><span class="eyebrow">Prices</span> Cash · Trade · Warranty, and 5 costs, never on a quote</p></div>
+  </div>
+</div>
+    <div class="cols">
+      <div>
+        <h3>Type, at 1:1</h3>
+        <div class="specimen">
+          <div><span>6xl 40/1 800</span><span style="font-size:var(--text-6xl);font-weight:800;line-height:1">Data</span></div>
+          <div><span>mark 72 800</span><span style="font-size:var(--text-mark);font-weight:800;line-height:.9">0</span></div>
+          <div><span>3xl 26 800</span><span style="font-size:var(--text-3xl);font-weight:800">37</span></div>
+          <div><span>2xl 22 700</span><span style="font-size:var(--text-2xl);font-weight:700">Needs Northside</span></div>
+          <div><span>lg 16 600</span><span style="font-size:var(--text-lg);font-weight:600">4 answers about price only Northside can give</span></div>
+          <div><span>base 14 400</span><span>Dealer Fit 1,777 · Rigging Kits 650 · Yamaha Outboards 209</span></div>
+          <div><span>sm 13 400</span><span style="font-size:var(--text-sm);color:var(--color-ink-3)">of 222 headings in the 5 lists that date any</span></div>
+        </div>
+        <p style="margin-top:10px">One face, the system sans (<code>--font-sans</code>). Nothing on the page is under 13 px except the eyebrows (12 px caps). The measure of a need’s sentence is 60–75 characters at 1440.</p>
+      </div>
+      <div>
+        <h3>Motion</h3>
+        <p>On arrival nothing moves: the state is there when the page is. When a count changes (a case settled in Review, then back here), the figure swaps in place over 160 ms (opacity only), and its row’s dot becomes a tick over 200 ms. Pressing a maker tile opens the spread directly under that tile’s row: the spread grows from 0 to its height over 240 ms on the drawer ease, the tiles above stay still, and the page scrolls only enough to show the spread’s head below the bar. Reduced motion: no growth and no scroll animation. The spread is simply there, and the figure swaps without a fade.</p>
+        <h3 style="margin-top:18px">Keyboard</h3>
+        <p><kbd>/</kbd> focuses the find. Tab goes through the six needs’ doors in order, then the rooms, then the maker tiles (one stop, arrows inside), then the ledgers’ rows. Enter on a row opens its sheet, and Space opens its spread.</p>
+      </div>
+    </div>
+    <div>
+      <h3>How it reflows</h3>
+      <table>
+        <tr><th>Size</th><th>What the composition becomes</th></tr>
+        <tr><td>390×844</td><td>The head, the find, then the needs as tight rows (dot, sentence, figure, door under the words). The year strip is hidden, and its sentence keeps the oldest date. Then the zero, the rooms as six full-width rows with an edge, the makers 2-up (eight tiles fill four rows, with no empty slot), and the two ledgers stacked. The first window holds the head and the first two needs, with the third starting.</td></tr>
+        <tr><td>844×390</td><td>The tablet column under the floating bar. The page starts at 72 px, so nothing opens under the bar. The first window holds the head and the start of the first need. The spread scrolls to its own head, with a scroll margin of 72 px.</td></tr>
+        <tr><td>834×1112</td><td>One column: the needs at full width, then New since beside the six rooms, the makers 4×2 (the eighth tile is “Every maker”, so no slot is empty), and the ledgers stacked.</td></tr>
+        <tr><td>1280×800</td><td>As 1440, with the makers 4×2. The needs sit beside a right column, 2:1, that holds New since over the six rooms.</td></tr>
+        <tr><td>1440×900</td><td>As drawn: the head, then the needs beside a right column (2:1) of New since over the six rooms as one-line doors. The eight maker tiles make one row, and the ledgers sit side by side.</td></tr>
+        <tr><td>1920×1080</td><td>The frame grows to 1,760 px. The needs and the right column run 7:5, so a need’s sentence keeps its measure. The rooms sit 2×3 under New since, and the makers make one row of eight. The window shows the needs, New since, the rooms and the makers, with no empty floor.</td></tr>
+      </table>
+    </div>
+    <div class="cols">
+      <div>
+        <h3>Honest constraints</h3>
+        <ul class="dash">
+          <li>Every figure is read from the file or from the room that owns it (<code>facts.mjs</code> names each source). The 25 dates are the headings’ own words, read by a parser this board carries. The build gets a pure one in <code>src/domain</code> with its tests. No date is inferred.</li>
+          <li>0 lines changed is the truth: every row’s <code>updatedAt</code> equals <code>packedAt</code>. No arrow or trend is drawn, because there is no earlier file to compare.</li>
+          <li>Cost and margin appear nowhere. Data is the admin’s room, and “5 costs, never on a quote” is the only mention.</li>
+          <li>The “1 done” item is true today. The tick pattern is not an invented completion.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Owed whatever wins</h3>
+        <ul class="dash">
+          <li>The OBSOLETE spread at 390 must not scroll sideways. Its title and buttons wrap, and its own-page button goes under the title.</li>
+          <li><i>Make it</i> with no name is refused at the field with “A list needs a name.” A made spread says “lines”, not “rows”.</li>
+          <li>A spread opened at 844×390 scrolls with <code>scroll-margin-top: 72px</code>, so its head clears the bar.</li>
+          <li>Kept: the spread’s content, counting through <code>register.ts</code>, the one write with its Undo, the shelf’s single tab stop, and reduced motion.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</body>
+</html>

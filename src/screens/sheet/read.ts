@@ -961,6 +961,56 @@ export function nameSaysCode(rows: readonly ViewRow[], name: FieldDef, code: Fie
   return both >= 3 && says * 20 >= both * 19
 }
 
+/** THE MAKER'S WORD BEFORE A NAME: "Yamaha - ", "Yam - ", "Yamaha Twin Rig - ". */
+const MAKER_LEAD = /^[\p{L}&. ]+\s[-–—]\s/u
+
+/**
+ * WHAT A NAME SAYS BEYOND ITS CODE (the sheet's verifier, 2026-11-03: "Yamaha - F4SMHA" still sat
+ * beside F4SMHA). The maker is said once at the head, so its word goes; the code is the name, so
+ * it goes from the front; what is left is the line's own: "(Tiller)", "(White) 30" Shafts",
+ * "Twin F70LB". '' where the name says nothing else.
+ */
+export function nameBeyondCode(name: string, code: string): string {
+  const n = name.replace(/\s+/g, ' ').trim()
+  const c = code.trim()
+  const unmade = n.replace(MAKER_LEAD, '')
+  if (c === '') return unmade
+  if (unmade.toLowerCase() === c.toLowerCase()) return ''
+  if (unmade.toLowerCase().startsWith(`${c.toLowerCase()} `)) return unmade.slice(c.length).trim()
+  return unmade
+}
+
+/**
+ * THE NAME HOLDS THE CODE when, on three lines in four that carry both, it is the maker's word, the
+ * code, and at most a few words more — Yamaha's motors, 157 of 209 in the price list of 2026-11-03. Then
+ * the code is the name and the name's own words follow it in the same cell (`nameBeyondCode`), so
+ * nothing the name said is lost and the code is said once.
+ */
+export function nameHoldsCode(rows: readonly ViewRow[], name: FieldDef, code: FieldDef): boolean {
+  let both = 0
+  let holds = 0
+  for (const r of rows) {
+    const n = (r.text[name.id] ?? '').trim()
+    const c = (r.text[code.id] ?? '').trim()
+    if (n === '' || c === '') continue
+    both += 1
+    if (!MAKER_LEAD.test(n)) continue
+    const unmade = n.replace(MAKER_LEAD, '').toLowerCase()
+    if (unmade === c.toLowerCase() || unmade.startsWith(`${c.toLowerCase()} `)) holds += 1
+  }
+  return both >= 3 && holds * 4 >= both * 3
+}
+
+/** The code as a name: the code, then what the name says beyond it. */
+export function codeAsName(name: string, code: string): string {
+  const c = code.trim()
+  const rest = nameBeyondCode(name, c)
+  if (c === '') return rest
+  if (rest === '') return c
+  const unmade = name.replace(/\s+/g, ' ').trim().replace(MAKER_LEAD, '')
+  return unmade.toLowerCase().startsWith(c.toLowerCase()) ? `${c} ${rest}` : `${c} · ${rest}`
+}
+
 /** The line's order code, where its list keeps one; '' where not. */
 export function codeOfRow(table: EntityDef, text: Readonly<Record<string, string>>): string {
   const field = codeFieldOf(table)

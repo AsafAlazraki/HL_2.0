@@ -13,6 +13,7 @@ import type {
   ViewDef,
 } from '@/domain/model'
 import type { GalleryOrder } from '@/domain/model/gallery'
+import type { CellStamp } from '@/domain/catalogue/table/stamps'
 import type { OwnPicture } from '@/domain/model/ownPictures'
 import type { CatalogueMeta } from '../repository'
 
@@ -53,6 +54,8 @@ export interface MemoryDatabase {
   ownPictures: Map<string, OwnPicture>
   /** how Northside arranged an option's gallery */
   galleries: Map<string, GalleryOrder>
+  /** who last wrote each cell and when */
+  stamps: Map<string, CellStamp>
 }
 
 export function createMemoryDatabase(): MemoryDatabase {
@@ -72,5 +75,6 @@ export function createMemoryDatabase(): MemoryDatabase {
     org: new Map(),
     ownPictures: new Map(),
     galleries: new Map(),
+    stamps: new Map(),
   }
 }

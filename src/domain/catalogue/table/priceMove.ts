@@ -94,12 +94,15 @@ export interface MovePlan {
 const figure = (v: CellValue | undefined): number | null =>
   typeof v === 'number' && Number.isFinite(v) ? v : null
 
-/** Every line's figure before and after, before anything is written. */
+/** Every line's figure before and after, before anything is written. A column the list keeps in
+ *  whole dollars (`whole`) takes a whole dollar after a share too: +4 % on $2,770 is $2,881 there,
+ *  never $2,880.80 beside $4,680 (the sheet's verifier, 2026-11-03, v03-moved-pct). */
 export function planMove(
   rows: readonly ViewRow[],
   field: FieldDef,
   rowIndexes: readonly number[],
   move: Move,
+  whole = false,
 ): MovePlan {
   const lines: MovedLine[] = []
   let blank = 0
@@ -113,7 +116,7 @@ export function planMove(
       blank += 1
       continue
     }
-    const after = moved(before, move)
+    const after = whole ? Math.round(moved(before, move)) : moved(before, move)
     if (after < 0) negative += 1
     if (after === before) {
       same += 1

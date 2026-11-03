@@ -15,6 +15,7 @@ import type {
 } from '@/domain/model'
 import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
+import type { CellStamp } from '@/domain/catalogue/table/stamps'
 
 /* ============================================================
    THE PERSISTENCE SEAM.
@@ -137,6 +138,21 @@ export interface CatalogueRepository {
    *  its registries, its meta. NEVER a quote: the quotes are behind
    *  `QuoteRepository`, which this cannot reach. */
   wipe(): Promise<void>
+  /** THE LAST WRITE AS THE PAGE GOES (the sheet's verifier, 2026-11-03: an Undo pressed while
+   *  the step's own write was still landing was lost to a reload straight after, and a price
+   *  under cost nobody chose was kept). Started SYNCHRONOUSLY, inside the `pagehide` that asks
+   *  for it, so the browser has the transaction before the page is gone; a write queued behind
+   *  one in flight would never start. It is ordered after every transaction already opened, so
+   *  what it puts wins. Fire and forget: the write-behind still files the same difference
+   *  through the queue if the page stays. Absent where nothing can be lost (the memory adapter). */
+  keepNow?(writes: readonly ExitWrite[]): void
+}
+
+/** One store's difference, for `keepNow`: the records to put and the keys to delete. */
+export interface ExitWrite {
+  store: 'tableDefs' | 'rows' | 'groups' | 'rules' | 'views' | 'modules' | 'roles' | 'stamps'
+  put: readonly Filed[]
+  remove: readonly string[]
 }
 
 export interface QuoteRepository {
@@ -168,6 +184,11 @@ export type OwnPictureRepository = RecordStore<OwnPicture>
 /** HOW NORTHSIDE ARRANGED AN OPTION'S GALLERY (`@/domain/model/gallery`): its cover and its
  *  order, one record per option. Beside the pictures, behind its own interface, never wiped. */
 export type GalleryRepository = RecordStore<GalleryOrder>
+
+/** WHO LAST WROTE EACH CELL AND WHEN (`@/domain/catalogue/table/stamps`), one record per cell
+ *  Northside wrote, so a changed price says who and when after a reload as well as in the
+ *  session. Beside the sheet, behind its own interface. */
+export type StampRepository = RecordStore<CellStamp>
 
 /* ---------------------------------------------------------- */
 /* Declared now, implemented in Milestones 4–6                  */

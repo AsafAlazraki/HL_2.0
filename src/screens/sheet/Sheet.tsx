@@ -70,7 +70,7 @@
        OPENING", below), and the maker's mark in the head is the one
        picture that travels here from Data. sheet.css says what moves.
    ============================================================ */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
@@ -187,9 +187,9 @@ import {
   type MoveKind,
   type MovePlan,
 } from '@/domain/catalogue/table/priceMove'
+import { stampOf } from '@/domain/catalogue/table/stamps'
 import {
   asLoaded,
-  lastChangeOf,
   NOTHING_CHANGED,
   wasInFile,
   type AsLoaded,
@@ -234,6 +234,8 @@ import {
   recordSaid,
   lineSaid,
   nameSaysCode,
+  nameHoldsCode,
+  codeAsName,
   figureSaid,
   isSourceColumn,
   type Card,
@@ -302,21 +304,58 @@ interface Step {
 
 /** A hand: the width under which the record is the screen. */
 const HAND = '(max-width: 639.98px)'
+/** A SHORT WINDOW, a phone turned (844 × 390): the desk's columns, and the record is the screen
+ *  there too — opened under its row it began at y=387 of 390 and showed no fact until scrolled
+ *  (the sheet's verifier, 2026-11-03). sheet.css says the same window in its own media query. */
+const SHORT = '(max-height: 520px) and (min-width: 640px)'
 
-function useHand(): boolean {
-  const [hand, setHand] = useState(() =>
+function useMedia(query: string): boolean {
+  const [hit, setHit] = useState(() =>
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia(HAND).matches
+      ? window.matchMedia(query).matches
       : false,
   )
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const q = window.matchMedia(HAND)
-    const on = () => setHand(q.matches)
+    const q = window.matchMedia(query)
+    const on = () => setHit(q.matches)
+    on()
     q.addEventListener('change', on)
     return () => q.removeEventListener('change', on)
-  }, [])
-  return hand
+  }, [query])
+  return hit
+}
+
+const useHand = (): boolean => useMedia(HAND)
+
+/**
+ * IN A SHORT WINDOW THE HEAD GIVES WAY TO THE ROWS WHILE THEY SCROLL (the sheet's verifier,
+ * 2026-11-03: the chrome stayed fixed and took 195 of 390 px). Once the list is scrolled the
+ * maker's head, the series bar and the notes stand aside, and they are back at the top of the
+ * list; a list that would fit whole once they stood aside keeps them, so the two never chase each
+ * other. Said on the frame as `data-scrolled`, read only by sheet.css under the short window's
+ * own media query, so no other size moves. Nothing animates: the rows simply have the room.
+ */
+function useHeadAside(frame: RefObject<HTMLElement | null>, list: string): void {
+  useEffect(() => {
+    const el = frame.current
+    if (!el) return
+    /* a list opens at its top, with its head */
+    el.removeAttribute('data-scrolled')
+    const on = (e: Event): void => {
+      const t = e.target
+      if (!(t instanceof HTMLElement) || !t.classList.contains('sh-grid')) return
+      const aside = el.hasAttribute('data-scrolled')
+      /* the room the head gives back, so a short list does not fit whole once it is gone */
+      const room = aside ? 0 : 160
+      if (t.scrollTop > 8 && t.scrollHeight - t.clientHeight > room) {
+        if (!aside) el.setAttribute('data-scrolled', '')
+      } else if (t.scrollTop <= 0 && aside) el.removeAttribute('data-scrolled')
+    }
+    el.addEventListener('scroll', on, { capture: true, passive: true })
+    return () => el.removeEventListener('scroll', on, { capture: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- a new list opens at its top, so the head comes back
+  }, [frame, list])
 }
 
 /**
@@ -657,7 +696,8 @@ export function Sheet({
   const tables = useCatalogue((s) => s.tables)
   const allRows = useCatalogue((s) => s.rows)
   const index = useCatalogue((s) => s.index)
-  const events = useCatalogue((s) => s.events)
+  /* who last wrote each cell and when, as this computer keeps it across a reload */
+  const stamps = useCatalogue((s) => s.stamps)
   /* the colour key's letters Northside named itself, on its own profile */
   const named = useCatalogue((s) => s.org?.colours)
 
@@ -671,6 +711,9 @@ export function Sheet({
   const answered = status === 'ready' || status === 'failed'
 
   const hand = useHand()
+  const short = useMedia(SHORT)
+  const sheetFrame = useRef<HTMLElement>(null)
+  useHeadAside(sheetFrame, tables[tableId] !== undefined ? tableId : '')
   const body = useRef<HTMLDivElement>(null)
   const { width: available, gutter } = useWidth(body, table !== undefined)
   const m = useMemo(() => measuresFor(available, hand), [available, hand])
@@ -1038,6 +1081,25 @@ export function Sheet({
     [table, door, leafFields, foldSet],
   )
 
+  /* THE CODE IS THE NAME where the name only says it (`nameSaysCode`, nineteen lines in twenty), or
+     says it with a few words more (`nameHoldsCode`, three in four: Yamaha's "Yamaha - F30LA
+     (Tiller)" beside F30LA, the verifier's J19). Then the code is drawn in the name's place, and
+     where the name says more, its own words follow the code in the same cell (`codeAsName`) */
+  const codeName = useMemo(() => {
+    const nameCol = chosen.columns.find((c) => c.job === 'name')
+    const codeCol = chosen.columns.find((c) => c.job === 'code')
+    if (!nameCol || !codeCol) return undefined
+    const ids = { nameId: nameCol.field.id, codeId: codeCol.field.id }
+    if (nameSaysCode(view, nameCol.field, codeCol.field)) return { ...ids, more: false }
+    if (nameHoldsCode(view, nameCol.field, codeCol.field)) return { ...ids, more: true }
+    return undefined
+  }, [chosen, view])
+  const nameOfCode = useCallback(
+    (r: ViewRow): string =>
+      codeName ? codeAsName(r.text[codeName.nameId] ?? '', r.text[codeName.codeId] ?? '') : '',
+    [codeName],
+  )
+
   /* WHICH COLUMNS FIT: the name and the lit rung always; then the code,
      the rest of the ladder, the marks, what a person pressed in, and
      what else varies — each while the room allows. What does not fit
@@ -1103,7 +1165,9 @@ export function Sheet({
                 (r) =>
                   split && c.field.id === split.fieldId
                     ? restOf(split, textOf(r, split.fieldId))
-                    : paintOf(table, c.field, r),
+                    : codeName?.more && c.field.id === codeName.codeId
+                      ? nameOfCode(r)
+                      : paintOf(table, c.field, r),
                 floor,
                 /* a banded list's names are what it is searched by: up to four floors wide */
                 Math.round(floor * (c.job === 'name' ? (banded ? 4 : 2.2) : 1.4)),
@@ -1120,10 +1184,7 @@ export function Sheet({
        before anything else that varies. */
     const nameCol = chosen.columns.find((c) => c.job === 'name')
     const codeCol = chosen.columns.find((c) => c.job === 'code')
-    const twice =
-      nameCol !== undefined &&
-      codeCol !== undefined &&
-      nameSaysCode(view, nameCol.field, codeCol.field)
+    const twice = codeName !== undefined
     const base: { field: FieldDef; job: string }[] = twice
       ? chosen.columns
           .filter((c) => c !== nameCol)
@@ -1196,6 +1257,8 @@ export function Sheet({
     view,
     shownRows,
     textOf,
+    codeName,
+    nameOfCode,
   ])
 
   const fields = useMemo(() => slots.flatMap((s) => (s.kind === 'field' ? [s.field] : [])), [slots])
@@ -1337,6 +1400,23 @@ export function Sheet({
     return { name: Math.min(name, Math.round(available / (banded ? 2 : 3))), figures }
   }, [hand, hasSpine, pieces, headOf, measure, available, banded])
 
+  /* THE MODEL'S CODE IS SAID ON EVERY SPINE OR ON NONE: at 834 "Roll Up 230 AL RU230AL · 4
+     variants" stood over "Roll Up 230 KAM 4 variants", one model's code kept and its neighbour's
+     dropped for want of 13px (the sheet's verifier, 01-rest-tablet). Where any open spine in view
+     cannot say it whole after its name, none says it, and the rows' Model Code is where it is read */
+  const codeOnSpines = useMemo(() => {
+    if (hand || !hasSpine || banded) return false
+    const inner = spineW - SPINE_BOX.padX
+    for (const p of pieces) {
+      if (p.kind !== 'block' || p.shut || p.runs.length === 0) continue
+      const h = headOf(p)
+      if (h.code === '') continue
+      if (measure(h.name, 'name') + measure(` ${h.code} · ${h.count}`, 'count') > inner)
+        return false
+    }
+    return true
+  }, [hand, hasSpine, banded, spineW, pieces, headOf, measure])
+
   /* WHAT A MODEL'S PICTURE SHOWS, in the words the rows beside it are told apart by — the
      colourway, "WH" — or '' where it shows every one of them (`pictureShows`) */
   const shownOf = useCallback(
@@ -1433,7 +1513,10 @@ export function Sheet({
          orders by it, in the rows' own Model Code column beside it */
       const withCode = `${code} · ${count}`
       const counts =
-        hand || code === '' || measure(name, 'name') + measure(` ${withCode}`, 'count') > inner
+        hand ||
+        code === '' ||
+        !codeOnSpines ||
+        measure(name, 'name') + measure(` ${withCode}`, 'count') > inner
           ? count
           : withCode
       const need = Math.max(
@@ -1532,6 +1615,7 @@ export function Sheet({
       available,
       shutCols,
       spineW,
+      codeOnSpines,
       blockOf,
       split,
       textOf,
@@ -2001,7 +2085,7 @@ export function Sheet({
     (fieldId: string): string | undefined => {
       const was = changedOf(row.rowId, fieldId)
       if (was === undefined) return undefined
-      const last = lastChangeOf(events, row.rowId, fieldId)
+      const last = stampOf(stamps, row.rowId, fieldId)
       const when = last ? dayOf(last.at) : ''
       const who = last
         ? ` · changed ${last.by ? `by ${last.by} ` : 'here '}${when ? `on ${when}` : ''}`.trimEnd()
@@ -2100,13 +2184,14 @@ export function Sheet({
       </div>
     ) : null
 
-  const recordIsTheScreen = hand && peeking && !!cursorRow
+  const recordIsTheScreen = (hand || short) && peeking && !!cursorRow
   /* WHAT THE DETAILS COVER, while they are the screen: out of reach of a key and of a reader, as
      it is out of sight (it was a Tab stop under a full-screen page, and read as if in view) */
   const behind = recordIsTheScreen ? ({ inert: true, 'aria-hidden': true } as const) : {}
 
   return (
     <main
+      ref={sheetFrame}
       className="sh"
       data-testid="sheet"
       data-read={answered ? '' : undefined}
@@ -2494,6 +2579,7 @@ export function Sheet({
             }
             hasSpine={hasSpine}
             hand={hand}
+            recordElsewhere={short}
             banded={banded}
             changedOf={knowsFile ? changedOf : undefined}
             cents={cents}
@@ -2524,6 +2610,9 @@ export function Sheet({
             focusRowId={focusRowId}
             renderRecord={renderRecord}
             heldCopy={heldCopy}
+            {...(codeName?.more && door === 'price'
+              ? { codeName: { codeId: codeName.codeId, text: nameOfCode } }
+              : {})}
             /* the step line's 48px and the 12px it floats above the list's foot, and a warning's
                two lines more where one is said */
             foot={step || refused ? (step?.warn && !step.wasUndo ? 124 : 60) : 0}
@@ -2557,6 +2646,7 @@ export function Sheet({
             prices={prices}
             costOf={costOf}
             twin={twin}
+            cents={cents}
           />
         ) : null}
 
@@ -2919,6 +3009,7 @@ function Selection({
   prices,
   costOf,
   twin,
+  cents,
 }: {
   table: EntityDef
   rows: ViewRow[]
@@ -2931,6 +3022,8 @@ function Selection({
   costOf: (f: FieldDef) => boolean
   /** the base material a line may be priced from, where the list reads one (`twinText`) */
   twin?: Twin
+  /** the columns the list keeps in cents; every other figure is a whole dollar */
+  cents: ReadonlySet<string>
 }) {
   const [text, setText] = useState('')
   const [said, setSaid] = useState<string | null>(null)
@@ -2975,7 +3068,7 @@ function Selection({
         ? twin
           ? planTwin(rows, one, rowIndexes, read, twin.of)
           : null
-        : planMove(rows, one, rowIndexes, read)
+        : planMove(rows, one, rowIndexes, read, !cents.has(one.id))
       : null
   /* a plan that cannot be written says so before the press, and its figures below $0 are not
      drawn as if they could be (the verifier, 36-move-refused) */
@@ -3054,7 +3147,9 @@ function Selection({
                   </li>
                 ))}
                 {set.length > 4 ? (
-                  <li className="sh-mixed__row sh-mixed__more">and {set.length - 4} more values</li>
+                  <li className="sh-mixed__row sh-mixed__more">
+                    and {set.length - 4} more {set.length - 4 === 1 ? 'value' : 'values'}
+                  </li>
                 ) : null}
               </ul>
             </section>
@@ -3125,7 +3220,9 @@ function Selection({
                       : '',
                     plan.same > 0 ? `${plan.same} already there` : '',
                     plan.blank > 0 ? `${plan.blank} with no ${one.name}, left as they are` : '',
-                    plan.based ? `${plan.based} in ${twin?.base ?? ''}, read from` : '',
+                    plan.based
+                      ? `${plan.based} in ${twin?.base ?? ''}, the figures read from, left as they are`
+                      : '',
                     plan.alone
                       ? `${plan.alone} with no ${twin?.base ?? ''} line to read, left as they are`
                       : '',

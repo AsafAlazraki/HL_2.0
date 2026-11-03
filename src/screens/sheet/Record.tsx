@@ -445,8 +445,11 @@ function Fact({
     }
   }
 
-  const value =
+  const painted =
     field.type === 'image' ? pictureWords(row, field, heldCopy) : paintOf(table, field, row, cents)
+  /* AN EMPTY VALUE IS ONE MARK, whatever its column: a figure's painter says a lone dash for none,
+     and the record drew "–" under Cash beside "—" under Variant (the sheet's verifier, 32-added) */
+  const value = /^[–—-]$/.test(painted.trim()) ? '' : painted
   const num = field.type === 'number'
   return (
     <div

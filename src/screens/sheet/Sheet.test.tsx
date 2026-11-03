@@ -752,8 +752,10 @@ describe('the doors', () => {
   })
 })
 
-/** A 4 % rise, to the cent, as the move works it out. */
-const cents = (n: number): number => Math.round(n * 1.04 * 100) / 100
+/** A 4 % rise, to the whole dollar, as the move works it out in a column the list keeps in whole
+ *  dollars: Highfield's Cash carries no cents on any line (the sheet's verifier, 2026-11-03,
+ *  v03-moved-pct: $2,880.80 beside $4,680) */
+const raised = (n: number): number => Math.round(n * 1.04)
 
 describe('many at once', () => {
   it('raises two Cash figures 4 %, shows each before and after first, and takes both back in one Undo', async () => {
@@ -775,8 +777,8 @@ describe('many at once', () => {
     expect(plan).toHaveTextContent('→')
     await person.click(within(plate).getByRole('button', { name: /^Change \d/ }))
     const read = (id: string) => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === id)!
-    expect(read(a!.id).values[cash.id]).toBe(cents(was[0]!))
-    expect(read(b!.id).values[cash.id]).toBe(cents(was[1]!))
+    expect(read(a!.id).values[cash.id]).toBe(raised(was[0]!))
+    expect(read(b!.id).values[cash.id]).toBe(raised(was[1]!))
     const step = screen.getByTestId('last-step')
     expect(step).toHaveTextContent(/Cash raised 4 % on 2 variants/)
     await person.click(within(step).getByRole('button', { name: 'Undo' }))

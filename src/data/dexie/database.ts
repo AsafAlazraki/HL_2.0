@@ -15,6 +15,7 @@ import type {
 } from '@/domain/model'
 import type { GalleryOrder } from '@/domain/model/gallery'
 import type { OwnPicture } from '@/domain/model/ownPictures'
+import type { CellStamp } from '@/domain/catalogue/table/stamps'
 import type { CatalogueMeta } from '../repository'
 
 /* ============================================================
@@ -69,6 +70,7 @@ export type HLDatabase = Dexie & {
   ownPictures: Records<OwnPicture>
   /** how Northside arranged an option's gallery: its cover and its order (2026-11-02) */
   galleries: Records<GalleryOrder>
+  stamps: Records<CellStamp>
 }
 
 /** NORTHSIDE AS IT HAS SET ITSELF, kept at `id = orgId` beside the sheet and never in it: a
@@ -113,6 +115,11 @@ export function openDatabase(name: string = DATABASE_NAME, options: DexieOptions
      option's gallery, its cover and its order, which no earlier version held. Not a catalogue
      table, so no wipe reaches it. */
   db.version(4).stores({ galleries: 'id, orgId' })
+  /* VERSION 5 ADDS ONE TABLE AND MIGRATES NOTHING (2026-11-03): who last wrote each cell and
+     when, which no earlier version held (the session's audit was all there was). Not a
+     catalogue table, so no wipe reaches it: a change carried onto a new price file keeps its
+     name. */
+  db.version(5).stores({ stamps: 'id, orgId' })
   return db
 }
 

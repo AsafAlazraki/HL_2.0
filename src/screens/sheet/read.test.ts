@@ -6,6 +6,9 @@ import { splitUnit } from '@/domain/catalogue/views/columns'
 import {
   centsColumns,
   changeSaid,
+  codeAsName,
+  nameBeyondCode,
+  nameHoldsCode,
   factLines,
   factText,
   handSentence,
@@ -294,5 +297,35 @@ describe('a money column says every figure the same way', () => {
     expect(centsColumns(parts, pack.rowsByEntity.parts ?? []).has(fieldOf(parts, 'Sell').id)).toBe(
       false,
     )
+  })
+})
+
+describe('the code said once, with what the name says beyond it', () => {
+  it('drops the maker and the code from the name, and keeps the name’s own words', () => {
+    expect(nameBeyondCode('Yamaha - F4SMHA', 'F4SMHA')).toBe('')
+    expect(nameBeyondCode('Yamaha - F30LA (Tiller)', 'F30LA')).toBe('(Tiller)')
+    expect(codeAsName('Yamaha - F4SMHA', 'F4SMHA')).toBe('F4SMHA')
+    expect(codeAsName('Yamaha - F30LA (Tiller)', 'F30LA')).toBe('F30LA (Tiller)')
+    expect(codeAsName('Yamaha - Twin F70LB', 'F70LB-TW')).toBe('F70LB-TW · Twin F70LB')
+  })
+
+  it('reads Yamaha’s motors as names that hold their codes, on the real file', () => {
+    const t = pack.byKey('mot_yamaha')
+    const name = t.fields.find((f) => f.name === 'Motor')!
+    const code = t.fields.find((f) => f.name === 'Model Code')!
+    const rows = (pack.rowsByEntity.mot_yamaha ?? []).map((r) => ({
+      rowId: r.id,
+      values: r.values,
+      text: {
+        [name.id]: String(r.values[name.id] ?? ''),
+        [code.id]: String(r.values[code.id] ?? ''),
+      },
+    }))
+    expect(nameHoldsCode(rows, name, code)).toBe(true)
+    /* and no name's words are lost: every line's name, less its maker, is in what the cell says */
+    for (const r of rows) {
+      const said = codeAsName(r.text[name.id]!, r.text[code.id]!)
+      expect(said.startsWith(r.text[code.id]!.trim())).toBe(true)
+    }
   })
 })

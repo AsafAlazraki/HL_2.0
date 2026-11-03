@@ -5,6 +5,7 @@ import {
   refusals,
   type CatalogueMeta,
   type CatalogueRepository,
+  type ExitWrite,
   type Filed,
   type GalleryRepository,
   type OrgRepository,
@@ -12,6 +13,7 @@ import {
   type QuoteRepository,
   type RecordStore,
   type RowStore,
+  type StampRepository,
 } from '../repository'
 import { CATALOGUE_TABLES, openDatabase, type HLDatabase, type Records } from './database'
 import { diffStore } from './ledger'
@@ -344,6 +346,40 @@ class DexieCatalogueRepository implements CatalogueRepository {
       for (const store of this.stores()) store.knowEmpty()
     })
   }
+
+  /** THE LAST WRITE AS THE PAGE GOES — see `CatalogueRepository.keepNow`. One native
+   *  transaction, opened and filled in this call and committed at once, because a page that is
+   *  going runs no later task: Dexie's own transaction is opened behind a promise, and the queue
+   *  above it behind the write in flight. IndexedDB runs read-write transactions over the same
+   *  store in the order they were opened, so this lands after whatever is already landing. The
+   *  ledgers are not told: the write-behind files the same difference through them if the page
+   *  stays, and a ledger may never be ahead of the disk it knows. */
+  keepNow(writes: readonly ExitWrite[]): void {
+    const live = writes
+      .map((w) => ({
+        store: w.store,
+        put: w.put.filter((r) => r.orgId === this.orgId),
+        remove: w.remove,
+      }))
+      .filter((w) => w.put.length > 0 || w.remove.length > 0)
+    if (live.length === 0 || !this.db.isOpen()) return
+    try {
+      const native = this.db.backendDB()
+      const tx = native.transaction(
+        live.map((w) => w.store),
+        'readwrite',
+      )
+      for (const w of live) {
+        const store = tx.objectStore(w.store)
+        for (const id of w.remove) store.delete(id)
+        for (const record of w.put) store.put(record)
+      }
+      if (typeof tx.commit === 'function') tx.commit()
+    } catch {
+      /* a store this database does not hold, or a closing connection: the write-behind still owes
+         the difference and says so if it cannot file it */
+    }
+  }
 }
 
 class DexieQuoteRepository implements QuoteRepository {
@@ -428,6 +464,12 @@ export function dexieGalleries(
 ): GalleryRepository {
   const db = options.db ?? sharedDatabase()
   return new DexieStore(db.galleries, orgId, 'gallery', new WriteQueue())
+}
+
+/** Who last wrote each cell and when: one store, its own write queue, never wiped. */
+export function dexieStamps(orgId: string, options: DexieRepositoryOptions = {}): StampRepository {
+  const db = options.db ?? sharedDatabase()
+  return new DexieStore(db.stamps, orgId, 'stamp', new WriteQueue())
 }
 
 export function dexieOwnPictures(

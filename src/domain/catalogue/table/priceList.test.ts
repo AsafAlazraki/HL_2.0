@@ -270,6 +270,30 @@ describe('readingColumns — what a dealer reads first', () => {
       ladder.map((l) => l.fieldId),
     )
   })
+
+  it('on a list with no price declared, draws the figures its file sells by, the whole sell first, and no cost', () => {
+    const read = (id: string) => {
+      const t = setUp(id)
+      expect(priceLevelsFor(t.table)).toEqual([])
+      return readingColumns({
+        table: t.table,
+        leafFields: t.fields,
+        rows: t.view,
+        said: t.said,
+        levels: t.levels,
+        prices: [],
+        isCost: (f) => isCostColumn(t.table, f),
+      })
+    }
+    const fit = read('dealer_fit').columns.filter((c) => c.job === 'price')
+    expect(fit[0]?.field.name).toBe('Act Sell')
+    for (const c of fit) {
+      expect(c.field.name).toMatch(/sell/i)
+      expect(c.field.name).not.toMatch(/ctd|cost/i)
+    }
+    const rego = read('registration').columns.filter((c) => c.job === 'price')
+    expect(rego.map((c) => c.field.name)).toEqual(['SELL'])
+  })
 })
 
 describe('leadFigures — the spine’s price, per material, at the lit rung', () => {

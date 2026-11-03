@@ -654,7 +654,16 @@
   outline: none;
 }
 
-.sh-outline:focus-visible {
+/* THE FRAME'S RING IS DRAWN WHOLE, OVER THE ROWS. As an inset shadow on the frame itself it was
+   painted under the head and the rows, and all that showed of it was a stray 2px blue rule in
+   the head's scrollbar gutter, right of "26 more" (the sheet's verifier, 05-written and
+   06-warned): now it is the frame's own edge, all the way round, over everything inside it */
+.sh-outline:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
   box-shadow: inset 0 0 0 var(--mark) var(--color-accent);
 }
 
@@ -731,6 +740,15 @@
 
 .sh-th[data-job='price'] .sh-th__rung {
   border-radius: var(--radius-md);
+}
+
+/* AND A FACT'S HEAD TOO, rather than an ellipsis: with the motor's code said once, Yamaha's list
+   had room for "Cylinders / Displacement", whose head read "CYLINDERS / DISPLACEME…" over
+   "2cyl / 432cc" (the harness's cut measure, 23-yamaha at 1440) */
+.sh-th:is([data-job='varies'], [data-job='spec']) .sh-th__name {
+  white-space: normal;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .sh-th--spine {
@@ -1659,11 +1677,21 @@
   animation: sh-arrive var(--duration-press) var(--ease-out);
 }
 
+/* THE DRAWERS OVER THE NAME, on a line of their own: beside it, "ROLL-UP ▸ ROLL UP 230 KAM" kept
+   its one line and pressed "A new variant of Roll Up 230 KAM" into five lines of 90px on a tablet
+   (the sheet's verifier, 32-added-tablet) */
 .sh-record__top {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: --spacing(3);
+  gap: --spacing(1) --spacing(3);
   min-inline-size: 0;
+}
+
+.sh-record__top > .sh-record__path {
+  flex-basis: 100%;
+  min-inline-size: 0;
+  white-space: normal;
 }
 
 .sh-record__path {
@@ -1821,7 +1849,11 @@
   color: var(--color-blue-700);
 }
 
+/* AN EMPTY VALUE IS ONE MARK IN ONE FACE: a figure's button is set in the mono face, where the
+   same em dash drew as a short "–" under Cash beside the long "—" under Variant (the sheet's
+   verifier, 32-added-tablet) */
 .sh-fact__empty {
+  font-family: var(--font-sans);
   color: var(--ink-quiet);
 }
 
@@ -2873,6 +2905,115 @@
   }
 }
 
+/* A SHORT WINDOW, SAID WHOLE IN ONE LINE (the sheet's verifier, 2026-11-03). The mark a step
+   smaller, the list's name a step smaller and the find field's act its glyph, so "Highfield ×
+   Yamaha — Motor Fitment" takes the room the field gave back rather than three lines beside the
+   mark; what each band says loses its picture count, so it is one line and a band scrolled under
+   the heads never leaves "chambers" standing alone there. Once the rows scroll, the head, the
+   bar and the notes stand aside (`useHeadAside`, Sheet.tsx), and the rows have 300 of the 390 px.
+   The record is the screen (`SHORT`, Sheet.tsx), facts first under the pill; the selection plate
+   stands in the window from under the pill to the foot, its plan scrolled to inside it, never
+   under the bar or the step line. */
+@media (max-height: 520px) and (min-width: 640px) {
+  .sh-mast {
+    grid-template-columns: minmax(0, 1fr) minmax(--spacing(72), --spacing(88));
+    column-gap: --spacing(4);
+  }
+
+  .sh-mast__mark {
+    block-size: --spacing(7);
+  }
+
+  .sh-mast__id {
+    gap: --spacing(4);
+  }
+
+  .sh-mast__name {
+    padding-inline-start: --spacing(4);
+  }
+
+  .sh-title {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+
+  .sh-ask__word {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sh-ask {
+    padding-inline: --spacing(3);
+  }
+
+  .sh-band__pics {
+    display: none;
+  }
+
+  .sh[data-scrolled]:not(:has(:is(.sh-mast, .sh-bar, .sh-notes):focus-within))
+    > :is(.sh-mast, .sh-bar, .sh-notes) {
+    display: none;
+  }
+
+  .sh .sh-selection {
+    position: fixed;
+    inset-block: calc(var(--shell-inset) - --spacing(2)) --spacing(2);
+    inset-inline-end: --spacing(4);
+    z-index: 16;
+    max-block-size: none;
+  }
+
+  /* above the step line while one is said, so "Put it back" stays in reach */
+  .sh .sh-body:has(.sh-foot) > .sh-selection {
+    inset-block-end: --spacing(18);
+  }
+
+  /* and once a move is planned, the plan takes the place of what the cells held, which the
+     cells themselves show beside it */
+  .sh-selection:has(.sh-move__plan, .sh-move__refused) > .sh-selection__sets {
+    display: none;
+  }
+
+  .sh-over {
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    overflow: auto;
+    background: var(--color-white);
+    box-sizing: border-box;
+    inline-size: auto;
+    block-size: auto;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    border: 0;
+    padding: var(--shell-inset) 0 var(--shell-foot);
+    color: inherit;
+  }
+
+  .sh-over .sh-record {
+    padding: 0 var(--gutter) --spacing(4);
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+  }
+
+  .sh-over .sh-foot {
+    position: sticky;
+    inset-inline: auto;
+    inset-block-end: --spacing(3);
+    margin: 0 var(--gutter) --spacing(3);
+  }
+
+  .sh-over .sh-step__said {
+    white-space: normal;
+  }
+}
+
 /* A HAND: the head stacks; the list rests shut to the model; the record is the screen */
 @media (max-width: 639.98px) {
   .sh {
@@ -3319,27 +3460,22 @@
 
 /* ---- the record: the facts first (G13) ---------------------------------------------------- */
 
-/* THE FACTS BEFORE THE PICTURE on a desk: the sections take the width and the picture stands
-   at the right at 224px, so at 1280 × 800 and 844 × 390 the first figures are in view when the
-   record opens (the picture came first at 446 × 335, and no fact was above the fold). In a hand
-   the record is the screen and keeps its one column, picture first. */
-/* A HAND'S RECORD IS THE SCREEN and keeps its one column, picture first. FROM A TURNED PHONE TO A
-   TABLET the facts come first and the picture follows them at most 160px tall; from the laptop up
-   the picture stands at the right at 224px beside them. The record's name takes a second line
-   rather than an ellipsis ("Roll Up 230 KAM · PVC …" at 844 × 390). */
-@media (min-width: 640px) {
-  .sh-record__body > .sh-record__sections {
-    order: -1;
-  }
+/* THE FACTS BEFORE THE PICTURE, AT EVERY SIZE: the sections first, and the picture after them at
+   most 160px tall; from the laptop up it stands at the right at 224px beside them. A hand's record
+   is the screen and keeps its one column, facts first too (the sheet's verifier, 2026-11-03: on a
+   phone it opened on a 330px picture and Cash stood at y=520). The record's name takes a second
+   line rather than an ellipsis ("Roll Up 230 KAM · PVC …" at 844 × 390). */
+.sh-record__body > .sh-record__sections {
+  order: -1;
+}
 
-  .sh-record__picture {
-    max-block-size: --spacing(40);
-  }
+.sh-record__picture {
+  max-block-size: --spacing(40);
+}
 
-  .sh-record__name {
-    white-space: normal;
-    text-wrap: balance;
-  }
+.sh-record__name {
+  white-space: normal;
+  text-wrap: balance;
 }
 
 @media (min-width: 640px) and (max-width: 1099.98px) {

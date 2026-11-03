@@ -30,10 +30,14 @@ import {
 } from '@/domain/catalogue/sheet'
 import type {
   CatalogueRepository,
+  ExitWrite,
+  Filed,
   GalleryRepository,
   OrgRepository,
   OwnPictureRepository,
+  StampRepository,
 } from '@/data/repository'
+import { NO_STAMPS, stamped, type Stamps } from '@/domain/catalogue/table/stamps'
 import { holdGalleries, holdOwnPictures } from '@/data/ownPictures'
 import { standingGalleries, standingOwnPictures } from '@/domain/catalogue/pictureCommands'
 import type { GalleryOrder } from '@/domain/model/gallery'
@@ -188,6 +192,9 @@ export interface CatalogueState extends CatalogueData {
   problem: string | null
   /** this session's audit of the sheet, oldest first, bounded */
   events: CatalogueEvent[]
+  /** WHO LAST WROTE EACH CELL AND WHEN, kept on this computer (`domain/catalogue/table/stamps`):
+   *  the session's audit is bounded and goes with the tab, this does not */
+  stamps: Stamps
   load(source: CatalogueSource, options?: LoadOptions): Promise<void>
 
   /** change the sheet; refuses with the command's sentence */
@@ -206,6 +213,8 @@ export interface CatalogueState extends CatalogueData {
   onApplied(listener: AppliedListener): () => void
   /** force every pending write out now */
   flush(): Promise<void>
+  /** THE PAGE IS GOING: start the last write now, in this task, and flush beside it */
+  leave(): Promise<void>
   /** READ NORTHSIDE'S OWN SETTINGS without opening the sheet: the boot asks, so the door and the
    *  colour stand before the price list is read (Milestone 4). */
   readOrg(orgId: string): Promise<void>
@@ -356,6 +365,11 @@ export function ctxFrom(
     priceLevels: state.priceLevels as Record<string, PriceLevel[]>,
   }
 }
+
+/** What the write-behind files: the sheet, and who last wrote each of its cells. */
+type Kept = CatalogueData & { stamps?: Stamps }
+
+const keptOf = (s: CatalogueState): Kept => ({ ...dataOf(s), stamps: s.stamps })
 
 /** The sheet, and nothing else, out of the state — what a command is
  *  handed and what the repository is handed. */
@@ -517,6 +531,56 @@ async function keptGalleries(
   }
 }
 
+/** Who last wrote each cell, as this computer keeps it; none on a failed read, which says the
+ *  file's value without a name rather than failing the sheet. */
+async function keptStamps(repo: StampRepository): Promise<Stamps> {
+  try {
+    const all = await repo.all()
+    return all.length === 0 ? NO_STAMPS : byIdMap(all)
+  } catch {
+    return NO_STAMPS
+  }
+}
+
+/** THE DIFFERENCE BETWEEN TWO MAPS OF RECORDS, BY THE OBJECT — what the last write as the page
+ *  goes has to put and take off, read the way the ledger reads it (`data/dexie/ledger.ts`). */
+function differenceOf<T extends Filed>(
+  was: Readonly<Record<string, T>> | undefined,
+  now: Readonly<Record<string, T>> | undefined,
+): { put: T[]; remove: string[] } {
+  const put: T[] = []
+  const remove: string[] = []
+  if (was === now) return { put, remove }
+  const before = was ?? {}
+  const after = now ?? {}
+  for (const [id, record] of Object.entries(after)) if (before[id] !== record) put.push(record)
+  for (const id of Object.keys(before)) if (!(id in after)) remove.push(id)
+  return { put, remove }
+}
+
+/** The rows, which the store keeps per table, read the same way. */
+function rowDifferenceOf(
+  was: Readonly<Record<string, readonly RowData[]>>,
+  now: Readonly<Record<string, readonly RowData[]>>,
+): { put: RowData[]; remove: string[] } {
+  const put: RowData[] = []
+  const remove: string[] = []
+  if (was === now) return { put, remove }
+  for (const tableId of new Set([...Object.keys(was), ...Object.keys(now)])) {
+    const before = was[tableId] ?? []
+    const after = now[tableId] ?? []
+    if (before === after) continue
+    const known = new Map(before.map((r) => [r.id, r]))
+    const here = new Set<string>()
+    for (const r of after) {
+      here.add(r.id)
+      if (known.get(r.id) !== r) put.push(r)
+    }
+    for (const r of before) if (!here.has(r.id)) remove.push(r.id)
+  }
+  return { put, remove }
+}
+
 /** A step that touches the customers and nothing else — what a person set apart may still do. */
 function onlyCustomers(e: CatalogueEvent): boolean {
   if (e.kind === 'batch') return (e.events ?? []).every(onlyCustomers)
@@ -550,6 +614,8 @@ export interface CatalogueStoreOptions {
   /** WHERE NORTHSIDE'S ARRANGEMENTS OF ITS GALLERIES ARE KEPT; the app's own repository when
    *  absent */
   galleriesFor?: (orgId: string) => GalleryRepository
+  /** WHERE WHO LAST WROTE EACH CELL IS KEPT; the app's own repository when absent */
+  stampsFor?: (orgId: string) => StampRepository
   /** TOLD THE ARRANGEMENTS THAT STAND each time they or the price list move, as the pictures are */
   onGalleries?: (standing: readonly GalleryOrder[]) => void
 }
@@ -565,6 +631,8 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
   let picturesRepo: OwnPictureRepository | null = null
   const galleriesFor = options.galleriesFor ?? ((orgId: string) => repositories(orgId).galleries)
   let galleriesRepo: GalleryRepository | null = null
+  const stampsFor = options.stampsFor ?? ((orgId: string) => repositories(orgId).stamps)
+  let stampsRepo: StampRepository | null = null
 
   let repository: CatalogueRepository | null = null
   const listeners = new Set<AppliedListener>()
@@ -576,13 +644,13 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
   /** THE SHEET AS THE REPOSITORY LAST SAW IT. A flush hands over only
    *  the maps whose identity moved since; the repository then writes
    *  only the records whose identity moved inside them. */
-  let written: CatalogueData | null = null
+  let written: Kept | null = null
   /** THE SHEET AS THE LAST WRITE QUEUED WILL LEAVE IT. A write is diffed against this, not
    *  against `written`: two writes queued before the first lands (a step, then its Undo, at
    *  once) must each be diffed against the one before it, or the second finds nothing moved
    *  since the disk last answered and the Undo never reaches the disk (measured 2026-11-02,
    *  `catalogue.pictures.test.ts`, a cover chosen and undone). */
-  let queued: CatalogueData | null = null
+  let queued: Kept | null = null
   let owed = false
   let timer: ReturnType<typeof setTimeout> | undefined
   let writing: Promise<void> = Promise.resolve()
@@ -597,7 +665,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
     const repo = repository
     const prev = queued ?? written
     if (!repo || !prev) return writing
-    const next = dataOf(store.getState())
+    const next = keptOf(store.getState())
     queued = next
     writing = writing
       .then(async () => {
@@ -613,6 +681,10 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
         /* AND HOW IT ARRANGED THEIR GALLERIES, the same way */
         if (prev.galleries !== next.galleries && galleriesRepo) {
           await galleriesRepo.saveAll(Object.values(next.galleries ?? {}))
+        }
+        /* AND WHO WROTE EACH CELL, the same way */
+        if (prev.stamps !== next.stamps && stampsRepo) {
+          await stampsRepo.saveAll(Object.values(next.stamps ?? NO_STAMPS))
         }
         if (prev.tables !== next.tables) await repo.tables.saveAll(Object.values(next.tables))
         if (prev.rows !== next.rows) await repo.rows.saveAll(Object.values(next.rows).flat())
@@ -666,6 +738,32 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
         })
       })
     return writing
+  }
+
+  /** THE LAST WRITE AS THE PAGE GOES (the sheet's verifier, 2026-11-03). Cash written 850, the
+   *  warning up, Undo pressed 350 ms later and the page reloaded at once: the screen had said
+   *  "Undone" and the reload read $850, a price under cost nobody chose, kept for good. The
+   *  step's own write was still landing, the Undo's was queued behind it, and a page that is
+   *  going runs no later task. So what the queue will not have filed is handed to the
+   *  repository to start NOW, in this task, measured against what the last write queued will
+   *  leave on the disk — the Undo put the row's old object back, which the disk no longer holds
+   *  once the step's write lands. The ordinary flush still runs beside it. */
+  const leaveNow = (store: CatalogueStore): void => {
+    const repo = repository
+    const was = queued ?? written
+    if (!repo?.keepNow || !was) return
+    const here = keptOf(store.getState())
+    const writes: ExitWrite[] = [
+      { store: 'rows', ...rowDifferenceOf(was.rows, here.rows) },
+      { store: 'tableDefs', ...differenceOf(was.tables, here.tables) },
+      { store: 'groups', ...differenceOf(was.groups, here.groups) },
+      { store: 'rules', ...differenceOf(was.rules, here.rules) },
+      { store: 'views', ...differenceOf(was.views, here.views) },
+      { store: 'modules', ...differenceOf(was.modules, here.modules) },
+      { store: 'roles', ...differenceOf(was.roles, here.roles) },
+      { store: 'stamps', ...differenceOf(was.stamps, here.stamps) },
+    ]
+    repo.keepNow(writes)
   }
 
   const writeSoon = (store: CatalogueStore): void => {
@@ -729,7 +827,11 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
         said = wayBackSaid(restamp.kind, restamp.said, restamp.label)
         event = { ...event, kind: restamp.kind, undoes: restamp.undoes, said }
       }
-      set({ ...outcome.next })
+      const orgId = outcome.next.orgId
+      set({
+        ...outcome.next,
+        stamps: orgId === null ? state.stamps : stamped(state.stamps, event, orgId),
+      })
       keep(event)
       writeSoon(store)
       return { ...outcome, event, said }
@@ -743,6 +845,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
       status: 'empty',
       problem: null,
       events: [],
+      stamps: NO_STAMPS,
 
       load: async (source, loadOptions = {}) => {
         set({ status: 'loading', problem: null })
@@ -766,6 +869,8 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           const ownPictures = picturesRepo ? await keptPictures(picturesRepo) : undefined
           galleriesRepo = data.orgId === null ? null : galleriesFor(data.orgId)
           const galleries = galleriesRepo ? await keptGalleries(galleriesRepo) : undefined
+          stampsRepo = data.orgId === null ? null : stampsFor(data.orgId)
+          const stamps = stampsRepo ? await keptStamps(stampsRepo) : NO_STAMPS
           const loaded: CatalogueData = { ...data }
           if (org) loaded.org = org
           else delete loaded.org
@@ -773,7 +878,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           else delete loaded.ownPictures
           if (galleries) loaded.galleries = galleries
           else delete loaded.galleries
-          written = loaded
+          written = { ...loaded, stamps }
           queued = null
           owed = false
           set({
@@ -781,6 +886,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
             org,
             ownPictures,
             galleries,
+            stamps,
             status: 'ready',
             problem: null,
             events: [],
@@ -797,6 +903,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
             org: get().org,
             ownPictures: undefined,
             galleries: undefined,
+            stamps: NO_STAMPS,
             status: 'failed',
             problem: error instanceof Error ? error.message : String(error),
             events: [],
@@ -890,6 +997,11 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
 
       flush: () => writeNow(store),
 
+      leave: () => {
+        leaveNow(store)
+        return writeNow(store)
+      },
+
       readOrg: async (orgId) => {
         const org = await keptOrg(orgFor(orgId))
         /* AND THE PICTURES NORTHSIDE ADDED, so a paper opened before the sheet already holds
@@ -932,10 +1044,10 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
      ============================================================ */
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('pagehide', () => {
-      void store.getState().flush()
+      void store.getState().leave()
     })
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') void store.getState().flush()
+      if (document.visibilityState === 'hidden') void store.getState().leave()
     })
   }
 

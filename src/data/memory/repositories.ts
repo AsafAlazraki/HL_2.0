@@ -7,6 +7,7 @@ import {
   type CatalogueRepository,
   type Filed,
   type GalleryRepository,
+  type StampRepository,
   type OrgRepository,
   type OwnPictureRepository,
   type QuoteRepository,
@@ -249,6 +250,11 @@ export function memoryOrg(orgId: string, options: MemoryOptions = {}): OrgReposi
 /** How Northside arranged its options' galleries, cloned in and out as IndexedDB would. */
 export function memoryGalleries(orgId: string, options: MemoryOptions = {}): GalleryRepository {
   return new MemoryStore((options.db ?? createMemoryDatabase()).galleries, orgId, 'gallery')
+}
+
+/** Who last wrote each cell and when, cloned in and out as IndexedDB would. */
+export function memoryStamps(orgId: string, options: MemoryOptions = {}): StampRepository {
+  return new MemoryStore((options.db ?? createMemoryDatabase()).stamps, orgId, 'stamp')
 }
 
 /** The pictures Northside added to its options, cloned in and out as IndexedDB would. */

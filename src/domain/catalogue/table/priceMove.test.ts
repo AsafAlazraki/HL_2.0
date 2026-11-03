@@ -55,6 +55,19 @@ describe('a move on many figures', () => {
     expect(moveSaid({ kind: 'add', by: -50 })).toBe('$50 taken off')
   })
 
+  it('keeps a whole-dollar column in whole dollars after a share', () => {
+    const hf = pack.byKey('boat_highfield')
+    const rows = viewRowsOf(hf, pack.rowsByEntity.boat_highfield ?? [])
+    const cash = field(hf, 'Cash')
+    const picked = [0, 1, 2, 3]
+    const plan = planMove(rows, cash, picked, { kind: 'percent', by: 4 }, true)
+    expect(plan.lines.length).toBeGreaterThan(0)
+    for (const l of plan.lines) {
+      expect(Number.isInteger(l.after)).toBe(true)
+      expect(l.after).toBe(Math.round(moved(l.before, { kind: 'percent', by: 4 })))
+    }
+  })
+
   it('refuses whole a move that would take a line below nothing', () => {
     const hf = pack.byKey('boat_highfield')
     const rows = viewRowsOf(hf, pack.rowsByEntity.boat_highfield ?? [])

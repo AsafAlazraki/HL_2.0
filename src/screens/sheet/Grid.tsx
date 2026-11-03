@@ -184,6 +184,9 @@ export interface GridProps {
   collapsed: ReadonlySet<string>
   onToggle: (key: string) => void
   heldCopy: (address: string | undefined, rowId?: string) => Held | null
+  /** THE CODE DRAWN AS THE NAME, with the name's own words after it ("F30LA (Tiller)"), where the
+   *  name said the code and a few words more (`nameHoldsCode`) */
+  codeName?: { codeId: string; text: (row: ViewRow) => string }
   write: (w: Write) => Written
   commit: (rowId: string, fieldId: string, text: string) => Written
   refLabelsOf: (field: FieldDef) => Map<string, string> | undefined
@@ -199,6 +202,8 @@ export interface GridProps {
   focusRowId?: string | null
   /** the record, drawn under its row on a desk */
   renderRecord: (row: ViewRow) => ReactNode
+  /** THE RECORD IS DRAWN AS THE SCREEN, not under its row: a short window's (Sheet.tsx, SHORT) */
+  recordElsewhere?: boolean
   /** the head's last cell: the columns held one press away */
   more?: ReactNode
   /** px kept clear at the list's foot, for the step line */
@@ -286,6 +291,7 @@ export function Grid(props: GridProps) {
     collapsed,
     onToggle,
     heldCopy,
+    codeName,
     write,
     commit,
     refLabelsOf,
@@ -299,6 +305,7 @@ export function Grid(props: GridProps) {
     ariaLabel,
     focusRowId = null,
     renderRecord,
+    recordElsewhere = false,
     more,
     foot,
   } = props
@@ -942,6 +949,7 @@ export function Grid(props: GridProps) {
      never at 28 px in a row */
   const paintName = (field: FieldDef, row: ViewRow): string => {
     if (lead && field.id === lead.fieldId) return restOf(lead, row.text[field.id] ?? '')
+    if (codeName && field.id === codeName.codeId) return codeName.text(row)
     if (field.type === 'image') {
       const p = pictureOf(row, field, heldCopy)
       return p === null ? '' : p.kind === 'held' ? 'a picture' : HELD_AS_A_LINK
@@ -1136,7 +1144,7 @@ export function Grid(props: GridProps) {
     const says = spineOf(p)
     const leaves = p.runs.flatMap((run) => run.leaves)
     const openAt =
-      !hand && peeking && cursorRowId !== null
+      !hand && !recordElsewhere && peeking && cursorRowId !== null
         ? leaves.findIndex((l) => l.rowId === cursorRowId)
         : -1
     const pillAt = pill && !hand ? leaves.findIndex((l) => l.rowId === pill.rowId) : -1
@@ -1294,7 +1302,8 @@ export function Grid(props: GridProps) {
 
   const renderFlat = (p: Extract<Piece, { kind: 'row' }>) => {
     const row = rows[p.leaf.r]
-    const open = !hand && peeking && row !== undefined && row.rowId === cursorRowId
+    const open =
+      !hand && !recordElsewhere && peeking && row !== undefined && row.rowId === cursorRowId
     const refused = !hand && pill !== null && row !== undefined && pill.rowId === row.rowId
     return (
       <div

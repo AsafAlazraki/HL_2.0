@@ -245,6 +245,11 @@ function displayRepeats(
   return repeats * 20 >= rows.length * 19
 }
 
+/** A column the file names as a figure it sells by. */
+const SELLS_BY = /(^|\s)(sell|rrp|retail)(\s|$)/i
+/** The sell of the whole line, not of one part of it. */
+const WHOLE_SELL = /^(act(ual)?\s+)?sell$/i
+
 /** A code a dealer orders by: short, one per row, and typed on most rows. */
 function isCode(f: FieldDef, rows: readonly ViewRow[]): boolean {
   if (f.type !== 'text' || rows.length < 2) return false
@@ -309,6 +314,27 @@ export function readingColumns(input: ReadingInput): Reading {
   for (const level of prices) {
     const f = leafFields.find((x) => x.id === level.fieldId)
     if (f && !isCost(f) && !tableSaid.has(f.id)) take(f, 'price')
+  }
+
+  /* 3b. A LIST WITH NO PRICE DECLARED SHOWS THE FIGURES ITS FILE SELLS BY, UNLIT (the sheet's
+     verifier, 2026-11-03: Dealer Fit and Registration read as names and codes across a 1,400 px
+     gap, while the file carries Sell, Act Sell and SELL). Which of them is the price is still for
+     Prices to decide, and the sheet says so: none is lit and no rung is read; each is its file's
+     own column under its file's own name. A selling figure is one the file names so — Sell, a
+     retail figure, an RRP — and never a cost. */
+  if (prices.length === 0) {
+    const selling = leafFields.filter(
+      (f) =>
+        f.type === 'number' &&
+        SELLS_BY.test(f.name.trim()) &&
+        !isCost(f) &&
+        !tableSaid.has(f.id) &&
+        !said.settled.has(f.id) &&
+        !empty.has(f.id),
+    )
+    /* the whole sell of a line before a part of it: "Act Sell" before "Parts Sell" */
+    const whole = (f: FieldDef): number => (WHOLE_SELL.test(f.name.trim()) ? 0 : 1)
+    for (const f of selling.toSorted((a, b) => whole(a) - whole(b))) take(f, 'price')
   }
 
   /* 4. A MARK THAT VARIES — recommended, discontinued — a yes or no a
