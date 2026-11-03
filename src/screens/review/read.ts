@@ -23,6 +23,8 @@ import type { Meant, Reband } from '@/domain/rules/review/checks'
 import type { Case, CaseKind } from '@/domain/rules/review/cases'
 import { saysWhatItComesWith } from '@/domain/rules/review/notes'
 import type { LeftAs } from '@/domain/rules/review/standing'
+import type { KindCounted } from '@/domain/rules/review/leftDay'
+import type { PriceNow, PricesSaid } from '@/domain/rules/review/pricesNow'
 import type { PrefValue } from '@/state/prefs'
 
 export type { LeftAs }
@@ -355,8 +357,142 @@ export function titleOf(c: Case, tableKind?: string): string {
   }
 }
 
-/** THE CASE'S LEDE: why, in the file's own figures. */
-export function ledeOf(c: Case): string {
+/**
+ * WHERE A CASE'S LINES STAND ON SALE, said only as true of every line (the verifier's gap 4): "at
+ * $0 at Sell and Sell inc Install" where every line holds $0 at both, "at $0 at Sell, with no Sell
+ * inc Install" where every one leaves the second blank, and "at $0 or blank at …" where the lines
+ * differ, each line then saying its own. Without what the lines read, the list's prices are said
+ * as the check found them.
+ */
+export function onSaleAt(
+  kind: 'zero' | 'blank',
+  priceNames: readonly string[],
+  prices?: PricesSaid,
+): string {
+  if (kind === 'blank') return `on sale with no price at ${joined(priceNames.map(priceSaid), 'or')}`
+  if (!prices) return `on sale at $0 at ${joined(priceNames.map(priceSaid), 'and')}`
+  /* in the list's own order of its prices, a run of prices read alike said together */
+  const stateOf = (n: string): 'zero' | 'blank' | 'mixed' =>
+    prices.zeroAll.includes(n) ? 'zero' : prices.blankAll.includes(n) ? 'blank' : 'mixed'
+  const runs: Array<{ state: 'zero' | 'blank' | 'mixed'; names: string[] }> = []
+  for (const n of priceNames) {
+    const state = stateOf(n)
+    const last = runs.at(-1)
+    if (last && last.state === state) last.names.push(priceSaid(n))
+    else runs.push({ state, names: [priceSaid(n)] })
+  }
+  const said = runs.map((r) =>
+    r.state === 'zero'
+      ? `at $0 at ${joined(r.names, 'and')}`
+      : r.state === 'blank'
+        ? `with no ${joined(r.names, 'or')}`
+        : `at $0 or blank at ${joined(r.names, 'and')}`,
+  )
+  return `on sale ${joined(said, 'and')}`
+}
+
+/** One line's prices as it reads them, where the lines of its case differ: "$0 at Sell · no Sell
+ *  inc Install". */
+export const pricesOfLine = (now: readonly PriceNow[]): string =>
+  now.map((p) => (p.zero ? `$0 at ${priceSaid(p.label)}` : `no ${priceSaid(p.label)}`)).join(' · ')
+
+/**
+ * WHAT A TYPED PRICE LEAVES (the judge's J3b, and the verifier's gap 4): each other price a line
+ * needs, said as it reads now and stays until it is set on its line — "$0" where the line holds
+ * $0 there, "blank" where it holds nothing, never "blank" of a cell that holds $0. '' where a typed
+ * price leaves nothing.
+ */
+export function staysSaid(
+  lines: ReadonlyArray<{ needs: readonly string[]; now: readonly PriceNow[] }>,
+  boat: boolean,
+): string {
+  const needing = lines.filter((l) => l.needs.length > 0)
+  if (needing.length === 0) return ''
+  const labels = [...new Set(needing.flatMap((l) => l.needs))]
+  const stateOf = (label: string): 'zero' | 'blank' | 'mixed' => {
+    const states = new Set(
+      needing
+        .filter((l) => l.needs.includes(label))
+        .map((l) => (l.now.find((p) => p.label === label)?.zero ? 'zero' : 'blank')),
+    )
+    return states.size > 1 ? 'mixed' : states.has('zero') ? 'zero' : 'blank'
+  }
+  const one = lines.length === 1
+  const byState = (['zero', 'blank', 'mixed'] as const)
+    .map((st) => ({ st, of: labels.filter((l) => stateOf(l) === st).map(priceSaid) }))
+    .filter((x) => x.of.length > 0)
+  const verb = (n: number): string => (boat || n > 1 ? 'stay' : 'stays')
+  const how = (st: 'zero' | 'blank' | 'mixed'): string =>
+    st === 'zero' ? '$0' : st === 'blank' ? 'blank' : one ? 'as it reads' : 'as each reads'
+  const said = byState.map((x) => `${joined(x.of, 'and')} ${verb(x.of.length)} ${how(x.st)}`)
+  if (boat)
+    return `${capitalOf(joined(said, 'and'))} until they are set on the line in the price list.`
+  const whose =
+    needing.length === lines.length
+      ? one
+        ? 'Its'
+        : 'Each one’s'
+      : `${needing.length} of them carry an install type, and each one’s`
+  return `${whose} ${joined(said, 'and')} until it is set on its line in the price list.`
+}
+
+const capitalOf = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+
+/** "2 cases settled and 1 case new", "3 cases settled", "1 case new": since the Master Price File. */
+export function sinceSaid(settled: number, arrived: number): string {
+  const said = [
+    settled > 0 ? `${counted(settled, 'case', 'cases')} settled` : '',
+    arrived > 0 ? `${counted(arrived, 'case', 'cases')} new` : '',
+  ].filter((p) => p !== '')
+  return said.join(' and ')
+}
+
+/**
+ * A CHECK THAT STILL FINDS SOMETHING ON THE CLEAN DAY, because Northside left it alone — counted as
+ * it is said (the verifier's gaps 1 and 2, `leftDay.ts`): the trailers' money split by its way,
+ * never the 7's figure on all 9, and a line counted once however many prices it is below cost at.
+ */
+export function leftSentence(kind: CaseKind, n: KindCounted): string {
+  const by = 'left alone by your choice'
+  switch (kind) {
+    case 'band': {
+      const ways = [
+        n.under.n > 0 ? `${n.under.n} charged ${money(n.under.sum)} too little` : '',
+        n.over.n > 0 ? `${n.over.n} charged ${money(n.over.sum)} too much` : '',
+      ].filter((w) => w !== '')
+      return `${counted(n.cases, 'trailer is', 'trailers are')} still registered as the wrong size, ${by}${ways.length > 0 ? `: on one sale of each, ${joined(ways, 'and')}` : ''}.`
+    }
+    case 'boat':
+      return `${counted(n.lines, 'boat is', 'boats are')} still on sale at $0, ${by}.`
+    case 'none':
+      return `${counted(n.lines, 'line is', 'lines are')} still on sale with no price, ${by}.`
+    case 'cost': {
+      const both =
+        n.twice === 0
+          ? ''
+          : n.twice === n.lines
+            ? n.lines === 1
+              ? ' at both its prices'
+              : ', each at both its prices'
+            : `, ${n.twice} of them at both their prices`
+      return `${counted(n.lines, 'line still sells below its cost', 'lines still sell below their cost')}${both}, ${by}.`
+    }
+    case 'two':
+      return `${counted(n.cases, 'name is', 'names are')} still at two prices, ${by}.`
+    case 'note':
+      return `${counted(n.lines, 'note is', 'notes are')} still on sale, ${by}.`
+    case 'house':
+      return `${counted(n.findings, 'offer still breaks', 'offers still break')} a rule your price list asserts, ${by}.`
+    case 'twins':
+      return `${counted(n.cases, 'pair of headings still shares', 'pairs of headings still share')} a name, ${by}.`
+    case 'nameless':
+      return `${counted(n.lines, 'line is', 'lines are')} still on sale with no name, ${by}.`
+  }
+}
+
+/** THE CASE'S LEDE: why, in the file's own figures. `prices` is what a no-price case's lines read
+ *  at each price, so the lede says only what every line holds. */
+export function ledeOf(c: Case, prices?: PricesSaid): string {
   switch (c.kind) {
     case 'band': {
       const l = c.line
@@ -387,16 +523,16 @@ export function ledeOf(c: Case): string {
       const scale = like
         ? ` The ${boatSaid(like.name, g.tableName)}, the boat most like ${one ? 'it' : 'them'} in the list, sells at ${money(like.price)} ${g.priceName}.`
         : ''
-      return `${one ? 'It is' : 'They are'} on sale at ${g.kind === 'zero' ? '$0' : 'no price'} at ${joined(g.priceNames, 'and')}, so a quote for ${one ? 'it' : 'one'} is a $0 quote.${scale}`
+      return `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}, so a quote for ${one ? 'it' : 'one'} is a $0 quote.${scale}`
     }
     case 'none': {
       const g = c.group
       const one = g.lines.length === 1
       if (allSayWhatTheyComeWith(c))
-        return `${one ? 'It is' : 'They are'} on sale at $0 at ${joined(g.priceNames.map(priceSaid), 'and')}, and ${one ? 'its name says' : 'each name says'} it comes with something already priced, so $0 is likely meant. If not, type ${one ? 'its' : 'each one’s'} price.`
+        return `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}, and ${one ? 'its name says' : 'each name says'} it comes with something already priced, so $0 is likely meant. If not, type ${one ? 'its' : 'each one’s'} price.`
       return g.kind === 'zero'
-        ? `${one ? 'It is' : 'They are'} on sale at $0 at ${joined(g.priceNames.map(priceSaid), 'and')}. If ${one ? 'it comes' : 'they come'} with something else, $0 is meant; if not, type ${one ? 'its' : 'each one’s'} price.`
-        : `${one ? 'It is' : 'They are'} on sale with no price at ${joined(g.priceNames.map(priceSaid), 'or')}, so a quote with ${one ? 'it' : 'one'} on it is $0.`
+        ? `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}. If ${one ? 'it comes' : 'they come'} with something else, $0 is meant; if not, type ${one ? 'its' : 'each one’s'} price.`
+        : `${one ? 'It is' : 'They are'} ${onSaleAt(g.kind, g.priceNames, prices)}, so a quote with ${one ? 'it' : 'one'} on it is $0.`
     }
     case 'cost': {
       const g = c.group

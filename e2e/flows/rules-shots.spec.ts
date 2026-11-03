@@ -107,6 +107,23 @@ test('every state of the house rules, photographed', async ({ page }) => {
   await page.waitForTimeout(1200)
   await shot('02e-transom-door')
 
+  /* Northside overrules 2.3 with a because, and the clause says so where it stands */
+  await page.goto('/rules')
+  await ready(page)
+  const shaft = page.locator('[data-testid="stated-rule"][data-ref="F6"]')
+  await pressOn(page, shaft.getByRole('button', { name: 'Overrule it' }))
+  await shaft
+    .getByRole('textbox', { name: 'Why Northside does not hold to 2.3' })
+    .fill('the three typos are fixed with the supplier')
+  await page.waitForTimeout(300)
+  await shot('02f-overrule')
+  await pressOn(page, shaft.getByRole('button', { name: /^Overrule 2\.3/ }))
+  await expect(shaft.getByTestId('overruled')).toBeVisible()
+  await page.waitForTimeout(600)
+  await shot('02g-overruled')
+  await pressOn(page, shaft.getByRole('button', { name: 'Hold to it again' }))
+  await expect(shaft.getByTestId('overruled')).toHaveCount(0)
+
   /* writing the tiller rule: the page holds still while the words are chosen */
   await page.goto('/rules')
   await ready(page)

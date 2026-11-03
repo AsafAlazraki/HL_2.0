@@ -6,7 +6,8 @@ import { written } from '../mint'
    REVIEW, THE CASE QUEUE — what the rulers cannot see. Every press
    here is a person's press, and each is followed to where it lands:
    the fix writes the trailer, the stage moves to the case after it
-   and its address says which, the toast's Undo puts it back, a fix
+   and its address says which, the step is said over the stage (never
+   in a toast over the page) and its Undo puts it back, a fix
    survives a reload, a typed price clears its case, a case left
    alone stays left (kept with Northside's file) and comes back one
    at a time from the foot, every case is found in the index, and the
@@ -60,7 +61,7 @@ test.describe('review', () => {
     expect(errors).toEqual([])
   })
 
-  test('the press writes the trailer, the stage moves on, and the toast takes it back', async ({
+  test('the press writes the trailer, the stage moves on, and the step said over it takes it back', async ({
     page,
   }) => {
     await throughTheDoor(page)
@@ -71,16 +72,20 @@ test.describe('review', () => {
     await expect(page).toHaveURL(/case=band%3Atrl_dunbier%3Atrl_dunbier%3A69/)
     await expect(count(page, 38)).toBeVisible()
     await expect(page.locator('.rv-money')).toContainText('$702')
-    /* the toast says what the title says, never the file's whole string (the judge's B5) */
+    /* the step says what the title says, never the file's whole string (the judge's B5), over
+       the stage where the next case lands — and no toast stands over the page (gap 6) */
+    const done = page.locator('.rv-done')
     await expect(
-      page.getByText('The ALP 5.3M-13B is registered Large at $283, and sells at $11,483.', {
+      done.getByText('The ALP 5.3M-13B is registered Large at $283, and sells at $11,483.', {
         exact: true,
       }),
     ).toBeVisible()
+    await expect(done).toBeInViewport()
+    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
     /* the next case's title takes the focus, so a reader hears where the stage went */
     await expect(title(page)).toBeFocused()
 
-    await page.getByRole('button', { name: 'Undo' }).click()
+    await done.getByRole('button', { name: 'Undo' }).click()
     await expect(count(page, 39)).toBeVisible()
     await expect(
       page.getByText(
@@ -115,9 +120,19 @@ test.describe('review', () => {
     const gx1 = page.getByLabel('Sell for Lone Star · GX-1 HS4mm Combo Winch Kit')
     await gx1.fill('abc')
     await page.getByRole('button', { name: /^Price the one typed at Sell/ }).click()
-    /* refused at the field it is about: marked, and holding the focus (the judge's B6) */
+    /* refused at the field it is about: marked, and holding the focus (the judge's B6) — and its
+       reason stands under that field, in view with it, never on the press (the verifier's gap 3) */
     await expect(gx1).toHaveAttribute('aria-invalid', 'true')
     await expect(gx1).toBeFocused()
+    const why = page.getByText(/^“abc” is not a price\./)
+    await expect(why).toBeInViewport()
+    expect(
+      await why.evaluate(
+        (el, field) => !!el.closest('.rv-line')?.contains(field),
+        await gx1.elementHandle(),
+      ),
+    ).toBe(true)
+    await expect(gx1).toHaveAttribute('aria-describedby', (await why.getAttribute('id')) ?? '')
     await gx1.fill('2,150')
     await page.getByRole('button', { name: /^Price the one typed at Sell/ }).click()
     await expect(
@@ -214,10 +229,12 @@ test.describe('review', () => {
     const plugs =
       'Leave the 4 lines in Trailer Parts - Trailer Plugs at $0, as each says what they come with.'
     await expect(title(page)).toHaveText(plugs)
-    await page.getByRole('button', { name: 'It’s meant' }).click()
+    /* its own press leaves it as meant, so It's meant is not drawn a second time (gap 5) */
+    await expect(stage(page).getByRole('button', { name: 'It’s meant' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Leave them at $0' }).click()
     await expect(count(page, 38)).toBeVisible()
     await expect(title(page)).not.toHaveText(plugs)
-    await page.getByRole('button', { name: 'Undo' }).click()
+    await page.locator('.rv-done').getByRole('button', { name: 'Undo' }).click()
     await expect(count(page, 39)).toBeVisible()
     await expect(title(page)).toHaveText(plugs)
   })
@@ -252,7 +269,7 @@ test.describe('review', () => {
     await expect(stage(page).getByRole('textbox')).toHaveCount(0)
     await page.getByRole('button', { name: 'Take all 6 off sale' }).click()
     await expect(count(page, 38)).toBeVisible()
-    await page.getByRole('button', { name: 'Undo' }).click()
+    await page.locator('.rv-done').getByRole('button', { name: 'Undo' }).click()
     await expect(count(page, 39)).toBeVisible()
   })
 
@@ -279,10 +296,127 @@ test.describe('review', () => {
     const said = (await page.locator('main').textContent()) ?? ''
     expect(said).not.toContain('each one holds')
     expect(said).not.toContain('Every trailer is registered as the size its weight says')
+    /* counted as it is said (the verifier's gaps 1 and 2) */
     expect(said).toContain(
-      '9 trailers are still registered as the wrong size, left alone by your choice',
+      '9 trailers are still registered as the wrong size, left alone by your choice: on one sale of each, 7 charged $819 too little and 2 charged $234 too much.',
+    )
+    expect(said).toContain(
+      '4 lines still sell below their cost, 2 of them at both their prices, left alone by your choice.',
     )
     await expect(page.locator('.rv-money')).toContainText('not charged, left alone')
     await expect(page.locator('.rv-money')).toContainText('charged over, left alone')
+    /* an empty queue offers no index of it (gap 9) */
+    await expect(page.getByRole('button', { name: 'Every case, by check or list' })).toHaveCount(0)
+    /* and what is left is said as kept on this computer, never as every desk's (gap 7) */
+    expect(said).not.toContain('every desk')
+    expect(said).toContain('kept with Northside’s price list on this computer')
   })
+
+  test('the boat case: its press stands under the lede, in the first window', async ({ page }) => {
+    await throughTheDoor(page)
+    await toReview(page)
+    await expect(title(page)).toHaveText(BOATS)
+    const act = page.getByRole('button', { name: /^Price them at Cash/ })
+    /* the verifier's gap 9: nine fields stood before it, at y 1509 of 844 on a phone */
+    const box = await act.boundingBox()
+    const height = page.viewportSize()!.height
+    expect(box).not.toBeNull()
+    expect(box!.y + box!.height).toBeLessThanOrEqual(height)
+    /* Enter in a field presses it, and an empty press says why under the press itself */
+    await act.click()
+    await expect(page.getByText('Type a price beside at least one of them first.')).toBeInViewport()
+  })
+
+  test('what was settled since the Master Price File is said, and listed', async ({ page }) => {
+    test.setTimeout(90_000)
+    await throughTheDoor(page)
+    await toReview(page, FIRST_TRAILER)
+    await page.getByRole('button', { name: /^Make it Large/ }).click()
+    await expect(count(page, 38)).toBeVisible()
+    /* the trailer's list is read as the file packed it, and the queue found on it compared */
+    await expect(page.locator('.rv-money')).toContainText(
+      /1 case settled since the Master Price File of 16 Sept? 2026/,
+      { timeout: 20_000 },
+    )
+    await page.getByRole('button', { name: 'See what was settled' }).click()
+    const settled = page.getByRole('list', { name: 'Settled since the Master Price File' })
+    await expect(settled.getByRole('listitem')).toHaveCount(1)
+    await expect(settled).toContainText(FIRST)
+    await expect(page).toHaveURL(/since=open/)
+  })
+
+  test('the price list’s other rules are said with their measures, the workbook’s 16 and 127 among them', async ({
+    page,
+  }) => {
+    await throughTheDoor(page)
+    await toReview(page, 'house:F6')
+    const rules = page.getByRole('region', { name: 'The other rules your price list asserts' })
+    await expect(rules).toContainText('Holds on 501 of the 501 offers it can be tested on.')
+    await expect(rules).toContainText(
+      'The workbook it was first measured on counted 16 that broke it',
+    )
+    await expect(rules).toContainText(
+      'Yamaha Outboards writes “Opt” for its Prop on 181 of its 209 lines on sale',
+    )
+    await expect(rules).toContainText('The workbook counted 127 that broke it')
+  })
+
+  test('a keyboard reaches the case past the index in one key, and the index follows the stage', async ({
+    page,
+  }, info) => {
+    test.skip(info.project.name.startsWith('phone'), 'a phone has no keys to press')
+    await throughTheDoor(page)
+    await toReview(page)
+    /* the way past the index comes before any of its links (the verifier's gap 8: 53 Tabs to
+       the press, through all 39) */
+    const skip = page.getByRole('link', { name: 'Skip to the case' })
+    let passed = 0
+    for (let n = 0; n < 40; n += 1) {
+      await page.keyboard.press('Tab')
+      const at = await page.evaluate(() => document.activeElement?.getAttribute('class') ?? '')
+      if (at.includes('rv-skip')) break
+      if (at.includes('rv-index__case')) passed += 1
+    }
+    expect(passed).toBe(0)
+    await expect(skip).toBeFocused()
+    await expect(skip).toBeInViewport()
+    await page.keyboard.press('Enter')
+    await expect(title(page)).toBeFocused()
+    /* at a desk the index stands in its own column and keeps the case on the stage in view */
+    const width = page.viewportSize()!.width
+    if (width < 1200) return
+    for (let n = 0; n < 36; n += 1) await page.locator('body').press('ArrowRight')
+    await expect(stage(page).getByText('Case 37 of 39')).toBeVisible()
+    const lit = page.locator('.rv-index__case[aria-current="true"]')
+    await expect(lit).toBeInViewport()
+  })
+})
+
+test('the build says what Review finds on its own lines before the quote is given', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await throughTheDoor(page)
+  /* the ALP 5.3M-13B, registered Small at 1,450 kg, quoted on its own through New quote */
+  await page.goto('/quote/new?brand=trl_dunbier')
+  await page.getByRole('searchbox', { name: 'Find a model' }).fill('ALP 5.3M-13B')
+  const card = page
+    .getByRole('region', { name: 'Models' })
+    .getByRole('button', { name: /ALP 5\.3M-13B \(1,450kgs\) Fibreglass Boat/ })
+  await card.click()
+  const act = page
+    .getByRole('complementary', { name: 'What is chosen' })
+    .getByRole('button', { name: 'Start the quote' })
+  await act.scrollIntoViewIfNeeded()
+  await act.click()
+  await expect(page).toHaveURL(/\/quote\/(?!new)[^/?]+$/)
+  await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 30_000 })
+  await page.goto(`${new URL(page.url()).pathname}?at=finale`)
+  const said = page.locator('.cfg-flag__say').filter({ hasText: 'Review has it.' })
+  await expect(said).toContainText(
+    'as Small, though it is rated 1,450 kg, so its rego is $117 short. Review has it.',
+    { timeout: 30_000 },
+  )
+  /* never a word of what it costs Northside, at the desk where the customer reads */
+  await expect(said).not.toContainText(/cost/i)
 })

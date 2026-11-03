@@ -333,6 +333,28 @@ export function specValue(spec: PairSpec, table: EntityDef, row: RowData): strin
   return null
 }
 
+/**
+ * THE CELL A SPEC WAS READ OFF ON ONE ROW — the list's own column and what it writes there
+ * ("Shaft Lgth", "XL") — so a door to the row can bring that column into sight and name it
+ * (verify 2, data round, J2: the transom door landed on the boat with "Shaft Lgth XL" off
+ * screen). Null where the row writes nothing the spec reads, or the spec is the list's maker.
+ */
+export function specCellOf(
+  spec: PairSpec,
+  table: EntityDef,
+  row: RowData,
+): { field: string; header: string; written: string } | null {
+  if (table.kind !== spec.kind || spec.id === 'maker') return null
+  for (const id of fieldsFor(table, spec)) {
+    const cell = readCell(row, id)
+    const v = spec.read(cell)
+    if (v === null || v === '') continue
+    const header = table.fields.find((f) => f.id === id)?.name.trim() ?? ''
+    return { field: id, header, written: text(cell) }
+  }
+  return null
+}
+
 /** A figure as the sentence says it: "6 m", "150 hp", "1,500 kg". */
 export function figureSaid(spec: PairSpec, value: string): string {
   const n = Number(value)

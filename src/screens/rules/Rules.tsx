@@ -15,6 +15,7 @@ import {
   CheckIcon,
   EyeIcon,
   FileTextIcon,
+  HandPalmIcon,
   ListChecksIcon,
   NotePencilIcon,
   PauseCircleIcon,
@@ -41,7 +42,7 @@ import {
   unsay,
   type SelectOption,
 } from '@/ui'
-import { useCatalogue, useQuotes } from '@/app/useStores'
+import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { isDone, type CatalogueCommand } from '@/domain/catalogue/commands'
 import {
@@ -81,6 +82,14 @@ import {
   pairTaken,
 } from '@/domain/rules/constraints/pairTaken'
 import { groupExceptions, type BuildDoes } from '@/domain/rules/constraints/houseMeasures'
+import {
+  BECAUSE_MAX,
+  holdAgainCommand,
+  overruleCommand,
+  overruleMissing,
+  overruleOf,
+} from '@/domain/rules/constraints/overrule'
+import { houseBreaks } from '@/domain/rules/review/houseBreaks'
 import { packedOn, provenanceOfSheet } from '@/screens/data/file'
 import {
   WORKBOOK_RULES_REFUTED,
@@ -189,7 +198,7 @@ export interface RulesProps {
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
   /** the sheet at one line: `/data/$table?at=` */
-  listHref: (table: string, line: string) => string
+  listHref: (table: string, line: string, show?: string) => string
   /** one quote in the build: `/quote/$id` */
   quoteHref: (id: string) => string
   /** go to an address inside the app */
@@ -217,6 +226,10 @@ const dayOf = (iso: string): string => {
 }
 
 const count = (n: number): string => n.toLocaleString('en-AU')
+
+/** Models in the order every list on this page reads them: Classic 340, 360, 360 LS, 380 (verify
+ *  2, data round: the maker's line read 340, 360, 380, 360 LS beside a list read 340, 360, 360 LS). */
+const byModelName = (a: string, b: string): number => a.localeCompare(b, 'en-AU', { numeric: true })
 
 /**
  * A CLAUSE BRINGS ITSELF INTO SIGHT, and only when it is not already there (built-critique-m3.md,
@@ -285,7 +298,9 @@ const VERB_OPTIONS: SelectOption<Verb>[] = VERBS.map((v) => ({
 
 /** What the toast says when a step is taken back — the screen's own words, never the engine's
  *  ("Undone. No longer so: Your rule is deleted.", judge.md, data round, J6). */
-const BACK: Record<'add' | 'change' | 'delete' | 'do', string> = {
+const BACK: Record<'add' | 'change' | 'delete' | 'do' | 'overrule' | 'hold', string> = {
+  overrule: 'Taken back: Northside holds to it, and its breaks are in Review again.',
+  hold: 'Taken back: it stays overruled.',
   add: 'Taken back: the rule is not added.',
   change: 'Taken back: the rule reads as it did.',
   delete: 'Your rule is back where it stood.',
@@ -427,7 +442,7 @@ async function shareHouse(text: string, title: string): Promise<void> {
 interface Shared {
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
-  listHref: (table: string, line: string) => string
+  listHref: (table: string, line: string, show?: string) => string
   quoteHref: (id: string) => string
   follow: (href: string) => void
   world: PairWorld
@@ -496,11 +511,17 @@ function House({
         say(outcome.refused === '' ? NOTHING_TO_DO : outcome.refused, { id: STEP_TOAST })
         return
       }
+      /* A RULE IS WRITTEN TO THIS COMPUTER AT ONCE, not on the sheet's delayed write (verify 2,
+         data round: a reload within about 200 ms of switching what 2.4 does read "refuses" again).
+         A rule is a handful of records and the build reads it on the next pick; the store's
+         flush hands over only what changed */
+      void catalogue.getState().flush()
       const eventId = outcome.event.id
       undo(
         outcome.said,
         () => {
           const undone = catalogue.getState().undo(eventId)
+          if (isDone(undone)) void catalogue.getState().flush()
           if (isDone(undone)) say(BACK[back], { id: STEP_TOAST })
           else say(undone.refused === '' ? NOTHING_TO_DO : undone.refused, { id: STEP_TOAST })
         },
@@ -626,7 +647,7 @@ interface PartProps {
   onOpen: (open: string) => void
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
-  listHref: (table: string, line: string) => string
+  listHref: (table: string, line: string, show?: string) => string
   quoteHref: (id: string) => string
   follow: (href: string) => void
   world: PairWorld
@@ -679,6 +700,11 @@ function PartView(props: PartProps) {
   const after = openAt >= 0 ? part.yours.slice(openAt + 1) : []
 
   const look = (ref: WorkbookRuleRef): void => go({ look: at.look === ref ? '' : ref })
+  /* EACH CLAUSE'S BREAKS AS REVIEW KEEPS THEM, so an overrule leaves exactly those alone */
+  const breaksOf = useMemo(
+    () => new Map(houseBreaks(props.world).clauses.map((c) => [c.ref, c.breaks.map((b) => b.key)])),
+    [props.world],
+  )
 
   const yourClause = ({ at: n, item }: Part['yours'][number]) => (
     <YourClause
@@ -742,6 +768,8 @@ function PartView(props: PartProps) {
               onLook={() => look(item.ref)}
               listHref={listHref}
               follow={follow}
+              breakKeys={breaksOf.get(item.ref) ?? NO_KEYS}
+              apply={props.apply}
             />
           ))}
           {before.map(yourClause)}
@@ -804,11 +832,18 @@ function saidAsOf(ref: WorkbookRuleRef, part: Part, cols: Columns): string {
 function Measure({ s }: { s: StatedRule }) {
   const fig = figureOf(s)
   if (!fig) return null
+  /* A FIGURE NOT MEASURED HERE IS NOT SET AS ONE THAT WAS (verify 2, data round: 3.2's 3,890 of
+     4,017 stood in the same type as the six counted on the sheet loaded here). The workbook's
+     figure is named as the workbook's above it, in the quiet weight, so the eye tells them apart
+     before the sentence under the clause says why */
+  const book = s.live === null
   return (
     <p
       className="hr-clause__measure"
-      aria-label={`${s.under ? '' : 'Holds on '}${count(fig.shown)} of ${count(fig.of)} ${s.counted}`}
+      data-from={book ? 'workbook' : undefined}
+      aria-label={`${book ? 'On the workbook it was found in, ' : ''}${s.under ? '' : book ? 'it held on ' : 'Holds on '}${count(fig.shown)} of ${count(fig.of)} ${s.counted}`}
     >
+      {book ? <span className="hr-held__from">The workbook’s figure</span> : null}
       <span className="hr-held">
         <span className="hr-held__n">{count(fig.shown)}</span>
         <span className="hr-held__of">{` of ${count(fig.of)}`}</span>
@@ -818,6 +853,8 @@ function Measure({ s }: { s: StatedRule }) {
   )
 }
 
+const NO_KEYS: readonly string[] = []
+
 function StatedClause({
   n,
   s,
@@ -825,13 +862,18 @@ function StatedClause({
   onLook,
   listHref,
   follow,
+  breakKeys,
+  apply,
 }: {
   n: string
   s: StatedRule
   open: boolean
   onLook: () => void
-  listHref: (table: string, line: string) => string
+  listHref: (table: string, line: string, show?: string) => string
   follow: (href: string) => void
+  /** its breaks as Review keeps them (`houseBreaks`); none where Review raises none of it */
+  breakKeys: readonly string[]
+  apply: (command: CatalogueCommand, back: keyof typeof BACK, after?: () => void) => void
 }) {
   const breaks = exceptionsSaid(s)
   const listId = `hr-ex-${s.ref}`
@@ -879,8 +921,144 @@ function StatedClause({
         {open && s.live ? (
           <Exceptions id={listId} s={s} listHref={listHref} follow={follow} />
         ) : null}
+        <Overrule n={n} s={s} breakKeys={breakKeys} apply={apply} />
       </div>
       <Measure s={s} />
+    </div>
+  )
+}
+
+/**
+ * NORTHSIDE OVERRULES THE CLAUSE, WITH A BECAUSE (judge.md, data round, missing item 4; verify 2,
+ * missing item 3). Offered only on a clause Review raises breaks of — where a clause acts at all,
+ * since the build's lists are the price list's pairings — and said where it stands once it is
+ * done: who, when, why, and what it left alone. Holding to it again brings those breaks back.
+ */
+function Overrule({
+  n,
+  s,
+  breakKeys,
+  apply,
+}: {
+  n: string
+  s: StatedRule
+  breakKeys: readonly string[]
+  apply: (command: CatalogueCommand, back: keyof typeof BACK, after?: () => void) => void
+}) {
+  const leftAlone = useCatalogue((st) => st.org?.leftAlone)
+  const person = useSession((st) => st.name ?? '')
+  const ruled = useMemo(
+    () => overruleOf(s.ref, leftAlone, breakKeys),
+    [s.ref, leftAlone, breakKeys],
+  )
+  const [writing, setWriting] = useState(false)
+  const [because, setBecause] = useState('')
+  const formId = useId()
+  if (ruled) {
+    const left = ruled.left
+    const by = `Overruled${ruled.at === '' ? '' : `, ${dayOf(ruled.at)}`}${ruled.who === '' ? '' : `, by ${ruled.who}`}:`
+    const stop = /[.!?]$/.test(ruled.because) ? '' : '.'
+    return (
+      <div className="hr-overruled" data-testid="overruled">
+        <p className="hr-overruled__said">
+          <Icon glyph={HandPalmIcon} />
+          <span>
+            <strong>{by}</strong>
+            {` Northside does not hold to it, because ${ruled.because}${stop}`}
+            {left > 0
+              ? ` Its ${count(left)} ${left === 1 ? 'break is' : 'breaks are'} left alone in Review.`
+              : ''}
+            {ruled.outside > 0
+              ? ` ${count(ruled.outside)} more ${ruled.outside === 1 ? 'break' : 'breaks'} came with a newer price list and ${ruled.outside === 1 ? 'stands' : 'stand'} in Review.`
+              : ''}
+          </span>
+        </p>
+        <div className="hr-overruled__act">
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={ArrowCounterClockwiseIcon}
+            onClick={() =>
+              apply(
+                holdAgainCommand(
+                  s.ref,
+                  `Northside holds to ${n} again: its breaks are in Review again.`,
+                ),
+                'hold',
+              )
+            }
+          >
+            Hold to it again
+          </Button>
+        </div>
+      </div>
+    )
+  }
+  if (breakKeys.length === 0) return null
+  const missing = overruleMissing(because)
+  const breaks = `${count(breakKeys.length)} ${breakKeys.length === 1 ? 'break is' : 'breaks are'}`
+  const keep = (): void => {
+    if (missing !== '') return
+    apply(
+      overruleCommand({
+        ref: s.ref,
+        breakKeys,
+        because,
+        at: new Date().toISOString(),
+        who: person,
+        said: `${n} is overruled: its ${breaks} left alone in Review.`,
+      }),
+      'overrule',
+      () => {
+        setWriting(false)
+        setBecause('')
+      },
+    )
+  }
+  return writing ? (
+    <form
+      className="hr-overrule"
+      data-testid="overrule"
+      aria-labelledby={`${formId}-head`}
+      onSubmit={(e) => {
+        e.preventDefault()
+        keep()
+      }}
+    >
+      <p className="hr-overrule__head" id={`${formId}-head`}>
+        {`Northside does not hold to ${n}, because`}
+      </p>
+      <Input
+        look="word"
+        aria-label={`Why Northside does not hold to ${n}`}
+        placeholder="say why, in Northside’s own words"
+        maxLength={BECAUSE_MAX}
+        value={because}
+        onValueChange={setBecause}
+      />
+      <p className="hr-overrule__then">
+        {`Its ${breaks} left alone in Review, as meant, until Northside holds to it again. The build does not change: it offers what your price list makes for each boat, as before.`}
+      </p>
+      <div className="hr-overrule__act">
+        <Button
+          intent="secondary"
+          size="sm"
+          icon={HandPalmIcon}
+          type="submit"
+          {...(missing ? { refusedBecause: missing } : {})}
+        >
+          {`Overrule ${n}`}
+        </Button>
+        <Button intent="quiet" size="sm" icon={XIcon} onClick={() => setWriting(false)}>
+          Close
+        </Button>
+      </div>
+    </form>
+  ) : (
+    <div className="hr-clause__look">
+      <Button intent="quiet" size="sm" icon={HandPalmIcon} onClick={() => setWriting(true)}>
+        Overrule it
+      </Button>
     </div>
   )
 }
@@ -896,7 +1074,7 @@ function Exceptions({
 }: {
   id: string
   s: StatedRule
-  listHref: (table: string, line: string) => string
+  listHref: (table: string, line: string, show?: string) => string
   follow: (href: string) => void
 }) {
   const groups = useMemo(() => groupExceptions(s.live?.exceptions ?? []), [s.live])
@@ -929,9 +1107,15 @@ function Exceptions({
                   J2: the one door landed on the pairing line, which shows neither) */}
               <p className="hr-ex__doors">
                 {g.sides.map((side) => {
-                  const at = listHref(side.list, side.line)
-                  const name =
+                  /* THE DOOR SAYS THE VALUE AND BRINGS ITS COLUMN INTO SIGHT (verify 2, data round,
+                     J2: the transom door landed on the boat with "Shaft Lgth XL" below the fold and
+                     unmarked): the cell in conflict is named on the door as the list writes it, and
+                     its column is pressed into the grid beside the line it opens */
+                  const at = listHref(side.list, side.line, side.field)
+                  const base =
                     side.what === '' ? `The ${side.noun}` : `The ${side.noun}’s ${side.what}`
+                  const name =
+                    side.header && side.written ? `${base}: ${side.header} ${side.written}` : base
                   return (
                     <Button
                       key={`${side.list}|${side.line}|${side.what}`}
@@ -940,7 +1124,7 @@ function Exceptions({
                       icon={ArrowSquareOutIcon}
                       href={at}
                       onClick={() => follow(at)}
-                      aria-label={`${g.boat}, ${g.what}: ${name.toLowerCase()}, on its line in ${side.listName}`}
+                      aria-label={`${g.boat}, ${g.what}: ${base.toLowerCase()}, on its line in ${side.listName}${side.header && side.written ? `, where ${side.header} reads ${side.written}` : ''}`}
                     >
                       {name}
                     </Button>
@@ -996,7 +1180,7 @@ function Noticed({
   onSay: () => void
   looking: boolean
   onLook: () => void
-  listHref: (table: string, line: string) => string
+  listHref: (table: string, line: string, show?: string) => string
   follow: (href: string) => void
 }) {
   const fig = figureOf(s)
@@ -1270,6 +1454,15 @@ function OpenClause(props: PartProps & { opened: Opened; n: string }) {
   }
 
   const kind = draft.partnerKind
+  /* A BOAT THE PRICE LIST DOES NOT OFFER lets the address go while the rule is still being
+     written, not only once it is whole (verify 2, data round, J17: `?on=zzz-no-boat&open=new:motor`
+     kept `?on=` for as long as the sentence was unfinished). Asked of the boats this kind is
+     offered on, and only once the sheet has some: a sheet still loading names no boat */
+  const offeredOn = useMemo(() => pairBoats(world, kind), [world, kind])
+  useEffect(() => {
+    if (at.on === '' || offeredOn.length === 0) return
+    if (!offeredOn.some((b) => b.key === at.on)) go({ on: '' })
+  }, [at.on, offeredOn, go])
   const noun = KIND_NOUN[kind]
   const partnerCols = cols[kind]
   const boatCol = columnAt(cols.boat, draft.boatKey)
@@ -1817,7 +2010,10 @@ function Counting({
               {m.losing > 0 && reach.ready ? (
                 <p className="hr-field__loses" data-testid="rule-cost">
                   {losesSaid(
-                    m.models.filter((x) => x.loses).map((x) => x.said),
+                    m.models
+                      .filter((x) => x.loses)
+                      .map((x) => x.said)
+                      .toSorted(byModelName),
                     m.lose,
                     verb,
                   )}
@@ -1961,6 +2157,20 @@ function MakerMarks({
 /** How many models the taken list names before "Show the other N". */
 const TAKEN_SHOWN = 8
 
+/**
+ * One model's share of what is taken, in words that add up: "Yamaha F25SWTC, 1 of the 3 made for
+ * it, on each of its 9 colours". A model sold in one colour is said without its colours.
+ */
+function takenLine(x: ReturnType<typeof pairTaken>[number]['models'][number]): string {
+  const what = `${x.what.join(', ')}, ${count(x.what.length)} of the ${count(x.made)} made for it`
+  if (x.ofColours <= 1) return what
+  const on =
+    x.colours === x.ofColours
+      ? `on each of its ${count(x.ofColours)} colours`
+      : `on ${count(x.colours)} of its ${count(x.ofColours)} colours`
+  return `${what}, ${on}`
+}
+
 function Taken({
   taken,
   verb,
@@ -1978,13 +2188,22 @@ function Taken({
       <h4 className="hr-taken__head">
         {`The ${count(total)} ${total === 1 ? 'offer' : 'offers'} ${takenSaid(verb)}, by name`}
       </h4>
+      {/* EVERY LINE ADDS UP TO THE HEADING (verify 2, data round, J4: five lines of "1 of the 3"
+          under "45"): a colour of a model is a line of the price list and an offer of its own, so
+          each model says how many of the heading's offers are its, and on how many colours */}
+      {models.some((x) => x.colours > 1) ? (
+        <p className="hr-taken__note">
+          Each colour of a model is a line of your price list, and an offer of its own.
+        </p>
+      ) : null}
       <ul className="hr-taken__list">
         {shown.map((x) => (
-          <li key={x.key} className="hr-taken__item">
-            <span className="hr-taken__boat">{x.said}</span>
-            <span className="hr-taken__what">
-              {`${x.what.join(', ')} · ${count(x.what.length)} of the ${count(x.made)} made for it`}
+          <li key={x.key} className="hr-taken__item" data-offers={x.offers}>
+            <span className="hr-taken__boat">
+              {x.said}
+              <span className="hr-taken__n">{` · ${count(x.offers)} ${x.offers === 1 ? 'offer' : 'offers'}`}</span>
             </span>
+            <span className="hr-taken__what">{takenLine(x)}</span>
           </li>
         ))}
       </ul>

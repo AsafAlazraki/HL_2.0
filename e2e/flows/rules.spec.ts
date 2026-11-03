@@ -94,7 +94,7 @@ test('counted before it is added: the tiller rule’s boats, drawn one mark a mo
   await marks.getByRole('listbox', { name: /^Highfield:/ }).focus()
   await expect(marks.getByTestId('field-point').filter({ hasText: /^Highfield / })).toHaveCount(1)
   await expect(page.getByTestId('rule-cost')).toHaveText(
-    'The Classic 340, 360, 380, 360 LS and 380 LS lose the Yamaha F25SWTC.',
+    'The Classic 340, 360, 360 LS, 380 and 380 LS lose the Yamaha F25SWTC.',
   )
   /* the count and its act are inside the window together at the dealer's laptop size */
   const act = page.getByRole('button', { name: 'Add it as 2.4' })
@@ -430,10 +430,11 @@ test('a measure opens on the offers that break it, each with a door to its line'
   /* WHERE IT IS FIXED: the boat's transom and the motor's shaft each on their own line, and the
      offer on its pairing line (verify 1, data round, J2) */
   const sdf = list.getByRole('listitem').filter({ hasText: 'Stacer 589 Sea Ranger SDF' })
-  await expect(sdf.getByRole('link', { name: /the boat’s transom, on its line/ })).toHaveAttribute(
-    'href',
-    /\/data\/boat_stacer\?at=/,
-  )
+  /* the door names the value as the list writes it, and brings its column into the grid beside
+     the line it opens (verify 2, data round, J2: "Shaft Lgth XL" off screen and unmarked) */
+  const transom = sdf.getByRole('link', { name: /the boat’s transom, on its line/ })
+  await expect(transom).toHaveAttribute('href', /\/data\/boat_stacer\?at=[^&]+&show=/)
+  await expect(transom).toContainText(/^The boat’s transom: .+ XL$/)
   await expect(sdf.getByRole('link', { name: /the motor’s shaft, on its line/ })).toHaveAttribute(
     'href',
     /\/data\/mot_yamaha\?at=/,
@@ -491,4 +492,66 @@ test('an exception is found by typing, and the boat it names keeps its motor', a
   /* the Classic 340's nine lines no longer lose the F25SWTC */
   await expect(page.getByTestId('census').locator('.hr-fig[data-n^="36 of "]')).toHaveCount(1)
   await expect(page.getByTestId('taken')).not.toContainText(/Highfield Classic 340$/m)
+})
+
+test('Northside overrules a clause of the price list with a because, and holds to it again', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await toRules(page)
+  const shaft = page.locator('[data-testid="stated-rule"][data-ref="F6"]')
+  await shaft.getByRole('button', { name: 'Overrule it' }).click()
+  const form = shaft.getByTestId('overrule')
+  /* a refusal is a sentence, where it is refused: no because, no overrule */
+  await expect(form.getByRole('button', { name: /^Overrule 2\.3/ })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
+  await expect(form).toContainText('Say why Northside does not hold to it first')
+  await form
+    .getByRole('textbox', { name: 'Why Northside does not hold to 2.3' })
+    .fill('the three typos are fixed with the supplier')
+  await form.getByRole('button', { name: /^Overrule 2\.3/ }).click()
+  await expect(
+    page.getByText('2.3 is overruled: its 3 breaks are left alone in Review.'),
+  ).toBeVisible()
+  const ruled = shaft.getByTestId('overruled')
+  await expect(ruled).toContainText(
+    'Northside does not hold to it, because the three typos are fixed with the supplier. Its 3 breaks are left alone in Review.',
+  )
+  /* kept with Northside's file: a reload still says it */
+  await page.reload()
+  await expect(page.locator('[data-testid="rules"][data-read]')).toBeVisible({ timeout: 30_000 })
+  await expect(shaft.getByTestId('overruled')).toBeVisible()
+  await shaft.getByRole('button', { name: 'Hold to it again' }).click()
+  await expect(shaft.getByTestId('overruled')).toHaveCount(0)
+  await expect(shaft.getByRole('button', { name: 'Overrule it' })).toBeVisible()
+})
+
+test('a boat not offered lets the address go while the rule is still being written', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await page.goto('/rules?on=zzz-no-boat&open=new:motor')
+  await expect(page.getByTestId('open-rule')).toBeVisible({ timeout: 30_000 })
+  await expect(page).not.toHaveURL(/on=/)
+  await expect(page).toHaveURL(/open=new/)
+})
+
+test('what the tiller rule takes adds up to its heading, colour by colour', async ({ page }) => {
+  await throughTheDoor(page)
+  await toRules(page, 'new:motor')
+  await choose(page, 'Which of the boat’s specs', /^steering$/)
+  await choose(page, 'The boat’s steering', /^tiller\b/)
+  await choose(page, 'Which of the motor’s specs', /^controls$/)
+  await choose(page, 'The motor’s controls', /^Tiller handle\b/)
+  const taken = page.getByTestId('taken')
+  await expect(taken.getByRole('heading')).toHaveText('The 45 offers taken away, by name')
+  const each = await taken
+    .locator('[data-offers]')
+    .evaluateAll((lis) => lis.map((li) => Number(li.getAttribute('data-offers'))))
+  expect(each).toEqual([9, 9, 9, 9, 9])
+  await expect(taken).toContainText(
+    'Yamaha F25SWTC, 1 of the 3 made for it, on each of its 9 colours',
+  )
 })

@@ -404,6 +404,61 @@
   margin-inline-start: calc(-1 * --spacing(2));
 }
 
+/* NORTHSIDE OVERRULES A CLAUSE: the because written in place, in the sentence's own word field,
+   and once kept, said where the clause stands in Northside's voice (the owner's edge colour) */
+.hr-overrule {
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: --spacing(3) 0 --spacing(1);
+  border-block-start: var(--hair) solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.hr-overrule__head {
+  margin: 0;
+  font-weight: 650;
+  color: var(--color-ink);
+}
+.hr-overrule__then {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.hr-overrule__act,
+.hr-overruled__act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: --spacing(2);
+  margin-inline-start: calc(-1 * --spacing(2));
+}
+.hr-overruled {
+  display: grid;
+  gap: --spacing(1);
+}
+.hr-overruled__said {
+  display: flex;
+  align-items: start;
+  gap: --spacing(1.5);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.hr-overruled__said > :first-child {
+  flex: none;
+  margin-block-start: --spacing(0.5);
+  color: var(--owner-yours);
+}
+.hr-overruled__said strong {
+  font-weight: 650;
+  color: var(--color-ink);
+}
+
 /* WHAT THE BUILD DOES WITH IT: its glyph, the verdict in weight, then the sentence */
 .hr-build {
   display: flex;
@@ -462,6 +517,22 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
   text-wrap: balance;
+}
+/* A FIGURE THE WORKBOOK COUNTED, NOT THE SHEET LOADED HERE: named so, quiet, never bold, so it
+   never reads as one of the figures measured live beside it */
+.hr-held__from {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.hr-clause__measure[data-from='workbook'] .hr-held {
+  color: var(--color-ink-2);
+}
+.hr-clause__measure[data-from='workbook'] .hr-held__n {
+  font-weight: 450;
 }
 
 /* ---- the offers that break a clause, opened in place ---- */
@@ -1051,6 +1122,19 @@
 .hr-taken__what {
   color: var(--color-ink-2);
   overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+/* how many of the heading's offers are this model's, beside its name */
+.hr-taken__n {
+  font-weight: 450;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.hr-taken__note {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
 }
 /* THE QUOTE A RULE SPEAKS OF IS A DOOR TO IT: the file's blue on its underline, a fingertip tall */
 .hr-quotes__ref {
@@ -1071,7 +1155,7 @@
 }
 /* the boat's word stands a step clear of "Tried on the", so its focus ring never touches it */
 .hr-boat__word {
-  margin-inline-start: --spacing(1);
+  margin-inline-start: --spacing(2);
 }
 .hr-boat__said {
   margin: 0;
@@ -1138,7 +1222,7 @@
 }
 /* ON A SHORT WINDOW the list stands over its own word, as tall as the window allows */
 .hr-finder[data-short] {
-  max-block-size: calc(100dvh - --spacing(4));
+  max-block-size: calc(100dvh - var(--shell-inset) - var(--shell-foot) - --spacing(4));
 }
 .hr-finder__field {
   display: flex;
@@ -1325,6 +1409,8 @@
   .hr-head__acts,
   .hr-write,
   .hr-clause__look,
+  .hr-overrule,
+  .hr-overruled__act,
   .hr-clause__by > :not(:first-child),
   .hr-noticed-stack,
   .hr-ex,

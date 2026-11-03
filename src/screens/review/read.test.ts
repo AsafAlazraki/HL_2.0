@@ -115,3 +115,56 @@ describe('the file’s capitals, said in a person’s case (the judge’s B5)', 
     expect(columnLetter(undefined)).toBe('')
   })
 })
+
+describe('the verifier’s round 1: only what every line holds, counted as it is said', async () => {
+  const { onSaleAt, pricesOfLine, sinceSaid, staysSaid } = await import('./read')
+  const { pricesSaid } = await import('@/domain/rules/review/pricesNow')
+  const both = [
+    { label: 'Sell', zero: true },
+    { label: 'Sell inc Install (if appl.)', zero: true },
+  ]
+  const blankFitted = [
+    { label: 'Sell', zero: true },
+    { label: 'Sell inc Install (if appl.)', zero: false },
+  ]
+  const names = ['Sell', 'Sell inc Install (if appl.)']
+
+  it('says $0 at both prices only where every line holds $0 at both', () => {
+    expect(onSaleAt('zero', names, pricesSaid([both, both]))).toBe(
+      'on sale at $0 at Sell and Sell inc Install',
+    )
+    expect(onSaleAt('zero', names, pricesSaid([blankFitted, blankFitted]))).toBe(
+      'on sale at $0 at Sell and with no Sell inc Install',
+    )
+    expect(onSaleAt('zero', names, pricesSaid([both, blankFitted]))).toBe(
+      'on sale at $0 at Sell and at $0 or blank at Sell inc Install',
+    )
+    expect(pricesOfLine(blankFitted)).toBe('$0 at Sell · no Sell inc Install')
+  })
+
+  it('never says blank of a price that holds $0', () => {
+    const needs = ['Sell inc Install (if appl.)']
+    expect(staysSaid([{ needs, now: both }], false)).toBe(
+      'Its Sell inc Install stays $0 until it is set on its line in the price list.',
+    )
+    expect(staysSaid([{ needs, now: blankFitted }], false)).toBe(
+      'Its Sell inc Install stays blank until it is set on its line in the price list.',
+    )
+    expect(
+      staysSaid(
+        [
+          { needs, now: both },
+          { needs, now: blankFitted },
+        ],
+        false,
+      ),
+    ).toBe(
+      'Each one’s Sell inc Install stays as each reads until it is set on its line in the price list.',
+    )
+  })
+
+  it('counts what was settled and what is new since the file', () => {
+    expect(sinceSaid(2, 1)).toBe('2 cases settled and 1 case new')
+    expect(sinceSaid(1, 0)).toBe('1 case settled')
+  })
+})

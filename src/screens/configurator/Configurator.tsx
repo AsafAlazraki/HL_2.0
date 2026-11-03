@@ -90,6 +90,7 @@ import { boatOfQuote, measured } from '@/domain/quote/spoken'
 import { allSpecsOf } from '@/domain/quote/freeze'
 import { chapterToOpen } from '@/domain/quote/opening'
 import { useCatalogue, usePrefs, useQuotes, useSession } from '@/app/useStores'
+import { wrongOnQuote } from '@/domain/rules/review/onQuote'
 import { prefs } from '@/state/prefs'
 import { foldToggled, foldedOf, unfolded as unfold } from '@/domain/quote/folded'
 /* THE FINAL PACKAGE RENDERS THE PRINTED QUOTE ITSELF, the document screen's own component, never
@@ -6365,6 +6366,17 @@ function Finale({
     rail.unpricedLists.filter((_, at) => told(at)),
     rail.unpricedWhy.filter((_, at) => told(at)),
   )
+  /* WHAT REVIEW FINDS ON THIS QUOTE'S OWN LINES, before it is given (Review's J15, the verifier of
+     2026-11-04): a trailer registered as the wrong size, a name at two prices. Evidence, never a
+     refusal, as the double charge below is; never a line below its cost, which the customer at
+     the desk must not read; and nothing Northside left alone (`wrongOnQuote`) */
+  const tables = useCatalogue((s) => s.tables)
+  const rows = useCatalogue((s) => s.rows)
+  const leftAlone = useCatalogue((s) => s.org?.leftAlone)
+  const reviewSays = useMemo(
+    () => (issued ? [] : wrongOnQuote({ entities: tables, rowsByEntity: rows }, quote, leftAlone)),
+    [issued, tables, rows, quote, leftAlone],
+  )
   /* the level every price on it is set at, by its declared name — "Cash" */
   const level = rail.rungs.find((rung) => rung.key === quote.levelKey)?.label ?? null
 
@@ -6658,6 +6670,19 @@ function Finale({
             {rail.doubleCharged.map((said) => (
               <Said className="cfg-flag__say" key={said} glyph={CoinsIcon}>
                 {said}
+              </Said>
+            ))}
+          </div>
+        ) : null}
+        {reviewSays.length > 0 ? (
+          <div className="cfg-flag">
+            {reviewSays.map((wrong) => (
+              <Said
+                className="cfg-flag__say"
+                key={`${wrong.kind}:${wrong.lineId}`}
+                glyph={WarningCircleIcon}
+              >
+                {wrong.said}
               </Said>
             ))}
           </div>

@@ -13,6 +13,7 @@ import {
 import { motion } from 'motion/react'
 import {
   ArrowArcLeftIcon,
+  ArrowCounterClockwiseIcon,
   ArrowRightIcon,
   ArrowSquareOutIcon,
   BroomIcon,
@@ -20,10 +21,12 @@ import {
   FileTextIcon,
   ListBulletsIcon,
   MagnifyingGlassIcon,
+  MinusCircleIcon,
   PencilSimpleIcon,
   ProhibitIcon,
   SkipForwardIcon,
   TagIcon,
+  WarningCircleIcon,
 } from '@phosphor-icons/react'
 import {
   Button,
@@ -32,11 +35,10 @@ import {
   Icon,
   Input,
   Kbd,
+  Refusal,
   Tile,
   isField,
-  say,
   transition,
-  undo,
   useStill,
 } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
@@ -78,8 +80,11 @@ import {
   typedPrice,
 } from '@/domain/rules/review/fixes'
 import { moneyOfCases, standingOf, stampOf, type LeftCase } from '@/domain/rules/review/standing'
+import { countedByKind, distinctLines } from '@/domain/rules/review/leftDay'
+import { houseHeld } from '@/domain/rules/review/houseHeld'
+import { pricesNow, pricesSaid } from '@/domain/rules/review/pricesNow'
 import { quotesTouching, type QuoteTouch } from '@/domain/rules/review/touching'
-import { caseFound, wordsOfCase, writtenSince } from '@/domain/rules/review/finding'
+import { caseFound, wordsOfCase } from '@/domain/rules/review/finding'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import { packedOn, provenanceOfSheet } from '@/screens/data/file'
 import {
@@ -101,12 +106,16 @@ import {
   labelRead,
   ledeOf,
   leftSaid,
+  leftSentence,
   meantOf,
   nameSaid,
   peekOf,
   priceSaid,
+  pricesOfLine,
   signed,
+  sinceSaid,
   sourceSaid,
+  staysSaid,
   spokenCategory,
   titleOf,
   trailerModel,
@@ -116,6 +125,7 @@ import {
   type LeftAs,
 } from './read'
 import { useLeftAlone } from './left'
+import { useSinceTheFile, type FileOf, type Since } from './since'
 import './review.css'
 
 /* ============================================================
@@ -134,12 +144,19 @@ import './review.css'
    THE QUEUE ENDS, AND ITS LAST PAGE IS TRUE (the judge's blocker): a case left alone is not a
    case fixed, so the clean day names each check that still stands by Northside's choice, with
    its money said as LEFT ALONE, never as $0; the foot lists what was left, why, when and by
-   whom, each brought back on its own. What is left alone is kept with Northside's file
-   (`OrgProfile.leftAlone`), so every desk sees one queue.
+   whom, each brought back on its own. What is left alone is kept with Northside's file on this
+   computer (`OrgProfile.leftAlone`), and a copy saved on Shelf carries it to another.
 
    EVERY PRESS IS THE PRICE LIST'S OWN CHANGE, through the catalogue's command door: one step,
-   said in a toast with its Undo, and Ctrl Z takes the last one back here. Leaving a case alone
-   is a step too. Each act says only what is true of it.
+   said over the stage with its Undo, and Ctrl Z takes the last one back here. Leaving a case
+   alone is a step too. Each act says only what is true of it. THE STEP IS SAID IN THE PAGE, NOT
+   IN A TOAST (the verifier of 2026-11-04, round 1, gap 6): a toast in the window's corner stood
+   over Bring it back, the clean day's lines and the cases after the stage; said over the stage,
+   where the next case lands, it covers nothing and stays until the next step.
+
+   WHAT IS NEW, AND WHAT WAS SETTLED, SINCE THE PRICE FILE (J11): the lists written on this
+   computer since the file was packed are read as the file carries them, the queue is found on
+   them, and the two are compared (`since.ts`).
 
    A POSITION IS THE ADDRESS (the route's own comment).
    ============================================================ */
@@ -155,6 +172,8 @@ export interface ReviewPosition {
   by?: 'list'
   /** `open`: the left-alone list is open at the foot */
   left?: 'open'
+  /** `open`: what was settled since the price file is listed at the foot */
+  since?: 'open'
 }
 
 export interface ReviewProps {
@@ -165,12 +184,24 @@ export interface ReviewProps {
   go: (href: string) => void
   /** where a computer with no copy of the price list goes to load one */
   openTheFile: () => void
+  /** the Master Price File as it was packed, to say what changed since it; absent, nothing is */
+  fileOf?: FileOf
 }
 
-const STEP_TOAST = 'review-step'
+/** The last step taken here, said over the stage: its sentence, and the way back while it is one. */
+interface Done {
+  said: string
+  /** a step this screen's press could not take, said as a refusal */
+  refused?: boolean
+  undo?: () => void
+  /** a fresh step is a fresh element, so a reader hears each one */
+  at: number
+}
 
 type Tables = Readonly<Record<string, EntityDef>>
 type Rows = Readonly<Record<string, readonly RowData[]>>
+
+const NONE_NEW: ReadonlySet<string> = new Set()
 
 export function Review(props: ReviewProps) {
   const status = useCatalogue((s) => s.status)
@@ -224,7 +255,17 @@ interface QueueProps extends ReviewProps {
   rows: Rows
 }
 
-function Queue({ data, unread, tables, rows, position, onPosition, listHref, go }: QueueProps) {
+function Queue({
+  data,
+  unread,
+  tables,
+  rows,
+  position,
+  onPosition,
+  listHref,
+  go,
+  fileOf,
+}: QueueProps) {
   const still = useStill()
   const meant = useLeftAlone()
   const who = useSession((s) => s.name) ?? ''
@@ -236,16 +277,20 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
   const tidyOn = data.tidyCount > 0
   const at = position.case ?? ''
 
-  /* WHAT EACH CASE TOUCHES, AND WHAT IS NEW: the quotes carrying its lines, and whether a line it
-     stands on was written after the price file was packed */
+  /* WHAT EACH CASE TOUCHES, AND WHAT IS NEW: the quotes carrying its lines, and whether it was
+     found on the price file as it was packed (`since.ts`: a finding the file did not have) */
   const touching = useMemo(() => quotesTouching(cases, quoteList), [cases, quoteList])
   const provenance = provenanceOfSheet(version)
   const packedAt = provenance.known ? provenance.file.packedAt : null
-  const fresh = useMemo(() => {
-    const out = new Set<string>()
-    if (packedAt) for (const c of cases) if (writtenSince(c, rows, packedAt)) out.add(c.key)
-    return out
-  }, [cases, rows, packedAt])
+  const since = useSinceTheFile(tables, rows, packedAt, all, fileOf)
+  const fresh: ReadonlySet<string> = since.state === 'read' ? since.arrivedKeys : NONE_NEW
+
+  /* THE LAST STEP, SAID OVER THE STAGE (gap 6): never a toast over the page */
+  const [done, setDone] = useState<Done | null>(null)
+  const doneRef = useRef<HTMLOutputElement>(null)
+  const sayDone = useCallback((said: string, undo?: () => void, refused?: boolean) => {
+    setDone({ said, undo, refused, at: Date.now() })
+  }, [])
 
   /* WHERE THE STAGE STANDS: the case the address names; the first case when it names none, or one
      already settled — and then the stage SAYS so.
@@ -279,17 +324,32 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
   const title = useRef<HTMLHeadingElement>(null)
   const stageKey = onTidy ? TIDY : (current?.key ?? 'clean')
   const shown = useRef(stageKey)
+  /* THE STEP SAID OVER THE STAGE IS BROUGHT INTO VIEW WITH IT: after a press the window stands on
+     the sentence of what was done and, under it, the next case; a step that kept the case (two of
+     eight kits priced) brings its sentence into view only where it is out of it */
+  const saidAt = useRef(0)
   useEffect(() => {
-    if (shown.current === stageKey) return
+    const behavior = still ? 'auto' : 'smooth'
+    const freshStep = done !== null && done.at !== saidAt.current
+    if (freshStep) saidAt.current = done.at
+    if (shown.current === stageKey) {
+      const d = doneRef.current
+      if (!freshStep || !d) return
+      const box = d.getBoundingClientRect()
+      if (box.top < 0 || box.bottom > window.innerHeight)
+        d.scrollIntoView({ block: 'nearest', behavior })
+      return
+    }
     shown.current = stageKey
     if (!moved.current) return
     moved.current = false
     const h = title.current
     if (!h) return
     h.focus({ preventScroll: true })
+    const top = doneRef.current ?? h
     const box = h.getBoundingClientRect()
-    if (box.top < 0 || box.bottom > window.innerHeight * 0.6)
-      h.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' })
+    if (top.getBoundingClientRect().top < 0 || box.bottom > window.innerHeight * 0.6)
+      top.scrollIntoView({ block: 'start', behavior })
   })
   const goTo = useCallback(
     (key: string, also: Partial<ReviewPosition> = {}) => {
@@ -305,33 +365,34 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
   /* each step remembers the case it was pressed on: a step taken back brings THAT case back to
      the stage, never the one that stood after it (built-critique-m3, minors) */
   const steps = useRef<{ eventId: string; from: string }[]>([])
+  /** Take one step back, and bring the case it was pressed on back to the stage. */
+  const takeBack = useCallback(
+    (eventId: string, from: string) => {
+      steps.current = steps.current.filter((s) => s.eventId !== eventId)
+      const back = catalogue.getState().undo(eventId)
+      if (isDone(back)) {
+        sayDone(back.said)
+        goTo(from)
+      } else if (back.refused !== '') sayDone(back.refused, undefined, true)
+    },
+    [goTo, sayDone],
+  )
   const run = useCallback(
     (command: CatalogueCommand | null, then: string): boolean => {
       if (!command) return false
       const outcome = catalogue.getState().apply(command)
       if (!isDone(outcome)) {
-        if (outcome.refused !== '') say(outcome.refused, { id: STEP_TOAST })
+        if (outcome.refused !== '') sayDone(outcome.refused, undefined, true)
         return false
       }
       const eventId = outcome.event.id
       const from = shown.current
       steps.current.push({ eventId, from })
-      undo(
-        outcome.said,
-        () => {
-          steps.current = steps.current.filter((s) => s.eventId !== eventId)
-          const back = catalogue.getState().undo(eventId)
-          if (isDone(back)) {
-            say(back.said, { id: STEP_TOAST })
-            goTo(from)
-          } else if (back.refused !== '') say(back.refused, { id: STEP_TOAST })
-        },
-        { id: STEP_TOAST },
-      )
+      sayDone(outcome.said, () => takeBack(eventId, from))
       goTo(then)
       return true
     },
-    [goTo],
+    [goTo, sayDone, takeBack],
   )
 
   /** Leave a case alone, with its reason, the day and the person: kept with Northside's file. */
@@ -362,11 +423,11 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
       const said = linesIn(l.c) === 1 ? 'It is back in the queue.' : 'They are back in the queue.'
       if (kept.length > 0) run(bringBackCommand(kept, said), l.c.key)
       else {
-        say(said, { id: STEP_TOAST })
+        sayDone(said)
         goTo(l.c.key)
       }
     },
-    [run, goTo],
+    [run, goTo, sayDone],
   )
 
   /* ---- the keys: Enter makes the fix, L leaves it as meant, → skips, ← goes back, and
@@ -382,14 +443,10 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
       event.target instanceof HTMLElement &&
       event.target.closest('button, a, [role="dialog"], .rv-index')
     if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
-      const last = steps.current.pop()
+      const last = steps.current.at(-1)
       if (!last) return
       event.preventDefault()
-      const back = catalogue.getState().undo(last.eventId)
-      if (isDone(back)) {
-        say(back.said, { id: STEP_TOAST })
-        goTo(last.from)
-      } else if (back.refused !== '') say(back.refused, { id: STEP_TOAST })
+      takeBack(last.eventId, last.from)
       return
     }
     if (event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented) return
@@ -429,6 +486,12 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
       : []
   const openMoney = useMemo(() => moneyOfCases(cases), [cases])
   const leftMoney = useMemo(() => moneyOfCases(left.map((l) => l.c)), [left])
+  /* the price list's other rules, measured: read where a rule's case or the clean day says them */
+  const showsRules = current?.kind === 'house' || (clean && !onTidy)
+  const held = useMemo(
+    () => (showsRules ? houseHeld({ entities: tables, rowsByEntity: rows }) : null),
+    [showsRules, tables, rows],
+  )
 
   const stage: ReactNode = onTidy ? (
     <TidyStage data={data} titleRef={title} />
@@ -452,12 +515,13 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
       touches={touching.get(current.key) ?? []}
       fresh={fresh.has(current.key)}
       packedAt={packedAt}
+      held={held}
     />
   ) : (
     <CleanStage
       data={data}
       left={left}
-      leftMoney={leftMoney}
+      held={held}
       titleRef={title}
       onTidy={tidyOn ? () => goTo(TIDY) : null}
       onLeft={() => onPosition({ ...position, left: 'open' })}
@@ -485,6 +549,18 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
 
   return (
     <main className="rv" data-testid="review" data-read="" data-clean={clean ? '' : undefined}>
+      {/* PAST THE INDEX IN ONE KEY (gap 8): its 39 links stood between the rail and the press */}
+      <a
+        className="rv-skip"
+        data-ground="plate"
+        href="#rv-stage"
+        onClick={(event) => {
+          event.preventDefault()
+          title.current?.focus()
+        }}
+      >
+        Skip to the case
+      </a>
       <Rail
         data={data}
         cases={cases}
@@ -494,7 +570,7 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
         money={openMoney}
         leftMoney={leftMoney}
         leftCount={left.length}
-        fresh={fresh.size}
+        since={since}
         packedAt={packedAt}
         onKind={(kind) => {
           const first = cases.find((c) => c.kind === kind)
@@ -510,7 +586,30 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
           {theIndex}
         </aside>
 
-        <div className="rv-main">
+        <div className="rv-main" id="rv-stage">
+          {done ? (
+            <output
+              key={done.at}
+              ref={doneRef}
+              className="rv-done"
+              data-refused={done.refused ? '' : undefined}
+            >
+              <span className="rv-done__glyph">
+                <Icon glyph={done.refused ? WarningCircleIcon : CheckCircleIcon} weight="fill" />
+              </span>
+              <span className="rv-done__said">{done.said}</span>
+              {done.undo ? (
+                <Button
+                  intent="quiet"
+                  size="sm"
+                  icon={ArrowCounterClockwiseIcon}
+                  onClick={done.undo}
+                >
+                  Undo
+                </Button>
+              ) : null}
+            </output>
+          ) : null}
           {stale ? (
             <output className="rv-stale">
               That case is settled or is no longer in the price list, so the first case still
@@ -548,6 +647,10 @@ function Queue({ data, unread, tables, rows, position, onPosition, listHref, go 
           ) : null}
 
           <Foot
+            since={since}
+            sinceOpen={position.since === 'open'}
+            onSinceOpen={(open) => onPosition({ ...position, since: open ? 'open' : undefined })}
+            packedAt={packedAt}
             left={left}
             leftOpen={position.left === 'open'}
             onLeftOpen={(open) => onPosition({ ...position, left: open ? 'open' : undefined })}
@@ -575,7 +678,7 @@ function Rail({
   money: m,
   leftMoney,
   leftCount,
-  fresh,
+  since,
   packedAt,
   onKind,
   onTidyChip,
@@ -590,7 +693,7 @@ function Rail({
   money: ReturnType<typeof moneyOfCases>
   leftMoney: ReturnType<typeof moneyOfCases>
   leftCount: number
-  fresh: number
+  since: Since
   packedAt: string | null
   onKind: (kind: CaseKind) => void
   onTidyChip: (() => void) | null
@@ -673,7 +776,8 @@ function Rail({
             </Chip>
           ) : null}
         </nav>
-        <div className="rv-indexdoor">
+        {/* AN EMPTY QUEUE OFFERS NO INDEX OF IT (gap 9): the door is drawn while a case stands */}
+        <div className="rv-indexdoor" hidden={cases.length === 0}>
           <Button
             intent="secondary"
             size="sm"
@@ -727,10 +831,10 @@ function Rail({
             ? 'on one sale of each trailer'
             : 'no price is measured wrong'}
         </p>
-        {fresh > 0 && packedAt ? (
+        {packedAt && since.state === 'read' && since.settled.length + since.arrived.length > 0 ? (
           <p className="rv-money__each">
-            {counted(fresh, 'case stands', 'cases stand')} on lines written since the price file of{' '}
-            {packedOn(packedAt)}
+            {sinceSaid(since.settled.length, since.arrived.length)} since the Master Price File of{' '}
+            <span className="rv-money__date">{packedOn(packedAt)}</span>
           </p>
         ) : null}
       </dl>
@@ -792,6 +896,28 @@ function Index({
           }))
           .toSorted((a, b) => b.cases.length - a.cases.length || a.name.localeCompare(b.name))
   const headId = useId()
+  /* THE INDEX FOLLOWS THE STAGE (gap 8): at a desk it stands in its own scrolling column, and the
+     case on the stage is kept in its view — never by scrolling the page, only the column */
+  const nav = useRef<HTMLElement>(null)
+  const onKey = onTidy ? TIDY : (current?.key ?? '')
+  useEffect(() => {
+    const list = nav.current
+    const column = list?.closest<HTMLElement>('.rv-side')
+    const lit =
+      onKey === '' ? null : list?.querySelector<HTMLElement>(`[data-case="${CSS.escape(onKey)}"]`)
+    if (!column || !lit || column.scrollHeight <= column.clientHeight) return
+    if (getComputedStyle(column).overflowY !== 'auto') return
+    const box = column.getBoundingClientRect()
+    const top = lit.getBoundingClientRect().top - box.top + column.scrollTop
+    /* what of the column the window shows: before the page scrolls far enough for it to stand
+       still, its foot is below the window's */
+    const shows = Math.max(
+      lit.offsetHeight,
+      Math.min(column.clientHeight, window.innerHeight - Math.max(box.top, 0)),
+    )
+    if (top < column.scrollTop || top + lit.offsetHeight > column.scrollTop + shows)
+      column.scrollTop = Math.max(0, top - shows / 4)
+  }, [onKey])
   /* AN EMPTY QUEUE HAS NOTHING TO FIND: the index says so, and offers no find over nothing */
   if (cases.length === 0)
     return (
@@ -805,7 +931,7 @@ function Index({
       </nav>
     )
   return (
-    <nav className="rv-index" id="rv-index" aria-labelledby={headId}>
+    <nav className="rv-index" id="rv-index" aria-labelledby={headId} ref={nav}>
       <div className="rv-index__head">
         <h2 className="rv-index__title" id={headId}>
           Every case
@@ -859,6 +985,7 @@ function Index({
                   <a
                     className="rv-index__case"
                     href={`/review?case=${encodeURIComponent(c.key)}`}
+                    data-case={c.key}
                     aria-current={on ? 'true' : undefined}
                     onClick={(event) => {
                       if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
@@ -1009,6 +1136,8 @@ interface CaseProps {
   touches: QuoteTouch[]
   fresh: boolean
   packedAt: string | null
+  /** the price list's other rules, measured: said on a rule's case */
+  held: ReturnType<typeof houseHeld> | null
 }
 
 function From({ tableName, extra }: { tableName: string; extra?: string }) {
@@ -1024,20 +1153,29 @@ function From({ tableName, extra }: { tableName: string; extra?: string }) {
   )
 }
 
+/**
+ * The two named ways to leave a case. Where the case's own press already leaves it as meant (the
+ * lines that say what they come with: "Leave them at $0"), "It’s meant" is that press again and is
+ * not drawn twice (gap 5); the other way stays.
+ */
 function Leave({
   c,
   leave,
-  meantFirst,
+  meantAbove,
 }: {
   c: Case
   leave: (as: LeftAs) => void
-  meantFirst?: boolean
+  meantAbove?: boolean
 }) {
   return (
     <div className="rv-leave">
-      <span className="rv-leave__lead">{meantFirst ? 'Or leave it, as' : 'Or leave it, as'}</span>
-      <Chip onSelect={() => leave('meant')}>It’s meant</Chip>
-      <span className="rv-leave__or">or</span>
+      <span className="rv-leave__lead">Or leave it, as</span>
+      {meantAbove ? null : (
+        <>
+          <Chip onSelect={() => leave('meant')}>It’s meant</Chip>
+          <span className="rv-leave__or">or</span>
+        </>
+      )}
       <Chip onSelect={() => leave('wrong')}>The check is wrong here</Chip>
       <span className="rv-leave__then">— {comesBackOf(c)}</span>
     </div>
@@ -1167,32 +1305,71 @@ function usePrimary(setPrimary: CaseProps['setPrimary'], press: (() => void) | n
  * price is marked, focused and brought into view (the judge's B6: "“abc” is not a price" stood at
  * the press while its field sat unmarked above the window).
  */
-function useTyped<L extends { rowId: string }>(lines: readonly L[]) {
+function useTyped<L extends { rowId: string }>(lines: readonly L[], empty: string) {
   const [typed, setTyped] = useState<Record<string, string>>({})
-  const [tried, setTried] = useState(false)
+  /* the press that was refused, and the field it was pressed from (Enter in a field), or null */
+  const [tried, setTried] = useState<{ from: string | null } | null>(null)
   const fields = useRef(new Map<string, HTMLElement>())
+  const reasonId = useId()
   const filled = lines.filter((l) => (typed[l.rowId] ?? '').trim() !== '')
   const bad = filled.find((l) => typedPrice(typed[l.rowId] ?? '') === null)
+  /* THE REFUSAL STANDS WHERE IT IS REFUSED (the verifier's gap 3: "“abc” is not a price" stood on
+     the press, seven lines below the ringed field and out of view): under the field that holds
+     what is not a price, or under the field Enter was pressed in; on the press only when the
+     press itself was pressed with nothing typed */
+  const refusal: { said: string; at: string | null } | null = !tried
+    ? null
+    : bad
+      ? {
+          said: `“${(typed[bad.rowId] ?? '').trim()}” is not a price. Type it in dollars, like 2,100.`,
+          at: bad.rowId,
+        }
+      : filled.length === 0
+        ? { said: empty, at: tried.from }
+        : null
+  const at = refusal?.at ?? null
   useEffect(() => {
-    if (!tried || !bad) return
-    const field = fields.current.get(bad.rowId)
+    if (!at || !tried) return
+    const field = fields.current.get(at)
     field?.focus({ preventScroll: true })
-    field?.scrollIntoView({ block: 'center' })
-  }, [tried, bad])
+    /* the field and the sentence under it, together in view */
+    field?.closest('.rv-line')?.scrollIntoView({ block: 'nearest' })
+  }, [tried, at])
   return {
     typed,
-    tried,
     filled,
     bad,
-    setTried,
+    refusal,
+    reasonId,
+    /** a press refused: from the press itself (null), or Enter in a line's field */
+    refuse: (from: string | null) => setTried({ from }),
     set: (rowId: string, v: string) => {
       setTyped((t) => ({ ...t, [rowId]: v }))
-      setTried(false)
+      setTried(null)
     },
     fieldRef: (rowId: string) => (el: HTMLElement | null) => {
       if (el) fields.current.set(rowId, el)
       else fields.current.delete(rowId)
     },
+    /** what the press says of the refusal: the sentence itself, or where it is said */
+    onPress: (): { refusedBecause?: string; refusedBy?: string } =>
+      !refusal
+        ? {}
+        : refusal.at === null
+          ? { refusedBecause: refusal.said }
+          : { refusedBy: reasonId },
+    /** what a line's field says of the refusal, when it is that line's */
+    onField: (rowId: string) =>
+      refusal && refusal.at === rowId
+        ? {
+            invalid: bad?.rowId === rowId,
+            reason: (
+              <span className="rv-line__why" key="why">
+                <Refusal id={reasonId}>{refusal.said}</Refusal>
+              </span>
+            ),
+          }
+        : null,
   }
 }
 
@@ -1504,6 +1681,7 @@ function NoneStage({
   eyebrow,
   kindSaid,
   tables,
+  rows,
   titleRef,
   setPrimary,
   skip,
@@ -1514,22 +1692,24 @@ function NoneStage({
   touchesNode,
 }: StageOf<'none' | 'boat'>) {
   const g = c.group
-  const t = useTyped(g.lines)
+  const one = g.lines.length === 1
+  const t = useTyped(g.lines, `Type a price beside ${one ? 'it' : 'at least one of them'} first.`)
   const priceName = g.priceNames[0] ?? ''
   const boat = c.kind === 'boat'
   const comesWith = c.kind === 'none' && allSayWhatTheyComeWith(c)
   const lineName = (name: string): string =>
     boat ? boatSaid(name, g.tableName) : nameSaid(name, g.tableName)
-  const refusal = !t.tried
-    ? undefined
-    : t.bad
-      ? `“${(t.typed[t.bad.rowId] ?? '').trim()}” is not a price. Type it in dollars, like 2,100.`
-      : t.filled.length === 0
-        ? `Type a price beside ${g.lines.length === 1 ? 'it' : 'at least one of them'} first.`
-        : undefined
-  const press = (): void => {
+  /* WHAT EACH PRICE READS NOW, $0 OR BLANK (the verifier's gap 4): said once where every line reads
+     alike, and line by line only where they differ */
+  const table = tables[g.tableId]
+  const nowOf = useMemo(() => {
+    const byId = new Map((rows[g.tableId] ?? []).map((r) => [r.id, r]))
+    return new Map(g.lines.map((l) => [l.rowId, pricesNow(table, byId.get(l.rowId))]))
+  }, [rows, table, g])
+  const prices = pricesSaid([...nowOf.values()])
+  const press = (from: string | null = null): void => {
     if (t.bad || t.filled.length === 0) {
-      t.setTried(true)
+      t.refuse(from)
       return
     }
     run(
@@ -1549,28 +1729,28 @@ function NoneStage({
   }
   /* a $0 that may be meant asks for no amber press; a boat at $0 is never meant: a $0 quote */
   const meantByDefault = !boat && g.kind === 'zero'
-  usePrimary(setPrimary, meantByDefault ? null : press)
+  usePrimary(setPrimary, meantByDefault ? null : () => press())
   const label =
     t.filled.length === 0
-      ? `Price ${g.lines.length === 1 ? 'it' : 'them'} at ${priceSaid(priceName)}`
+      ? `Price ${one ? 'it' : 'them'} at ${priceSaid(priceName)}`
       : t.filled.length === g.lines.length && g.lines.length > 1
         ? `Price all ${t.filled.length} at ${priceSaid(priceName)}`
         : `Price ${t.filled.length === 1 ? 'the one typed' : `the ${t.filled.length} typed`} at ${priceSaid(priceName)}`
   const shared = besideOnce(g.lines)
-  /* A LINE PRICED WHOLE (the judge's J3b): the other prices a typed figure leaves blank are said,
-     never "stays as it is" */
-  const blankAfter = [...new Set(g.lines.flatMap((l) => l.staysBlank))]
-  const withBlank = g.lines.filter((l) => l.staysBlank.length > 0).length
-  const offSaid =
-    g.lines.length === 1
-      ? `${lineName(g.lines[0]!.name)} is off sale.`
-      : `The ${g.lines.length} ${boat ? `${g.tableName.replace(/\s+boats$/i, '')} boats` : 'lines'} are off sale.`
-  const keptBlank =
-    blankAfter.length === 0
-      ? ''
-      : boat
-        ? ` ${joined(blankAfter, 'and')} stay $0 until they are set on the line in the price list.`
-        : ` ${withBlank === g.lines.length ? (g.lines.length === 1 ? 'Its' : 'Each one’s') : `${withBlank} of them carry an install type, and each one’s`} ${joined(blankAfter.map(priceSaid), 'and')} stays blank until it is set on its line in the price list.`
+  /* NOTHING LIKE THEM, SAID ONCE (the verifier's gap 5: five times on one case) */
+  const noneLike = !boat && !shared && g.lines.every((l) => !l.beside)
+  const offSaid = one
+    ? `${lineName(g.lines[0]!.name)} is off sale.`
+    : `The ${g.lines.length} ${boat ? `${g.tableName.replace(/\s+boats$/i, '')} boats` : 'lines'} are off sale.`
+  /* A LINE PRICED WHOLE (the judge's J3b): each other price a typed figure leaves is said as it
+     reads now, $0 or blank */
+  const stays = staysSaid(
+    g.lines.map((l) => ({ needs: l.staysBlank, now: nowOf.get(l.rowId) ?? [] })),
+    boat,
+  )
+  /* MORE THAN A FEW LINES, AND THE PRESS STANDS UNDER THE LEDE (the verifier's gap 9): nine boats'
+     fields stood before it, at y 1509 of 844 on a phone. Enter in any field presses it. */
+  const long = g.lines.length > 3
   return (
     <Frame
       kind={c.kind}
@@ -1581,20 +1761,21 @@ function NoneStage({
       }
       title={titleOf(c, tables[g.tableId]?.kind)}
       titleRef={titleRef}
-      lede={ledeOf(c)}
+      lede={ledeOf(c, prices)}
+      actsFirst={long}
       acts={
         <>
           <span className="rv-acts__main">
             {comesWith ? (
               <Button intent="secondary" icon={TagIcon} onClick={() => leave('meant')}>
-                {g.lines.length === 1 ? 'Leave it at $0' : 'Leave them at $0'}
+                {one ? 'Leave it at $0' : 'Leave them at $0'}
               </Button>
             ) : null}
             <Button
               intent={meantByDefault ? 'secondary' : 'act'}
               icon={meantByDefault ? TagIcon : ArrowRightIcon}
-              refusedBecause={refusal}
-              onClick={press}
+              {...t.onPress()}
+              onClick={() => press()}
             >
               {label}
             </Button>
@@ -1612,7 +1793,7 @@ function NoneStage({
               )
             }
           >
-            {g.lines.length === 1 ? 'Take it off sale' : 'Take them off sale'}
+            {one ? 'Take it off sale' : 'Take them off sale'}
           </Button>
           <Button intent="quiet" icon={SkipForwardIcon} onClick={skip}>
             Skip for now
@@ -1621,18 +1802,24 @@ function NoneStage({
       }
       leaveRow={
         <>
-          <Leave c={c} leave={leave} />
+          <Leave c={c} leave={leave} meantAbove={comesWith} />
           <Keys enter={meantByDefault ? null : 'prices what is typed'} />
         </>
       }
       touches={touchesNode}
-      kept={`Typed at ${priceSaid(priceName)}, the price ${g.tableName} is sold at.${keptBlank} Every price typed is written in one step, said with its Undo; taken off sale, a line stays in the price list with its Discontinued ticked.`}
+      kept={`Typed at ${priceSaid(priceName)}, the price ${g.tableName} is sold at.${stays !== '' ? ` ${stays}` : ''} Every price typed is written in one step, said with its Undo; taken off sale, a line stays in the price list with its Discontinued ticked.`}
     >
       {/* a boat's like is said once, in the lede, as its sense of scale */}
       {shared && !boat ? (
         <p className="rv-lines__beside">
           Most like them in the price list: {lineName(shared.name)} · {priceSaid(priceName)}{' '}
           {money(shared.price)}
+        </p>
+      ) : noneLike ? (
+        <p className="rv-lines__beside">
+          {one
+            ? 'Nothing like it in its heading has a price.'
+            : 'Nothing like them in their heading has a price.'}
         </p>
       ) : null}
       <div className="rv-lines">
@@ -1643,30 +1830,29 @@ function NoneStage({
           </span>
         </p>
         {g.lines.map((l) => {
-          const wrong = t.tried && t.bad?.rowId === l.rowId
+          const here = t.onField(l.rowId)
           return (
             <div className="rv-line" key={l.rowId}>
               <span className="rv-line__said">
                 <span className="rv-line__name">{lineName(l.name)}</span>
                 <span className="rv-line__meta">
-                  <span className="rv-line__now">
-                    {g.kind === 'zero' ? `$0 at ${priceSaid(priceName)}` : 'No price'}
-                    {l.staysBlank.length > 0 && !boat
-                      ? ` · its ${joined(l.staysBlank.map(priceSaid), 'and')} stays blank`
-                      : ''}
-                  </span>
+                  {/* the lede says what every line reads; a line says its own only where they differ */}
+                  {prices.differ ? (
+                    <span className="rv-line__now">{pricesOfLine(nowOf.get(l.rowId) ?? [])}</span>
+                  ) : null}
                   <LineDoor
                     href={listHref(g.tableId, l.rowId)}
                     go={go}
                     label={`Open ${lineName(l.name)} in the price list`}
                   />
                 </span>
-                {l.beside && !shared ? (
+                {l.beside && !shared && !boat ? (
                   <span className="rv-line__beside">
                     Most like it: {lineName(l.beside.name)} · {priceSaid(priceName)}{' '}
                     {money(l.beside.price)}
                   </span>
-                ) : !shared && !boat ? (
+                ) : !shared && !boat && !noneLike ? (
+                  /* where some lines have a like and this one has none, it says so on its own */
                   <span className="rv-line__beside">
                     Nothing like it in its heading has a price.
                   </span>
@@ -1678,18 +1864,20 @@ function NoneStage({
                   inputMode="decimal"
                   ref={t.fieldRef(l.rowId)}
                   aria-label={`${priceSaid(priceName)} for ${lineName(l.name)}`}
-                  aria-invalid={wrong ? true : undefined}
+                  aria-invalid={here?.invalid ? true : undefined}
+                  aria-describedby={here ? t.reasonId : undefined}
                   placeholder={`$ at ${priceSaid(priceName)}`}
                   value={t.typed[l.rowId] ?? ''}
                   onValueChange={(v) => t.set(l.rowId, v)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
-                      press()
+                      press(l.rowId)
                     }
                   }}
                 />
               </span>
+              {here?.reason}
             </div>
           )
         })}
@@ -1714,18 +1902,15 @@ function CostStage({
   touchesNode,
 }: StageOf<'cost'>) {
   const g = c.group
-  const t = useTyped(g.lines)
+  const one = g.lines.length === 1
+  const t = useTyped(
+    g.lines,
+    `Type a new price beside ${one ? 'it' : 'at least one of them'} first.`,
+  )
   const priceName = priceSaid(g.priceName)
-  const refusal = !t.tried
-    ? undefined
-    : t.bad
-      ? `“${(t.typed[t.bad.rowId] ?? '').trim()}” is not a price. Type it in dollars, like 2,100.`
-      : t.filled.length === 0
-        ? `Type a new price beside ${g.lines.length === 1 ? 'it' : 'at least one of them'} first.`
-        : undefined
-  const press = (): void => {
+  const press = (from: string | null = null): void => {
     if (t.bad || t.filled.length === 0) {
-      t.setTried(true)
+      t.refuse(from)
       return
     }
     run(
@@ -1743,7 +1928,7 @@ function CostStage({
       t.filled.length === g.lines.length,
     )
   }
-  usePrimary(setPrimary, press)
+  usePrimary(setPrimary, () => press())
   return (
     <Frame
       kind="cost"
@@ -1753,12 +1938,13 @@ function CostStage({
       title={titleOf(c)}
       titleRef={titleRef}
       lede={ledeOf(c)}
+      actsFirst={g.lines.length > 3}
       acts={
         <>
           <span className="rv-acts__main">
-            <Button intent="act" icon={ArrowRightIcon} refusedBecause={refusal} onClick={press}>
+            <Button intent="act" icon={ArrowRightIcon} {...t.onPress()} onClick={() => press()}>
               {t.filled.length === 0
-                ? `Reprice ${g.lines.length === 1 ? 'it' : 'them'} at ${priceName}`
+                ? `Reprice ${one ? 'it' : 'them'} at ${priceName}`
                 : `Reprice ${t.filled.length === 1 ? 'the one typed' : `the ${t.filled.length} typed`} at ${priceName}`}
             </Button>
           </span>
@@ -1783,43 +1969,48 @@ function CostStage({
             <Icon glyph={PencilSimpleIcon} /> Will read at {priceName}
           </span>
         </p>
-        {g.lines.map((l) => (
-          <div className="rv-line" key={l.rowId}>
-            <span className="rv-line__said">
-              <span className="rv-line__name">{nameSaid(l.name, g.tableName)}</span>
-              <span className="rv-line__meta">
-                <span className="rv-line__now">
-                  {money(l.price)} at {priceName}, below what it costs
+        {g.lines.map((l) => {
+          const here = t.onField(l.rowId)
+          return (
+            <div className="rv-line" key={l.rowId}>
+              <span className="rv-line__said">
+                <span className="rv-line__name">{nameSaid(l.name, g.tableName)}</span>
+                <span className="rv-line__meta">
+                  <span className="rv-line__now">
+                    {money(l.price)} at {priceName}, below what it costs
+                  </span>
+                  <LineDoor
+                    href={listHref(g.tableId, l.rowId)}
+                    go={go}
+                    label={`See what ${nameSaid(l.name, g.tableName)} costs, in the price list`}
+                  >
+                    Its cost, in the price list
+                  </LineDoor>
                 </span>
-                <LineDoor
-                  href={listHref(g.tableId, l.rowId)}
-                  go={go}
-                  label={`See what ${nameSaid(l.name, g.tableName)} costs, in the price list`}
-                >
-                  Its cost, in the price list
-                </LineDoor>
               </span>
-            </span>
-            <span className="rv-line__field">
-              <Input
-                mono
-                inputMode="decimal"
-                ref={t.fieldRef(l.rowId)}
-                aria-label={`New ${priceName} for ${nameSaid(l.name, g.tableName)}`}
-                aria-invalid={t.tried && t.bad?.rowId === l.rowId ? true : undefined}
-                placeholder={`$ at ${priceName}`}
-                value={t.typed[l.rowId] ?? ''}
-                onValueChange={(v) => t.set(l.rowId, v)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                    press()
-                  }
-                }}
-              />
-            </span>
-          </div>
-        ))}
+              <span className="rv-line__field">
+                <Input
+                  mono
+                  inputMode="decimal"
+                  ref={t.fieldRef(l.rowId)}
+                  aria-label={`New ${priceName} for ${nameSaid(l.name, g.tableName)}`}
+                  aria-invalid={here?.invalid ? true : undefined}
+                  aria-describedby={here ? t.reasonId : undefined}
+                  placeholder={`$ at ${priceName}`}
+                  value={t.typed[l.rowId] ?? ''}
+                  onValueChange={(v) => t.set(l.rowId, v)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      press(l.rowId)
+                    }
+                  }}
+                />
+              </span>
+              {here?.reason}
+            </div>
+          )
+        })}
       </div>
     </Frame>
   )
@@ -1925,6 +2116,7 @@ function HouseStage({
   listHref,
   go,
   touchesNode,
+  held,
 }: StageOf<'house'>) {
   usePrimary(setPrimary, null)
   const cl = c.clause
@@ -1985,7 +2177,71 @@ function HouseStage({
           </li>
         ))}
       </ul>
+      {held ? <OtherRules held={held} /> : null}
     </Frame>
+  )
+}
+
+/**
+ * THE PRICE LIST'S OTHER RULES, EACH WITH ITS MEASURE (the verifier's gap 10: "the judge's rule
+ * exceptions 16 and 127 are not drawn"). The 16 and the 127 are the workbook's counts; on this
+ * price list the kit rule holds on every offer it can be tested on, and the propeller rule cannot
+ * be tested at all, for a reason measured off the file. Each is said with its figure, so a reader
+ * sees why they are not cases.
+ */
+function OtherRules({ held }: { held: ReturnType<typeof houseHeld> }) {
+  const id = useId()
+  if (held.held.length + held.untested.length === 0) return null
+  return (
+    <section className="rv-rules" aria-labelledby={id}>
+      <h3 className="rv-rules__title" id={id}>
+        The other rules your price list asserts
+      </h3>
+      <ul className="rv-rules__list">
+        {held.held.map((h) => (
+          <li className="rv-rules__rule" key={h.ref}>
+            <span className="rv-rules__glyph">
+              <Icon glyph={CheckCircleIcon} weight="fill" />
+            </span>
+            <span className="rv-rules__said">
+              <span className="rv-rules__clause">{h.said}</span>
+              <span className="rv-rules__measure">
+                {`Holds on ${h.here.held.toLocaleString('en-AU')} of the ${counted(h.here.tested, 'offer', 'offers')} it can be tested on.`}
+                {h.workbook
+                  ? ` The workbook it was first measured on counted ${(h.workbook.tested - h.workbook.held).toLocaleString('en-AU')} that broke it (${h.workbook.held.toLocaleString('en-AU')} of ${h.workbook.tested.toLocaleString('en-AU')}); none of them is on this price list.`
+                  : ''}
+              </span>
+            </span>
+          </li>
+        ))}
+        {held.untested.map((u) => (
+          <li className="rv-rules__rule" key={u.ref} data-untested="">
+            <span className="rv-rules__glyph">
+              <Icon glyph={MinusCircleIcon} />
+            </span>
+            <span className="rv-rules__said">
+              <span className="rv-rules__clause">{u.said}</span>
+              <span className="rv-rules__measure">
+                {`Not tested on this price list${
+                  u.unwritten.length > 0
+                    ? `: ${joined(
+                        u.unwritten.map(
+                          (w) =>
+                            `${w.list} writes “${w.written}” for its ${w.field} on ${w.lines.toLocaleString('en-AU')} of its ${w.of.toLocaleString('en-AU')} lines on sale`,
+                        ),
+                        'and',
+                      )}, so an offer names no one ${u.what || 'value'} to compare.`
+                    : ', which writes nothing to test it on.'
+                }`}
+                {u.workbook
+                  ? ` The workbook counted ${(u.workbook.tested - u.workbook.held).toLocaleString('en-AU')} that broke it (${u.workbook.held.toLocaleString('en-AU')} of ${u.workbook.tested.toLocaleString('en-AU')}).`
+                  : ''}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -2311,47 +2567,25 @@ function TidyStage({
 
 /* ---- the clean day: the queue ends, and what is now true is said — and only what is ---- */
 
-function leftSentence(kind: CaseKind, cases: readonly LeftCase[], notCharged: number): string {
-  const lines = cases.reduce((n, l) => n + linesIn(l.c), 0)
-  const by = 'left alone by your choice'
-  switch (kind) {
-    case 'band':
-      return `${counted(lines, 'trailer is', 'trailers are')} still registered as the wrong size, ${by}${notCharged > 0 ? `: ${notCharged.toLocaleString('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 })} on one sale of each, not charged` : ''}.`
-    case 'boat':
-      return `${counted(lines, 'boat is', 'boats are')} still on sale at $0, ${by}.`
-    case 'none':
-      return `${counted(lines, 'line is', 'lines are')} still on sale with no price, ${by}.`
-    case 'cost':
-      return `${counted(lines, 'line still sells below its cost', 'lines still sell below their cost')}, ${by}.`
-    case 'two':
-      return `${counted(lines, 'name is', 'names are')} still at two prices, ${by}.`
-    case 'note':
-      return `${counted(lines, 'note is', 'notes are')} still on sale, ${by}.`
-    case 'house':
-      return `${counted(lines, 'offer still breaks', 'offers still break')} a rule your price list asserts, ${by}.`
-    case 'twins':
-      return `${counted(lines, 'pair of headings still shares', 'pairs of headings still share')} a name, ${by}.`
-    case 'nameless':
-      return `${counted(lines, 'line is', 'lines are')} still on sale with no name, ${by}.`
-  }
-}
-
 function CleanStage({
   data,
   left,
-  leftMoney,
+  held,
   titleRef,
   onTidy,
   onLeft,
 }: {
   data: ReviewData
   left: readonly LeftCase[]
-  leftMoney: ReturnType<typeof moneyOfCases>
+  held: ReturnType<typeof houseHeld> | null
   titleRef: RefObject<HTMLHeadingElement | null>
   onTidy: (() => void) | null
   onLeft: () => void
 }) {
   const anyLeft = left.length > 0
+  /* EACH CHECK LEFT ALONE, COUNTED AS IT IS SAID (`leftDay.ts`, the verifier's gaps 1 and 2) */
+  const byKind = useMemo(() => countedByKind(left.map((l) => l.c)), [left])
+  const rules = held ? held.held.length : 0
   return (
     <Frame
       kind="clean"
@@ -2386,34 +2620,49 @@ function CleanStage({
     >
       <ul className="rv-true">
         {CASE_KINDS.map((k) => {
-          const mine = left.filter((l) => l.c.kind === k)
-          const held = mine.length === 0
+          const mine = byKind[k]
+          const holds = mine === undefined
           return (
-            <li className="rv-true__line" key={k} data-left={held ? undefined : ''}>
+            <li className="rv-true__line" key={k} data-left={holds ? undefined : ''}>
               <span className="rv-true__glyph">
                 <Icon
-                  glyph={held ? CheckCircleIcon : ArrowArcLeftIcon}
-                  weight={held ? 'fill' : 'regular'}
+                  glyph={holds ? CheckCircleIcon : ArrowArcLeftIcon}
+                  weight={holds ? 'fill' : 'regular'}
                 />
               </span>
-              <span>
-                {held
-                  ? `${CHECK_WORDS[k].true}${k === 'band' && data.band.tested > 0 ? ` ${counted(data.band.tested, 'trailer', 'trailers')} checked.` : k === 'cost' && data.belowCost.tested > 0 ? ` ${counted(data.belowCost.tested, 'price', 'prices')} checked against their cost.` : ''}`
-                  : leftSentence(k, mine, k === 'band' ? leftMoney.notCharged : 0)}
-              </span>
+              <span>{holds ? holdsSaid(k, data, rules) : leftSentence(k, mine)}</span>
             </li>
           )
         })}
       </ul>
+      {held ? <OtherRules held={held} /> : null}
     </Frame>
   )
 }
 
+/** What a check that finds nothing says, with what it read. */
+function holdsSaid(k: CaseKind, data: ReviewData, rules: number): string {
+  const read =
+    k === 'band' && data.band.tested > 0
+      ? ` ${counted(data.band.tested, 'trailer', 'trailers')} checked.`
+      : k === 'cost' && data.belowCost.tested > 0
+        ? ` ${counted(data.belowCost.tested, 'price', 'prices')} checked against their cost.`
+        : k === 'house' && rules > 0
+          ? ` ${counted(rules, 'rule', 'rules')} measured, below.`
+          : ''
+  return `${CHECK_WORDS[k].true}${read}`
+}
+
 /* ============================================================
-   THE FOOT — what was left alone, each brought back on its own, and what no check could read
+   THE FOOT — what was left alone, each brought back on its own, what was settled since the
+   price file, and what no check could read
    ============================================================ */
 
 function Foot({
+  since,
+  sinceOpen,
+  onSinceOpen,
+  packedAt,
   left,
   leftOpen,
   onLeftOpen,
@@ -2422,6 +2671,10 @@ function Foot({
   tables,
   go,
 }: {
+  since: Since
+  sinceOpen: boolean
+  onSinceOpen: (open: boolean) => void
+  packedAt: string | null
   left: readonly LeftCase[]
   leftOpen: boolean
   onLeftOpen: (open: boolean) => void
@@ -2431,9 +2684,15 @@ function Foot({
   go: (href: string) => void
 }) {
   const lines = unread.reduce((n, l) => n + l.lines, 0)
-  const leftLines = left.reduce((n, l) => n + linesIn(l.c), 0)
+  const leftCases = useMemo(() => left.map((l) => l.c), [left])
+  const leftLines = distinctLines(leftCases)
+  const leftHeadings = leftCases.filter((c) => c.kind === 'twins').length
   const listId = useId()
-  if (left.length === 0 && unread.length === 0) return null
+  const settledId = useId()
+  const sinceShown =
+    packedAt !== null &&
+    (since.state === 'unread' || (since.state === 'read' && since.settled.length > 0))
+  if (left.length === 0 && unread.length === 0 && !sinceShown) return null
   return (
     <footer className="rv-foot">
       {left.length > 0 ? (
@@ -2442,9 +2701,13 @@ function Foot({
             <p className="rv-foot__say">
               <span>
                 {counted(left.length, 'case is', 'cases are')} left alone, on{' '}
-                {counted(leftLines, 'line', 'lines')}. Each comes back on its own if what made it a
-                case changes, and is kept with Northside’s price list, so every desk sees the same
-                queue.
+                {counted(leftLines, 'line', 'lines')}
+                {leftHeadings > 0
+                  ? ` and ${counted(leftHeadings, 'pair of headings', 'pairs of headings')}`
+                  : ''}
+                . Each comes back on its own if what made it a case changes. What is left is kept
+                with Northside’s price list on this computer, and a copy saved on Shelf carries it
+                to another.
               </span>
             </p>
             <Button
@@ -2485,6 +2748,56 @@ function Foot({
               })}
             </ul>
           ) : null}
+        </div>
+      ) : null}
+      {/* WHAT WAS SETTLED SINCE THE PRICE FILE (J11): by a price typed here or on the sheet, a line
+          taken off sale, or a newer price file brought in on Shelf — a stamp says when a line was
+          written, never by which door, so the door is not named */}
+      {sinceShown && since.state === 'read' ? (
+        <div className="rv-foot__block">
+          <div className="rv-foot__part">
+            <p className="rv-foot__say">
+              <span>
+                {counted(since.settled.length, 'case was', 'cases were')} settled on this computer
+                since the Master Price File of {packedOn(packedAt!)}: by what was written here, or
+                by a newer price list brought in on Shelf.
+                {since.arrived.length > 0
+                  ? ` ${counted(since.arrived.length, 'case is', 'cases are')} new since it, each marked New in the queue.`
+                  : ''}
+              </span>
+            </p>
+            <Button
+              intent="quiet"
+              size="sm"
+              aria-expanded={sinceOpen}
+              aria-controls={settledId}
+              onClick={() => onSinceOpen(!sinceOpen)}
+            >
+              {sinceOpen ? 'Hide what was settled' : 'See what was settled'}
+            </Button>
+          </div>
+          {sinceOpen ? (
+            <ul className="rv-left" id={settledId} aria-label="Settled since the Master Price File">
+              {since.settled.map((c) => (
+                <li className="rv-left__case rv-left__case--settled" key={c.key}>
+                  <span className="rv-left__title">{titleOf(c, tables[tableOfCase(c)]?.kind)}</span>
+                  <span className="rv-left__why">
+                    {`Settled · ${CHECK_WORDS[c.kind].wrong.charAt(0).toLowerCase()}${CHECK_WORDS[c.kind].wrong.slice(1)} on the Master Price File${linesIn(c) > 1 ? ` · ${counted(linesIn(c), 'line', 'lines')}` : ''}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+      {sinceShown && since.state === 'unread' ? (
+        <div className="rv-foot__part">
+          <p className="rv-foot__say">
+            <span>
+              What changed since the Master Price File of {packedOn(packedAt!)} cannot be said just
+              now: it could not be read on this computer, so no case is marked New.
+            </span>
+          </p>
         </div>
       ) : null}
       {unread.length > 0 ? (

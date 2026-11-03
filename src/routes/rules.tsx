@@ -61,9 +61,13 @@ export const Route = createFileRoute('/rules')({
   component: RulesRoute,
 })
 
-/** The price list at one line of it: the sheet's own `at` (src/routes/data.$table.tsx). */
-const listHref = (table: string, at: string): string =>
-  `/data/${encodeURIComponent(table)}?at=${encodeURIComponent(at)}`
+/** The price list at one line of it: the sheet's own `at` (src/routes/data.$table.tsx), with the
+ *  column in conflict pressed into the grid beside the line (the sheet's own `show`), so the value
+ *  a fix is made on stands in sight on the line that writes it (verify 2, data round, J2). */
+const listHref = (table: string, at: string, show?: string): string =>
+  `/data/${encodeURIComponent(table)}?at=${encodeURIComponent(at)}${
+    show ? `&show=${encodeURIComponent(show)}` : ''
+  }`
 
 /** One quote in the build: the configurator's own address (src/routes/quote.$id.tsx). */
 const quoteHref = (id: string): string => `/quote/${encodeURIComponent(id)}`

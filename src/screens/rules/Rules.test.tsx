@@ -43,7 +43,8 @@ function draw(open = '', look = '') {
   const props = {
     go,
     openTheFile,
-    listHref: (t: string, l: string) => `/data/${t}?at=${l}`,
+    listHref: (t: string, l: string, show?: string) =>
+      `/data/${t}?at=${l}${show ? `&show=${show}` : ''}`,
     quoteHref: (id: string) => `/quote/${id}`,
   }
   const view = render(<Rules at={{ open, look, on: '' }} follow={() => {}} {...props} />)
@@ -182,14 +183,27 @@ describe('writing one', () => {
       census.getByText('The 32 ePropulsion carry no controls, so it says nothing of them.'),
     ).toBeTruthy()
     /* the offers it takes, by name */
-    expect(within(screen.getByTestId('taken')).getByText('Highfield Classic 340')).toBeTruthy()
+    const taken = within(screen.getByTestId('taken'))
+    expect(taken.getByText('Highfield Classic 340')).toBeTruthy()
+    /* every line adds up to the heading: 9 offers on each of five Classics is the 45 */
+    expect(taken.getByText('The 45 offers taken away, by name')).toBeTruthy()
+    expect(
+      taken.getAllByText('Yamaha F25SWTC, 1 of the 3 made for it, on each of its 9 colours'),
+    ).toHaveLength(1)
+    expect(
+      Array.from(screen.getByTestId('taken').querySelectorAll('[data-offers]')).reduce(
+        (n, li) => n + Number(li.getAttribute('data-offers')),
+        0,
+      ),
+    ).toBe(45)
     /* one line of marks a maker, every model the picker counts — beside the figures, in the
        clause, since the count was parted into its figures, its marks and what they name */
     const clause = within(screen.getByTestId('open-rule'))
     expect(clause.getAllByTestId('field-maker')).toHaveLength(7)
     expect(clause.getByText('29 of 67')).toBeTruthy()
     expect(screen.getByTestId('rule-cost').textContent).toBe(
-      'The Classic 340, 360, 380, 360 LS and 380 LS lose the Yamaha F25SWTC.',
+      /* in the order the list beside it reads (verify 2, data round) */
+      'The Classic 340, 360, 360 LS, 380 and 380 LS lose the Yamaha F25SWTC.',
     )
     expect(
       clause.getByText('From the next pick. No draft is standing today, so none waits on it.'),

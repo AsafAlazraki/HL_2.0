@@ -1148,3 +1148,150 @@
     justify-self: start;
   }
 }
+
+/* ============================================================
+   THE VERIFIER'S ROUND 1 (2026-11-04), closed in this stylesheet
+   ============================================================ */
+
+/* PAST THE INDEX IN ONE KEY (gap 8): said to a keyboard, drawn only while it has the focus */
+.rv-skip {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.rv-skip:focus-visible {
+  inset-inline-start: var(--gutter);
+  inset-block-start: calc(var(--shell-inset) + --spacing(2));
+  z-index: 2;
+  inline-size: auto;
+  block-size: auto;
+  overflow: visible;
+  clip-path: none;
+  padding: --spacing(2) --spacing(3);
+  border-radius: var(--radius-sm);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  outline: --spacing(0.5) solid var(--color-accent);
+  outline-offset: --spacing(0.5);
+}
+
+/* AN EMPTY QUEUE OFFERS NO INDEX OF IT (gap 9): the attribute wins over the door's flex */
+.rv-indexdoor[hidden] {
+  display: none;
+}
+
+/* THE LAST STEP, SAID OVER THE STAGE (gap 6): where the next case lands, covering nothing, and
+   standing until the next step — the toast it replaces stood over the foot and the peeks */
+.rv-done {
+  box-sizing: border-box;
+  max-inline-size: var(--stage);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  padding: --spacing(2) --spacing(2) --spacing(2) --spacing(4);
+  border-radius: var(--radius-md);
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
+}
+.rv-done__glyph {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-leaf-600);
+}
+.rv-done[data-refused] .rv-done__glyph {
+  color: var(--color-ink-reason-paper);
+}
+.rv-done__said {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A REFUSED FIGURE'S REASON STANDS UNDER ITS OWN LINE (gap 3), across the row, never on a press
+   seven lines below */
+.rv-line > .rv-line__why {
+  grid-column: 1 / -1;
+}
+
+/* THE PRICE LIST'S OTHER RULES, EACH WITH ITS MEASURE (gap 10) */
+.rv-rules {
+  display: grid;
+  gap: --spacing(2);
+}
+.rv-rules__title {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.rv-rules__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+.rv-rules__rule {
+  display: flex;
+  gap: --spacing(2.5);
+  align-items: baseline;
+  padding-block: --spacing(2);
+  border-block-start: 1px solid var(--color-rule);
+}
+.rv-rules__glyph {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-leaf-600);
+  translate: 0 --spacing(0.5);
+}
+.rv-rules__rule[data-untested] .rv-rules__glyph {
+  color: var(--color-ink-2);
+}
+.rv-rules__said {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.rv-rules__clause {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+}
+.rv-rules__measure {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  overflow-wrap: anywhere;
+}
+
+/* WHAT WAS SETTLED SINCE THE PRICE FILE: said, with nothing to press */
+.rv-left__case--settled {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'title'
+    'why';
+}
+.rv-left__case--settled > :last-child {
+  grid-area: why;
+}
+/* a date is never broken from its year at the rail's narrow end */
+.rv-money__date {
+  white-space: nowrap;
+}
+.rv-money__each {
+  text-wrap: balance;
+}

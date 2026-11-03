@@ -47,6 +47,18 @@ const modelOf = (said: string): string => models.values.find((v) => v.said === s
 describe('what the tiller rule takes, by name', () => {
   it('names the 45 offers: the F25SWTC on five Highfield Classics', () => {
     const taken = pairTaken(tiller, world)
+    /* EVERY LINE ADDS UP TO THE HEADING (verify 2, data round, J4: five lines of "1 of the 3"
+       under "45"): each Classic is 9 colours, each colour a line that loses the F25SWTC */
+    const each = taken.flatMap((t) => t.models)
+    expect(each.map((x) => [x.offers, x.colours, x.ofColours])).toEqual([
+      [9, 9, 9],
+      [9, 9, 9],
+      [9, 9, 9],
+      [9, 9, 9],
+      [9, 9, 9],
+    ])
+    expect(each.reduce((n, x) => n + x.offers, 0)).toBe(pairReach(tiller, world).taken)
+    expect(pairReach(tiller, world).taken).toBe(45)
     expect(taken.map((t) => t.maker)).toEqual(['Highfield'])
     expect(taken[0]!.offers).toBe(pairReach(tiller, world).taken)
     expect(taken[0]!.models.map((x) => `${x.said}: ${x.what.join(', ')} (of ${x.made})`)).toEqual([
@@ -84,7 +96,8 @@ describe('said before it is added', () => {
   it('the Ultra Centrecab trailer rule would leave the boat offered no trailer: 3 of 3 taken', () => {
     expect(pairReach(ultra, world).taken).toBe(3)
     expect(pairEmpties(ultra, world)).toEqual([
-      { said: 'Stabicraft 2350 Ultra Centrecab', made: 3, with: [] },
+      /* said as the sentence says it, trim and all (verify 2, data round) */
+      { said: 'Stabicraft 2350 Ultra Centrecab (Adventure)', made: 3, with: [] },
     ])
   })
 
@@ -117,13 +130,14 @@ describe('said before it is added', () => {
     expect(pairShapeOf(remoteOnly, world)).not.toBeNull()
     const clashes = pairClashes(tiller, world, [remoteOnly])
     expect(clashes.map((c) => c.ruleId)).toEqual(['other'])
-    /* every boat the two cannot share is named once, never only the first: measured 59 names on
-       the pack (2026-11-04) — the 61 tiller models on sale, two pairs of which a person says by
-       one name */
+    /* every boat the two cannot share is named once, never only the first: the 61 tiller models
+       on sale, each by its own name — two pairs once said alike are told apart by their trim, as
+       the sentence tells them apart (59 names until verify 2, data round, 2026-11-04) */
     const named = clashes[0]!.boats
     expect(named[0]).toBe(clashes[0]!.boat)
     expect(new Set(named).size).toBe(named.length)
-    expect(named.length).toBe(59)
+    expect(named.length).toBe(61)
+    expect(named.length).toBe(pairReach(tiller, world).about)
     expect(named.length).toBeLessThanOrEqual(pairReach(tiller, world).about)
   })
 })

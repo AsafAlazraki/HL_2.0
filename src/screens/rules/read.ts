@@ -824,7 +824,9 @@ export function headsSaid(h: HeadsIn): string[] {
         emptied.length > 0
           ? `On ${more}, ${boatsNamed(fights)}, no ${h.noun} on sale keeps both.`
           : known > 0
-            ? `It cannot stand beside ${whose}: on those and ${more}, ${boatsNamed(fights)}, no ${h.noun} on sale keeps both.`
+            ? /* NEVER "THOSE" (verify 2, data round: "on those and 4 more boats" read as nobody knew
+                 which): the boats said in the sentence before are named by what was said of them */
+              `It cannot stand beside ${whose} either: on ${known === 1 ? 'the boat it leaves with nothing' : `the ${count(known)} boats it leaves with nothing`} and on ${more}, ${boatsNamed(fights)}, no ${h.noun} on sale keeps both.`
             : `It cannot stand beside ${whose}: on ${boatsNamed(fights)}, no ${h.noun} on sale keeps both.`,
       )
     else if (known > 0 && emptied.length === 0)

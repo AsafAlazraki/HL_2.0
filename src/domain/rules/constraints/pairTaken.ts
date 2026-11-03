@@ -35,6 +35,7 @@ import {
   boatSaid,
   isExcept,
   judgePair,
+  modelsNamed,
   pairAbout,
   pairReady,
   pairShapeOf,
@@ -44,6 +45,7 @@ import {
   type PairWorld,
 } from './pairRules'
 import { makerOfTable } from '@/domain/catalogue/makers'
+import { specByKey, specValue } from './pairSpecs'
 
 interface Thing {
   table: EntityDef
@@ -61,6 +63,14 @@ export interface TakenModel {
   what: string[]
   /** how many it was made: what it loses is out of this many */
   made: number
+  /** THE OFFERS IT TAKES FROM THIS MODEL, as the heading's figure counts them: one a colour
+   *  (verify 2, data round, J4: "The 45 offers taken away" over five lines of "1 of the 3" that
+   *  added up to 5 — every colour of a Classic is a line of the price list, each losing it) */
+  offers: number
+  /** the colours of it that lose one, each a line of the boat list */
+  colours: number
+  /** every colour of it the price list makes */
+  ofColours: number
 }
 
 export interface TakenMaker {
@@ -83,6 +93,19 @@ interface ModelOffers {
   lines: { boat: Thing; partner: Thing }[]
 }
 
+/**
+ * A BOAT MODEL SAID THE SAME WAY IN THE SENTENCE, THE HEADS-UP AND THE LISTS (verify 2, data
+ * round: "Stabicraft 2350 Ultra Centrecab (Adventure)" in the sentence and without its trim in the
+ * heads-up beside it). The sentence says a model by `modelsNamed`, which tells two models one name
+ * apart by their trim; so is every list here.
+ */
+function modelSaid(world: PairWorld, boat: Thing): string {
+  const spec = specByKey('boat::model')
+  const v = spec ? specValue(spec, boat.table, boat.row) : null
+  const named = typeof v === 'string' ? modelsNamed(world, 'boat').get(v) : undefined
+  return named?.said ?? boatSaid(boat.table, boat.row)
+}
+
 function modelsOffered(world: PairWorld, kind: 'motor' | 'trailer'): Map<string, ModelOffers> {
   const out = new Map<string, ModelOffers>()
   for (const pair of pairingsOf(world, kind)) {
@@ -91,7 +114,7 @@ function modelsOffered(world: PairWorld, kind: 'motor' | 'trailer'): Map<string,
     if (!m) {
       m = {
         key,
-        said: boatSaid(pair.boat.table, pair.boat.row),
+        said: modelSaid(world, pair.boat),
         maker: makerOfTable(pair.boat.table),
         partners: new Map(),
         boats: [],
@@ -116,10 +139,12 @@ export function pairTaken(s: PairShape, world: PairWorld): TakenMaker[] {
   const makers = new Map<string, TakenMaker>()
   for (const m of modelsOffered(world, s.partnerKind).values()) {
     const what = new Set<string>()
+    const colours = new Set<string>()
     let offers = 0
     for (const line of m.lines) {
       if (judgePair(s, line.boat, line.partner) !== 'breaks') continue
       offers += 1
+      colours.add(line.boat.row.id)
       what.add(thingSaid(line.partner.table, line.partner.row))
     }
     if (offers === 0) continue
@@ -129,6 +154,9 @@ export function pairTaken(s: PairShape, world: PairWorld): TakenMaker[] {
       said: m.said,
       what: [...what].sort(byName),
       made: m.partners.size,
+      offers,
+      colours: colours.size,
+      ofColours: m.boats.length,
     })
     maker.offers += offers
     makers.set(m.maker, maker)
@@ -272,7 +300,7 @@ export function pairClashes(
     const named = new Set<string>()
     for (const boat of boats) {
       if (!judgeBoat(s, boat) || !judgeBoat(other, boat)) continue
-      const said = boatSaid(boat.table, boat.row)
+      const said = modelSaid(world, boat)
       if (named.has(said)) continue
       /* a motor neither rule can read keeps both only by saying nothing: it is no answer */
       const both = partners.some((p) => {
@@ -368,7 +396,7 @@ export function pairOnQuotes(
       id: q.id,
       reference: q.reference,
       state: q.state,
-      boat: boatSaid(table, row),
+      boat: modelSaid(world, boat),
       refuses,
     })
   }

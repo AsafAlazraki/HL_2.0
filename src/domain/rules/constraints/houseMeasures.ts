@@ -51,7 +51,7 @@ import {
   type Marque,
 } from '@/domain/fitment/trailerFitment'
 import { boatSaid, thingSaid, valueText, type PairWorld } from './pairRules'
-import { figureOf, specByKey, specValue, valueSaid } from './pairSpecs'
+import { figureOf, specByKey, specCellOf, specValue, valueSaid } from './pairSpecs'
 import type { WorkbookRuleRef } from './workbookRules'
 
 /* ---------------------------------------------------------- */
@@ -191,6 +191,13 @@ export interface ExceptionSide {
   list: string
   listName: string
   line: string
+  /** THE CELL IN CONFLICT, where one cell writes it: the list's own column, its heading and what
+   *  it writes there ("Shaft Lgth", "XL"), so the door brings that column into sight beside the
+   *  line and says what to look for (verify 2, data round, J2). Absent for a kit, whose line
+   *  itself is the reading. */
+  field?: string
+  header?: string
+  written?: string
 }
 
 export interface HouseMeasure {
@@ -210,13 +217,22 @@ export interface HouseMeasure {
 const byName = (a: string, b: string): number => a.localeCompare(b, 'en-AU', { numeric: true })
 
 /** One of the two lines a clause reads, named by whose it is and what it writes. */
-const sideOf = (t: Thing, noun: string, what: string): ExceptionSide => ({
-  noun,
-  what,
-  list: t.table.id,
-  listName: t.table.name.trim(),
-  line: t.row.id,
-})
+const sideOf = (t: Thing, noun: string, what: string, by?: string | FieldDef): ExceptionSide => {
+  const cell =
+    typeof by === 'string'
+      ? specCellOf(spec(by), t.table, t.row)
+      : by
+        ? { field: by.id, header: by.name.trim(), written: valueText(readCell(t.row, by.id)) }
+        : null
+  return {
+    noun,
+    what,
+    list: t.table.id,
+    listName: t.table.name.trim(),
+    line: t.row.id,
+    ...(cell && cell.written !== '' ? cell : {}),
+  }
+}
 
 function exceptionOf(
   offer: Offer,
@@ -270,7 +286,7 @@ function seriesForBrand(world: PairWorld): HouseMeasure {
     if (own && own.name === named.name) continue
     out.push(
       exceptionOf(offer, said(offer.partner), `its series is built for ${named.name}`, [
-        sideOf(offer.partner, 'trailer', 'series'),
+        sideOf(offer.partner, 'trailer', 'series', 'trailer::series'),
       ]),
     )
   }
@@ -300,7 +316,10 @@ function underTheBoat(world: PairWorld): HouseMeasure {
         offer,
         said(offer.partner),
         `rated ${atm.toLocaleString('en-AU')} kg for a ${load.toLocaleString('en-AU')} kg boat`,
-        [sideOf(offer.boat, 'boat', 'weight'), sideOf(offer.partner, 'trailer', 'ATM')],
+        [
+          sideOf(offer.boat, 'boat', 'weight', loadField),
+          sideOf(offer.partner, 'trailer', 'ATM', atmField),
+        ],
       ),
     )
   }
@@ -340,8 +359,8 @@ function withinMaxHp(world: PairWorld): HouseMeasure {
     if (hp <= max) continue
     out.push(
       exceptionOf(offer, said(offer.partner), `${hpSaid(hp)} on a boat rated to ${hpSaid(max)}`, [
-        sideOf(offer.boat, 'boat', 'horsepower rating'),
-        sideOf(offer.partner, 'motor', 'horsepower'),
+        sideOf(offer.boat, 'boat', 'horsepower rating', 'boat::max-hp'),
+        sideOf(offer.partner, 'motor', 'horsepower', 'motor::hp'),
       ]),
     )
   }
@@ -350,8 +369,9 @@ function withinMaxHp(world: PairWorld): HouseMeasure {
 
 /* A2 — a motor under the boat's lowest rated horsepower is never refused: what sits under it */
 function underMinHp(world: PairWorld): HouseMeasure {
+  const minField = (t: Thing): FieldDef | undefined => fieldNamed(t.table, 'Min HP') ?? undefined
   const minHp = (t: Thing): number | null => {
-    const f = fieldNamed(t.table, 'Min HP')
+    const f = minField(t)
     return f ? figureOf(readCell(t.row, f.id)) : null
   }
   let tested = 0
@@ -365,8 +385,8 @@ function underMinHp(world: PairWorld): HouseMeasure {
     if (hp >= min) continue
     out.push(
       exceptionOf(offer, said(offer.partner), `${hpSaid(hp)} on a boat rated from ${hpSaid(min)}`, [
-        sideOf(offer.boat, 'boat', 'lowest rating'),
-        sideOf(offer.partner, 'motor', 'horsepower'),
+        sideOf(offer.boat, 'boat', 'lowest rating', minField(offer.boat)),
+        sideOf(offer.partner, 'motor', 'horsepower', 'motor::hp'),
       ]),
     )
   }
@@ -395,7 +415,10 @@ function shaftForTransom(world: PairWorld): HouseMeasure {
         offer,
         said(offer.partner),
         `${an(valueSaid(shaft, motor))} shaft on ${an(valueSaid(shaft, boat))} transom`,
-        [sideOf(offer.boat, 'boat', 'transom'), sideOf(offer.partner, 'motor', 'shaft')],
+        [
+          sideOf(offer.boat, 'boat', 'transom', 'boat::shaft'),
+          sideOf(offer.partner, 'motor', 'shaft', 'motor::shaft'),
+        ],
       ),
     )
   }
@@ -417,8 +440,8 @@ function remoteNoTiller(world: PairWorld): HouseMeasure {
     if (!same(controls, TILLER)) continue
     out.push(
       exceptionOf(offer, said(offer.partner), 'a tiller motor on a remote boat', [
-        sideOf(offer.boat, 'boat', 'steering'),
-        sideOf(offer.partner, 'motor', 'controls'),
+        sideOf(offer.boat, 'boat', 'steering', 'boat::steering'),
+        sideOf(offer.partner, 'motor', 'controls', 'motor::controls'),
       ]),
     )
   }
@@ -498,7 +521,7 @@ function mechanicalNoHelmMaster(world: PairWorld): HouseMeasure {
     if (!HELM_MASTER.test(words)) continue
     out.push(
       exceptionOf(offer, said(kit), `a Helm Master kit on a ${controls} motor`, [
-        sideOf(offer.partner, 'motor', 'controls'),
+        sideOf(offer.partner, 'motor', 'controls', 'motor::controls'),
         sideOf(kit, 'kit', ''),
       ]),
     )
@@ -522,7 +545,7 @@ function tillerOneBattery(world: PairWorld): HouseMeasure {
     if (!same(steering, 'Tiller')) continue
     out.push(
       exceptionOf(offer, what, 'two batteries’ kit on a tiller boat', [
-        sideOf(offer.boat, 'boat', 'steering'),
+        sideOf(offer.boat, 'boat', 'steering', 'boat::steering'),
         sideOf(offer.partner, 'kit', ''),
       ]),
     )

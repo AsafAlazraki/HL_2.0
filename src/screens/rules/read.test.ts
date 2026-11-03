@@ -327,7 +327,7 @@ describe('said before it is added', () => {
       clashes: [{ ruleId: 'r1', boats: ['Formosa GRT 425', 'Formosa GRT 455', 'Stacer 429'] }],
     })
     expect(said[1]).toBe(
-      'It cannot stand beside your rule 2.4: on those and one more boat, the Stacer 429, no motor on sale keeps both.',
+      'It cannot stand beside your rule 2.4 either: on the 2 boats it leaves with nothing and on one more boat, the Stacer 429, no motor on sale keeps both.',
     )
     expect(said.join(' ').match(/GRT 425/g)).toHaveLength(1)
   })

@@ -251,10 +251,15 @@ describe('a case of several lines, priced as typed', () => {
     })
     await user.type(first, 'abc')
     await user.click(within(stage()).getByRole('button', { name: /^Price the one typed at Sell/ }))
-    expect(within(stage()).getByText(/^“abc” is not a price\./)).toBeTruthy()
+    const why = within(stage()).getByText(/^“abc” is not a price\./)
     /* the field holding it is marked, and holds the focus (the judge's B6) */
     expect(first.getAttribute('aria-invalid')).toBe('true')
     expect(document.activeElement).toBe(first)
+    /* and its reason stands under that field's own line, said to it (the verifier's gap 3) —
+       never on the press above or below the lines */
+    expect(why.closest('.rv-line')?.contains(first)).toBe(true)
+    expect(first.getAttribute('aria-describedby')).toBe(why.id)
+    expect(why.closest('.rv-acts')).toBeNull()
 
     await user.clear(first)
     await user.type(first, '$2,150')
@@ -421,20 +426,30 @@ describe('after the queue, and the clean day', () => {
     const said = container.textContent ?? ''
     expect(said).not.toContain('each one holds')
     expect(said).not.toContain('Every trailer is registered as the size its weight says')
+    /* the 7's money is never said of all 9, and the 2 charged too much are said (gap 1) */
     expect(said).toContain(
-      '9 trailers are still registered as the wrong size, left alone by your choice: $819 on one sale of each, not charged.',
+      '9 trailers are still registered as the wrong size, left alone by your choice: on one sale of each, 7 charged $819 too little and 2 charged $234 too much.',
+    )
+    /* 4 lines below cost, not the 6 findings: 2 lines are below it at both prices (gap 2) */
+    expect(said).toContain(
+      '4 lines still sell below their cost, 2 of them at both their prices, left alone by your choice.',
     )
     expect(said).toContain('9 boats are still on sale at $0, left alone by your choice.')
     /* the money is said as left alone, never as $0 not charged */
     expect(said).toContain('not charged, left alone')
     expect(said).not.toMatch(/\$0\s*not charged/)
-    expect(screen.getByText(/^39 cases are left alone, on 79 lines\./)).toBeTruthy()
+    /* each line counted once: the 79 findings stand on 76 lines and 4 pairs of headings */
+    expect(
+      screen.getByText(/^39 cases are left alone, on 76 lines and 4 pairs of headings\./),
+    ).toBeTruthy()
   })
 
   it('lists what was left, and brings one case back on its own', async () => {
     const user = userEvent.setup()
     draw(PLUGS, { left: 'open' })
-    await user.click(within(stage()).getByRole('button', { name: 'It’s meant' }))
+    /* the case's own press leaves it as meant, so It's meant is not drawn twice (gap 5) */
+    expect(within(stage()).queryByRole('button', { name: 'It’s meant' })).toBeNull()
+    await user.click(within(stage()).getByRole('button', { name: 'Leave them at $0' }))
     const left = screen.getByRole('list', { name: 'Left alone' })
     expect(within(left).getAllByRole('listitem')).toHaveLength(1)
     expect(left.textContent).toContain('Left as meant')
