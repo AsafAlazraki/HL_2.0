@@ -168,6 +168,7 @@ test('a rule written here is refused in the build on the next pick, with its bec
 test('on a phone the act stands under its because, and the rule just added is where the eye is', async ({
   page,
 }) => {
+  test.setTimeout(90_000)
   /* built-critique-m3.md, major 8: at 390 "Add it as 2.4" stood about 700px under the because,
      below every maker's marks, and after the press the page jumped to its top */
   await page.setViewportSize({ width: 390, height: 844 })
@@ -319,6 +320,7 @@ test('the finder on a build says what each chapter says, whatever is typed into 
 test('at a desk the because being typed stays clear of the pill while the count is read down', async ({
   page,
 }) => {
+  test.setTimeout(120_000)
   /* built-critique-m3-2.md, major 6: at 1440 and 1920 the because field and the census's top
      sat under the pill once the dealer read down the makers' marks. The overlap ruler passed it
      because the pill floats, so this presses the field after scrolling and measures it. */

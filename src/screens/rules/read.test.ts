@@ -11,6 +11,7 @@ import { WORKBOOK_RULES, WORKBOOK_RULES_REFUTED } from '@/domain/rules/constrain
 import { pairReach, pairSaid } from '@/domain/rules/constraints/pairRules'
 import {
   REFUTED_SAID,
+  refutedKey,
   boatsNamed,
   headsSaid,
   houseText,
@@ -362,7 +363,7 @@ describe('looked for and not true', () => {
   it('says each of the six in the page’s own words, with curly apostrophes and no cell', () => {
     expect(six).toHaveLength(6)
     for (const r of six) {
-      const said = REFUTED_SAID[r.candidate]
+      const said = REFUTED_SAID[refutedKey(r, WORKBOOK_RULES_REFUTED)]
       expect(said, r.candidate).toBeTruthy()
       const words = `${said!.said} ${said!.counted}`
       expect(words).not.toMatch(/'|!|\bPLUS\b|Library|Module/)
@@ -372,7 +373,7 @@ describe('looked for and not true', () => {
   it('carries no figure the workbook record does not', () => {
     for (const r of six) {
       const known = new Set(digits(`${r.measured} ${r.verdict}`))
-      for (const n of digits(REFUTED_SAID[r.candidate]!.counted))
+      for (const n of digits(REFUTED_SAID[refutedKey(r, WORKBOOK_RULES_REFUTED)]!.counted))
         expect(known.has(n), `${n} in ${r.candidate}`).toBe(true)
     }
   })

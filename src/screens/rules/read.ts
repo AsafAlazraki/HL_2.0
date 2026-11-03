@@ -858,35 +858,40 @@ export interface RefutedSaid {
 /**
  * THE SIX, IN THIS PAGE'S OWN VOICE (verify 1, data round, item 9: straight apostrophes, "PLUS",
  * "Motor Library!FF WEIGHT", under a lead that claimed the price list as the source). Each is
- * keyed by the workbook record's own candidate, and every figure in it is one the record's
- * measure or verdict carries — `read.test.ts` holds each line to that, so nothing here is a new
- * figure. They were counted on Northside's workbooks, and the lead says so.
+ * keyed by its record's place among the workbook's refutations of its number (`refutedKey`:
+ * "F10.3" is the third F10), and every figure in it is one that record's measure or verdict
+ * carries — `read.test.ts` holds each line to its record, so nothing here is a new figure and a
+ * record moved is a red test. They were counted on Northside's workbooks, and the lead says so.
  */
+export function refutedKey<T extends { ref: string }>(record: T, all: readonly T[]): string {
+  return `${record.ref}.${all.filter((r) => r.ref === record.ref).indexOf(record) + 1}`
+}
+
 export const REFUTED_SAID: Readonly<Record<string, RefutedSaid>> = {
-  "A trailer's ATM must cover the boat's weight PLUS its Max Load.": {
+  'F10.1': {
     said: 'A trailer’s ATM covers the boat’s weight and its maximum load together.',
     counted:
       'True on 73 of 139 of Highfield’s standard trailer offers. The maximum load is carried afloat, not towed.',
   },
-  "A trailer's Between Guards must be at least the boat's beam.": {
+  'F10.2': {
     said: 'A trailer’s width between the guards is at least the boat’s beam.',
     counted: 'True on 0 of 93. The hull sits over the guards, not between them.',
   },
-  "The trailer's Boat Size band must contain the boat's hull length.": {
+  'F10.3': {
     said: 'A trailer’s boat-size range takes in the boat’s hull length.',
     counted: 'True on 83 of 166, and it could be tested on only 166 of 674 trailer offers.',
   },
-  "The trailer's Boat Size must be at least the boat's hull length.": {
+  'F10.4': {
     said: 'A trailer’s boat size is at least the boat’s hull length.',
     counted:
       'True on 8 of 85 counted one way and 127 of 166 another. The size is a class, typically 0.34 m under the hull length.',
   },
-  "Any rule at all on the trailer's Between Guards or Trailer Length dimensions.": {
+  'F11.1': {
     said: 'Any rule on a trailer’s width between the guards, or on its length.',
     counted:
       'The width between the guards is written on 74 of 476 trailer lines, and the length on 75: a rule on them could not see six trailers in seven.',
   },
-  "The motor's weight must not exceed the boat's Max Main Motor Weight.": {
+  'F11.2': {
     said: 'A motor never weighs more than the boat’s maximum motor weight.',
     counted:
       'True wherever it could be tested, 49 of 49, but the boat’s maximum motor weight is written on 10 of 2,005 boat lines and a motor’s weight on 121 of 362 models.',

@@ -112,6 +112,7 @@ import {
   houseText,
   modelsSaid,
   REFUTED_SAID,
+  refutedKey,
   namesSaid,
   newKindOf,
   onSale,
@@ -1173,6 +1174,7 @@ function OpenClause(props: PartProps & { opened: Opened; n: string }) {
 
   /* IT COMES INTO SIGHT WHEN IT OPENS, once per clause: on arrival from the build, at once */
   const self = useRef<HTMLDivElement>(null)
+  const actRef = useRef<HTMLFieldSetElement>(null)
   useEffect(() => {
     const instant = arrival.current
     arrival.current = false
@@ -1597,6 +1599,10 @@ function OpenClause(props: PartProps & { opened: Opened; n: string }) {
                 placeholder="say why, in the words the build will say it"
                 value={draft.because}
                 onValueChange={(because) => set({ because })}
+                /* THE BECAUSE TYPED BRINGS ITS ACT INTO SIGHT, which stands just under it: the side no
+                   longer sticks on a wide sheet, and a dealer who read down the marks and came
+                   back to type had the act a hair under the fold (1440 × 900) */
+                onFocus={() => void intoSight(actRef.current, 'nearest', false)}
               />
             </span>
           </div>
@@ -1613,7 +1619,7 @@ function OpenClause(props: PartProps & { opened: Opened; n: string }) {
           </ul>
         ) : null}
 
-        <fieldset className="hr-open__act" aria-label="What to do with it">
+        <fieldset ref={actRef} className="hr-open__act" aria-label="What to do with it">
           {opened.rule && !changed ? null : (
             <Button
               intent="act"
@@ -2203,7 +2209,7 @@ function Count({
  */
 const REFUTED = WORKBOOK_RULES_REFUTED.filter((r) => r.ref === 'F10' || r.ref === 'F11').flatMap(
   (r) => {
-    const said = REFUTED_SAID[r.candidate]
+    const said = REFUTED_SAID[refutedKey(r, WORKBOOK_RULES_REFUTED)]
     return said ? [said] : []
   },
 )

@@ -746,10 +746,11 @@
   margin-block-start: --spacing(1);
   min-inline-size: 0;
 }
-/* THE BECAUSE BROUGHT INTO SIGHT BRINGS ITS ACT TOO: the act and its line stand under it, so its
-   stop at the foot leaves their room (the side no longer sticks on a wide sheet) */
-.hr-open .hr-because input {
-  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(28));
+/* THE BECAUSE FOCUSED BRINGS ITS ACT INTO SIGHT (`OpenClause`), stopping clear of the pill and
+   the tab bar like everything else in the clause */
+.hr-open__act {
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(2));
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(4));
 }
 
 /* SAID BEFORE IT IS ADDED: a boat left with nothing, a rule it fights, a rule that says it */

@@ -188,6 +188,14 @@
   -webkit-box-decoration-break: clone;
   transition: background-color var(--duration-hover) var(--ease-out);
 }
+/* ON PAPER A CHOSEN WORD IS A WORD: the dotted line says "press to change", and paper cannot be
+   pressed (Rules, data round 2026-11-04: "is off" printed on the house rules with its underline) */
+@media print {
+  .ui-select-trigger[data-look='word'] {
+    min-height: 0;
+    text-decoration-line: none;
+  }
+}
 .ui-select-trigger[data-look='word'] .ui-select-value {
   overflow: visible;
   white-space: normal;
