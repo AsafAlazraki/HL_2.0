@@ -1,8 +1,15 @@
-import { useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from 'react'
+import {
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject,
+} from 'react'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CaretDownIcon,
+  CaretUpIcon,
   FileXlsIcon,
   FlagPennantIcon,
   LinkSimpleIcon,
@@ -50,6 +57,15 @@ import { lineupShown, type Lineup } from './lineup'
    price list's own order, says so, and one press draws the rest in
    place. A heading that says the date it was priced is marked, and its
    date is said to a reader.
+
+   WHAT OPENS FOLDS BACK (the verifier of Data, round 1). The lineup drawn
+   whole is a position, `?headings=all`, so a reload keeps it. The press
+   that draws the rest stays the same button, now "Fold back to the first
+   twelve", and while the long lineup is read it stands at the foot of the
+   window over the bars, so it is always one press away. Drawing the rest
+   takes the keyboard to the first heading it drew, which stands where
+   the button stood, so nothing moves under the reader; folding back takes
+   it to the button, brought into the window.
 
    EVERY FIGURE IS THE REGISTER'S OR THE LINEUP'S, and both are counted
    off the store. A bar's length is its heading's lines over the
@@ -105,6 +121,9 @@ export interface SpreadProps {
   state?: string | null
   /** the maker's own tile is lit above it, and carries its mark */
   fromTile: boolean
+  /** its lineup is drawn whole, a position in the address */
+  whole?: boolean
+  onWhole?: (whole: boolean) => void
 }
 
 export function Spread({
@@ -123,14 +142,36 @@ export function Spread({
   holds: holdsOverride,
   state,
   fromTile,
+  whole = false,
+  onWhole,
 }: SpreadProps) {
   const f: TableFacts = page.facts
   const isPairingList = page.ends !== null
   const customers = f.id === CUSTOMER_TABLE_ID
   const accent = isPairingList ? 'graphite' : accentOf(f.kind)
   const standing = page.pairings[0]?.standing ?? 'owner'
-  const [all, setAll] = useState(false)
-  const shown = lineup ? lineupShown(lineup, all ? Infinity : LINEUP_ROOM) : null
+  const folded = lineup ? lineupShown(lineup, LINEUP_ROOM) : null
+  const shown = lineup ? lineupShown(lineup, whole ? Infinity : LINEUP_ROOM) : null
+  const bars = useRef<HTMLOListElement>(null)
+  const fold = useRef<HTMLElement>(null)
+  /* where the keyboard goes when the lineup opens or folds: asked for by the press, done once
+     the bars it names are drawn */
+  const after = useRef<'opened' | 'folded' | null>(null)
+  useEffect(() => {
+    const asked = after.current
+    if (asked === null) return
+    after.current = null
+    if (asked === 'opened' && folded) {
+      bars.current?.querySelectorAll<HTMLElement>('.dt-bar')[folded.shown.length]?.focus({ preventScroll: true })
+    } else if (asked === 'folded') {
+      fold.current?.focus({ preventScroll: true })
+      fold.current?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [whole, folded])
+  const toggle = (): void => {
+    after.current = whole ? 'folded' : 'opened'
+    onWhole?.(!whole)
+  }
   const branchWord = f.branch ? (f.branches === 1 ? f.branch.one : f.branch.many) : 'headings'
   /* A LIST MADE HERE COUNTS ITS LINES, never "0 rows" (the judge, J8): the engine's noun for a
      line of a list that names none of its own is "row", and a dealer's is "line" */
@@ -257,7 +298,7 @@ export function Spread({
             {barsIn}
             {lineup.branches.length > 1 ? ', in the price list’s order' : ''}
           </p>
-          <ol className="dt-lineup__list">
+          <ol className="dt-lineup__list" id="dt-lineup-list" ref={bars}>
             {shown.shown.map((b) => {
               const on = asAtOf(b.name)
               return (
@@ -288,10 +329,20 @@ export function Spread({
               )
             })}
           </ol>
-          {shown.more > 0 ? (
-            <p className="dt-lineup__rest">
-              <Button intent="quiet" size="sm" icon={CaretDownIcon} onClick={() => setAll(true)}>
-                {`The other ${n(shown.more)}, holding ${n(shown.moreRows)}`}
+          {folded && folded.more > 0 ? (
+            <p className="dt-lineup__fold" data-whole={whole ? '' : undefined}>
+              <Button
+                ref={fold}
+                intent={whole ? 'secondary' : 'quiet'}
+                size="sm"
+                icon={whole ? CaretUpIcon : CaretDownIcon}
+                aria-expanded={whole}
+                aria-controls="dt-lineup-list"
+                onClick={toggle}
+              >
+                {whole
+                  ? `Fold back to the first ${n(folded.shown.length)}`
+                  : `The other ${n(folded.more)}, holding ${n(folded.moreRows)}`}
               </Button>
             </p>
           ) : null}

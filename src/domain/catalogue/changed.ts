@@ -23,6 +23,9 @@ export interface ChangedList {
   tableId: string
   tableName: string
   lines: number
+  /** THE LINE WRITTEN LAST ON IT, by its row id, so a door to the list can open AT the change
+   *  (the verifier of Data, round 1: Labour Rates opened at its top, not at the line changed) */
+  lastRowId: string
 }
 
 export interface ChangedReport {
@@ -58,19 +61,25 @@ export function changedSince(
   for (const table of Object.values(tables)) {
     if (among && !among(table.id)) continue
     let n = 0
+    let own = Number.NEGATIVE_INFINITY
+    let ownRow = ''
     for (const row of rows[table.id] ?? []) {
       const updated = instant(row.updatedAt)
       const created = instant(row.createdAt)
       const at = Math.max(updated, created)
       if (at <= from) continue
       n += 1
+      if (at > own) {
+        own = at
+        ownRow = row.id
+      }
       if (at > last) {
         last = at
         lastIso = updated >= created ? row.updatedAt : row.createdAt
       }
     }
     if (n > 0) {
-      byList.push({ tableId: table.id, tableName: table.name, lines: n })
+      byList.push({ tableId: table.id, tableName: table.name, lines: n, lastRowId: ownRow })
       total += n
     }
   }

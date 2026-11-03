@@ -117,7 +117,7 @@ export function MadeForBox({
   const others = elsewhere.reduce((n, e) => n + e.parts, 0)
   const total = here.length + others
   return (
-    <section className="chd-made" aria-labelledby={id}>
+    <section className="chd-made" data-ground="plate" aria-labelledby={id}>
       <header className="chd-made__head">
         <h2 id={id} className="chd-made__title">{`Made for the ${boat.full}`}</h2>
         <p className="chd-made__count">
@@ -151,9 +151,9 @@ export function MadeForBox({
 }
 
 const SORTS: { value: Sort; label: string }[] = [
-  { value: 'file', label: 'As the price list orders them' },
+  { value: 'file', label: 'Price list order' },
   { value: 'price', label: 'Lowest price first' },
-  { value: 'quoted', label: 'Most often quoted here' },
+  { value: 'quoted', label: 'Most quoted here' },
 ]
 
 const BACK = 'back'
@@ -207,6 +207,7 @@ export function AislePage({
   const [typed, setTyped] = useState(at.find)
   const sentinel = useRef<HTMLDivElement>(null)
   const [stuck, setStuck] = useState(false)
+  const [headsOpen, setHeadsOpen] = useState(false)
   const shown = sections.reduce((n, s) => n + s.parts.length, 0)
 
   /* THE DOCK SAYS WHERE YOU ARE once the aisle's name has gone under it */
@@ -258,7 +259,12 @@ export function AislePage({
         {`Every aisle · ${aisleCount}`}
       </a>
       <header className="chd-head">
-        <span className="chd-head__tile" data-photo={photo ? '' : undefined} aria-hidden="true">
+        <span
+          className="chd-head__tile"
+          data-photo={photo ? '' : undefined}
+          data-ground="plate"
+          aria-hidden="true"
+        >
           {photo ? (
             <Picture
               src={photo.src}
@@ -281,10 +287,37 @@ export function AislePage({
             price list · <b>{pictured.toLocaleString('en-AU')}</b> of{' '}
             {total.toLocaleString('en-AU')} pictured
           </p>
+          {front && front.heads.length > 1 ? (
+            <details
+              className="chd-heads"
+              open={headsOpen}
+              onToggle={(e) => setHeadsOpen(e.currentTarget.open)}
+            >
+              <summary className="chd-heads__summary">
+                {`Its ${front.heads.length.toLocaleString('en-AU')} headings`}
+              </summary>
+              {/* drawn only while open: a shut list keeps no boxes for a ruler or a reader */}
+              {headsOpen ? (
+                <ul className="chd-heads__list">
+                  {front.heads.map((h) => {
+                    const to = hrefOf({ ...at, heading: h.heading, open: '' })
+                    return (
+                      <li key={h.heading}>
+                        <a href={to} onClick={follow(() => go({ heading: h.heading }), to)}>
+                          {h.said}
+                        </a>{' '}
+                        <span className="chd-heads__n">{h.parts.toLocaleString('en-AU')}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : null}
+            </details>
+          ) : null}
           {aisle.id === UNSORTED ? (
             <p className="chd-said">
-              These are filed under a heading no aisle names, or under none. Northside can put each
-              in its aisle, below, and it moves there for every screen.
+              These sit under a heading no aisle names, or under none. Northside can put each in its
+              aisle, below, and it moves there for every screen.
             </p>
           ) : null}
         </div>
@@ -468,7 +501,7 @@ function PlaceHeading({
         id={id}
         value={null}
         placeholder={placed ? 'Move it, or take it back' : 'Choose its aisle'}
-        aria-label={`Where ${said} goes`}
+        aria-label={`${placed ? 'Northside put this heading here' : 'Put this heading in an aisle'}: ${said}`}
         options={[
           ...(placed ? [{ value: BACK, label: 'Back where the price list puts it' }] : []),
           ...AISLES.map((a) => ({ value: a.id, label: a.name })),

@@ -5,7 +5,13 @@
    whose rows are divs laid out as CSS grids, not `<tr>`s.
    ============================================================ */
 /* eslint-disable jsx-a11y/prefer-tag-over-role, jsx-a11y/click-events-have-key-events */
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent, ReactNode, Ref } from 'react'
+import type {
+  CSSProperties,
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent,
+  ReactNode,
+  Ref,
+} from 'react'
 import { ArrowRightIcon, BoatIcon, PlusIcon } from '@phosphor-icons/react'
 import { Button, Icon, KindMark } from '@/ui'
 import { kindWord, type Plate, type RegisterRow } from '@/domain/modules/register'
@@ -41,7 +47,13 @@ export function holdsSay(plate: Plate, models: number | undefined): string {
   return plate.branchSay ? `${said} ${plate.branchSay}` : said
 }
 
-/** A maker's mark from the ledger, or its name set in type: never a stand-in. */
+/** A maker's mark from the ledger, or its name set in type: never a stand-in.
+ *
+ *  EVERY MARK AT ONE WEIGHT (the verifier of Data, round 1: Jeanneau's emblem and Haines
+ *  Signature's script drew at 58 x 32 and 83 x 32 beside wordmarks four times as wide, and could
+ *  not be read). A mark is sized by its own shape, read off the ledger's width and height: the
+ *  narrower it is, the taller it stands, so every mark covers about the same area
+ *  (data.css, `--aspect`). */
 function Mark({
   name,
   id,
@@ -62,8 +74,13 @@ function Mark({
       width={choice.mark.width}
       height={choice.mark.height}
       decoding="async"
-      /* the mark the sheet's masthead carries under the same name, so it travels there */
-      style={flies ? { viewTransitionName: markName(id) } : undefined}
+      style={
+        {
+          '--aspect': choice.mark.width / choice.mark.height,
+          /* the mark the sheet's masthead carries under the same name, so it travels there */
+          ...(flies ? { viewTransitionName: markName(id) } : {}),
+        } as CSSProperties
+      }
     />
   ) : (
     <span className="dt-mark__typed">{name}</span>
@@ -385,9 +402,12 @@ function Row({
 
 export function Matrix({
   matrix,
+  open = '',
   onOpen,
 }: {
   matrix: FitsMatrix
+  /** the list of what fits whose spread is open above, marked where it stands */
+  open?: string
   onOpen: (joinId: string) => void
 }) {
   return (
@@ -439,6 +459,8 @@ export function Matrix({
                         type="button"
                         className="dt-pair"
                         data-retired={c.retired ? '' : undefined}
+                        data-on={c.joinId === open ? '' : undefined}
+                        aria-current={c.joinId === open ? 'true' : undefined}
                         aria-label={`${row.name} with ${c.said}: ${plural(c.lines, 'line', 'lines')}${c.retired ? ', no longer sold' : ''}`}
                         onClick={() => onOpen(c.joinId)}
                       >

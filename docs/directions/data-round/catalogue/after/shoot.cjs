@@ -22,7 +22,7 @@ const STATES = [
   ['09-unsorted', '/catalogue?aisle=unsorted'],
   ['10-suppliers', '/catalogue?view=suppliers'],
   ['11-wrong-aisle', '/catalogue?aisle=nope'],
-  ['12-card-open', '/catalogue?aisle=radios&open=parts%3A1197'],
+  ['12-card-open', '/catalogue?aisle=radios&open=parts%3A537'],
   ['13-without', '/catalogue?aisle=sounders&show=without&supplier=GAR'],
   ['14-workshop', '/catalogue?aisle=workshop'],
 ]

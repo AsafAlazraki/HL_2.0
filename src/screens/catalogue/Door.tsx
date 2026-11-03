@@ -98,7 +98,7 @@ export function Door({
     <div className="chd-door" data-testid="catalogue-door">
       <header className="chd-door__head">
         {mark ? (
-          <span className="chd-mark">
+          <span className="chd-mark" data-ground="plate">
             <img src={mark.src} width={mark.width} height={mark.height} alt={business} />
           </span>
         ) : null}
@@ -169,6 +169,7 @@ export function Door({
               <li
                 key={count.aisle.id}
                 className="chd-aisle"
+                data-ground="plate"
                 data-unsorted={count.aisle.id === 'unsorted' ? '' : undefined}
               >
                 <a
@@ -240,9 +241,10 @@ export function Door({
       )}
 
       <div className="chd-door__keep">
-        <ByCode parts={shelf} nameOf={nameOf} />
+        <ByCode shelf={shelf} nameOf={nameOf} />
         <a
           className="chd-keep"
+          data-ground="plate"
           href={hrefOf({ view: 'suppliers' })}
           onClick={follow(goHref, hrefOf({ view: 'suppliers' }))}
         >

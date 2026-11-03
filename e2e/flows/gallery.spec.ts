@@ -155,20 +155,24 @@ test('the catalogue: a part’s card opens its own gallery, where a picture is a
   page,
   viewport,
 }, info) => {
+  /* THE CHANDLERY REDRAWN (the data round, 2026-11-03): /catalogue is the aisles' front, and a
+     pictured part is a card whose expand opens its own gallery */
   await page.goto('/catalogue')
-  await expect(page.getByTestId('chandlery')).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('catalogue-door')).toBeVisible({ timeout: 30_000 })
   /* a part with its own picture, found by its name as a dealer finds one */
-  await page.getByLabel('Find a part by its name').fill('transducer extension')
+  await page
+    .getByRole('searchbox', { name: 'Find a part in the chandlery' })
+    .fill('transducer extension')
   const card = page
-    .locator('.cat-part')
-    .filter({ has: page.getByRole('button', { name: 'See its picture larger' }) })
+    .locator('.chd-card')
+    .filter({ has: page.getByRole('button', { name: /^See the .+ larger$/ }) })
     .first()
   await card.scrollIntoViewIfNeeded()
-  const src = (await card.locator('.cat-part__frame img').getAttribute('src')) ?? ''
+  const src = (await card.locator('.chd-card__frame img').getAttribute('src')) ?? ''
   expect(src).toMatch(/\/seed-images\/[^/]+\.webp$/)
   const own = path.join(ROOT, 'public', 'seed-images', src.split('/').pop()!)
 
-  await card.getByRole('button', { name: 'See its picture larger' }).click()
+  await card.getByRole('button', { name: /^See the .+ larger$/ }).click()
   /* the picture large, by its own name: in a hand the line's details are a dialog too */
   const large = page.getByRole('dialog').and(page.locator('.ui-lightbox'))
   await expect(large).toBeVisible()
@@ -188,11 +192,11 @@ test('the catalogue: a part’s card opens its own gallery, where a picture is a
 
   /* THE CARD COUNTS ITS PICTURES, and its press says it opens them all */
   const many = page
-    .locator('.cat-part')
-    .filter({ has: page.locator('.cat-part__many') })
+    .locator('.chd-card')
+    .filter({ has: page.locator('.chd-card__many') })
     .first()
-  await expect(many.locator('.cat-part__many')).toHaveText('2')
-  await expect(many.getByRole('button', { name: 'See its 2 pictures larger' })).toBeVisible()
+  await expect(many.locator('.chd-card__many')).toHaveText('2')
+  await expect(many.getByRole('button', { name: /^See the .+’s 2 pictures larger$/ })).toBeVisible()
   await shot(page, 'catalogue-card', info.project.name, many)
 })
 

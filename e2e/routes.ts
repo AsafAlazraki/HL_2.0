@@ -559,6 +559,62 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
+    /* THE CHANDLERY'S FRONT (the data round, 2026-11-03, direction A "the aisle as a page"):
+       Northside's mark, find, the boat, and every aisle as a plate with its largest headings.
+       The judge of the chandlery found the rulers had never opened /catalogue, which is how
+       picture-door text cut at every size shipped. `foundation`: a page of plates, owed
+       contrast, cut, overlap and the ramp at six sizes and no row count. `ready` is the front
+       itself, drawn only once the price list has been read. */
+    path: '/catalogue',
+    name: 'catalogue',
+    register: 'foundation',
+    ready: '[data-testid="catalogue"][data-read] [data-testid="catalogue-door"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* AN AISLE WITH ITS PHOTOGRAPHS: Radios & beacons, 12 of its 47 parts pictured, the pictured
+       headings first as cards, the rest as ruled lines with both prices. Not Sounders (161
+       cards and 85 lines): the contrast ruler shoots every run of text on its pixels, and on
+       Sounders that walk outlasts a ruler's 30 seconds, so the same composition is measured where
+       it can finish; Sounders is shot at the six sizes in docs/directions/data-round/catalogue/after/. */
+    path: '/catalogue?aisle=radios',
+    name: 'catalogue-radios',
+    register: 'foundation',
+    ready: '[data-testid="catalogue"][data-read] [data-testid="catalogue-aisle"] .chd-cards',
+    arrive: 'through-the-door',
+  },
+  {
+    /* AN AISLE WITH NONE, FOR A BOAT, A LINE OPENED: Anchoring & mooring for the Stacer 529
+       Assault Pro (Tournament), what the price list makes for it first, and Sand Anchor Kit · 4lb
+       opened in place with its ways on and Northside's own picture control. */
+    path: '/catalogue?aisle=anchoring&boat=boat_stacer%3A30&open=parts%3A38',
+    name: 'catalogue-line',
+    register: 'foundation',
+    ready:
+      '[data-testid="catalogue"][data-read] [data-testid="catalogue-aisle"] .chd-line[data-open]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* FIND OVER THE WHOLE CHANDLERY: "sarca", answered by the price list's heading SARCA ANCHORS
+       and by the name, the lines grouped by aisle under one sentence counting them. Not "lowrance"
+       (144 answers, 93 of them cards): the focus ruler Tabs every control, and that walk outlasts
+       a ruler's 30 seconds; catalogue.spec counts the 144. */
+    path: '/catalogue?find=sarca',
+    name: 'catalogue-find',
+    register: 'foundation',
+    ready: '[data-testid="catalogue"][data-read] .chd-found',
+    arrive: 'through-the-door',
+  },
+  {
+    /* THE SUPPLIERS IN NORTHSIDE'S WORDS: what the headings propose, the codes that differ only
+       in their capitals, and every supplier code with its name or the field to give it. */
+    path: '/catalogue?view=suppliers',
+    name: 'catalogue-suppliers',
+    register: 'foundation',
+    ready: '[data-testid="catalogue"][data-read] [data-testid="catalogue-suppliers"]',
+    arrive: 'through-the-door',
+  },
+  {
     /* REVIEW (Milestone 3, rebuilt 2026-10-28 as board E, "The case queue"): what is wrong in
        Northside's own price list, one case at a time — a rail counting the 69 lines still wrong,
        one stage with the first case (a trailer registered as the wrong size, its cells as they

@@ -127,6 +127,21 @@
   overflow-wrap: anywhere;
 }
 
+/* A WHITE PLATE READS THE DAY'S INKS IN EITHER THEME: every surface this screen draws white wears
+   `data-ground='plate'` (tokens.css, THE PLATE), which moves the inks' values, and sets its own
+   colour from them here, so what it holds is not left with the room's ink */
+[data-ground='plate']:is(
+  .chd-mark,
+  .chd-aisle,
+  .chd-bycode,
+  .chd-keep,
+  .chd-made,
+  .chd-card,
+  .chd-line
+) {
+  color: var(--color-ink);
+}
+
 /* ---- the way back, on an aisle and the suppliers ------------------------------ */
 .chd-back {
   display: inline-flex;
@@ -299,6 +314,7 @@
 }
 .chd-aisle__heads a {
   flex: 1 1 auto;
+  min-block-size: --spacing(6);
   min-inline-size: 0;
   padding-block: --spacing(1);
   font-size: var(--text-sm);
@@ -426,8 +442,9 @@
    AN AISLE
    ================================================================================ */
 .chd-page {
+  --page-gap: --spacing(4);
   display: grid;
-  gap: --spacing(4);
+  gap: var(--page-gap);
 }
 .chd-head {
   display: grid;
@@ -473,11 +490,62 @@
   text-wrap: pretty;
 }
 
+/* ITS HEADINGS, folded under the counts: each a way straight to its section */
+.chd-heads {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.chd-heads__summary {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: --spacing(6);
+  font-weight: 600;
+  color: var(--color-ink-file);
+  cursor: pointer;
+}
+.chd-heads__summary:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+.chd-heads__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(4);
+  margin: --spacing(2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.chd-heads__list li {
+  min-inline-size: 0;
+}
+.chd-heads__list a {
+  display: inline-block;
+  min-block-size: --spacing(6);
+  padding-block: --spacing(0.5);
+  color: var(--color-ink-file);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.chd-heads__list a:hover {
+  text-decoration: underline;
+}
+.chd-heads__list a:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+.chd-heads__n {
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
 /* THE DOCK: under the bar while the parts scroll. Once the aisle's name has gone under it, its
    first line says where this is: aisle · supplier · boat */
+/* the mark the dock is watched by: one pixel that takes no gap of its own */
 .chd-sentinel {
   block-size: 1px;
-  margin-block-end: calc(-1 * --spacing(4));
+  margin-block: calc(-1 * var(--page-gap)) calc(-1 * var(--page-gap));
 }
 .chd-dock {
   position: sticky;
@@ -536,7 +604,7 @@
 .chd-tools__row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: --spacing(2) --spacing(3);
 }
 .chd-suppliers {
@@ -686,11 +754,12 @@
   gap: --spacing(2);
   padding: --spacing(4) --spacing(5);
   border-radius: var(--radius-plate);
-  background: var(--color-chosen-wash);
+  background: var(--color-plate-tint);
   box-shadow: inset 0 0 0 1px var(--color-blue-300);
   container-type: inline-size;
 }
 .chd-made__head {
+  color: var(--color-ink);
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -732,7 +801,7 @@
   align-items: baseline;
   gap: --spacing(1) --spacing(3);
   padding-block-end: --spacing(2);
-  border-block-end: 2px solid var(--color-ink);
+  border-block-end: --spacing(0.5) solid var(--color-ink);
 }
 .chd-section__title {
   margin: 0;
@@ -781,8 +850,8 @@
   list-style: none;
 }
 .chd-card {
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   min-inline-size: 0;
   border-radius: var(--radius-plate);
   background: var(--color-plate);
@@ -794,8 +863,33 @@
 .chd-card__pic {
   position: relative;
   aspect-ratio: 4 / 3;
-  padding: --spacing(3);
   background: var(--color-white);
+}
+/* MEASURED 2026-11-03 (after/press.cjs, 1280 × 800, a production build): a card laid out as a grid
+   (its picture's 4 : 3 frame over a body taking the rest) beside the ledger's container queries
+   took 2.2 to 5.9 s to draw Radios (12 cards) on the press and 30 s for Sounders (161); the same
+   card as a column of flex draws Radios in 0.19 to 0.24 s and Sounders in 0.38 to 0.71 s. So a
+   closed card is a column, and only the one card opened is a grid. The picture is laid out of
+   the flow in its frame, so its own size never enters a sum. */
+.chd-card__frame {
+  position: absolute;
+  inset: --spacing(3);
+}
+.chd-card__many {
+  position: absolute;
+  inset-block-start: --spacing(2);
+  inset-inline-start: --spacing(2);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
+  color: var(--color-ink-file);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .chd-card__expand {
   position: absolute;
@@ -803,6 +897,7 @@
   inset-inline-end: --spacing(2);
 }
 .chd-card__body {
+  flex: 1 1 auto;
   display: grid;
   align-content: start;
   gap: --spacing(2);
@@ -844,6 +939,7 @@
 /* AN OPENED CARD takes the whole row: the photograph at its left, what it says at its right */
 .chd-card[data-open] {
   grid-column: 1 / -1;
+  display: grid;
   grid-template-columns: minmax(0, --spacing(80)) minmax(0, 1fr);
   grid-template-rows: auto;
 }
@@ -914,12 +1010,12 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .chd-line__head:hover {
-    background: var(--color-plate);
+    background: var(--color-wash);
   }
 }
 .chd-line[data-open] {
   background: var(--color-plate);
-  box-shadow: inset 3px 0 0 var(--color-accent);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
 }
 .chd-line__name {
   grid-area: name;
@@ -1013,9 +1109,9 @@
 @container (min-width: 960px) {
   .chd-cols {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) --spacing(40) --spacing(40) --spacing(28) --spacing(
-        28
-      ) --spacing(9);
+    grid-template-columns:
+      minmax(0, 1fr) --spacing(40) --spacing(40) --spacing(28) --spacing(28)
+      --spacing(9);
     gap: --spacing(4);
   }
   .chd-cols__fig {
@@ -1098,6 +1194,22 @@
 .chd-own {
   inline-size: min(100%, --spacing(80));
 }
+/* with room, Northside's own picture stands at the opened part's right, beside what it says */
+@container (min-width: 760px) {
+  .chd-details:has(> .chd-own) {
+    grid-template-columns: minmax(0, 1fr) --spacing(64);
+    column-gap: --spacing(6);
+    align-items: start;
+  }
+  .chd-details > :not(.chd-own) {
+    grid-column: 1;
+  }
+  .chd-details > .chd-own {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+    inline-size: 100%;
+  }
+}
 
 .chd-foot {
   margin: 0;
@@ -1137,7 +1249,7 @@
 .chd-sup__h2 {
   margin: 0;
   padding-block-end: --spacing(2);
-  border-block-end: 2px solid var(--color-ink);
+  border-block-end: --spacing(0.5) solid var(--color-ink);
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 700;
@@ -1192,7 +1304,16 @@
    THE SIZES THE GRID AND THE CONTAINERS DO NOT SETTLE ON THEIR OWN
    ================================================================================ */
 
-/* below a tablet the suppliers fold to one menu */
+/* below a tablet, and on a phone turned on its side, the suppliers fold to one menu */
+@media (max-width: 833.98px), (max-height: 520px) {
+  .chd-suppliers {
+    display: none;
+  }
+  .chd-suppliers-folded {
+    display: block;
+  }
+}
+
 @media (max-width: 833.98px) {
   .chd-head {
     grid-template-columns: --spacing(20) minmax(0, 1fr);
@@ -1201,12 +1322,6 @@
   }
   .chd-head__boat {
     max-inline-size: none;
-  }
-  .chd-suppliers {
-    display: none;
-  }
-  .chd-suppliers-folded {
-    display: block;
   }
 }
 
@@ -1221,6 +1336,7 @@
   }
   .chd-head {
     grid-template-columns: --spacing(14) minmax(0, 1fr);
+    align-items: start;
     gap: --spacing(3);
   }
   .chd-head__tile {
@@ -1250,8 +1366,9 @@
   .chd-boat {
     margin-inline-start: 0;
   }
+  .chd-suppliers-folded,
   .chd-sort {
-    flex: 1 1 100%;
+    flex: 1 1 0;
     margin-inline-start: 0;
   }
   .chd-made {
@@ -1261,9 +1378,18 @@
 
 /* a phone turned on its side: little height, so the head is one line and the dock one row */
 @media (max-height: 520px) {
+  .chd-page {
+    --page-gap: --spacing(2);
+  }
   .chd-head {
-    grid-template-columns: --spacing(12) minmax(0, 1fr);
+    grid-template-columns: --spacing(12) minmax(0, 1fr) auto;
+    grid-template-areas: 'tile words boat';
+    align-items: start;
     gap: --spacing(3);
+  }
+  .chd-head__count {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
   }
   .chd-head__tile {
     inline-size: --spacing(12);

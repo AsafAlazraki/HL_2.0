@@ -32,8 +32,9 @@ describe('what is new since the price list landed', () => {
     )
     expect(r.lines).toBe(3)
     expect(r.byList).toEqual([
-      { tableId: 'b', tableName: 'B', lines: 2 },
-      { tableId: 'a', tableName: 'A', lines: 1 },
+      /* each list names the line written on it last, so its door opens at the change */
+      { tableId: 'b', tableName: 'B', lines: 2, lastRowId: '4' },
+      { tableId: 'a', tableName: 'A', lines: 1, lastRowId: '2' },
     ])
     expect(r.last).toBe('2026-10-03T09:00:00.000Z')
   })

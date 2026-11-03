@@ -75,7 +75,7 @@ export function BoatChoice({
       align="end"
       title="The customer’s boat"
       trigger={
-        <button type="button" className="chd-boat">
+        <button type="button" className="chd-boat" data-ground="plate">
           <span className="chd-boat__glyph" aria-hidden="true">
             <Icon glyph={BoatIcon} size="sm" />
           </span>

@@ -36,6 +36,7 @@ import { TABLE_KINDS, type TableKind } from '@/domain/model'
 import { TABLE_NEEDS_NAME, createTable, tableTaken } from '@/domain/catalogue/commands'
 import { pageOf, type TablePage } from '@/domain/modules/register'
 import { fileIndexOf, findInFile, type FileFound } from '@/domain/catalogue/fileFind'
+import { headingDoorOf } from '@/domain/catalogue/headingDoor'
 import { makerOfTable } from '@/domain/catalogue/makers'
 import { useCatalogue } from '@/app/useStores'
 import { fitmentMakerOf, placeOf, pricesOf } from '@/app/ways'
@@ -43,6 +44,7 @@ import { placesOf } from '@/domain/modules/places'
 import { addressOf, placeOfList } from '@/domain/modules/livery'
 import { catalogue } from '@/state/catalogue'
 import { readLadder } from '@/screens/levels/read'
+import { useFinder } from '@/screens/shell/scope'
 import { useFileFacts, type FileFacts } from './facts'
 import { packedOn } from './file'
 import { lineupOf } from './lineup'
@@ -110,6 +112,16 @@ export const LIST_NEEDS_NAME = 'A list needs a name.'
 export interface DataPosition {
   at?: string
   find?: string
+  /** the open spread draws every heading of its lineup, not the first twelve */
+  headings?: 'all'
+}
+
+/** WHERE A LIST OPENS ON THE SHEET: at a chapter (`in`), at one row (`at`), or narrowed to a
+ *  word (`find`). */
+export interface SheetAt {
+  in?: string
+  at?: string
+  find?: string
 }
 
 export interface DataProps {
@@ -120,7 +132,7 @@ export interface DataProps {
   /** the door to the Master Price File, for a browser with no copy of it */
   openTheFile?: () => void
   /** ONE LIST, ON THE SHEET — at one of its headings (`in`), or narrowed to a word (`find`) */
-  openTable?: (tableId: string, at?: { in?: string; find?: string }) => void
+  openTable?: (tableId: string, at?: SheetAt) => void
   openCustomers?: () => void
   /** an address this screen links to, followed by the router on a plain press */
   go?: (href: string) => void
@@ -128,6 +140,8 @@ export interface DataProps {
   at?: string
   /** what was typed into the find */
   find?: string
+  /** the open spread's lineup drawn whole */
+  headings?: 'all'
   onPosition?: (position: DataPosition) => void
 }
 
@@ -160,6 +174,7 @@ export function Data({
   go,
   at: arrivedAt = '',
   find: askedFor = '',
+  headings: arrivedHeadings,
   onPosition,
 }: DataProps) {
   const status = useCatalogue((s) => s.status)
@@ -210,6 +225,9 @@ export function Data({
   const [making, setMaking] = useState(false)
   const [arrival, setArrival] = useState<Arrival>(null)
   const [tabAt, setTabAt] = useState('')
+  /* THE LIST WHOSE LINEUP IS DRAWN WHOLE, by id: a position, in the address (`?headings=all`),
+     so a reload keeps it and opening another list starts it at its first twelve */
+  const [wholeFor, setWholeFor] = useState(arrivedHeadings === 'all' ? arrivedAt : '')
 
   const list = useRef<HTMLDivElement>(null)
   const pageRef = useRef<HTMLElement>(null)
@@ -271,8 +289,12 @@ export function Data({
   }, [page])
 
   useEffect(() => {
-    onPosition?.({ at: page ? wanted : undefined, find: query === '' ? undefined : query })
-  }, [onPosition, page, wanted, query])
+    onPosition?.({
+      at: page ? wanted : undefined,
+      find: query === '' ? undefined : query,
+      headings: page && wholeFor === wanted ? 'all' : undefined,
+    })
+  }, [onPosition, page, wanted, query, wholeFor])
 
   useEffect(() => {
     if (cursor === '' || !onRows || page) return
@@ -318,6 +340,20 @@ export function Data({
       const top = head.getBoundingClientRect().top
       const margin = Number.parseFloat(getComputedStyle(head).scrollMarginBlockStart) || 0
       if (top >= margin - 1 && top < window.innerHeight * 0.6) return
+      /* WITH THE TILES ABOVE IT WHERE THEY FIT (the verifier of Data, round 1: a spread brought
+         to the bar left the tiles' feet showing beside it). Where the section's head, the tiles
+         and the spread's own head all stand in the window's top three fifths, the section is
+         brought to the top and the lit tile stays in view over its spread; in a short window
+         the spread itself comes to the bar. */
+      const holds = head.closest<HTMLElement>('.dt-holds')
+      if (holds) {
+        const from = holds.getBoundingClientRect().top
+        const air = Number.parseFloat(getComputedStyle(holds).scrollMarginBlockStart) || 0
+        if (top - from + air < window.innerHeight * 0.6) {
+          holds.scrollIntoView({ block: 'start' })
+          return
+        }
+      }
       head.scrollIntoView({ block: 'start' })
     }
     const frame = requestAnimationFrame(() => requestAnimationFrame(bring))
@@ -336,10 +372,21 @@ export function Data({
     [here, shown],
   )
 
+  /* A HEADING OPENS THE SHEET AT IT (the verifier of Data, round 1: "Oldest first" opened
+     Rigging Kits at its top). A list read in chapters stands at the chapter by its name; any
+     other list at the first line filed under the heading (`headingDoorOf`). A heading the list
+     no longer carries narrows the sheet to its words, so the press still lands on them. */
   const openIt = useCallback(
-    (tableId: string, at?: { in?: string; find?: string }) => {
+    (tableId: string, at?: SheetAt) => {
       if (!openTable) {
         setRefused(NO_WAY_TO_THE_SHEET)
+        return
+      }
+      if (at?.in) {
+        const store = catalogue.getState()
+        const table = store.tables[tableId]
+        const door = table ? headingDoorOf(table, store.tables, store.rows[tableId] ?? [], at.in) : null
+        openTable(tableId, door ?? { find: at.in })
         return
       }
       openTable(tableId, at)
@@ -500,8 +547,12 @@ export function Data({
               <p className="dt-stamp">Looking for the price list…</p>
             ) : open ? (
               <>
-                <p className="dt-stamp">
+                {/* EACH FACT IS A CLAUSE THAT WRAPS WHOLE (the verifier of Data, round 1: the line
+                    broke after a dot at 390, and mid-phrase at 1280 once a line had changed);
+                    the dot between two clauses is drawn only where both share a line */}
+                <p className="dt-stamp dt-clauses">
                   <span
+                    className="dt-clause"
                     data-testid="data-file"
                     title={
                       provenance.known
@@ -517,24 +568,22 @@ export function Data({
                       'The Master Price File'
                     )}
                   </span>
-                  {' · '}
-                  <span className="dt-nw" data-testid="data-counts">
+                  <span className="dt-clause dt-nw" data-testid="data-counts">
                     <b>{n(register.head.tables)}</b> lists · <b>{n(register.head.rows)}</b> lines
                   </span>
                 </p>
-                <p className="dt-dates" data-testid="data-dates">
+                <p className="dt-dates dt-clauses" data-testid="data-dates">
                   {dated.oldest && dated.newest ? (
-                    <>
+                    <span className="dt-clause">
                       Prices dated in their own headings from <b>{nbsp(packedOn(dated.oldest, 'long'))}</b> to{' '}
                       <b>{nbsp(packedOn(dated.newest, 'long'))}</b>
-                      {' · '}
-                    </>
+                    </span>
                   ) : null}
                   {facts.changed ? (
-                    <>
+                    <span className="dt-clause">
                       Last change on this computer:{' '}
                       <b>{lastChange ? nbsp(packedOn(lastChange, 'long')) : nbsp('none yet')}</b>
-                    </>
+                    </span>
                   ) : null}
                 </p>
               </>
@@ -574,7 +623,7 @@ export function Data({
             <div className="dt-side">
               <Fresh
                 facts={facts}
-                openSheet={(id) => openIt(id)}
+                openSheet={(id, row) => openIt(id, row ? { at: row } : undefined)}
                 openSpread={(id) => openPage(id, true)}
                 go={go}
               />
@@ -613,6 +662,8 @@ export function Data({
                 {saidLine}
                 {page ? (
                   <Spread
+                    whole={wholeFor === page.facts.id}
+                    onWhole={(whole) => setWholeFor(whole ? page.facts.id : '')}
                     key={page.facts.id}
                     hold={pageRef}
                     page={page}
@@ -634,15 +685,18 @@ export function Data({
                     state={spreadState(page.facts.id)}
                     fromTile={plateAt >= 0 && plates.some((p) => p.id === page.facts.id)}
                   />
-                ) : (
-                  <div className="dt-ledgers" data-one={answering ? '' : undefined}>
+                ) : null}
+                {/* THE LEDGERS STAY UNDER AN OPEN SPREAD (the verifier of Data, round 1: with
+                    Highfield open at 1920 a third of the window was empty floor). The spread
+                    opens over them, and the row it came from is marked */}
+                <div className="dt-ledgers" data-one={answering ? '' : undefined}>
                     {shown.length > 0 ? (
                       <Lists
                         rows={shown}
                         count={facts.sellFrom.length}
                         facts={facts}
                         cursor={cursor}
-                        open=""
+                        open={page ? page.facts.id : ''}
                         listRef={list}
                         holdRow={(id, element) => {
                           if (element) rowsRef.current.set(id, element)
@@ -664,9 +718,14 @@ export function Data({
                         }
                       />
                     ) : null}
-                    {answering ? null : <Matrix matrix={facts.matrix} onOpen={(id) => openPage(id, true)} />}
-                  </div>
-                )}
+                  {answering ? null : (
+                    <Matrix
+                      matrix={facts.matrix}
+                      open={page ? page.facts.id : ''}
+                      onOpen={(id) => openPage(id, true)}
+                    />
+                  )}
+                </div>
               </div>
             </section>
           ) : null
@@ -683,6 +742,9 @@ export function Data({
 /* ---------------------------------------------------------- */
 /* The answer to a find, drawn where the find is               */
 /* ---------------------------------------------------------- */
+
+/** Said where the press happened, on a Data drawn with no bar above it. */
+export const NO_BAR_FIND = 'Nothing was opened: the bar’s Find stands only where the bar does.'
 
 /** HOW MANY SECTIONS AN ANSWER DRAWS before one press draws the rest. */
 const SECTIONS_ROOM = 8
@@ -703,6 +765,7 @@ function Answer({
   go?: (href: string) => void
 }) {
   const [all, setAll] = useState(false)
+  const finder = useFinder()
   const facts2 = facts.register.facts
   const byName = found.lists.filter((id) => facts2[id] !== undefined)
   const anything = byName.length + found.sections.length + found.lines.length > 0
@@ -809,7 +872,7 @@ function Answer({
           <span className="dt-answer__glyph" aria-hidden="true">
             <Icon glyph={InfoIcon} />
           </span>
-          <span>
+          <span className="dt-answer__say">
             With a customer at the desk, the bar’s Find puts a line straight on a quote, and the{' '}
             <a
               href="/catalogue"
@@ -826,6 +889,17 @@ function Answer({
               Catalogue
             </a>{' '}
             holds every part in its aisle.
+          </span>
+          <span className="dt-answer__bar">
+            <Button
+              intent="secondary"
+              size="sm"
+              icon={MagnifyingGlassIcon}
+              onClick={finder ? () => finder(query) : undefined}
+              refusedBecause={finder ? undefined : NO_BAR_FIND}
+            >
+              {`Find “${query}” for a quote`}
+            </Button>
           </span>
         </p>
       ) : null}
@@ -937,7 +1011,6 @@ function MakeDialog({
                 submit()
               }
             }}
-            placeholder="Boat show leads"
           />
         </Field>
         <Field label="What is on it?">

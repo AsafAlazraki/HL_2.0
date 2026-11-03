@@ -221,3 +221,23 @@
   justify-content: flex-end;
   gap: --spacing(2);
 }
+
+/* IN A SHORT WINDOW THE ACTS STAND AT THE PLATE'S FOOT (2026-11-03, the verifier of Data: at
+   844 x 390 the New list dialog's "Not now" and "Make it" were half under its own foot, a scroll
+   inside the dialog away). A plate taller than the window scrolls its body under its acts, which
+   keep the plate's ground and a rule above them; the plate's padding falls to 16px. A sheet and
+   the large dialog keep their own foot. */
+@media (max-height: 520px) {
+  .ui-dialog:not([data-size='xl']):not([data-placement='side']) {
+    padding: --spacing(4);
+    gap: --spacing(3);
+  }
+  .ui-dialog:not([data-size='xl']):not([data-placement='side']) > .ui-dialog-actions {
+    position: sticky;
+    inset-block-end: calc(-1 * --spacing(4));
+    margin: 0 calc(-1 * --spacing(4)) calc(-1 * --spacing(4));
+    padding: --spacing(3) --spacing(4);
+    border-block-start: 1px solid var(--color-rule);
+    background: var(--color-plate);
+  }
+}

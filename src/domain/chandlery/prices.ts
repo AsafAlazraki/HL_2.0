@@ -41,16 +41,16 @@ export interface DeclaredPrice {
 }
 
 /** The two prices of the parts list: the supply price and the fitted, either absent. */
-export interface TwoKeys {
-  supply: DeclaredPrice | null
-  fitted: DeclaredPrice | null
+export interface TwoKeys<L extends DeclaredPrice = DeclaredPrice> {
+  supply: L | null
+  fitted: L | null
 }
 
 /**
  * WHICH OF A LIST'S PRICES IS SUPPLY AND WHICH IS FITTED: the first that says it carries no
  * fitting, and the first that says it does. A price Northside keeps from customers is neither.
  */
-export function twoKeysOf(levels: readonly DeclaredPrice[] | undefined): TwoKeys {
+export function twoKeysOf<L extends DeclaredPrice>(levels: readonly L[] | undefined): TwoKeys<L> {
   const shown = (levels ?? []).filter((l) => l.mayReachCustomer !== false)
   return {
     supply: shown.find((l) => l.contains?.includesInstall === false) ?? null,

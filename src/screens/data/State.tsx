@@ -235,6 +235,7 @@ function Years({ facts }: { facts: FileFacts }) {
   return (
     <ol
       className="dt-years"
+      style={{ '--years': facts.dated.byYear.length } as CSSProperties}
       aria-label={`The ${n(facts.dated.sections.length)} dated headings by the year they say`}
     >
       {facts.dated.byYear.map((y) => (
@@ -388,7 +389,8 @@ export function Fresh({
   go,
 }: {
   facts: FileFacts
-  openSheet: (tableId: string) => void
+  /** a list's sheet, at the line written on it last */
+  openSheet: (tableId: string, rowId?: string) => void
   openSpread: (tableId: string) => void
   go?: (href: string) => void
 }) {
@@ -418,7 +420,12 @@ export function Fresh({
         <ul className="dt-fresh__lists" aria-label="Changed, by list">
           {c.byList.map((l) => (
             <li key={l.tableId}>
-              <button type="button" className="dt-fresh__list" onClick={() => openSheet(l.tableId)}>
+              <button
+                type="button"
+                className="dt-fresh__list"
+                aria-label={`${l.tableName}: ${plural(l.lines, 'line', 'lines')} changed — opens the list at the last one`}
+                onClick={() => openSheet(l.tableId, l.lastRowId)}
+              >
                 <span>{l.tableName}</span>
                 <b>{n(l.lines)}</b>
                 <span className="dt-fresh__go" aria-hidden="true">

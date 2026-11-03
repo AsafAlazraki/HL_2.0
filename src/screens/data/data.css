@@ -149,6 +149,27 @@
   color: var(--color-ink-2);
   text-wrap: pretty;
 }
+/* THE HEAD'S FACTS, EACH A CLAUSE THAT WRAPS WHOLE. A clause that does not fit beside the one
+   before it starts the next line, and its dot, which stands in its own leading room, is cut off
+   at the line's start by the paragraph's clip: so a dot is drawn only between two clauses on one
+   line, never at a line's end or its start. A clause wider than the line wraps inside itself. */
+.dt-clauses {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25em;
+  overflow: clip;
+}
+.dt-clause {
+  position: relative;
+  min-inline-size: 0;
+  margin-inline-start: -1.25em;
+  padding-inline-start: 1.25em;
+}
+.dt-clause::before {
+  content: '·';
+  position: absolute;
+  inset-inline-start: 0.45em;
+}
 .dt-find {
   min-inline-size: 0;
 }
@@ -159,7 +180,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: --spacing(3);
-  margin-block-end: --spacing(3);
   /* scrolled to with the spread it stands over, clear of the bar */
   scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
 }
@@ -338,6 +358,8 @@
 
 /* the dated headings by year: one capsule per year, its length the year's share */
 .dt-years {
+  /* how many years the strip carries, set from the file by State.tsx */
+  --years: 5;
   display: none;
   flex-wrap: wrap;
   gap: --spacing(2) --spacing(4);
@@ -665,6 +687,7 @@
 }
 .dt-answer__desk {
   display: flex;
+  flex-wrap: wrap;
   gap: --spacing(2);
   align-items: flex-start;
   padding: --spacing(2.5) --spacing(3);
@@ -674,6 +697,15 @@
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
   text-wrap: pretty;
+}
+/* the sentence takes the line where it needs it, and the press for the bar's Find goes under it */
+.dt-answer__say {
+  flex: 1 1 --spacing(64);
+  min-inline-size: 0;
+}
+.dt-answer__bar {
+  flex: none;
+  margin-inline-start: auto;
 }
 .dt-answer__glyph {
   display: inline-flex;
@@ -744,15 +776,27 @@
   color: var(--color-ink-2);
 }
 
-/* THE MAKERS: eight tiles, the mark once each, at 26px */
+/* THE MAKERS: eight tiles, the mark once each. IN A HAND THEY ARE ONE STRIP (the verifier of
+   Data, round 1: two columns of four rows took 544px, and the first list stood in the fourth
+   window): the tiles run across the window's full width and scroll inside the strip, each
+   snapping to the gutter, the third one cut at the edge so the strip says it goes on. The
+   page itself never scrolls sideways. */
 .dt-makers {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
   gap: --spacing(2.5);
+  margin-inline: calc(-1 * var(--gutter));
+  padding: --spacing(1) var(--gutter) --spacing(2);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
 }
 .dt-makers > li {
+  flex: 0 0 --spacing(40);
   display: grid;
   min-inline-size: 0;
+  scroll-snap-align: start;
 }
 .dt-maker {
   display: grid;
@@ -799,21 +843,29 @@
       var(--shadow-lift);
   }
 }
+/* A MARK'S HEIGHT IS ITS SHAPE'S: the area every mark covers (`--mark-area`, the side of a
+   square of that area) over the square root of its own width over height (`--aspect`, set from
+   the ledger in Holds.tsx), between a floor and the box. A wordmark six times as wide as it is
+   tall stands about 24px; Jeanneau's emblem, under twice as wide, about 43. Where the tile is
+   narrower than the mark, the mark is fitted inside its box, from the left. */
 .dt-mark {
+  --mark-area: --spacing(14.5);
+  --mark-most: --spacing(11);
   display: flex;
   align-items: center;
   gap: --spacing(2);
-  block-size: --spacing(8.5);
+  block-size: var(--mark-most);
   margin-block-end: --spacing(1);
   min-inline-size: 0;
 }
 .dt-mark__img {
+  --aspect: 4;
   display: block;
   inline-size: auto;
-  block-size: auto;
+  block-size: clamp(--spacing(5), calc(var(--mark-area) / sqrt(var(--aspect))), var(--mark-most));
   max-inline-size: 100%;
-  max-block-size: --spacing(8);
   object-fit: contain;
+  object-position: left center;
 }
 .dt-mark__typed,
 .dt-mark--every {
@@ -823,11 +875,11 @@
   color: var(--color-ink);
 }
 .dt-mark--sm {
-  block-size: --spacing(6.5);
+  --mark-area: --spacing(11);
+  --mark-most: --spacing(9);
   margin: 0;
 }
 .dt-mark--sm .dt-mark__img {
-  max-block-size: --spacing(6);
   max-inline-size: --spacing(28);
 }
 .dt-mark--sm .dt-mark__typed {
@@ -847,7 +899,17 @@
 }
 
 .dt-body {
+  display: grid;
+  gap: --spacing(5);
   min-inline-size: 0;
+}
+/* IN A SHORT WINDOW THE SPREAD IS SCROLLED TO, its head at the bar's clearance and 16px; the
+   ground above it is as tall as that, so no tile's foot shows between the bar and the spread
+   (the verifier of Data, round 1: at 844 x 390 the tiles' edges peeked out at y 55-65) */
+@media (max-height: 520px) {
+  .dt-body[data-open] {
+    padding-block-start: max(0px, calc(var(--shell-inset) + --spacing(4) - --spacing(5)));
+  }
 }
 .dt-ledgers {
   display: grid;
@@ -928,8 +990,13 @@
   background: var(--color-chosen-wash);
   box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
 }
+/* THE LIST WHOSE SPREAD IS OPEN ABOVE is marked where it stands in the ledger */
+.dt-row[data-peeking] {
+  background: var(--color-chosen-wash);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
+}
 @media (hover: hover) and (pointer: fine) {
-  .dt-row:hover {
+  .dt-row:not([data-peeking]):hover {
     background: var(--color-wash);
   }
 }
@@ -1106,6 +1173,12 @@
 }
 .dt-pair span {
   color: var(--color-ink-2);
+}
+.dt-pair[data-on] b {
+  text-decoration: underline;
+  text-decoration-thickness: var(--mark);
+  text-underline-offset: --spacing(1);
+  text-decoration-color: var(--color-accent);
 }
 .dt-pair[data-retired] b {
   color: var(--color-ink-2);
@@ -1403,6 +1476,20 @@
   font-weight: 700;
   text-align: end;
 }
+/* THE PRESS THAT DRAWS THE REST, AND FOLDS IT BACK. While the whole lineup is drawn it stands
+   at the foot of the window over the bars, on its own plate, so it is never a long scroll away. */
+.dt-lineup__fold {
+  display: flex;
+}
+.dt-lineup__fold[data-whole] {
+  position: sticky;
+  inset-block-end: calc(var(--shell-foot) + --spacing(3));
+  z-index: 1;
+  justify-content: center;
+  padding-block: --spacing(2);
+  border-block-start: 1px solid var(--color-rule);
+  background: var(--color-plate);
+}
 .dt-lineup__rest {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
@@ -1660,8 +1747,18 @@
   .dt-need__words {
     grid-row: 1 / span 2;
   }
+  /* ONE COLUMN PER YEAR, all on one line (the verifier of Data, round 1: five capsules wrapped
+     four and one, 2026 alone on a second row at 834, 844 and 1280): the year over its count */
   .dt-years {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(var(--years, 5), minmax(0, 1fr));
+    gap: --spacing(3);
+  }
+  .dt-years li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dt-years__bar {
+    max-inline-size: 100%;
   }
   .dt-need__sub {
     display: block;
@@ -1669,11 +1766,20 @@
   .dt-sec-head {
     padding-inline: --spacing(5);
   }
-  .dt-side {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* NEW SINCE OVER THE ROOMS, the rooms two across (the verifier of Data, round 1: New since
+     beside a column of six rooms left 290px of empty floor under it at 834) */
+  .dt-rooms__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .dt-makers {
+    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-inline: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  .dt-makers > li {
+    flex: none;
   }
   .dt-answer__groups {
     grid-template-columns: repeat(auto-fit, minmax(--spacing(64), 1fr));
@@ -1743,10 +1849,16 @@
   .dt-matrix__table thead th {
     white-space: normal;
   }
+  /* the count of lines carries its row's rule like every other cell (the verifier of Data,
+     round 1: the rules stopped short of the LINES column) */
   .dt-matrix__table td.dt-matrix__n,
   .dt-matrix__table th.dt-matrix__n {
     text-align: end;
-    padding-inline-end: --spacing(4);
+    padding: --spacing(2) --spacing(4) --spacing(2) --spacing(2.5);
+  }
+  .dt-matrix__table td.dt-matrix__n {
+    border-block-start: 1px solid var(--color-rule);
+    font-size: var(--text-sm);
   }
   .dt-row {
     grid-template-columns: auto minmax(0, 1fr) auto minmax(--spacing(26), auto) auto;
@@ -1799,7 +1911,7 @@
   .dt-state {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   }
-  .dt-side {
+  .dt-rooms__list {
     grid-template-columns: minmax(0, 1fr);
   }
   .dt-ledgers {
@@ -1841,6 +1953,19 @@
     grid-template-areas:
       'who who who'
       'facts facts facts';
+  }
+  /* THE MATRIX IN HALF THE FRAME: its cells take 6px a side, not 10, so its seven columns fit
+     the ledger's half at 1280 (the verifier of Data, round 1: the table ran 14px past its card) */
+  .dt-matrix__table td,
+  .dt-matrix__table thead th {
+    padding-inline: --spacing(1.5);
+  }
+  .dt-matrix__table thead th:first-child {
+    padding-inline-start: --spacing(4);
+  }
+  .dt-matrix__table td.dt-matrix__n,
+  .dt-matrix__table th.dt-matrix__n {
+    padding-inline-end: --spacing(4);
   }
   .dt-tiles {
     grid-template-columns: minmax(0, 1fr);

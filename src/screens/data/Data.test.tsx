@@ -8,6 +8,7 @@ import { queueOf } from '@/domain/rules/review/cases'
 import { countBoats } from '@/domain/quote/boats'
 import { review } from '@/domain/rules/review/checks'
 import { datedSections } from '@/domain/catalogue/asAt'
+import { headingDoorOf } from '@/domain/catalogue/headingDoor'
 import { readLadder, undecided } from '@/screens/levels/read'
 import { PRICE_LIST_ROOMS } from '@/app/ways'
 import { Data, LIST_NEEDS_NAME, NO_WAY_TO_THE_SHEET, type DataPosition } from './Data'
@@ -140,9 +141,20 @@ describe('Needs Northside, the state above the inventory', () => {
     expect(n).toHaveTextContent(
       `of ${grouped(d.headingsInThose)} headings in the ${grouped(d.lists.length)} lists that date any`,
     )
-    /* the oldest first: its list opens on the sheet at that heading */
+    /* the oldest first: its list opens on the sheet AT that heading, by the door the sheet reads
+       for that list — a chapter's name, or the first line filed under the heading (the verifier
+       of Data, round 1: a chapter name Rigging Kits does not have opened it at its top) */
     await userEvent.click(within(n).getByRole('button', { name: /Oldest first/ }))
-    expect(opened).toEqual([{ id: d.sections[0]!.tableId, at: { in: d.sections[0]!.heading } }])
+    const oldest = d.sections[0]!
+    const tables = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
+    const door = headingDoorOf(
+      tables[oldest.tableId]!,
+      tables,
+      pack.rowsByEntity[oldest.tableId]!,
+      oldest.heading,
+    )
+    expect(door, 'the heading has a door').not.toBeNull()
+    expect(opened).toEqual([{ id: oldest.tableId, at: door }])
   })
 
   it('counts the lines in the lists no list of what fits names, and opens the largest', async () => {
@@ -361,7 +373,9 @@ describe('a maker, opened', () => {
     await userEvent.click(tile(highfield().name))
     const spread = screen.getByTestId('data-page')
     expect(within(spread).getByRole('heading', { name: highfield().name })).toBeInTheDocument()
-    expect(screen.queryByRole('grid', { name: 'Lists' })).toBeNull()
+    /* the ledgers stay under an open spread (the verifier of Data, round 1: with a maker open
+       a third of a wide window was empty floor) */
+    expect(screen.getByRole('grid', { name: 'Lists' })).toBeInTheDocument()
     expect(tile(highfield().name)).toHaveAttribute('aria-pressed', 'true')
     expect(spread.querySelectorAll('img[alt$="own mark"]')).toHaveLength(0)
     expect(positions.at(-1)?.at).toBe('boat_highfield')
@@ -462,5 +476,42 @@ describe('a computer with no file, and one still looking', () => {
     render(<Data business={null} />)
     expect(screen.getByText('Looking for the price list…')).toBeInTheDocument()
     expect(screen.queryByText(/No price list is open/)).toBeNull()
+  })
+})
+
+describe('a long lineup, opened and folded back', () => {
+  it('draws every heading, says so in the address, and folds back to the first twelve', async () => {
+    draw({ at: 'parts' })
+    const spread = await screen.findByTestId('data-page')
+    const bars = () => spread.querySelectorAll('.dt-bar').length
+    const first = bars()
+    const parts = pack.entities.find((e) => e.id === 'parts')!
+    const level = parts.hierarchy![0]!
+    const headings = new Set(
+      pack.rowsByEntity['parts']!.map((r) => String(r.values[level] ?? '').trim()).filter(Boolean),
+    )
+    await userEvent.click(within(spread).getByRole('button', { name: /^The other / }))
+    expect(bars()).toBe(headings.size)
+    expect(positions.at(-1)).toMatchObject({ at: 'parts', headings: 'all' })
+    const fold = within(spread).getByRole('button', { name: `Fold back to the first ${first}` })
+    expect(fold).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.click(fold)
+    expect(bars()).toBe(first)
+    expect(positions.at(-1)?.headings).toBeUndefined()
+  })
+
+  it('opens drawn whole when the address says so', async () => {
+    draw({ at: 'parts', headings: 'all' })
+    const spread = await screen.findByTestId('data-page')
+    expect(within(spread).getByRole('button', { name: /^Fold back/ })).toBeInTheDocument()
+  })
+})
+
+describe('the bar’s Find, offered from an answer', () => {
+  it('is refused in a sentence where no bar stands', async () => {
+    draw({ find: 'F115' })
+    const answer = await screen.findByTestId('data-answer')
+    const press = within(answer).getByRole('button', { name: /Find “F115” for a quote/ })
+    expect(press).toHaveAccessibleDescription(/the bar’s Find stands only where the bar does/)
   })
 })

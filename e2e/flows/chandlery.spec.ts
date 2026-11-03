@@ -113,23 +113,5 @@ test('three parts by press, one by drag, one by keyboard, and one taken off', as
   await expect.poll(() => total(page)).toBe(before)
 })
 
-test('the catalogue is the same aisles on their own, behind Data', async ({ page }) => {
-  test.setTimeout(120_000)
-  await throughTheDoor(page)
-  /* through the shell's one list: Data, then its room, as a dealer reaches it */
-  await page.getByTestId('shell-pill').getByRole('link', { name: /Data/ }).click()
-  await page
-    .getByRole('navigation', { name: 'Behind the price list' })
-    .getByRole('link', { name: /Catalogue/ })
-    .click()
-  await expect(page).toHaveURL(/\/catalogue$/)
-  await expect(page.getByTestId('chandlery')).toBeVisible({ timeout: 30_000 })
-  /* every aisle at once, counted: eighteen and Not sorted yet */
-  await expect(page.getByRole('region', { name: 'The aisles' }).getByRole('listitem')).toHaveCount(
-    19,
-  )
-  await page.getByRole('button', { name: /^Radios & beacons/ }).click()
-  await expect(page).toHaveURL(/\/catalogue\?aisle=radios/)
-  /* no quote is open here, so nothing offers to put a part on one */
-  await expect(page.getByRole('button', { name: /^Add the / })).toHaveCount(0)
-})
+/* THE CATALOGUE ON ITS OWN, BEHIND DATA, is walked in catalogue.spec.ts since the data round's
+   redraw (2026-11-03): /catalogue is no longer this component, so its walk lives with its screen. */

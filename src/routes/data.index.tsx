@@ -30,8 +30,10 @@ import { Data, type DataPosition } from '@/screens/data/Data'
    is open and offers the door back. Every figure the screen prints is counted off
    what that read returned.
 
-   THE TWO SEARCH PARAMS. `at` is the id of the table whose page is
-   open beside the rows; `find` is what was typed into the find field.
+   THE SEARCH PARAMS. `at` is the id of the table whose page is
+   open beside the rows; `find` is what was typed into the find field;
+   `headings=all` says the open page's lineup is drawn whole (only with
+   an `at`, because only an open page has a lineup).
    A position inside a screen is a URL search param (CLAUDE.md), so
    both are in the address and the address is shareable and reloadable.
    The screen is handed them once and hands its own position back;
@@ -49,6 +51,8 @@ export interface DataSearch {
   at?: string
   /** what was typed into the find field */
   find?: string
+  /** the open spread's lineup drawn whole, every heading and not the first twelve */
+  headings?: 'all'
 }
 
 const word = (value: unknown): string | undefined => {
@@ -61,7 +65,11 @@ export const Route = createFileRoute('/data/')({
   validateSearch: (search: Record<string, unknown>): DataSearch => {
     const at = word(search.at)
     const find = word(search.find)
-    return { ...(at ? { at } : {}), ...(find ? { find } : {}) }
+    return {
+      ...(at ? { at } : {}),
+      ...(find ? { find } : {}),
+      ...(at && search.headings === 'all' ? { headings: 'all' as const } : {}),
+    }
   },
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
@@ -71,7 +79,7 @@ export const Route = createFileRoute('/data/')({
 
 function DataRoute() {
   const navigate = useNavigate()
-  const { at, find } = Route.useSearch()
+  const { at, find, headings } = Route.useSearch()
   const business = useCatalogue((s) => s.business)
 
   useEffect(() => {
@@ -93,7 +101,16 @@ function DataRoute() {
      own morph (the maker's mark flying into its spread) is started by the screen. */
   const onPosition = useCallback(
     (position: DataPosition) => {
-      void navigate({ to: '/data', search: position, replace: true, viewTransition: false })
+      /* NOR DOES IT MOVE THE PAGE (2026-11-03, the verifier of Data): a position written while
+         a person reads — the lineup drawn whole, a spread opened — left the router's default
+         reset the window to its top. The screen brings what it opened into view itself. */
+      void navigate({
+        to: '/data',
+        search: position,
+        replace: true,
+        viewTransition: false,
+        resetScroll: false,
+      })
     },
     [navigate],
   )
@@ -103,6 +120,7 @@ function DataRoute() {
       business={business}
       at={at ?? ''}
       find={find ?? ''}
+      headings={headings}
       onPosition={onPosition}
       /* a push and never a replace for a move to another screen, so
          Back leaves the register rather than walking back through it */
@@ -115,9 +133,13 @@ function DataRoute() {
         void navigate({
           to: '/data/$table',
           params: { table },
-          /* at one of its headings (`in`, the sheet's chapter) or narrowed to a word (`find`) */
+          /* at one of its chapters (`in`), at one row (`at`), or narrowed to a word (`find`) */
           search: where
-            ? { ...(where.in ? { in: where.in } : {}), ...(where.find ? { find: where.find } : {}) }
+            ? {
+                ...(where.in ? { in: where.in } : {}),
+                ...(where.at ? { at: where.at } : {}),
+                ...(where.find ? { find: where.find } : {}),
+              }
             : {},
         })
       }

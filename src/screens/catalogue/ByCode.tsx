@@ -25,10 +25,10 @@ import { StepSaid, useStep } from './Step'
 type Landed = { n: number; file: string; on: string } | { n: number; file: string; why: string }
 
 export function ByCode({
-  parts,
+  shelf,
   nameOf,
 }: {
-  parts: readonly ShelfPart[]
+  shelf: readonly ShelfPart[]
   nameOf: (p: ShelfPart) => string
 }) {
   const input = useRef<HTMLInputElement>(null)
@@ -37,8 +37,8 @@ export function ByCode({
   const [landed, setLanded] = useState<Landed[]>([])
   const step = useStep()
   const book = useMemo(
-    () => codeBookOf(parts.map((p) => ({ id: p.id, code: p.code, name: p.product, part: p }))),
-    [parts],
+    () => codeBookOf(shelf.map((p) => ({ id: p.id, code: p.code, name: p.product, part: p }))),
+    [shelf],
   )
   /* THE EXAMPLE IS THE LIST'S OWN: its first part whose code one part alone carries */
   const example = ((): { file: string; name: string } | null => {
@@ -105,6 +105,7 @@ export function ByCode({
   return (
     <div
       className="chd-bycode"
+      data-ground="plate"
       data-over={over ? '' : undefined}
       onDragEnter={onDragOver}
       onDragOver={onDragOver}

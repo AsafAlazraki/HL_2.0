@@ -1,6 +1,7 @@
-import { useId, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react'
 import {
   ArrowRightIcon,
+  ImagesIcon,
   CaretDownIcon,
   NotePencilIcon,
   ReceiptIcon,
@@ -12,8 +13,8 @@ import { headingSaid } from '@/domain/chandlery/headings'
 import { isSupplyOnly, noteSaid, type TwoPrices } from '@/domain/chandlery/prices'
 import { placeKeyOf } from '@/domain/chandlery/placing'
 import { AISLES } from '@/domain/catalogue/aisles'
-import { useOptionPicture } from '@/app/optionPicture'
-import { itemOf } from '@/data/pictures'
+import { useGallery, useOptionPicture } from '@/app/optionPicture'
+import { itemOf, placeIn } from '@/data/pictures'
 import { AddPicture, Button, ExpandPicture, Icon, Picture, Select } from '@/ui'
 import { PARTS_TABLE } from './shelf'
 import type { BoatSaid, PartsPlace, Ware } from './read'
@@ -137,11 +138,22 @@ export function Line({
   openKey?: string
 }) {
   const panel = useId()
-  if (w.kind === 'note') return <Note w={w} around={around} />
+  const head = useRef<HTMLButtonElement>(null)
+  const item = useRef<HTMLLIElement>(null)
   const opened = around.open === openKey
+  useEscapeShuts(opened, around.onOpen, item, head)
+  if (w.kind === 'note') return <Note w={w} around={around} />
   return (
-    <li className="chd-line" data-open={opened ? '' : undefined} data-kind={w.kind}>
+    <li
+      className="chd-line"
+      data-open={opened ? '' : undefined}
+      /* opened, the line is a white plate, and reads the day's inks in either theme */
+      data-ground={opened ? 'plate' : undefined}
+      data-kind={w.kind}
+      ref={item}
+    >
       <button
+        ref={head}
         type="button"
         className="chd-line__head"
         aria-expanded={opened}
@@ -191,33 +203,79 @@ function Note({ w, around }: { w: Ware; around: Around }) {
   )
 }
 
+/** ESCAPE SHUTS AN OPENED PART, from anywhere inside it, and gives the caret back to the press that
+ *  opened it. A dialog opened from inside it (the gallery) takes its own Escape first. */
+function useEscapeShuts(
+  opened: boolean,
+  onOpen: (id: string) => void,
+  item: { current: HTMLLIElement | null },
+  head: { current: HTMLButtonElement | null },
+): void {
+  useEffect(() => {
+    if (!opened) return
+    const shut = (e: globalThis.KeyboardEvent): void => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      if (!(e.target instanceof Node) || !item.current?.contains(e.target)) return
+      e.preventDefault()
+      onOpen('')
+      head.current?.focus()
+    }
+    document.addEventListener('keydown', shut)
+    return () => document.removeEventListener('keydown', shut)
+  }, [opened, onOpen, item, head])
+}
+
 /** ONE PICTURED PART AS A CARD: its photograph contained, its name, its two prices. Opened, it
  *  spans the row and says what a line opened says. */
 export function Card({ w, around }: { w: Ware; around: Around }) {
   const panel = useId()
+  const head = useRef<HTMLButtonElement>(null)
+  const item = useRef<HTMLLIElement>(null)
   const opened = around.open === w.id
+  useEscapeShuts(opened, around.onOpen, item, head)
   const picture = w.tile?.picture
+  /* THE PART'S GALLERY, so the card counts its pictures and opens on the one it draws */
+  const gallery = useGallery(itemOf(PARTS_TABLE, w.id))
+  const many = gallery.length
   return (
-    <li className="chd-card" data-open={opened ? '' : undefined}>
+    <li className="chd-card" data-ground="plate" data-open={opened ? '' : undefined} ref={item}>
       <div className="chd-card__pic">
         {picture ? (
-          <Picture
-            src={picture.src}
-            srcSet={picture.srcSet}
-            sizes="(min-width: 640px) 280px, 50vw"
-            alt=""
-            width={picture.width}
-            height={picture.height}
-            fit="contain"
-            lazy
-          />
+          /* the photograph in a frame laid out of the flow, so the card's 4 : 3 is the card's and
+             the picture's own size never enters the grid's sums */
+          <span className="chd-card__frame">
+            <Picture
+              src={picture.src}
+              srcSet={picture.srcSet}
+              sizes="(min-width: 640px) 280px, 50vw"
+              alt=""
+              width={picture.width}
+              height={picture.height}
+              fit="contain"
+              lazy
+            />
+          </span>
+        ) : null}
+        {many > 1 ? (
+          <span className="chd-card__many" aria-hidden="true">
+            <Icon glyph={ImagesIcon} size="sm" />
+            {many.toLocaleString('en-AU')}
+          </span>
         ) : null}
         <span className="chd-card__expand">
-          <ExpandPicture label={`See the ${w.name} larger`} onExpand={() => around.onLarge(w, 0)} />
+          <ExpandPicture
+            label={
+              many > 1
+                ? `See the ${w.name}’s ${many.toLocaleString('en-AU')} pictures larger`
+                : `See the ${w.name} larger`
+            }
+            onExpand={() => around.onLarge(w, placeIn(gallery, picture ?? null))}
+          />
         </span>
       </div>
       <div className="chd-card__body">
         <button
+          ref={head}
           type="button"
           className="chd-card__name"
           aria-expanded={opened}
