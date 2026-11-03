@@ -43,8 +43,7 @@ function draw(open = '', look = '') {
   const props = {
     go,
     openTheFile,
-    listHref: (t: string, l: string, show?: string) =>
-      `/data/${t}?at=${l}${show ? `&show=${show}` : ''}`,
+    listHref: (t: string, l: string) => `/data/${t}?at=${l}`,
     quoteHref: (id: string) => `/quote/${id}`,
   }
   const view = render(<Rules at={{ open, look, on: '' }} follow={() => {}} {...props} />)

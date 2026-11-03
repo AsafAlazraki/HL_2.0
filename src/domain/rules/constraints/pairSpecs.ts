@@ -335,7 +335,7 @@ export function specValue(spec: PairSpec, table: EntityDef, row: RowData): strin
 
 /**
  * THE CELL A SPEC WAS READ OFF ON ONE ROW — the list's own column and what it writes there
- * ("Shaft Lgth", "XL") — so a door to the row can bring that column into sight and name it
+ * ("Shaft Lgth", "XL") — so a door to the row can name what to look for on it
  * (verify 2, data round, J2: the transom door landed on the boat with "Shaft Lgth XL" off
  * screen). Null where the row writes nothing the spec reads, or the spec is the list's maker.
  */

@@ -198,7 +198,7 @@ export interface RulesProps {
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
   /** the sheet at one line: `/data/$table?at=` */
-  listHref: (table: string, line: string, show?: string) => string
+  listHref: (table: string, line: string) => string
   /** one quote in the build: `/quote/$id` */
   quoteHref: (id: string) => string
   /** go to an address inside the app */
@@ -442,7 +442,7 @@ async function shareHouse(text: string, title: string): Promise<void> {
 interface Shared {
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
-  listHref: (table: string, line: string, show?: string) => string
+  listHref: (table: string, line: string) => string
   quoteHref: (id: string) => string
   follow: (href: string) => void
   world: PairWorld
@@ -647,7 +647,7 @@ interface PartProps {
   onOpen: (open: string) => void
   at: RulesAt
   go: (next: Partial<RulesAt>) => void
-  listHref: (table: string, line: string, show?: string) => string
+  listHref: (table: string, line: string) => string
   quoteHref: (id: string) => string
   follow: (href: string) => void
   world: PairWorld
@@ -869,7 +869,7 @@ function StatedClause({
   s: StatedRule
   open: boolean
   onLook: () => void
-  listHref: (table: string, line: string, show?: string) => string
+  listHref: (table: string, line: string) => string
   follow: (href: string) => void
   /** its breaks as Review keeps them (`houseBreaks`); none where Review raises none of it */
   breakKeys: readonly string[]
@@ -1074,7 +1074,7 @@ function Exceptions({
 }: {
   id: string
   s: StatedRule
-  listHref: (table: string, line: string, show?: string) => string
+  listHref: (table: string, line: string) => string
   follow: (href: string) => void
 }) {
   const groups = useMemo(() => groupExceptions(s.live?.exceptions ?? []), [s.live])
@@ -1107,11 +1107,11 @@ function Exceptions({
                   J2: the one door landed on the pairing line, which shows neither) */}
               <p className="hr-ex__doors">
                 {g.sides.map((side) => {
-                  /* THE DOOR SAYS THE VALUE AND BRINGS ITS COLUMN INTO SIGHT (verify 2, data round,
-                     J2: the transom door landed on the boat with "Shaft Lgth XL" below the fold and
-                     unmarked): the cell in conflict is named on the door as the list writes it, and
-                     its column is pressed into the grid beside the line it opens */
-                  const at = listHref(side.list, side.line, side.field)
+                  /* THE DOOR SAYS THE VALUE (verify 2, data round, J2: the transom door landed on the
+                     boat with "Shaft Lgth XL" below the fold and unmarked): the cell in conflict is
+                     named on the door as the list writes it, so the reader knows what to look for on
+                     the line it opens. Landing on that cell inside the open record is the sheet's */
+                  const at = listHref(side.list, side.line)
                   const base =
                     side.what === '' ? `The ${side.noun}` : `The ${side.noun}’s ${side.what}`
                   const name =
@@ -1180,7 +1180,7 @@ function Noticed({
   onSay: () => void
   looking: boolean
   onLook: () => void
-  listHref: (table: string, line: string, show?: string) => string
+  listHref: (table: string, line: string) => string
   follow: (href: string) => void
 }) {
   const fig = figureOf(s)

@@ -192,8 +192,7 @@ export interface ExceptionSide {
   listName: string
   line: string
   /** THE CELL IN CONFLICT, where one cell writes it: the list's own column, its heading and what
-   *  it writes there ("Shaft Lgth", "XL"), so the door brings that column into sight beside the
-   *  line and says what to look for (verify 2, data round, J2). Absent for a kit, whose line
+   *  it writes there ("Shaft Lgth", "XL"), so the door to the line says what to look for on it (verify 2, data round, J2). Absent for a kit, whose line
    *  itself is the reading. */
   field?: string
   header?: string

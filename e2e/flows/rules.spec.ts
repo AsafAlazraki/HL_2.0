@@ -430,10 +430,10 @@ test('a measure opens on the offers that break it, each with a door to its line'
   /* WHERE IT IS FIXED: the boat's transom and the motor's shaft each on their own line, and the
      offer on its pairing line (verify 1, data round, J2) */
   const sdf = list.getByRole('listitem').filter({ hasText: 'Stacer 589 Sea Ranger SDF' })
-  /* the door names the value as the list writes it, and brings its column into the grid beside
-     the line it opens (verify 2, data round, J2: "Shaft Lgth XL" off screen and unmarked) */
+  /* the door names the value as the list writes it (verify 2, data round, J2: "Shaft Lgth XL"
+     off screen and unmarked) */
   const transom = sdf.getByRole('link', { name: /the boat’s transom, on its line/ })
-  await expect(transom).toHaveAttribute('href', /\/data\/boat_stacer\?at=[^&]+&show=/)
+  await expect(transom).toHaveAttribute('href', /\/data\/boat_stacer\?at=/)
   await expect(transom).toContainText(/^The boat’s transom: .+ XL$/)
   await expect(sdf.getByRole('link', { name: /the motor’s shaft, on its line/ })).toHaveAttribute(
     'href',
