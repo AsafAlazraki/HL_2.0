@@ -1,0 +1,112 @@
+[
+  {
+    "id": "saasframe-dashboards",
+    "url": "https://www.saasframe.io/categories/dashboard",
+    "note": "166 dashboard examples",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.saasframe.io/categories/dashboard",
+    "title": "189 SaaS Dashboard UI Design Examples in 2026",
+    "file": "saasframe-dashboards.png"
+  },
+  {
+    "id": "saasframe-tables",
+    "url": "https://www.saasframe.io/categories/table",
+    "note": "64 table examples",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.saasframe.io/categories/table",
+    "title": "89 SaaS Table UI Design Examples in 2026",
+    "file": "saasframe-tables.png"
+  },
+  {
+    "id": "saasframe-current",
+    "url": "https://www.saasframe.io/examples/current-dashboard",
+    "note": "one dashboard example",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.saasframe.io/examples/current-dashboard",
+    "title": "Current Dashboard UI Design - SaaSFrame",
+    "file": "saasframe-current.png"
+  },
+  {
+    "id": "saasinterface",
+    "url": "https://saasinterface.com/",
+    "note": "SaaS interface gallery",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://saasinterface.com/",
+    "title": "The best SaaS app UI and UX examples for design inspiration - Saas Interface",
+    "file": "saasinterface.png"
+  },
+  {
+    "id": "nicelydone",
+    "url": "https://nicelydone.club/",
+    "note": "SaaS flows gallery",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://nicelydone.club/",
+    "title": "Nicelydone — Web apps design inspiration (UX & UI)",
+    "file": "nicelydone.png"
+  },
+  {
+    "id": "mobbin-web",
+    "url": "https://mobbin.com/browse/web/apps",
+    "note": "mobbin web apps",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://mobbin.com/?redirect_to=%2Fdiscover%2Fapps%2Fweb",
+    "title": "Mobbin — UI & UX design inspiration for mobile & web apps",
+    "file": "mobbin-web.png"
+  },
+  {
+    "id": "land-book",
+    "url": "https://land-book.com/",
+    "note": "land-book",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://land-book.com/",
+    "title": "Landbook - website design inspiration gallery",
+    "file": "land-book.png"
+  },
+  {
+    "id": "lapa",
+    "url": "https://www.lapa.ninja/",
+    "note": "lapa ninja",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.lapa.ninja/",
+    "title": "Landing Page Design Examples: 7,300+ Best Landing Pages | Lapa Ninja",
+    "file": "lapa.png"
+  },
+  {
+    "id": "siteinspire",
+    "url": "https://www.siteinspire.com/",
+    "note": "siteinspire",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.siteinspire.com/",
+    "title": "Best Website Design Inspiration | Siteinspire",
+    "file": "siteinspire.png"
+  },
+  {
+    "id": "awwwards-dashboard",
+    "url": "https://www.awwwards.com/websites/dashboard/",
+    "note": "awwwards dashboard tag",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.awwwards.com/websites/dashboard/",
+    "title": "Awwwards Nominees",
+    "file": "awwwards-dashboard.png"
+  },
+  {
+    "id": "recent-design-interface",
+    "url": "https://recent.design/",
+    "note": "recent.design",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://recent.design/",
+    "title": "Recent — Design Inspiration",
+    "file": "recent-design-interface.png"
+  }
+]

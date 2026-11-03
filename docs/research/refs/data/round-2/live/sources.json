@@ -1,0 +1,500 @@
+[
+  {
+    "id": "github-pulse",
+    "url": "https://github.com/vercel/next.js/pulse",
+    "note": "what is new over a period, counted: merged, opened, closed, by whom",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://github.com/vercel/next.js/pulse",
+    "title": "Pulse · vercel/next.js · GitHub",
+    "file": "github-pulse.png"
+  },
+  {
+    "id": "github-pulse-scrolled",
+    "url": "https://github.com/vercel/next.js/pulse",
+    "note": "Pulse below the head: the lists of what changed",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://github.com/vercel/next.js/pulse",
+    "title": "Pulse · vercel/next.js · GitHub",
+    "file": "github-pulse-scrolled.png"
+  },
+  {
+    "id": "wiki-recentchanges",
+    "url": "https://en.wikipedia.org/wiki/Special:RecentChanges?hidebots=1&limit=50&days=1&enhanced=1",
+    "note": "a register of changes grouped by page with byte deltas",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://en.wikipedia.org/wiki/Special:RecentChanges?hidebots=1&hidecategorization=1&hideWikibase=1&limit=50&days=1&enhanced=1&urlversion=2",
+    "title": "Recent changes - Wikipedia",
+    "file": "wiki-recentchanges.png"
+  },
+  {
+    "id": "osm-history",
+    "url": "https://www.openstreetmap.org/history",
+    "note": "changesets: what changed, by whom, with counts, beside the map",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.openstreetmap.org/#map=5/51.50/-7.78",
+    "title": "OpenStreetMap",
+    "file": "osm-history.png"
+  },
+  {
+    "id": "nyc-open-data",
+    "url": "https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data",
+    "note": "a dataset's About head: Last Updated, Data Last Updated, Metadata Last Updated",
+    "wait": 6000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data",
+    "title": "Motor Vehicle Collisions - Crashes | NYC Open Data",
+    "file": "nyc-open-data.png"
+  },
+  {
+    "id": "nyc-open-data-scrolled",
+    "url": "https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data",
+    "note": "the same, scrolled to the metadata",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data",
+    "title": "Motor Vehicle Collisions - Crashes | NYC Open Data",
+    "file": "nyc-open-data-scrolled.png"
+  },
+  {
+    "id": "plausible-public",
+    "url": "https://plausible.io/plausible.io",
+    "note": "a public dashboard: the state at the head, then the inventory",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://plausible.io/plausible.io",
+    "title": "Plausible Analytics: Live Demo",
+    "file": "plausible-public.png"
+  },
+  {
+    "id": "linear-pulse",
+    "url": "https://linear.app/changelog/2025-04-16-pulse",
+    "note": "Pulse: one feed of updates across the workspace",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://linear.app/changelog/2025-04-16-pulse",
+    "title": "Introducing Pulse — your personalized feed for what’s happening across your company – Changelog",
+    "file": "linear-pulse.png"
+  },
+  {
+    "id": "shopify-home",
+    "url": "https://help.shopify.com/en/manual/shopify-admin/shopify-home",
+    "note": "Shopify Home: urgent tasks and metrics above everything",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/shopify-admin/shopify-home",
+    "title": "Shopify Help Center | Shopify Home page",
+    "file": "shopify-home.png"
+  },
+  {
+    "id": "akeneo-dashboard",
+    "url": "https://help.akeneo.com/pim/serenity/articles/discover-the-dashboard.html",
+    "note": "a PIM's dashboard: completeness and quality of the catalogue",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/serenity-your-first-steps-with-akeneo/1-serenity-discover-the-dashboard-in-details",
+    "title": "Discover the dashboard in detail - Akeneo",
+    "file": "akeneo-dashboard.png"
+  },
+  {
+    "id": "akeneo-dqi",
+    "url": "https://help.akeneo.com/pim/serenity/articles/manage-data-quality.html",
+    "note": "data quality insights: grades by family and category",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/serenity-build-your-catalog/39-serenity-manage-your-data-quality",
+    "title": "Manage your data quality - Akeneo",
+    "file": "akeneo-dqi.png"
+  },
+  {
+    "id": "npm-versions",
+    "url": "https://www.npmjs.com/package/react?activeTab=versions",
+    "note": "version history with dates and downloads: what is current",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.npmjs.com/package/react?activeTab=versions",
+    "title": "react - npm",
+    "file": "npm-versions.png"
+  },
+  {
+    "id": "dolthub-repo",
+    "url": "https://www.dolthub.com/repositories/dolthub/standard-charge-files",
+    "note": "a versioned database: its tables, last commit, what is new",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.dolthub.com/repositories/dolthub/standard-charge-files",
+    "title": "dolthub/standard-charge-files",
+    "file": "dolthub-repo.png"
+  },
+  {
+    "id": "dolthub-commits",
+    "url": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/commits/main",
+    "note": "the commit log of a database",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/commits/main",
+    "title": "Commits • dolthub/standard-charge-files",
+    "file": "dolthub-commits.png"
+  },
+  {
+    "id": "datagov-au",
+    "url": "https://data.gov.au/data/dataset?sort=metadata_modified+desc",
+    "note": "a national data catalogue ordered by last change",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://data.gov.au/data/dataset?sort=metadata_modified+desc",
+    "title": "Datasets - Page 1 - Data.gov.au",
+    "file": "datagov-au.png"
+  },
+  {
+    "id": "bigcommerce-price-lists",
+    "url": "https://support.bigcommerce.com/articles/en_US/Knowledge/Price-Lists",
+    "note": "price lists over a catalogue price",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://support.bigcommerce.com/articles/en_US/Knowledge/Price-Lists",
+    "title": "Knowledge: Using Price Lists",
+    "file": "bigcommerce-price-lists.png"
+  },
+  {
+    "id": "shopify-import",
+    "url": "https://help.shopify.com/en/manual/products/import-export/import-products",
+    "note": "product CSV import: preview, overwrite, the result",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/products/import-export/import-products",
+    "title": "Shopify Help Center | Importing products with a CSV file",
+    "file": "shopify-import.png"
+  },
+  {
+    "id": "shopify-search",
+    "url": "https://help.shopify.com/en/manual/shopify-admin/productivity-tools/using-search",
+    "note": "one admin search over every kind of thing",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/shopify-admin/productivity-tools",
+    "title": "Shopify Help Center | Productivity tools for your Shopify admin",
+    "file": "shopify-search.png"
+  },
+  {
+    "id": "vercel-project-dashboard",
+    "url": "https://vercel.com/docs/projects/project-dashboard",
+    "note": "a project's overview: the current state above its tabs",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 400
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://vercel.com/docs/projects",
+    "title": "Projects overview",
+    "file": "vercel-project-dashboard.png"
+  },
+  {
+    "id": "notion-home",
+    "url": "https://www.notion.com/help/home-and-my-tasks",
+    "note": "Notion Home: recently visited, tasks, above the workspace",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.notion.com/help/navigate-with-the-sidebar",
+    "title": "Navigate Notion with the sidebar | Notion Help",
+    "file": "notion-home.png"
+  },
+  {
+    "id": "retool-templates",
+    "url": "https://retool.com/templates",
+    "note": "admin apps as templates: inventory, catalogue",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://retool.com/templates",
+    "title": "Templates",
+    "file": "retool-templates.png"
+  },
+  {
+    "id": "datafold-diff",
+    "url": "https://docs.datafold.com/data-diff/what-is-data-diff",
+    "note": "a table diff: rows added, removed, changed, by column",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 400
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://docs.datafold.com/data-diff/what-is-data-diff",
+    "title": "What's a Data Diff? - Datafold",
+    "file": "datafold-diff.png"
+  },
+  {
+    "id": "crutchfield-outfit",
+    "url": "https://www.crutchfield.com/car/outfitmycar/mycar.aspx",
+    "note": "what fits my car: the vehicle chooser and counted fits",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.crutchfield.com/car/carselector.aspx?lp=%2fcar%2foutfitmycar%2fmycar.aspx",
+    "title": "Find Car Audio Gear That Fits | Crutchfield",
+    "file": "crutchfield-outfit.png"
+  },
+  {
+    "id": "yamaha-outboard-parts",
+    "url": "https://www.yamahaoutboardparts.com/",
+    "note": "outboard parts by model: fitment entry",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.yamahaoutboardparts.com/",
+    "title": "",
+    "file": "yamaha-outboard-parts.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.yamahaoutboardparts.com/"
+  },
+  {
+    "id": "github-search-facets",
+    "url": "https://github.com/search?q=outboard&type=repositories",
+    "note": "one find over everything, its answer grouped by kind with counts",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://github.com/search?q=outboard&type=repositories",
+    "title": "Repository search results · GitHub",
+    "file": "github-search-facets.png"
+  },
+  {
+    "id": "mdn-search",
+    "url": "https://developer.mozilla.org/en-US/search?q=grid",
+    "note": "site search: answer count and grouping",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://developer.mozilla.org/en-US/search?q=grid",
+    "title": "Search | MDN",
+    "file": "mdn-search.png"
+  },
+  {
+    "id": "boatwizard",
+    "url": "https://www.boatsgroup.com/boatwizard/",
+    "note": "a boat dealer back office: inventory management",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.boatsgroup.com/boatwizard/",
+    "title": "BoatWizard | Boats Group",
+    "file": "boatwizard.png"
+  },
+  {
+    "id": "ids-astra",
+    "url": "https://www.ids-astra.com/",
+    "note": "a marine DMS",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.ids-astra.com/",
+    "title": "All-in-One Dealership Management Software Solution for Dealers - IDS",
+    "file": "ids-astra.png"
+  },
+  {
+    "id": "tekion",
+    "url": "https://tekion.com/",
+    "note": "a car dealer cloud DMS",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://tekion.com/",
+    "title": "Tekion | End-to-End AI-Native Automotive Retail Platform",
+    "file": "tekion.png"
+  },
+  {
+    "id": "dealerrock",
+    "url": "https://www.dealerrock.com/",
+    "note": "a marine and RV DMS",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.dealerrock.com/",
+    "title": "DealerRock DMS | Marine & RV Dealer Management System",
+    "file": "dealerrock.png"
+  },
+  {
+    "id": "plytix",
+    "url": "https://www.plytix.com/",
+    "note": "a PIM: product catalogue admin",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.plytix.com/",
+    "title": "Plytix | PIM, DAM & AI Product Content Platform",
+    "file": "plytix.png"
+  },
+  {
+    "id": "salsify",
+    "url": "https://www.salsify.com/",
+    "note": "a PXM: catalogue admin",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.salsify.com/",
+    "title": "PXM Platform | Salsify Product Experience Management",
+    "file": "salsify.png"
+  },
+  {
+    "id": "akeneo-dashboard-widgets",
+    "url": "https://help.akeneo.com/pim/serenity/articles/discover-the-dashboard.html",
+    "note": "the PIM dashboard's Last operations and Catalog structure widgets",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/serenity-your-first-steps-with-akeneo/1-serenity-discover-the-dashboard-in-details",
+    "title": "Discover the dashboard in detail - Akeneo",
+    "file": "akeneo-dashboard-widgets.png"
+  },
+  {
+    "id": "akeneo-dashboard-widgets-2",
+    "url": "https://help.akeneo.com/pim/serenity/articles/discover-the-dashboard.html",
+    "note": "further down: proposals to review, catalog structure",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/serenity-your-first-steps-with-akeneo/1-serenity-discover-the-dashboard-in-details",
+    "title": "Discover the dashboard in detail - Akeneo",
+    "file": "akeneo-dashboard-widgets-2.png"
+  },
+  {
+    "id": "datagovuk-price-paid",
+    "url": "https://www.data.gov.uk/dataset/archived-price-paid-information-residential-property-1995-2017",
+    "note": "a dataset with many dated files: each data link carries its own date",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 400
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.data.gov.uk/dataset/314f77b3-e702-4545-8bcb-9ef8262ea0fd/archived-price-paid-information-residential-property-1995-2017",
+    "title": "Archived Price Paid Data: 1995 to 2017 - National Data Library",
+    "file": "datagovuk-price-paid.png"
+  },
+  {
+    "id": "wikidata-constraints",
+    "url": "https://www.wikidata.org/wiki/Special:ConstraintReport/Q42",
+    "note": "rule checks over one record: violations, warnings, each with the rule",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.wikidata.org/wiki/Special:ConstraintReport/Q42",
+    "title": "Login required - Wikidata",
+    "file": "wikidata-constraints.png"
+  },
+  {
+    "id": "wiki-page-info",
+    "url": "https://en.wikipedia.org/w/index.php?title=Boat&action=info",
+    "note": "a page's facts: created, last edited, edits in the last 30 days",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://en.wikipedia.org/w/index.php?title=Boat&action=info",
+    "title": "Information for \"Boat\" - Wikipedia",
+    "file": "wiki-page-info.png"
+  },
+  {
+    "id": "osm-history-brisbane",
+    "url": "https://www.openstreetmap.org/history#map=13/-27.4698/153.0251",
+    "note": "changesets in an area: what changed, by whom, counted",
+    "wait": 8000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.openstreetmap.org/#map=13/-27.46982/152.99509",
+    "title": "OpenStreetMap",
+    "file": "osm-history-brisbane.png"
+  },
+  {
+    "id": "garmin-transducers",
+    "url": "https://www.garmin.com/en-AU/c/marine/transducers/",
+    "note": "marine fitment: which transducer fits which chartplotter",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.garmin.com/en-AU/c/marine/transducers/",
+    "title": "Garmin | ERROR 404",
+    "file": "garmin-transducers.png"
+  },
+  {
+    "id": "github-insights-community",
+    "url": "https://github.com/vercel/next.js/community",
+    "note": "a checklist of what the repo has and lacks, each a door",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://github.com/vercel/next.js/community",
+    "title": "Community Standards · GitHub",
+    "file": "github-insights-community.png"
+  },
+  {
+    "id": "github-labels",
+    "url": "https://github.com/vercel/next.js/labels",
+    "note": "labels with their counts as doors",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://github.com/vercel/next.js/labels",
+    "title": "Labels · vercel/next.js · GitHub",
+    "file": "github-labels.png"
+  }
+]

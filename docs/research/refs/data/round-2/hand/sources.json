@@ -1,0 +1,56 @@
+[
+  {
+    "id": "github-pulse-390",
+    "url": "https://github.com/vercel/next.js/pulse",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://github.com/vercel/next.js/pulse",
+    "title": "Pulse · vercel/next.js · GitHub",
+    "file": "github-pulse-390.png"
+  },
+  {
+    "id": "wiki-recentchanges-390",
+    "url": "https://en.m.wikipedia.org/wiki/Special:RecentChanges?hidebots=1&limit=50&days=1",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://en.wikipedia.org/wiki/Special:RecentChanges?hidebots=1&hidecategorization=1&hideWikibase=1&limit=50&days=1&urlversion=2",
+    "title": "Recent changes - Wikipedia",
+    "file": "wiki-recentchanges-390.png"
+  },
+  {
+    "id": "nyc-open-data-390",
+    "url": "https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data",
+    "title": "Motor Vehicle Collisions - Crashes | NYC Open Data",
+    "file": "nyc-open-data-390.png"
+  },
+  {
+    "id": "plausible-390",
+    "url": "https://plausible.io/plausible.io",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://plausible.io/plausible.io",
+    "title": "Plausible Analytics: Live Demo",
+    "file": "plausible-390.png"
+  },
+  {
+    "id": "dolthub-repo-390",
+    "url": "https://www.dolthub.com/repositories/dolthub/standard-charge-files",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.dolthub.com/repositories/dolthub/standard-charge-files",
+    "title": "dolthub/standard-charge-files",
+    "file": "dolthub-repo-390.png"
+  },
+  {
+    "id": "npm-versions-390",
+    "url": "https://www.npmjs.com/package/react?activeTab=versions",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.npmjs.com/package/react?activeTab=versions",
+    "title": "react - npm",
+    "file": "npm-versions-390.png"
+  }
+]
