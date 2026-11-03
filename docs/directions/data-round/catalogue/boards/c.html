@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chandlery · C</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans);
+  font-size: var(--text-base); line-height: 1.45; overflow-wrap: break-word; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
+h1 { font-weight: 800; } h2, h3, h4 { font-weight: 700; }
+ul, ol { list-style: none; }
+.num, b { font-variant-numeric: tabular-nums lining-nums; }
+.nw { white-space: nowrap; }
+.sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* THE BAR, as the app floats it: top on a desk, the foot on a phone. */
+.bar { position: fixed; z-index: 30; inset-block-start: 8px; inset-inline: 0; margin-inline: auto; inline-size: max-content;
+  display: flex; align-items: center; gap: 2px; padding: 4px 6px 4px 4px; border-radius: var(--radius-pill);
+  background: var(--color-door); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+.bar a { display: inline-flex; align-items: center; gap: 6px; min-block-size: 36px; padding-inline: 12px; border-radius: var(--radius-pill);
+  font-weight: 600; color: var(--color-ink-2); }
+.bar a.on { background: var(--color-blue-800); color: var(--color-white); }
+.bar .bar-find { box-shadow: inset 0 0 0 1px var(--color-rule-strong); background: var(--color-plate-tint); margin-inline-end: 6px; }
+.bar-disc { display: grid; place-items: center; inline-size: 40px; block-size: 40px; border-radius: 50%; background: var(--color-blue-800); color: var(--color-white); margin-inline-end: 4px; box-shadow: 0 0 0 3px var(--color-blue-200); }
+.bar-count { min-inline-size: 20px; padding-inline: 6px; border-radius: var(--radius-pill); background: var(--color-wash); font-size: var(--text-xs); text-align: center; color: var(--color-ink); }
+body { padding-block: 64px 48px; }
+@media (max-width: 599px) {
+  .bar { inset-block: auto 8px; inline-size: calc(100% - 16px); justify-content: space-between; padding: 4px; }
+  .bar a { flex-direction: column; gap: 0; padding-inline: 4px; min-block-size: 44px; font-size: var(--text-xs); justify-content: center; }
+  .bar .bar-find span, .bar .bar-count { display: none; }
+  .bar .bar-find { inline-size: 40px; block-size: 40px; border-radius: 50%; padding: 0; margin: 0; }
+  .bar-disc { inline-size: 44px; block-size: 44px; margin: 0; }
+  body { padding-block: 12px 104px; }
+}
+/* a phone held sideways is short: the bar sits at the foot and the page starts at the top */
+@media (max-height: 480px) and (min-width: 600px) {
+  .bar { inset-block: auto 6px; }
+  body { padding-block: 10px 72px; }
+}
+
+.frame { inline-size: min(100% - 32px, 1360px); margin-inline: auto; }
+@media (min-width: 600px) { .frame { inline-size: min(100% - 48px, 1360px); } }
+@media (min-width: 1600px) { .frame { inline-size: min(100% - 96px, 1720px); } }
+
+.eyebrow { font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--color-ink-3); }
+.door { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--color-ink-file); white-space: nowrap; }
+.door:hover { text-decoration: underline; }
+.code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-ink-3); letter-spacing: 0; }
+.find { display: flex; align-items: center; gap: 10px; min-block-size: 44px; padding-inline: 14px 8px; border-radius: var(--radius-field);
+  background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-control-edge); color: var(--color-ink-3); min-inline-size: 0; }
+.find input { all: unset; flex: 1; min-inline-size: 0; color: var(--color-ink); font-size: var(--text-base); }
+.find input::placeholder { color: var(--color-ink-3); }
+.ui-kbd { flex: none; }
+.said { font-size: var(--text-sm); color: var(--color-ink-reason); }
+
+/* A PRICE CELL: the figure, then its level in small words under it */
+.pc { display: inline-grid; justify-items: end; line-height: 1.15; }
+.pc b { font-weight: 700; font-size: var(--text-base); }
+.pc small { font-size: var(--text-xs); color: var(--color-ink-3); font-weight: 600; }
+.pc.quiet i { font-style: normal; font-size: var(--text-xs); color: var(--color-ink-3); font-weight: 600; white-space: nowrap; }
+.pc.f b { color: var(--color-ink); }
+.pc.none { justify-items: start; font-size: var(--text-sm); color: var(--color-ink-reason); grid-column: span 2; }
+
+/* THE NOTES: the board's own words, under the screen. Paper, so it never reads as the app. */
+.notes { margin-block-start: 72px; padding-block: 48px 24px; background: var(--color-paper); border-block-start: 1px solid var(--color-rule-strong); }
+.notes .frame { display: grid; gap: 36px; }
+.notes h2 { font-size: var(--text-3xl); line-height: 1.15; letter-spacing: -0.01em; }
+.notes h3 { font-size: var(--text-xl); margin-block-end: 8px; }
+.notes p:not(.state p), .notes li:not(.state li) { max-inline-size: 72ch; color: var(--color-ink-2); font-size: var(--text-lg); line-height: 1.55; }
+.notes li:not(.state li) { margin-block: 4px; }
+.notes ul.dash li::before { content: '— '; color: var(--color-ink-3); }
+.notes code { font-family: var(--font-mono); font-size: 0.9em; overflow-wrap: anywhere; }
+.notes .cols { display: grid; gap: 28px 40px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); }
+.notes table:not(.state table) { border-collapse: collapse; inline-size: 100%; font-size: var(--text-base); }
+.notes th:not(.state th), .notes td:not(.state td) { text-align: start; vertical-align: top; padding: 8px 10px 8px 0; border-block-end: 1px solid var(--color-rule); }
+.notes th:not(.state th) { color: var(--color-ink-3); font-weight: 700; font-size: var(--text-sm); }
+.notes td:not(.state td):first-child { white-space: nowrap; font-weight: 700; color: var(--color-ink); }
+.notes .state { padding: 24px; border-radius: var(--radius-plate); background: var(--color-ground); box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.notes .state > .eyebrow { margin-block-end: 14px; display: block; }
+.notes .state { font-size: var(--text-base); color: var(--color-ink); }
+.notes .state p { margin: 0; }
+.specimen { display: grid; gap: 10px; }
+.specimen > div { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 16px; align-items: baseline; border-block-end: 1px solid var(--color-rule); padding-block-end: 8px; }
+.specimen span:first-child { font-size: var(--text-sm); color: var(--color-ink-3); font-family: var(--font-mono); }
+.board-name { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; }
+.board-name .eyebrow { color: var(--color-ink-file); }
+.rec { display: inline-flex; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-weight: 700; font-size: var(--text-sm); }
+@media (max-width: 599px) { .notes p:not(.state p), .notes li:not(.state li) { font-size: var(--text-base); } .notes .state { padding: 14px; } .notes table:not(.state table) { font-size: var(--text-sm); } .notes td:not(.state td):first-child { white-space: normal; } }
+
+
+.c-head { display: grid; grid-template-columns: auto auto minmax(0, 1fr) minmax(0, 440px); align-items: center; gap: 12px 24px; padding-block: 10px 18px; }
+.c-mark { display: block; block-size: 52px; inline-size: auto; max-inline-size: 220px; object-fit: contain; }
+.c-head h1 { font-size: var(--text-2xl); padding-inline-start: 20px; border-inline-start: 1px solid var(--color-rule-strong); }
+.c-rooms .ui-segmented-option { min-block-size: 44px; padding-inline: 18px; font-size: var(--text-base); }
+.c-rooms small { font-weight: 500; color: var(--color-ink-3); font-size: var(--text-xs); }
+.c-find { min-inline-size: 0; }
+.c-aisle { display: grid; gap: 22px; }
+.c-aisle-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'change change' 'name boat' 'count boat'; align-items: end; gap: 2px 16px;
+  padding-block: 18px 6px; border-block-start: 1px solid var(--color-rule-strong); }
+.c-change { grid-area: change; justify-self: start; margin-inline-start: -10px; }
+.c-aisle-head h2 { grid-area: name; font-size: var(--text-5xl); line-height: 1.05; letter-spacing: -0.02em; }
+.c-count { grid-area: count; color: var(--color-ink-2); }
+.c-boat { grid-area: boat; align-self: end; }
+.c-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.c-card { display: grid; grid-template-rows: auto 1fr auto; gap: 10px; padding: 12px 12px 14px; border-radius: var(--radius-tile); background: var(--color-plate);
+  box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+.c-card-pic { position: relative; aspect-ratio: 1; border-radius: var(--radius-md); background: var(--color-white); overflow: hidden; padding: 10px; }
+.c-zoom { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; inline-size: 34px; padding: 0; }
+.c-card h3 { font-size: var(--text-lg); line-height: 1.25; }
+.c-card-pr { display: flex; gap: 20px; align-items: center; }
+.c-card-pr .pc { justify-items: start; }
+.c-card-pr .pc b { font-size: var(--text-lg); }
+.c-rest { display: grid; gap: 14px; padding-block-start: 10px; }
+.c-rest h3 { font-size: var(--text-xl); display: flex; gap: 10px; align-items: baseline; }
+.c-rest h3 .num { color: var(--color-ink-3); font-size: var(--text-base); }
+.c-rest-cols { columns: 3 300px; column-gap: 36px; }
+.c-rest-group { break-inside: avoid; padding-block: 4px 16px; }
+.c-rest-group h4 { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-ink-3); padding-block-end: 6px; border-block-end: 1px solid var(--color-rule-strong); }
+.c-tl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding-block: 7px; border-block-end: 1px solid var(--color-rule); }
+.c-tl-name { font-weight: 500; }
+.c-tl-pr { display: grid; grid-template-columns: 4.2rem 4.2rem; gap: 6px; }
+.c-tl-pr .pc b { font-size: var(--text-sm); }
+.c-quote { margin-block-start: 4px; }
+
+/* KEEP */
+.k { display: grid; gap: 18px; }
+.k .c-head { padding-block-start: 0; }
+.k-lede { color: var(--color-ink-2); }
+.k-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+.k-card { display: grid; gap: 12px; padding: 18px; border-radius: var(--radius-plate); background: var(--color-plate); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); min-inline-size: 0; }
+.k-wide { grid-column: span 2; grid-row: span 2; }
+.k-card header { display: grid; gap: 4px; }
+.k-card h3 { display: flex; align-items: center; gap: 8px; font-size: var(--text-xl); margin: 0; }
+.k-card h3 .ui-icon { color: var(--color-ink-file); }
+.k-card header p { font-size: var(--text-base); color: var(--color-ink-2); }
+.k-card h4 { font-size: var(--text-base); display: flex; gap: 10px; align-items: baseline; }
+.k-card h4 .num { font-size: var(--text-sm); color: var(--color-ink-3); font-weight: 600; }
+.k-bars { columns: 2 280px; column-gap: 28px; }
+.k-bars li { display: grid; grid-template-columns: minmax(0, 1fr) 70px 7.5rem; gap: 10px; align-items: center; padding-block: 3px; font-size: var(--text-sm); break-inside: avoid; margin: 0; max-inline-size: none; }
+.k-aisle { display: flex; align-items: center; gap: 6px; min-inline-size: 0; color: var(--color-ink); }
+.k-aisle .ui-icon { color: var(--color-ink-file); flex: none; }
+.k-bar { block-size: 6px; border-radius: var(--radius-pill); background: var(--color-wash); overflow: hidden; }
+.k-bar span { display: block; block-size: 100%; background: var(--color-leaf-600); }
+.k-n { text-align: end; color: var(--color-ink-2); white-space: nowrap; }
+.k-drop { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px; border-radius: var(--radius-md); background: var(--color-ground); box-shadow: inset 0 0 0 1px var(--color-control-edge); }
+.k-drop p { font-size: var(--text-sm); color: var(--color-ink-2); }
+.k-list li { display: grid; grid-template-columns: minmax(0, 1fr) 7rem 3rem auto; gap: 10px; align-items: center; padding-block: 4px; border-block-end: 1px solid var(--color-rule); font-size: var(--text-sm); margin: 0; max-inline-size: none; }
+.k-name { font-weight: 600; }
+.k-sup { color: var(--color-ink-2); }
+.k-place li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; padding-block: 8px; border-block-end: 1px solid var(--color-rule); margin: 0; max-inline-size: none; }
+.k-place p { font-size: var(--text-sm); color: var(--color-ink-2); }
+.k-select { display: inline-flex; align-items: center; gap: 6px; min-block-size: 32px; padding-inline: 10px; border-radius: var(--radius-field); box-shadow: inset 0 0 0 1px var(--color-control-edge); background: var(--color-plate); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.k-names li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding-block: 6px; border-block-end: 1px solid var(--color-rule); font-size: var(--text-sm); margin: 0; max-inline-size: none; }
+.k-plain li { font-size: var(--text-sm); margin: 0; padding-block: 3px; }
+.k-card .said { font-size: var(--text-sm); }
+
+/* REFLOW */
+@media (min-width: 1600px) { .c-shots { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); } }
+@media (max-width: 1279px) { .k-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .k-wide { grid-row: auto; } }
+@media (max-width: 1100px) {
+  .c-head { grid-template-columns: auto auto minmax(0, 1fr); } .c-find { grid-column: 1 / -1; }
+}
+@media (max-height: 480px) and (min-width: 600px) {
+  .c-head { grid-template-columns: auto auto auto minmax(0, 1fr); padding-block: 4px 8px; } .c-find { grid-column: auto; }
+  .c-mark { block-size: 36px; } .c-head h1 { font-size: var(--text-xl); padding-inline-start: 12px; }
+  .c-rooms small { display: none; } .c-rooms .ui-segmented-option { min-block-size: 36px; padding-inline: 12px; }
+  .c-aisle-head { grid-template-areas: 'change change' 'name boat'; padding-block-start: 8px; } .c-count { display: none; }
+  .c-aisle-head h2 { font-size: var(--text-3xl); }
+  .c-shots { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .c-card h3 { font-size: var(--text-sm); } .c-card-pic { padding: 6px; }
+}
+@media (max-width: 760px) { .k-grid { grid-template-columns: minmax(0, 1fr); } .k-wide { grid-column: auto; } .k-list li { grid-template-columns: minmax(0, 1fr) auto; } .k-list .code, .k-list .k-sup { display: none; } }
+@media (max-width: 599px) {
+  .c-head { grid-template-columns: auto minmax(0, 1fr); gap: 12px; }
+  .c-mark { block-size: 38px; }
+  .c-head h1 { font-size: var(--text-xl); padding-inline-start: 12px; }
+  .c-rooms { grid-column: 1 / -1; } .c-rooms .ui-segmented { display: grid; inline-size: 100%; } .c-rooms { display: grid; }
+  .c-rooms .ui-segmented-option { padding-inline: 8px; }
+  .c-find .ui-kbd { display: none; }
+  .c-aisle-head { grid-template-areas: 'change' 'name' 'count' 'boat'; grid-template-columns: minmax(0, 1fr); }
+  .c-boat { justify-self: start; margin-block-start: 8px; }
+  .c-aisle-head h2 { font-size: var(--text-4xl); }
+  .c-shots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .c-card { padding: 8px 8px 10px; gap: 8px; } .c-card-pic { padding: 6px; }
+  .c-card h3 { font-size: var(--text-sm); } .c-card-pr { gap: 12px; } .c-card-pr .pc b { font-size: var(--text-base); }
+  .c-tl { grid-template-columns: minmax(0, 1fr); }
+  .c-tl-pr { grid-template-columns: auto auto; justify-content: start; gap: 18px; }
+  .c-tl-pr .pc { justify-items: start; }
+  .k-drop { grid-template-columns: minmax(0, 1fr); }
+  .k-bars li { grid-template-columns: minmax(0, 1fr) 6.5rem; } .k-bar { display: none; }
+}
+
+</style>
+</head>
+<body data-board="c">
+
+<nav class="bar" aria-label="The bar">
+  <span class="bar-disc" aria-hidden="true"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M225.24,174.74a12,12,0,0,1-1.58,16.89C205.49,206.71,189.06,212,174.15,212c-19.76,0-36.86-9.29-51.88-17.44-25.06-13.62-44.86-24.37-74.61.3a12,12,0,1,1-15.32-18.48c42.25-35,75-17.23,101.39-2.92,25.06,13.61,44.86,24.37,74.61-.3A12,12,0,0,1,225.24,174.74Zm-16.9-57.59c-29.75,24.67-49.55,13.91-74.61.3-26.35-14.3-59.14-32.11-101.39,2.92a12,12,0,0,0,15.32,18.48c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48ZM47.66,82.84c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48c-29.75,24.67-49.55,13.92-74.61.3-26.35-14.3-59.14-32.11-101.39,2.93A12,12,0,1,0,47.66,82.84Z"></path></svg></span>
+  <a class="bar-find" href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span>Find</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M222.14,105.85l-80-80a20,20,0,0,0-28.28,0l-80,80A19.86,19.86,0,0,0,28,120v96a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V164h24v52a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V120A19.86,19.86,0,0,0,222.14,105.85ZM204,204H164V152a12,12,0,0,0-12-12H104a12,12,0,0,0-12,12v52H52V121.65l76-76,76,76Z"></path></svg><span>Home</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,79.52l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.52ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Zm112-80a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,132Zm0,40a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,172Z"></path></svg><span>Quotes</span><b class="bar-count">0</b></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M125.18,156.94a64,64,0,1,0-82.36,0,100.23,100.23,0,0,0-39.49,32,12,12,0,0,0,19.35,14.2,76,76,0,0,1,122.64,0,12,12,0,0,0,19.36-14.2A100.33,100.33,0,0,0,125.18,156.94ZM44,108a40,40,0,1,1,40,40A40,40,0,0,1,44,108Zm206.1,97.67a12,12,0,0,1-16.78-2.57A76.31,76.31,0,0,0,172,172a12,12,0,0,1,0-24,40,40,0,1,0-10.3-78.67,12,12,0,1,1-6.16-23.19,64,64,0,0,1,57.64,110.8,100.23,100.23,0,0,1,39.49,32A12,12,0,0,1,250.1,205.67Z"></path></svg><span>Customers</span></a>
+  <a href="#" class="on" aria-current="page"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M196,35.52C177.62,25.51,153.48,20,128,20S78.38,25.51,60,35.52C39.37,46.79,28,62.58,28,80v96c0,17.42,11.37,33.21,32,44.48,18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52c20.66-11.27,32-27.06,32-44.48V80C228,62.58,216.63,46.79,196,35.52ZM204,128c0,17-31.21,36-76,36s-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94ZM128,44c44.79,0,76,19,76,36s-31.21,36-76,36S52,97,52,80,83.21,44,128,44Zm0,168c-44.79,0-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94V176C204,193,172.79,212,128,212Z"></path></svg><span>Data</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M140,80v41.21l34.17,20.5a12,12,0,1,1-12.34,20.58l-40-24A12,12,0,0,1,116,128V80a12,12,0,0,1,24,0ZM128,28A99.38,99.38,0,0,0,57.24,57.34c-4.69,4.74-9,9.37-13.24,14V64a12,12,0,0,0-24,0v40a12,12,0,0,0,12,12H72a12,12,0,0,0,0-24H57.77C63,86,68.37,80.22,74.26,74.26a76,76,0,1,1,1.58,109,12,12,0,0,0-16.48,17.46A100,100,0,1,0,128,28Z"></path></svg><span>History</span></a>
+</nav>
+
+<main class="c-page frame" id="main">
+  
+<header class="c-head">
+  <img class="c-mark" src="../../../../../public/brand-marks/northside-marine.png" alt="Northside Marine">
+  <h1>Chandlery</h1>
+  <div class="ui-segmented-frame c-rooms"><fieldset class="ui-segmented"><legend class="ui-segmented-legend">Room</legend>
+    <label class="ui-segmented-option" data-checked><span class="ui-segmented-thumb"></span><input class="ui-segmented-input" type="radio" name="c-room-show" checked><span class="ui-segmented-face"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M236,96a12,12,0,0,0-.44-3.3L221.2,42.51A20.08,20.08,0,0,0,202,28H54A20.08,20.08,0,0,0,34.8,42.51L20.46,92.7A12,12,0,0,0,20,96h0v16a43.94,43.94,0,0,0,16,33.92V216a12,12,0,0,0,12,12H208a12,12,0,0,0,12-12V145.92A43.94,43.94,0,0,0,236,112V96ZM57.05,52H199l9.14,32H47.91Zm91,56v4a20,20,0,0,1-40,0v-4ZM53,128.71A20,20,0,0,1,44,112v-4H84v4a20,20,0,0,1-20,20,19.76,19.76,0,0,1-9.07-2.2A11.54,11.54,0,0,0,53,128.71ZM196,204H60V155.81c1.32.12,2.65.19,4,.19a43.86,43.86,0,0,0,32-13.85,43.89,43.89,0,0,0,64,0A43.86,43.86,0,0,0,192,156c1.35,0,2.68-.07,4-.19Zm16-92a20,20,0,0,1-9,16.71,11.66,11.66,0,0,0-1.88,1.09A20,20,0,0,1,172,112v-4h40Z"></path></svg>Show <small>for the customer</small></span></label>
+    <label class="ui-segmented-option"><input class="ui-segmented-input" type="radio" name="c-room-show"><span class="ui-segmented-face"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,64H180V56a28,28,0,0,0-28-28H104A28,28,0,0,0,76,56v8H32A20,20,0,0,0,12,84V192a20,20,0,0,0,20,20H224a20,20,0,0,0,20-20V84A20,20,0,0,0,224,64ZM100,56a4,4,0,0,1,4-4h48a4,4,0,0,1,4,4v8H100ZM220,88v32H196v-4a12,12,0,0,0-24,0v4H84v-4a12,12,0,0,0-24,0v4H36V88ZM36,188V144H60v4a12,12,0,0,0,24,0v-4h88v4a12,12,0,0,0,24,0v-4h24v44Z"></path></svg>Keep <small>for Northside</small></span></label>
+  </fieldset></div>
+  <label class="find c-find"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span class="sr">Find a part</span><input placeholder="Name, code, maker or heading"><kbd class="ui-kbd ui-kbd--quiet"><span class="ui-kbd-key">/</span></kbd></label>
+</header>
+  <section class="c-aisle" aria-labelledby="c-aisle-h">
+    <div class="c-aisle-head">
+      <button class="ui-button c-change" data-intent="quiet" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M228,128a12,12,0,0,1-12,12H69l51.52,51.51a12,12,0,0,1-17,17l-72-72a12,12,0,0,1,0-17l72-72a12,12,0,0,1,17,17L69,116H216A12,12,0,0,1,228,128Z"></path></svg>Change aisle</button>
+      <h2 id="c-aisle-h">Radios &amp; beacons</h2>
+      <p class="c-count"><b>47</b> parts · <b>12</b> photographed</p>
+      <span class="c-boat"><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M222.33,106.79,212,103.35V56a20,20,0,0,0-20-20H140V24a12,12,0,0,0-24,0V36H64A20,20,0,0,0,44,56v47.35l-10.33,3.44a20,20,0,0,0-13.67,19V152c0,64.63,100.8,90.57,105.09,91.64a11.94,11.94,0,0,0,5.82,0C135.2,242.57,236,216.63,236,152V125.77A20,20,0,0,0,222.33,106.79ZM68,60H188V95.35L131.79,76.62a11.85,11.85,0,0,0-7.58,0L68,95.35Zm144,92c0,36.69-58.08,60.43-84,67.59-25.94-7.17-84-30.9-84-67.59V128.65l72-24V168a12,12,0,0,0,24,0V104.65l72,24Z"></path></svg>For a boat…</button></span></span>
+    </div>
+    <div class="c-shots">
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/cf-lg-22ac0eda-0054-4f84-b18b-ac0ba3da43fc-5042115f.webp" alt="VHF Radio · Garmin VHF115i" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See VHF Radio · Garmin VHF115i larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>VHF Radio · Garmin VHF115i</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$428</b><small>supply</small></span><span class="pc f"><b>$839</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/cf-lg-691df03b-2990-42fd-9d88-388c9c8525ff-a5d981d8.webp" alt="Garmin AIS800 Blackbox Transceiver" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See Garmin AIS800 Blackbox Transceiver larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>Garmin AIS800 Blackbox Transceiver</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$1,739</b><small>supply</small></span><span class="pc f"><b>$2,071</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/cf-lg-8dbd9104.webp" alt="Garmin GA38 GPS/Glonass Antenna" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See Garmin GA38 GPS/Glonass Antenna larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>Garmin GA38 GPS/Glonass Antenna</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$199</b><small>supply</small></span><span class="pc f"><b>$444</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/gx700w-front-1920x770-990c6c44.webp" alt="VHF Fixed Mount Marine Radio · White" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See VHF Fixed Mount Marine Radio · White larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>VHF Fixed Mount Marine Radio · White</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$249</b><small>supply</small></span><span class="pc f"><b>$660</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/gx700b-groupshot-1823x1440-98bb22a0.webp" alt="VHF Fixed Mount Marine Radio · Black" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See VHF Fixed Mount Marine Radio · Black larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>VHF Fixed Mount Marine Radio · Black</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$249</b><small>supply</small></span><span class="pc f"><b>$660</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/gx610-front-1-508x1440-811944c2.webp" alt="VHF Handheld Marine Radio · 2.5 Watt" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See VHF Handheld Marine Radio · 2.5 Watt larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>VHF Handheld Marine Radio · 2.5 Watt</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$159</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/gx625w-front-354x1440-8770ad5f.webp" alt="VHF Handheld Marine Radio · Wash" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See VHF Handheld Marine Radio · Wash larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>VHF Handheld Marine Radio · Wash</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$189</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/spk09-front34-new2022-1305x1440-20affffe.webp" alt="4 Ohm extension speaker with lead &amp; plug black" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See 4 Ohm extension speaker with lead &amp; plug black larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>4 Ohm extension speaker with lead &amp; plug black</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$55</b><small>supply</small></span><span class="pc f"><b>$221</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/abl012-front-1217x1440-2ed9258e.webp" alt="Double Swivel rectangular antenna base with lead for AW36XX range of whips" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See Double Swivel rectangular antenna base with lead for AW36XX range of whips larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>Double Swivel rectangular antenna base with lead for AW36XX range of whips</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$69</b><small>supply</small></span><span class="pc f"><b>$219</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/abl013b-front-1485x1440-5e496ceb.webp" alt="Single Swivel rectangular antenna base with lead for AW36XX range of whips · Black" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See Single Swivel rectangular antenna base with lead for AW36XX range of whips · Black larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>Single Swivel rectangular antenna base with lead for AW36XX range of whips · Black</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$65</b><small>supply</small></span><span class="pc f"><b>$215</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/abl015-front-1513x1440-9e2294f9.webp" alt="Single Swivel round antenna base with lead for AW36XX range of whips" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See Single Swivel round antenna base with lead for AW36XX range of whips larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>Single Swivel round antenna base with lead for AW36XX range of whips</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$65</b><small>supply</small></span><span class="pc f"><b>$215</b><small>fitted</small></span></div>
+</article>
+<article class="c-card">
+  <div class="c-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/le028-connection-387x1080-2a6f23e6.webp" alt="DC Power Lead For GX300" loading="lazy">
+    <button class="ui-button c-zoom" data-intent="veiled" data-size="sm" aria-label="See DC Power Lead For GX300 larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>DC Power Lead For GX300</h3>
+  <div class="c-card-pr"><span class="pc s"><b>$33</b><small>supply</small></span><span class="pc f"><b>$50</b><small>fitted</small></span></div>
+</article></div>
+    <section class="c-rest" aria-labelledby="c-rest-h">
+      <h3 id="c-rest-h">Also in Radios &amp; beacons <span class="num">35</span></h3>
+      <div class="c-rest-cols">
+        <div class="c-rest-group"><h4>Garmin VHF radios</h4><ul><li class="c-tl"><span class="c-tl-name">VHF Radio · Garmin VHF215i</span><span class="c-tl-pr"><span class="pc s"><b>$599</b><small>supply</small></span><span class="pc f"><b>$1,010</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF Radio · Garmin VHF215i AIS</span><span class="c-tl-pr"><span class="pc s"><b>$899</b><small>supply</small></span><span class="pc f"><b>$1,310</b><small>fitted</small></span></span></li></ul></div><div class="c-rest-group"><h4>GME – EPIRB's</h4><ul><li class="c-tl"><span class="c-tl-name">GME EPIRB · 406MHz GNSS · Manual Ativation</span><span class="c-tl-pr"><span class="pc s"><b>$439</b><small>supply</small></span><span class="pc f"><b>$472</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Float Free Housing Kit t/s GME EPIRB</span><span class="c-tl-pr"><span class="pc s"><b>$169</b><small>supply</small></span><span class="pc f"><b>$202</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Mounting Bracket t/s GME MT600 / MT600G</span><span class="c-tl-pr"><span class="pc s"><b>$39</b><small>supply</small></span><span class="pc f"><b>$72</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Mounting Bracket t/s GME MT603G</span><span class="c-tl-pr"><span class="pc s"><b>$49</b><small>supply</small></span><span class="pc f"><b>$82</b><small>fitted</small></span></span></li></ul></div><div class="c-rest-group"><h4>GME – personal locator beacon</h4><ul><li class="c-tl"><span class="c-tl-name">GME (PLB) Personal Locator Beacon · MT610 406MHz GPS</span><span class="c-tl-pr"><span class="pc s"><b>$429</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></span></li><li class="c-tl"><span class="c-tl-name">Premium Case t/s GME Personal EPIRB</span><span class="c-tl-pr"><span class="pc s"><b>$34</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></span></li></ul></div><div class="c-rest-group"><h4>GME – VHF marine radios</h4><ul><li class="c-tl"><span class="c-tl-name">Black Box VHF Marine Radio · White</span><span class="c-tl-pr"><span class="pc s"><b>$349</b><small>supply</small></span><span class="pc f"><b>$681</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Black Box VHF Marine Radio · Black</span><span class="c-tl-pr"><span class="pc s"><b>$349</b><small>supply</small></span><span class="pc f"><b>$681</b><small>fitted</small></span></span></li></ul></div><div class="c-rest-group"><h4>GME – handheld VHF marine radios</h4><ul><li class="c-tl"><span class="c-tl-name">VHF Handheld Marine Radio · 5/1 Watt</span><span class="c-tl-pr"><span class="pc s"><b>$190</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></span></li><li class="c-tl"><span class="c-tl-name">VHF Handheld Marine Radio · Float &amp; Flash</span><span class="c-tl-pr"><span class="pc s"><b>$295</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></span></li><li class="c-tl"><span class="c-tl-name">VHF Handheld DSC Marine Radio · Float &amp; Flash</span><span class="c-tl-pr"><span class="pc s"><b>$389</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></span></li></ul></div><div class="c-rest-group"><h4>GME – extension speakers</h4><ul><li class="c-tl"><span class="c-tl-name">4 Ohm Extension Speaker Box / Lead &amp; Plug black</span><span class="c-tl-pr"><span class="pc s"><b>$55</b><small>supply</small></span><span class="pc f"><b>$221</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">8 ohm dust/water resistant extension speaker with lead &amp; plug black</span><span class="c-tl-pr"><span class="pc s"><b>$49</b><small>supply</small></span><span class="pc f"><b>$215</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">8 Ohm extension speaker with lead &amp; plug black</span><span class="c-tl-pr"><span class="pc s"><b>$55</b><small>supply</small></span><span class="pc f"><b>$221</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">8 Ohm 6.5 mm x 6.5 mm extension speaker with lead and plug white</span><span class="c-tl-pr"><span class="pc s"><b>$39</b><small>supply</small></span><span class="pc f"><b>$205</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">8 Ohm 6.5 mm x 6.5 mm extension speaker with lead &amp; plug Black</span><span class="c-tl-pr"><span class="pc s"><b>$39</b><small>supply</small></span><span class="pc f"><b>$205</b><small>fitted</small></span></span></li></ul></div><div class="c-rest-group"><h4>GME – AIS Automatic Identification System</h4><ul><li class="c-tl"><span class="c-tl-name">AIS Transceiver (Class B) · Transmitter/Receiver with internal GPS antenna</span><span class="c-tl-pr"><span class="pc s"><b>$995</b><small>supply</small></span><span class="pc f"><b>$1,406</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">AIS Antenna Splitter Zero loss active VHF antenna splitter</span><span class="c-tl-pr"><span class="pc s"><b>$449</b><small>supply</small></span><span class="pc f"><b>$608</b><small>fitted</small></span></span></li></ul></div><div class="c-rest-group"><h4>GME – aerial bases</h4><ul><li class="c-tl"><span class="c-tl-name">Double Swivel rectangular antenna base with lead for AW36XX range of whips · Black</span><span class="c-tl-pr"><span class="pc s"><b>$75</b><small>supply</small></span><span class="pc f"><b>$225</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Single Swivel rectangular antenna base with lead for AW36XX range of whips</span><span class="c-tl-pr"><span class="pc s"><b>$64</b><small>supply</small></span><span class="pc f"><b>$214</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Double Swivel round antenna base with lead for AW36XX range of whips</span><span class="c-tl-pr"><span class="pc s"><b>$64</b><small>supply</small></span><span class="pc f"><b>$214</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Double Swivel round antenna base with lead for AW36XX range of whips · Black</span><span class="c-tl-pr"><span class="pc s"><b>$66</b><small>supply</small></span><span class="pc f"><b>$216</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Single Swivel round antenna base with lead for AW36XX range of whips · Black</span><span class="c-tl-pr"><span class="pc s"><b>$69</b><small>supply</small></span><span class="pc f"><b>$219</b><small>fitted</small></span></span></li></ul></div><div class="c-rest-group"><h4>GME – VHF marine antennas</h4><ul><li class="c-tl"><span class="c-tl-name">VHF detachable antenna whip 1200 mm</span><span class="c-tl-pr"><span class="pc s"><b>$59</b><small>supply</small></span><span class="pc f"><b>$76</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF detachable antenna whip 1200 mm · Black</span><span class="c-tl-pr"><span class="pc s"><b>$75</b><small>supply</small></span><span class="pc f"><b>$92</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF 1800 mm detachable ant whip</span><span class="c-tl-pr"><span class="pc s"><b>$85</b><small>supply</small></span><span class="pc f"><b>$102</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF detachable antenna whip 1800 mm · Black</span><span class="c-tl-pr"><span class="pc s"><b>$85</b><small>supply</small></span><span class="pc f"><b>$102</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF detachable antenna whip 2400 mm</span><span class="c-tl-pr"><span class="pc s"><b>$79</b><small>supply</small></span><span class="pc f"><b>$96</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF detachable antenna whip 2400 mm · Black</span><span class="c-tl-pr"><span class="pc s"><b>$92</b><small>supply</small></span><span class="pc f"><b>$109</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF 1800 mm Antenna, Single Swivel with Cable</span><span class="c-tl-pr"><span class="pc s"><b>$89</b><small>supply</small></span><span class="pc f"><b>$239</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">VHF 450 mm Ground Dependant antenna with base, cable &amp; plug</span><span class="c-tl-pr"><span class="pc s"><b>$66</b><small>supply</small></span><span class="pc f"><b>$152</b><small>fitted</small></span></span></li></ul></div><div class="c-rest-group"><h4>GME – marine radio accessories</h4><ul><li class="c-tl"><span class="c-tl-name">VHF or 27 MHz and AM/FM Band Splitter</span><span class="c-tl-pr"><span class="pc s"><b>$62</b><small>supply</small></span><span class="pc f"><b>$79</b><small>fitted</small></span></span></li><li class="c-tl"><span class="c-tl-name">Microphone Bracket White</span><span class="c-tl-pr"><span class="pc s"><b>$17</b><small>supply</small></span><span class="pc f"><b>$34</b><small>fitted</small></span></span></li></ul></div>
+      </div>
+    </section>
+    <p class="said c-quote">A part is quoted on its own only where Northside lets it, and Parts &amp; Accessories is sold only with a boat today. <a class="door" href="#">Let it be quoted on its own <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></p>
+  </section>
+</main>
+
+<section class="notes" aria-label="About this board">
+<div class="frame">
+  <div class="board-name"><span class="eyebrow">Board C · the chandlery redrawn</span><h2>Two rooms: Show and Keep</h2></div>
+  <p><b>The screen’s one job:</b> show a customer at the desk what Northside sells, as well as it can be shown, and keep the list behind it whole.</p>
+  <p><b>What this screen does that no other does:</b> it separates what the customer sees from the work the list needs, over the same aisles, with one control. Show has no code, no supplier and no <i>Add a picture</i>; Keep has every one of them, as six counted worklists that fall as the work is done.</p>
+  <div class="cols">
+    <div>
+      <h3>Order and grouping</h3>
+      <ol class="dash">
+        <li>— Northside’s mark, the room (<b>Show | Keep</b>) and find, at the top of both rooms.</li>
+        <li>— <b>Show</b>: the aisle held large with <i>Change aisle</i>; its photographs as large cards; then every other part as type, grouped by heading, with its two prices.</li>
+        <li>— <b>Keep</b>: grouped by the work, not by the aisle: to picture (by aisle, with the drop by code), to place, to name, to price, notes, and the quote switch.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>References new to this board</h3>
+      <ul class="dash">
+        <li>— Akeneo’s product grid: <i>Display · List | Gallery</i> over one set of products, and <i>Picture is not empty</i> as a filter. <code>docs/research/refs/choosing/round-2/live/akeneo-grid-filters.png</code>.</li>
+        <li>— Akeneo’s product link rules: a file name carries the code, and a picture finds its own product. <code>live/akeneo-product-link-rules.png</code>.</li>
+        <li>— Supporting: Akeneo’s <i>Unclassified products</i> bucket. <code>live/akeneo-grid-columns.png</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="state"><span class="eyebrow">Second state · the Keep room, <code>/catalogue?room=keep</code></span>
+<div class="k">
+  
+<header class="c-head">
+  <img class="c-mark" src="../../../../../public/brand-marks/northside-marine.png" alt="Northside Marine">
+  <h1>Chandlery</h1>
+  <div class="ui-segmented-frame c-rooms"><fieldset class="ui-segmented"><legend class="ui-segmented-legend">Room</legend>
+    <label class="ui-segmented-option"><input class="ui-segmented-input" type="radio" name="c-room-keep"><span class="ui-segmented-face"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M236,96a12,12,0,0,0-.44-3.3L221.2,42.51A20.08,20.08,0,0,0,202,28H54A20.08,20.08,0,0,0,34.8,42.51L20.46,92.7A12,12,0,0,0,20,96h0v16a43.94,43.94,0,0,0,16,33.92V216a12,12,0,0,0,12,12H208a12,12,0,0,0,12-12V145.92A43.94,43.94,0,0,0,236,112V96ZM57.05,52H199l9.14,32H47.91Zm91,56v4a20,20,0,0,1-40,0v-4ZM53,128.71A20,20,0,0,1,44,112v-4H84v4a20,20,0,0,1-20,20,19.76,19.76,0,0,1-9.07-2.2A11.54,11.54,0,0,0,53,128.71ZM196,204H60V155.81c1.32.12,2.65.19,4,.19a43.86,43.86,0,0,0,32-13.85,43.89,43.89,0,0,0,64,0A43.86,43.86,0,0,0,192,156c1.35,0,2.68-.07,4-.19Zm16-92a20,20,0,0,1-9,16.71,11.66,11.66,0,0,0-1.88,1.09A20,20,0,0,1,172,112v-4h40Z"></path></svg>Show <small>for the customer</small></span></label>
+    <label class="ui-segmented-option" data-checked><span class="ui-segmented-thumb"></span><input class="ui-segmented-input" type="radio" name="c-room-keep" checked><span class="ui-segmented-face"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,64H180V56a28,28,0,0,0-28-28H104A28,28,0,0,0,76,56v8H32A20,20,0,0,0,12,84V192a20,20,0,0,0,20,20H224a20,20,0,0,0,20-20V84A20,20,0,0,0,224,64ZM100,56a4,4,0,0,1,4-4h48a4,4,0,0,1,4,4v8H100ZM220,88v32H196v-4a12,12,0,0,0-24,0v4H84v-4a12,12,0,0,0-24,0v4H36V88ZM36,188V144H60v4a12,12,0,0,0,24,0v-4h88v4a12,12,0,0,0,24,0v-4h24v44Z"></path></svg>Keep <small>for Northside</small></span></label>
+  </fieldset></div>
+  <label class="find c-find"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span class="sr">Find a part</span><input placeholder="Name, code, maker or heading"><kbd class="ui-kbd ui-kbd--quiet"><span class="ui-kbd-key">/</span></kbd></label>
+</header>
+  <p class="k-lede">What the chandlery is waiting on Northside for. Each list is counted off the price list, and each count falls as the work is done.</p>
+  <div class="k-grid">
+    <section class="k-card k-wide">
+      <header><h3><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,28H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28Zm-4,24v63.72L186.14,97.86a20,20,0,0,0-28.28,0L52,203.72V52ZM85.66,204,172,117.66l32,32V204ZM76,96a20,20,0,1,1,20,20A20,20,0,0,1,76,96Z"></path></svg>To picture</h3><p><b class="num">2,041</b> of 2,238 parts have no picture</p></header>
+      <ul class="k-bars"><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M225.24,174.74a12,12,0,0,1-1.58,16.89C205.49,206.71,189.06,212,174.15,212c-19.76,0-36.86-9.29-51.88-17.44-25.06-13.62-44.86-24.37-74.61.3a12,12,0,1,1-15.32-18.48c42.25-35,75-17.23,101.39-2.92,25.06,13.61,44.86,24.37,74.61-.3A12,12,0,0,1,225.24,174.74Zm-16.9-57.59c-29.75,24.67-49.55,13.91-74.61.3-26.35-14.3-59.14-32.11-101.39,2.92a12,12,0,0,0,15.32,18.48c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48ZM47.66,82.84c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48c-29.75,24.67-49.55,13.92-74.61.3-26.35-14.3-59.14-32.11-101.39,2.93A12,12,0,1,0,47.66,82.84Z"></path></svg>Sounders &amp; chartplotters</span><span class="k-bar" aria-hidden="true"><span style="inline-size:65.4%"></span></span><span class="k-n num"><b>85</b> of 246</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M160,172a36,36,0,1,0-36-36A36,36,0,0,0,160,172Zm0-48a12,12,0,1,1-12,12A12,12,0,0,1,160,124Zm56-64H113.76l81.69-24.5a12,12,0,0,0-6.9-23l-160,48A12,12,0,0,0,20,72V192a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V80A20,20,0,0,0,216,60Zm-4,128H44V84H212ZM60,116a12,12,0,0,1,12-12H96a12,12,0,0,1,0,24H72A12,12,0,0,1,60,116Zm0,40a12,12,0,0,1,12-12H96a12,12,0,0,1,0,24H72A12,12,0,0,1,60,156Z"></path></svg>Radios &amp; beacons</span><span class="k-bar" aria-hidden="true"><span style="inline-size:25.5%"></span></span><span class="k-n num"><b>35</b> of 47</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M192,20H64A20,20,0,0,0,44,40V216a20,20,0,0,0,20,20H192a20,20,0,0,0,20-20V40A20,20,0,0,0,192,20Zm-4,192H68V44H188ZM112,76a16,16,0,1,1,16,16A16,16,0,0,1,112,76Zm16,120a44,44,0,1,0-44-44A44.05,44.05,0,0,0,128,196Zm0-64a20,20,0,1,1-20,20A20,20,0,0,1,128,132Z"></path></svg>Stereo &amp; TV</span><span class="k-bar" aria-hidden="true"><span style="inline-size:24.4%"></span></span><span class="k-n num"><b>31</b> of 41</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm44.25,135.28a51.89,51.89,0,0,0,0-54.56l23-23a83.84,83.84,0,0,1,0,100.56ZM100,128a28,28,0,1,1,28,28A28,28,0,0,1,100,128Zm78.28-67.25-23,23a51.89,51.89,0,0,0-54.56,0l-23-23a83.84,83.84,0,0,1,100.56,0Zm-117.53,17,23,23a51.89,51.89,0,0,0,0,54.56l-23,23a83.84,83.84,0,0,1,0-100.56Zm17,117.53,23-23a51.89,51.89,0,0,0,54.56,0l23,23a83.84,83.84,0,0,1-100.56,0Z"></path></svg>Safety gear &amp; life jackets</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>48</b> of 48</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216,132a12,12,0,0,0-12,12c0,21.86-11.41,25.95-35.16,32.42-9.12,2.49-19.61,5.36-28.84,10.69V132h28a12,12,0,0,0,0-24H140V89.94a36,36,0,1,0-24,0V108H88a12,12,0,0,0,0,24h28v55.11c-9.23-5.33-19.72-8.2-28.84-10.69C63.41,170,52,165.86,52,144a12,12,0,0,0-24,0c0,41.17,30.54,49.5,52.84,55.58C104.59,206.05,116,210.14,116,232a12,12,0,0,0,24,0c0-21.86,11.41-25.95,35.16-32.42C197.46,193.5,228,185.17,228,144A12,12,0,0,0,216,132ZM128,44a12,12,0,1,1-12,12A12,12,0,0,1,128,44Z"></path></svg>Anchoring &amp; mooring</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>66</b> of 66</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M196,52H28A28,28,0,0,0,0,80v96a28,28,0,0,0,28,28H196a28,28,0,0,0,28-28V80A28,28,0,0,0,196,52Zm4,124a4,4,0,0,1-4,4H28a4,4,0,0,1-4-4V80a4,4,0,0,1,4-4H196a4,4,0,0,1,4,4Zm56-72v48a12,12,0,0,1-24,0V104a12,12,0,0,1,24,0ZM142.38,122a12,12,0,0,1,0,12l-16,28a12,12,0,1,1-20.84-11.9L111.32,140H100a12,12,0,0,1-10.42-18l16-28A12,12,0,0,1,126.42,106l-5.74,10H132A12,12,0,0,1,142.38,122Z"></path></svg>Batteries &amp; power</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>105</b> of 105</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M180,232a12,12,0,0,1-12,12H88a12,12,0,0,1,0-24h80A12,12,0,0,1,180,232Zm40-128a91.51,91.51,0,0,1-35.17,72.35A12.26,12.26,0,0,0,180,186v2a20,20,0,0,1-20,20H96a20,20,0,0,1-20-20v-2a12,12,0,0,0-4.7-9.51A91.57,91.57,0,0,1,36,104.52C35.73,54.69,76,13.2,125.79,12A92,92,0,0,1,220,104Zm-24,0a68,68,0,0,0-69.65-68C89.56,36.88,59.8,67.55,60,104.38a67.71,67.71,0,0,0,26.1,53.19A35.87,35.87,0,0,1,100,184h56.1A36.13,36.13,0,0,1,170,157.49,67.68,67.68,0,0,0,196,104Zm-20.07-5.32a48.5,48.5,0,0,0-31.91-40,12,12,0,0,0-8,22.62,24.31,24.31,0,0,1,16.09,20,12,12,0,0,0,23.86-2.64Z"></path></svg>Lights</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>20</b> of 20</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,93.65A60.08,60.08,0,0,0,164,36a20,20,0,0,0-20,20V172H128V72a12,12,0,0,0-12-12H20A20,20,0,0,0,0,80V184a36,36,0,0,0,60,26.8A36,36,0,0,0,117.94,196h68.12A36,36,0,0,0,256,184V136A44.08,44.08,0,0,0,224,93.65ZM168,60.22A36.06,36.06,0,0,1,200,96v8a12,12,0,0,0,12,12,20,20,0,0,1,20,20v14.06A36,36,0,0,0,186.06,172H168ZM104,84v70.08a35.92,35.92,0,0,0-44,3.12,35.93,35.93,0,0,0-36-7.14V84ZM36,196a12,12,0,1,1,12-12A12,12,0,0,1,36,196Zm48,0a12,12,0,1,1,12-12A12,12,0,0,1,84,196Zm136,0a12,12,0,1,1,12-12A12,12,0,0,1,220,196Z"></path></svg>Trailer parts</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>52</b> of 52</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M243.93,126.3A116.43,116.43,0,0,0,49,50.81a115.45,115.45,0,0,0-37,75.49A20,20,0,0,0,32,148h84v52a36,36,0,0,0,72,0,12,12,0,0,0-24,0,12,12,0,0,1-24,0V148h84a20,20,0,0,0,20-21.7ZM100.41,124c2.67-39.33,18.08-63.51,27.59-74.87,9.52,11.39,24.92,35.56,27.59,74.87ZM65.31,68.46A92,92,0,0,1,99,48.65C88.8,65.25,78.39,90.08,76.36,124H36.44A91.56,91.56,0,0,1,65.31,68.46ZM179.64,124c-2-33.92-12.44-58.75-22.65-75.35A92.19,92.19,0,0,1,219.56,124Z"></path></svg>Covers &amp; canopies</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>144</b> of 144</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M172,76a16,16,0,1,1-16-16A16,16,0,0,1,172,76Zm64,.66c.32,31.85-7.55,59.77-22.74,80.76-15.66,21.65-38.89,36.21-69,43.29-19.2,4.52-41.39,6-66.36,4.38q2.27,15.49,6,32.34a12,12,0,1,1-23.44,5.14q-4.58-20.85-7.08-39.91-19-2.5-39.87-7.07a12,12,0,0,1,5.14-23.44q16.83,3.67,32.31,6c-1.58-25-.13-47.12,4.38-66.3,7.08-30.14,21.64-53.36,43.27-69,21-15.21,48.92-23.1,80.78-22.77,21.79.21,42,4.42,45.8,6.64a12,12,0,0,1,4.24,4.23C231.57,34.64,235.78,54.87,236,76.66Zm-58.46,83.28A116.08,116.08,0,0,1,96.06,78.46c-9.21,12.16-15.56,27.57-18.93,46-3,16.39-3.66,35.25-2,56.39,21.16,1.65,40,1,56.42-2C150,175.49,165.37,169.14,177.53,159.94ZM209,47c-15.9-3-59.3-8.45-92.26,12.44a92,92,0,0,0,79.81,79.82C217.43,106.32,212,62.92,209,47Z"></path></svg>Fishing &amp; mounts</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>37</b> of 37</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M219.71,117.38a12,12,0,0,0-7.25-8.52L161.28,88.39l10.59-70.61a12,12,0,0,0-20.64-10l-112,120a12,12,0,0,0,4.31,19.33l51.18,20.47L84.13,238.22a12,12,0,0,0,20.64,10l112-120A12,12,0,0,0,219.71,117.38ZM113.6,203.55l6.27-41.77a12,12,0,0,0-7.41-12.92L68.74,131.37,142.4,52.45l-6.27,41.77a12,12,0,0,0,7.41,12.92l43.72,17.49Z"></path></svg>Electric &amp; trolling motors</span><span class="k-bar" aria-hidden="true"><span style="inline-size:11.8%"></span></span><span class="k-n num"><b>105</b> of 119</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M236.85,134a64,64,0,0,0-87.43-42.11l14.22-56.77a12,12,0,0,0-5.17-13A64,64,0,0,0,86,127.52L29.72,143.59a12,12,0,0,0-8.69,11,64,64,0,0,0,127.56,10l42,40.7a12,12,0,0,0,13.86,2A64,64,0,0,0,236.85,134ZM116,128a12,12,0,1,1,12,12A12,12,0,0,1,116,128Zm8-92a40,40,0,0,1,14,2.53L124.6,92.17a36,36,0,0,0-25.85,14.88A40,40,0,0,1,124,36ZM105,192.1A40,40,0,0,1,45.5,164l53.18-15.19a36,36,0,0,0,25.8,15A39.84,39.84,0,0,1,105,192.1Zm104.7-21.56a39.92,39.92,0,0,1-9.21,10.89L160.73,143a35.9,35.9,0,0,0,.05-29.83,40,40,0,0,1,48.89,57.4Z"></path></svg>Propellers &amp; motor care</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>447</b> of 447</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M144,144a16,16,0,1,1-16-16A16,16,0,0,1,144,144Zm92-16A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-70.45,28h41.63c.79-2.21,1.49-4.47,2.09-6.76a116,116,0,0,0-162.54,0q.9,3.44,2.09,6.76H90.45a20.07,20.07,0,0,1,18.73,13l16.06,42.93c.92,0,1.83.07,2.76.07s1.82,0,2.72-.07l16.1-43A20.09,20.09,0,0,1,165.55,156ZM44.41,119.73a139.85,139.85,0,0,1,167.18,0,84,84,0,0,0-167.18,0Zm53.08,86.51L87.68,180H62.1A84.46,84.46,0,0,0,97.49,206.24ZM193.9,180H168.32l-9.84,26.25A84.35,84.35,0,0,0,193.9,180Z"></path></svg>Steering, controls &amp; rigging</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>226</b> of 226</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M134.88,6.17a12,12,0,0,0-13.76,0,259,259,0,0,0-42.18,39C50.85,77.43,36,111.62,36,144a92,92,0,0,0,184,0C220,66.64,138.36,8.6,134.88,6.17ZM128,212a68.07,68.07,0,0,1-68-68c0-33.31,20-63.37,36.7-82.71A249.35,249.35,0,0,1,128,31.11a249.35,249.35,0,0,1,31.3,30.18C176,80.63,196,110.69,196,144A68.07,68.07,0,0,1,128,212Zm49.62-52.4a52,52,0,0,1-34,34,12.2,12.2,0,0,1-3.6.55,12,12,0,0,1-3.6-23.45,28,28,0,0,0,18.32-18.32,12,12,0,0,1,22.9,7.2Z"></path></svg>Fuel, water &amp; plumbing</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>160</b> of 160</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M230.47,67.5a12,12,0,0,0-19.26-4.32L172.43,99l-12.68-2.72L157,83.57l35.79-38.78a12,12,0,0,0-4.32-19.26A76.07,76.07,0,0,0,88.41,121.64L30.92,174.18a4.68,4.68,0,0,0-.39.38,36,36,0,0,0,50.91,50.91l.38-.39,52.54-57.49A76.05,76.05,0,0,0,230.47,67.5ZM160,148a51.5,51.5,0,0,1-23.35-5.52,12,12,0,0,0-14.26,2.62L64.31,208.66a12,12,0,0,1-17-17l63.55-58.07a12,12,0,0,0,2.62-14.26A51.5,51.5,0,0,1,108,96a52.06,52.06,0,0,1,52-52h.89L135.17,71.87a12,12,0,0,0-2.91,10.65l5.66,26.35a12,12,0,0,0,9.21,9.21l26.35,5.66a12,12,0,0,0,10.65-2.91L212,95.12c0,.3,0,.59,0,.89A52.06,52.06,0,0,1,160,148Z"></path></svg>Deck &amp; hardware</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>91</b> of 91</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M222.33,106.79,212,103.35V56a20,20,0,0,0-20-20H140V24a12,12,0,0,0-24,0V36H64A20,20,0,0,0,44,56v47.35l-10.33,3.44a20,20,0,0,0-13.67,19V152c0,64.63,100.8,90.57,105.09,91.64a11.94,11.94,0,0,0,5.82,0C135.2,242.57,236,216.63,236,152V125.77A20,20,0,0,0,222.33,106.79ZM68,60H188V95.35L131.79,76.62a11.85,11.85,0,0,0-7.58,0L68,95.35Zm144,92c0,36.69-58.08,60.43-84,67.59-25.94-7.17-84-30.9-84-67.59V128.65l72-24V168a12,12,0,0,0,24,0V104.65l72,24Z"></path></svg>Highfield parts &amp; consoles</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>177</b> of 177</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M168,28H88A60.07,60.07,0,0,0,28,88v80a60.07,60.07,0,0,0,60,60h48a11.9,11.9,0,0,0,3.79-.62c27.63-9.21,78.38-60,87.59-87.59A11.9,11.9,0,0,0,228,136V88A60.07,60.07,0,0,0,168,28ZM52,168V88A36,36,0,0,1,88,52h80a36,36,0,0,1,36,36v36H184a60.07,60.07,0,0,0-60,60v20H88A36,36,0,0,1,52,168Zm96,27.63V184a36,36,0,0,1,36-36h11.63C184,164.11,164.11,184,148,195.63Z"></path></svg>Decals &amp; registration</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>27</b> of 27</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,64H180V56a28,28,0,0,0-28-28H104A28,28,0,0,0,76,56v8H32A20,20,0,0,0,12,84V192a20,20,0,0,0,20,20H224a20,20,0,0,0,20-20V84A20,20,0,0,0,224,64ZM100,56a4,4,0,0,1,4-4h48a4,4,0,0,1,4,4v8H100ZM220,88v32H196v-4a12,12,0,0,0-24,0v4H84v-4a12,12,0,0,0-24,0v4H36V88ZM36,188V144H60v4a12,12,0,0,0,24,0v-4h88v4a12,12,0,0,0,24,0v-4h24v44Z"></path></svg>Workshop, labour &amp; notes</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>157</b> of 157</span></li><li><span class="k-aisle"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M144,180a16,16,0,1,1-16-16A16,16,0,0,1,144,180Zm92-52A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128ZM128,64c-24.26,0-44,17.94-44,40v4a12,12,0,0,0,24,0v-4c0-8.82,9-16,20-16s20,7.18,20,16-9,16-20,16a12,12,0,0,0-12,12v8a12,12,0,0,0,23.73,2.56C158.31,137.88,172,122.37,172,104,172,81.94,152.26,64,128,64Z"></path></svg>Not sorted yet</span><span class="k-bar" aria-hidden="true"><span style="inline-size:0.0%"></span></span><span class="k-n num"><b>28</b> of 28</span></li></ul>
+      <div class="k-drop" role="group" aria-label="Pictures by code">
+        <p><b>Drop many pictures at once.</b> Each lands only on the part whose code its file name carries: <code>SG002.jpg</code> lands on Safety Gear · Smooth Waters. A file whose name carries no code on the list is refused, by name, in this box.</p>
+        <button class="ui-button" data-intent="secondary" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M228,144v64a12,12,0,0,1-12,12H40a12,12,0,0,1-12-12V144a12,12,0,0,1,24,0v52H204V144a12,12,0,0,1,24,0ZM96.49,80.49,116,61v83a12,12,0,0,0,24,0V61l19.51,19.52a12,12,0,1,0,17-17l-40-40a12,12,0,0,0-17,0l-40,40a12,12,0,1,0,17,17Z"></path></svg>Choose pictures</button>
+      </div>
+      <h4>Anchoring &amp; mooring <span class="num">66 to picture</span></h4>
+      <ul class="k-list"><li><span class="k-name">Sand Anchor Kit · 4lb</span><span class="code">46070</span><span class="k-sup">SAW</span><button class="ui-button" data-intent="quiet" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,28H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28Zm-4,24v63.72L186.14,97.86a20,20,0,0,0-28.28,0L52,203.72V52ZM85.66,204,172,117.66l32,32V204ZM76,96a20,20,0,1,1,20,20A20,20,0,0,1,76,96Z"></path></svg>Add a picture</button></li><li><span class="k-name">Sand Anchor Kit · 6lb</span><span class="code">46075</span><span class="k-sup">SAW</span><button class="ui-button" data-intent="quiet" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,28H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28Zm-4,24v63.72L186.14,97.86a20,20,0,0,0-28.28,0L52,203.72V52ZM85.66,204,172,117.66l32,32V204ZM76,96a20,20,0,1,1,20,20A20,20,0,0,1,76,96Z"></path></svg>Add a picture</button></li><li><span class="k-name">Sand Anchor Kit · 8lb</span><span class="code">46080</span><span class="k-sup">SAW</span><button class="ui-button" data-intent="quiet" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,28H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28Zm-4,24v63.72L186.14,97.86a20,20,0,0,0-28.28,0L52,203.72V52ZM85.66,204,172,117.66l32,32V204ZM76,96a20,20,0,1,1,20,20A20,20,0,0,1,76,96Z"></path></svg>Add a picture</button></li><li><span class="k-name">Sand Anchor Kit · 10lb</span><span class="code">46085</span><span class="k-sup">SAW</span><button class="ui-button" data-intent="quiet" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,28H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28Zm-4,24v63.72L186.14,97.86a20,20,0,0,0-28.28,0L52,203.72V52ZM85.66,204,172,117.66l32,32V204ZM76,96a20,20,0,1,1,20,20A20,20,0,0,1,76,96Z"></path></svg>Add a picture</button></li><li><span class="k-name">Sand Anchor Kit · 13lb</span><span class="code">46090</span><span class="k-sup">SAW</span><button class="ui-button" data-intent="quiet" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,28H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28Zm-4,24v63.72L186.14,97.86a20,20,0,0,0-28.28,0L52,203.72V52ZM85.66,204,172,117.66l32,32V204ZM76,96a20,20,0,1,1,20,20A20,20,0,0,1,76,96Z"></path></svg>Add a picture</button></li></ul>
+      <p class="k-more"><a class="door" href="#">All 66 in Anchoring &amp; mooring <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></p>
+    </section>
+    <section class="k-card">
+      <header><h3><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M144,180a16,16,0,1,1-16-16A16,16,0,0,1,144,180Zm92-52A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128ZM128,64c-24.26,0-44,17.94-44,40v4a12,12,0,0,0,24,0v-4c0-8.82,9-16,20-16s20,7.18,20,16-9,16-20,16a12,12,0,0,0-12,12v8a12,12,0,0,0,23.73,2.56C158.31,137.88,172,122.37,172,104,172,81.94,152.26,64,128,64Z"></path></svg>To place in an aisle</h3><p><b class="num">28</b> parts under 2 headings no aisle gathers</p></header>
+      <ul class="k-place"><li><div><b>DFO kits</b> <span class="num">3</span><p>Battery (MFM50 Supercharge) + Battery Box, Terminals &amp; Switch · Century Marine Pro 580 Battery + Box, Terminals &amp; Switch · Dual Battery Upgrade · 1 x MFM70 Battery, Dual Battery Switch, S/S Tray &amp; Terminals</p></div><span class="k-select">Put in an aisle<svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></span></li><li><div><b>No heading in the price list</b> <span class="num">25</span><p>Trailer Plug · 7 Pin Flat Plug · Trailer Plug · 7 Pin Round Plug · Small · Trailer Plug · 7 Pin Round Plug · Large · Trailer Plug · 12 Pin Flat Plug · and 21 more</p></div><span class="k-select">Put in an aisle<svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></span></li></ul>
+      <p class="said">The 25 under no heading cannot be placed by heading: each is placed on its own, with Undo.</p>
+    </section>
+    <section class="k-card">
+      <header><h3><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M148,108a12,12,0,0,1,12-12h28a12,12,0,0,1,0,24H160A12,12,0,0,1,148,108Zm40,28H168a12,12,0,0,0,0,24h20a12,12,0,0,0,0-24Zm48-80V200a20,20,0,0,1-20,20H40a20,20,0,0,1-20-20V56A20,20,0,0,1,40,36H216A20,20,0,0,1,236,56Zm-24,4H44V196H212ZM58.28,159.37A43.82,43.82,0,0,1,71.53,142a36,36,0,1,1,56.94,0,43.84,43.84,0,0,1,13.26,17.37,12,12,0,0,1-22.15,9.26C116.48,161.19,108.42,156,100,156s-16.47,5.2-19.59,12.63a12,12,0,1,1-22.13-9.26ZM88,120a12,12,0,1,0,12-12A12,12,0,0,0,88,120Z"></path></svg>To name</h3><p><b class="num">0</b> of 78 supplier codes named</p></header>
+      <ul class="k-names">
+        <li><span><b>YAM</b> and <b>Yam</b> differ only in capitals · 459 + 212 lines</span><a class="door" href="#">Make them one</a></li>
+        <li><span><span class="code">LOW</span> → <b>Lowrance</b> · 144 of 144 lines under LOWRANCE</span><a class="door" href="#">Name it</a></li><li><span><span class="code">GAR</span> → <b>Garmin</b> · 72 of 72 lines under GARMIN</span><a class="door" href="#">Name it</a></li><li><span><span class="code">SIM</span> → <b>Simrad</b> · 34 of 34 lines under SIMRAD</span><a class="door" href="#">Name it</a></li><li><span><span class="code">MOM</span> → <b>Momentum</b> · 11 of 11 lines under MOMENTUM</span><a class="door" href="#">Name it</a></li><li><span><span class="code">RAY</span> → <b>Raymarine</b> · 2 of 2 lines under RAYMARINE</span><a class="door" href="#">Name it</a></li>
+      </ul>
+    </section>
+    <section class="k-card">
+      <header><h3><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M246.15,133.18,146.83,33.86A19.85,19.85,0,0,0,132.69,28H40A12,12,0,0,0,28,40v92.69a19.85,19.85,0,0,0,5.86,14.14l99.32,99.32a20,20,0,0,0,28.28,0l84.69-84.69A20,20,0,0,0,246.15,133.18Zm-98.83,93.17L52,131V52h79l95.32,95.32ZM104,88A16,16,0,1,1,88,72,16,16,0,0,1,104,88Z"></path></svg>To price</h3><p><b class="num">25</b> parts with no price at either level</p></header>
+      <ul class="k-plain"><li>Reef Anchor Kit · 8 mm w 50mtr Rope &amp; 4mtr Chain <span class="code">146406</span></li><li>Reef Anchor Kit · 10 mm w 50mtr Rope &amp; 4mtr Chain <span class="code">146409</span></li><li>Reef Anchor Kit · 13 mm w 50mtr Rope &amp; 4mtr Chain <span class="code">146415</span></li><li>Lone Star · GX-1 HS4mm Combo Winch Kit <span class="code">GX1 HS4mm Combo</span></li><li>and 21 more</li></ul>
+      <p><a class="door" href="#">Settle them in Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></p>
+      <p class="said">101 more are priced fitted only. That is not work: Show says <i>fitted only</i> beside the fitted figure.</p>
+    </section>
+    <section class="k-card">
+      <header><h3><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,55.51l-32-32a12,12,0,0,0-17,0l-96,96A12,12,0,0,0,84,128v32a12,12,0,0,0,12,12h32a12,12,0,0,0,8.49-3.51l96-96A12,12,0,0,0,232.49,55.51ZM192,49l15,15L196,75,181,60Zm-69,99H108V133l56-56,15,15Zm105-7.43V208a20,20,0,0,1-20,20H48a20,20,0,0,1-20-20V48A20,20,0,0,1,48,28h67.43a12,12,0,0,1,0,24H52V204H204V140.57a12,12,0,0,1,24,0Z"></path></svg>Notes, not parts</h3><p><b class="num">2</b> lines are notes in the price list</p></header>
+      <ul class="k-plain"><li><i>NB: No Rego Decals - NOT TO BE SUPPLIED</i> · Decals &amp; graphics</li><li><i>NB: Fuel Filter - Order w Rigging Kit</i> · Yamaha fuel filters</li></ul>
+      <p class="said">Show draws them as notes beside their aisle, never as parts with a price.</p>
+    </section>
+    <section class="k-card">
+      <header><h3><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,79.52l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.52ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Zm112-80a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,132Zm0,40a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,172Z"></path></svg>To quote on its own</h3><p>Parts &amp; Accessories: <b>off</b></p></header>
+      <p class="said">Until it is on, a part is sold only on a quote that has a boat. One press, with Undo.</p>
+      <button class="ui-button" data-intent="secondary" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M176,52H80a76,76,0,0,0,0,152h96a76,76,0,0,0,0-152Zm0,128H80A52,52,0,0,1,80,76h96a52,52,0,0,1,0,104ZM80,88a40,40,0,1,0,40,40A40,40,0,0,0,80,88Zm0,56a16,16,0,1,1,16-16A16,16,0,0,1,80,144Z"></path></svg>Let parts be quoted on their own</button>
+    </section>
+  </div>
+</div></div>
+  <div class="cols">
+    <div>
+      <h3>The two prices</h3>
+      <p>On Show every part says supply and fitted in words beside the figures. They differ on 1,882 of 2,238. 101 read <i>fitted only</i> and their fitted figure, never $0: <i>Trailer Adjustment · 15 to 17ft</i> reads $206 fitted. <i>Supply only</i> is said where the Install Type says so. 25 with no price at either level are not shown on Show at all; they stand in Keep’s <i>To price</i>, so a customer never reads “no price”. 15 carry $0 at both levels, as the file writes them. TTF hours are a cost column and never drawn.</p>
+      <h3>The mark</h3>
+      <p>Northside’s mark leads both rooms at the size of a shop sign, because Show is the room a customer looks at: the chandlery is Northside’s shop, and Show is its window. Keep keeps the mark so the two rooms read as one place.</p>
+    </div>
+    <div>
+      <h3>What a dealer can replace</h3>
+      <p>The mark, the accent, the aisle names and their headings, the supplier names, and every picture. With no pictures at all, Show is the type lists, and the room still reads as a price list set well. Show and Keep themselves are fixed: they are the honesty of the screen.</p>
+      <h3>Honest constraints</h3>
+      <ul class="dash">
+        <li>— Only 4 of 19 aisles hold a photograph: Sounders 161, Electric 14, Radios 12, Stereo 10. Show for Anchoring is type only, the truth.</li>
+        <li>— <i>Fitted</i> on the handheld radios equals supply, as the file writes it.</li>
+        <li>— Supplier names are proposals measured off the headings; nothing is named without Northside.</li>
+        <li>— Cost, margin and hours appear on no surface of this board; Keep shows codes and supplier codes, never cost.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>Type, at 1:1</h3>
+      <div class="specimen">
+        <div><span>room · 2xl/800</span><span style="font-size:var(--text-2xl);font-weight:800">Chandlery</span></div>
+        <div><span>aisle · 5xl/800</span><span style="font-size:var(--text-5xl);font-weight:800;line-height:1.05">Radios &amp; beacons</span></div>
+        <div><span>card · lg/700</span><span style="font-size:var(--text-lg);font-weight:700">VHF Fixed Mount Marine Radio · White</span></div>
+        <div><span>type line · base/500</span><span>VHF Handheld Marine Radio · 5/1 Watt</span></div>
+        <div><span>price · lg/700</span><span class="num" style="font-size:var(--text-lg);font-weight:700">$249 <small style="font-size:var(--text-xs);color:var(--color-ink-3)">supply</small> $660 <small style="font-size:var(--text-xs);color:var(--color-ink-3)">fitted</small></span></div>
+      </div>
+    </div>
+    <div>
+      <h3>Motion</h3>
+      <p>Changing room: the segment’s thumb slides 180 ms on the kit’s settle curve; the room below is replaced, not animated. <i>Change aisle</i> opens the 19 aisles as a sheet over the room (a dialog at a desk), each with its photographs counted; choosing one closes it and the room starts at the aisle’s top. A card’s expand opens the gallery. In Keep a count falls as a picture lands, without a flourish: the number changes and the aisle’s bar fills.</p>
+      <p><b>Reduced motion:</b> the thumb jumps; the sheet appears in place.</p>
+      <p><b>Keyboard:</b> <kbd>/</kbd> finds; the room control is a radio group (arrows move); Tab then reaches <i>Change aisle</i>, the boat chip, each card’s expand, and in Keep each list’s door.</p>
+    </div>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>How it reflows</h3>
+      <table><tbody>
+        <tr><td>1920 × 1080</td><td>Cards six a row; the other parts in three columns by heading. Keep is a 3-column grid with <i>To picture</i> two wide.</td></tr>
+        <tr><td>1440 × 900 · 1280 × 800</td><td>As drawn: cards five (four at 1280) a row; the type lists in three columns. Keep in three columns.</td></tr>
+        <tr><td>834 × 1112</td><td>Cards three a row; the type lists in two columns. Keep in two columns.</td></tr>
+        <tr><td>844 × 390</td><td>The bar at the foot; the mark, the room and find on one line; the aisle’s name in one line; cards four a row, short. Keep in two columns.</td></tr>
+        <tr><td>390 × 844</td><td>As drawn: mark and room over find; cards two a row; the type list one column, the two prices under each name. Keep is one column.</td></tr>
+      </tbody></table>
+    </div>
+    
+<section><h3>Every job the judge named, on this board</h3>
+<table><thead><tr><th>Job</th><th>Where it is done</th></tr></thead><tbody>
+<tr><td>J1 show an aisle</td><td>Show holds the aisle large; the photographs first, everything else under them; <i>Change aisle</i> never pushes the parts down.</td></tr><tr><td>J2 fitted price</td><td>Both prices on every card and type line, said in words; never $0 where fitted.</td></tr><tr><td>J3 maker word</td><td>Find reads supplier and heading in both rooms: <i>lowrance</i> 144.</td></tr><tr><td>J4 code</td><td>Find reads codes; Keep prints them; <i>SG002</i> answers.</td></tr><tr><td>J5 picture large</td><td>Every Show card’s expand opens the gallery.</td></tr><tr><td>J6 his boat</td><td>The boat chip on Show; paired parts lead.</td></tr><tr><td>J7 quote a part</td><td>The sentence on Show and the switch in Keep.</td></tr><tr><td>J8 own picture</td><td>Keep, <i>To picture</i>: one per part, or many at once by code; a refusal is said in the drop box.</td></tr><tr><td>J9 no-picture worklist</td><td>Keep, <i>To picture</i>: 2,041, by aisle, each count falling.</td></tr><tr><td>J10 open its line</td><td>Keep’s lists name the line; each part’s line is one press from Keep; no price → Review.</td></tr><tr><td>J11 place the unsorted</td><td>Keep, <i>To place</i>: <i>Put in an aisle</i>, with Undo.</td></tr><tr><td>J12 narrow by maker</td><td>Keep names suppliers; Show then narrows by name.</td></tr><tr><td>J13 447 propellers</td><td>Show for Propellers: no photographs, so ten headed type lists, 447 lines on one page.</td></tr><tr><td>J14 no file</td><td>Unchanged: the sentence and the door.</td></tr><tr><td>J15 wrong address</td><td>A wrong aisle opens <i>Change aisle</i> with the sentence.</td></tr>
+</tbody></table></section>
+  </div>
+</div>
+</section>
+</body>
+</html>

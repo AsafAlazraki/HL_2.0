@@ -4,264 +4,220 @@ import { acrossTheBar } from '../fold'
 import { PRICE_LIST_ROOMS } from '../../src/app/ways'
 
 /* ============================================================
-   DATA, IN A REAL BROWSER, AT EVERY SIZE — what the five rulers
-   cannot see.
+   DATA, IN A REAL BROWSER, AT EVERY SIZE — direction A, "The Monday
+   list" (2026-11-03): the price file's state above its inventory.
 
-   The rulers read contrast, cut, overlap, the type ramp and the row
-   count. What they cannot read is whether the figures on this screen
-   are the file's own, whether the shelf of makers is the file's seven
-   and not a list somebody typed, whether a press reaches the sheet,
-   and whether the one write on it can be taken back. That is what is
-   below.
-
-   NOTHING IS PLANTED. Every count asserted here is read off the pack
-   the blue door loads, and the one table this file makes is made the
-   way a dealer makes one — by pressing the act and typing a name —
-   and is then undone. No record is written into IndexedDB by hand.
+   What the rulers cannot see: whether the figures are the file's own,
+   whether every press lands where it says, whether a find over the
+   whole file answers what is on it, and whether the one write can be
+   taken back. NOTHING IS PLANTED: every count is read off the pack the
+   blue door loads, and the one list made here is made by pressing the
+   act and typing a name, then undone.
    ============================================================ */
 
-/** What the manifest holds, and therefore what the screen must count:
- *  53 lists · 15,691 lines · 28 of them pairing lists, 25 base tables
- *  of which 7 are boat tables. Asserted rather than read from the
- *  manifest here on purpose — if a repack moves a figure, this file
- *  should say so out loud rather than agree with it silently. */
+/** What the manifest holds, said out loud so a repack that moves a figure fails here. */
 const TABLES = 53
 const ROWS = '15,691'
 const MAKERS = 7
 
-/** Sign in, load the file, and stand on the register of tables. */
-async function onData(page: Page): Promise<void> {
+async function onData(page: Page, url = '/data'): Promise<void> {
   await throughTheDoor(page)
-  await page.goto('/data')
-  /* FIFTEEN SECONDS AND NOT THE DEFAULT FIVE. This screen's route is a
-     lazy chunk and its store reads 53 tables back out of IndexedDB
-     before it draws a row; on a four-core machine with a second
-     builder's browser gate running beside this one, that took longer
-     than five seconds twice on 2026-09-23 — which is a measurement
-     about the machine, not about the screen. */
+  await page.goto(url)
+  /* fifteen seconds: a lazy chunk and 53 tables read back out of IndexedDB on a four-core
+     machine beside a second builder's browser gate */
   await expect(page.getByTestId('data')).toBeVisible({ timeout: 15_000 })
-  /* the screen's own proof that the store has ANSWERED: the same main
-     draws "Reading what this browser has kept…" for the first paint */
   await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
 }
 
-test('the register counts the file it read, and never types a figure', async ({ page }) => {
+const sideways = (page: Page) =>
+  page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+
+test('the head counts the file it read, dates it, and never types a figure', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
-
   await onData(page)
 
   const counts = page.getByTestId('data-counts')
   await expect(counts).toContainText(`${TABLES} lists`)
   await expect(counts).toContainText(`${ROWS} lines`)
-  /* what fits which boat is each row's own, and not counted again over them */
-  await expect(counts).not.toContainText(/what fits/)
-  await expect(counts).not.toContainText(/pairing/i)
-
-  /* THE PRICE LIST'S DATE, ONCE, IN ENTRY'S WORDS — and the one fingerprint the file has
-     (`1qz08ne`, docs/research/refs/critique-m2.md) is that line's hover, printed nowhere a
-     dealer reads past it (docs/WORDS.md, 2026-10-20). */
   const stamp = page.getByTestId('data-file')
   await expect(stamp).toHaveText('The price list of 16 September 2026')
   await expect(stamp).toHaveAttribute('title', /1qz08ne/)
   expect(await page.getByText('1qz08ne').count(), 'the fingerprint is a hover, not a line').toBe(0)
-
+  /* HOW CURRENT ITS PRICES ARE, in its headings' own words (the judge, J1) */
+  await expect(page.getByTestId('data-dates')).toContainText(/from 19 May 2022 to 5 August 2026/)
+  await expect(page.getByTestId('data-dates')).toContainText('Last change on this computer')
   expect(errors, 'no page error').toEqual([])
 })
 
-test('the shelf is the file’s own seven makers, and a maker with no mark is set in type', async ({
+test('what needs Northside is a checklist of figures, each out of something, each a door', async ({
   page,
 }) => {
   await onData(page)
+  const needs = page.getByTestId('data-needs')
+  await expect(needs.locator('[data-need="review"] .dt-need__fig')).toHaveText('37', {
+    timeout: 15_000,
+  })
+  await expect(needs.locator('[data-need="prices"] .dt-need__fig')).toHaveText('4')
+  await expect(needs.locator('[data-need="dated"] .dt-need__fig')).toHaveText('25')
+  await expect(needs.locator('[data-need="dated"]')).toContainText(
+    'of 222 headings in the 5 lists that date any',
+  )
+  await expect(needs.locator('[data-need="unnamed"] .dt-need__fig')).toHaveText('311')
+  await expect(needs.locator('[data-need="unnamed"]')).toContainText(
+    'in 4 of the 18 lists you sell from',
+  )
+  await expect(needs.locator('[data-need="rules"] .dt-need__fig')).toHaveText('3')
+  await expect(needs.locator('[data-need="loaded"]')).toHaveAttribute('data-done', '')
+  await expect(needs.locator('.dt-sec-count')).toHaveText('5 open · 1 done')
 
-  const plates = page.getByTestId('plate')
-  await expect(plates).toHaveCount(MAKERS)
+  /* the oldest dated heading opens its list on the sheet AT that heading */
+  await Promise.all([
+    page.waitForURL(/\/data\/rig_kits\?in=RIGGING/),
+    needs.getByRole('button', { name: /Oldest first/ }).click(),
+  ])
+  await expect(page.getByTestId('lost')).toHaveCount(0)
+})
 
-  /* EVERY PLATE NAMES ITS MAKER AND SAYS WHAT IT HOLDS IN MODELS, as Home and the picker
-     count it — Highfield's 67, not its 588 lines (2026-10-20) — never "rows". */
+test('what is new says the zero as a figure, out of every line', async ({ page }) => {
+  await onData(page)
+  const fresh = page.getByTestId('data-new')
+  await expect(fresh).toContainText('New since 16 September 2026')
+  await expect(fresh.locator('.dt-zero')).toContainText(
+    `0lines changed on this computer, of ${ROWS}`,
+  )
+})
+
+test('the makers are the file’s own seven and every maker, each mark once', async ({ page }) => {
+  await onData(page)
+  await expect(page.getByTestId('plate')).toHaveCount(MAKERS)
   const shelf = page.getByTestId('data-shelf')
   await expect(shelf).toContainText('67 models in 7 series')
   await expect(shelf).toContainText('91 models in 22 series')
   await expect(shelf).not.toContainText('588 variants')
-  /* the count lines and not the whole shelf: the workbook sentence a
-     plate carries at the showroom width says "rows 4–142", which is
-     the file's own words for a range, not this screen calling a boat
-     a row */
-  for (const line of await shelf.locator('.dt-plate__holds').allTextContents()) {
-    expect(line, 'a maker is counted in its own noun').not.toMatch(/\brows?\b/)
-  }
-
-  /* STABICRAFT HAS NO MARK — the ledger records "no public wordmark
-     verified" — so its name IS the mark, set in type on the same
-     paper. Nothing stands in for it. */
-  await expect(page.locator('.dt-plate__typed', { hasText: 'Stabicraft' })).toBeVisible()
-
-  /* AND EVERY MARK DRAWN IS A FILE, not a letter in a box: twelve of
-     the thirteen brands have one, of which six are boat makers here. */
-  const marks = page.locator('.dt-plate__img')
-  expect(await marks.count(), 'six of the seven makers have a held mark').toBe(MAKERS - 1)
-
-  /* WHAT GOES WITH A MAKER IS THE FILE'S OWN JOINS, said inside the maker's own plate in
-     words a dealer says and with no count: "2,519 pairings" beside a row saying "209 motors"
-     was two figures for one list. Highfield's five, counted off the manifest by the sweep. */
-  /* Read by attribute and not by role, because between 640 and 1439 a
-     plate draws what goes with it as one line of glyphs and its named
-     lines are taken away, and a list the stylesheet has taken away is not
-     in the accessibility tree. */
-  const highfield = page.locator('ul[aria-label="What goes with Highfield Inflatables"]')
-  await expect(highfield.locator('.dt-chip')).toHaveCount(5)
-  await expect(highfield.locator('[aria-label="Yamaha Outboards"]')).toHaveCount(1)
-  await expect(page.locator('[data-testid="plate"] .dt-chips').first()).toBeAttached()
-  await expect(page.getByText(/\bjoin\b/i)).toHaveCount(0)
-  await expect(shelf).not.toContainText(/pairings?/i)
+  await expect(page.locator('.dt-maker .dt-mark__typed', { hasText: 'Stabicraft' })).toBeVisible()
+  expect(await page.locator('[data-testid="plate"] img').count()).toBe(MAKERS - 1)
+  await expect(page.getByRole('link', { name: /^Every maker · 289 models/ })).toBeVisible()
 })
 
-test('a row says its count and what it fits, and its spread says where it came from', async ({
+test('the eighteen lists you sell from are rows, and the 28 lists of what fits are one table', async ({
   page,
 }) => {
   await onData(page)
-
+  await expect(page.locator('.dt-row')).toHaveCount(18)
   const grid = page.getByRole('grid', { name: 'Lists' })
-  const motors = grid.getByRole('row', { name: /Yamaha Outboards/ })
-  await expect(motors).toContainText('209 motors')
-  /* counted as boats, as Rules and the picker count them, never as the six makers' lists */
-  await expect(motors).toContainText('fits 264 boats')
-  /* its kind is its glyph and its count's noun; its workbook is on its spread, once */
-  await expect(motors.locator('.dt-cell--kind')).toHaveText('')
-  await expect(motors).not.toContainText('Motor Module')
-  await expect(motors).not.toHaveAttribute('title', /.+/)
-
-  await motors.click()
-  const doc = page.getByTestId('data-page')
-  await expect(doc).toBeVisible()
-  await expect(doc.getByRole('heading', { name: 'Yamaha Outboards' })).toBeVisible()
-  /* THE PROVENANCE IS THE WORKBOOK, THE SHEET AND THE ROW RANGE — a
-     table has no hash of its own, and inventing one was the critic's
-     first correction. */
-  await expect(doc).toContainText('Where from')
-  /* the workbook and its tab, as somebody who keeps the file in Excel says it */
-  await expect(doc).toContainText('Motor Module, on its Motor Library tab')
-  /* ITS PRICES ARE THE SALE'S CASH AND TRADE, the file's "Sell Price" one hover away, and the
-     costs it keeps said once — never "Columns 27" (the refine round's third pass) */
-  await expect(doc).toContainText(/Prices\s*Cash · Trade/)
-  await expect(doc.getByText('Cash', { exact: true })).toHaveAttribute('title', /Sell Price/)
-  await expect(doc).not.toContainText(/Sell Price|Columns|sheet “/)
-  /* which exact file is the head's hover, said once, and no list repeats it */
-  await expect(doc).not.toContainText(/sha256|fingerprint|names this exact file/)
-
-  /* A MOTOR'S PAGE LISTS THE BOATS THAT PAIR WITH IT, from its own end
-     of the join. */
-  await expect(doc.getByText('The boats it fits')).toBeVisible()
-
-  /* THE POSITION IS IN THE ADDRESS. */
-  await expect(page).toHaveURL(/[?&]at=/)
+  await expect(grid.getByRole('row', { name: /Yamaha Outboards/ })).toContainText('fits 264 boats')
+  await expect(grid.getByRole('row', { name: /Dunbier Trailers/ })).toContainText(
+    'named by no boat',
+  )
+  const table = page.getByRole('table')
+  await expect(table.getByRole('button')).toHaveCount(28)
+  await expect(page.locator('.dt-matrix')).toContainText('28 lists of what fits which boat')
+  await expect(page.locator('.dt-matrix')).toContainText('8,679 lines')
+  await table
+    .getByRole('button', { name: /^Highfield Inflatables with Yamaha: 2,519 lines/ })
+    .click()
+  await expect(page).toHaveURL(/[?&]at=join_hf_yam/)
+  await expect(page.getByTestId('data-page')).toContainText('What fits which boat')
 })
 
-test('the page opens the sheet at the address the sheet owns', async ({ page }) => {
+test('a row opens its spread, its act opens the sheet, and a heading opens the sheet there', async ({
+  page,
+}) => {
   await onData(page)
-
-  const grid = page.getByRole('grid', { name: 'Lists' })
-  await grid.getByRole('row', { name: /NSM Custom Trailers/ }).click()
+  await page
+    .getByRole('grid', { name: 'Lists' })
+    .getByRole('row', { name: /NSM Custom Trailers/ })
+    .click()
   const doc = page.getByTestId('data-page')
-  const act = doc.getByRole('button', { name: /Open the list/ })
-  await expect(act, 'the act that opens is live, not a chip under a sentence').toHaveAttribute(
-    'aria-disabled',
-    'false',
-  )
-  /* AND IT SAYS WHAT THE PRESS WILL OPEN, in the dealer's words and never
-     as an address (rule (c), 2026-09-23): "/data/trl_nsmcustom" is the
-     router's word for what the sentence now says. The count is the head's,
-     said once there ("73 trailers in 8 series"). */
-  await expect(doc, 'it says what opens before it is pressed').toContainText(
-    'Every line of it, to read and change.',
-  )
   await expect(doc).toContainText('73 trailers in 8 series')
+  await expect(doc).toContainText('Where from')
   await expect(doc).not.toContainText('/data/')
-
-  await act.click()
-  /* THE ADDRESS IS WHAT THIS SCREEN OWES. The sheet at /data/$table is
-     another builder's screen in this same round; what this flow can
-     honestly assert is that the register hands over the right address
-     and that the app does not land on the dead end. */
-  await expect(page).toHaveURL(/\/data\/[a-z0-9_]+$/)
+  /* the address the press hands the sheet names the heading; what the sheet then keeps in its
+     own address is its screen's to write */
+  await Promise.all([
+    page.waitForURL(/\/data\/trl_nsmcustom\?in=/),
+    doc.locator('.dt-bar').nth(1).click(),
+  ])
   await expect(page.getByTestId('lost')).toHaveCount(0)
+  await page.goBack()
+  await expect(page.getByTestId('data-page')).toBeVisible({ timeout: 15_000 })
+  await page
+    .getByTestId('data-page')
+    .getByRole('button', { name: /Open the list/ })
+    .click()
+  await expect(page).toHaveURL(/\/data\/trl_nsmcustom$/)
 })
 
-test('the find field narrows on the four facts a row prints, and says when nothing matches', async ({
+test('one find over the whole file: a maker, a code, nothing', async ({ page }) => {
+  await onData(page)
+  const field = page.getByRole('searchbox', { name: 'Find in the price list' })
+  await field.fill('Highfield')
+  const answer = page.getByTestId('data-answer')
+  await expect(answer).toBeVisible()
+  /* never the false sentence the judge found under the Highfield plate */
+  await expect(page.getByText(/Nothing on the price list/)).toHaveCount(0)
+  await expect(page.getByTestId('plate')).toHaveCount(1)
+  await expect(page).toHaveURL(/[?&]find=Highfield/)
+
+  await field.fill('F115')
+  await expect(answer.getByRole('status')).toHaveText('306 lines hold “F115”, in 12 lists')
+  /* drawn where the find is, at every size: its head in the first window */
+  const top = (await answer.boundingBox())!.y
+  expect(top, 'the answer starts in the first window').toBeLessThan(page.viewportSize()!.height)
+  await answer.getByRole('button', { name: /^Yamaha Outboards: 13 lines/ }).click()
+  await expect(page).toHaveURL(/\/data\/mot_yamaha\?find=F115$/)
+  await page.goBack()
+  await expect(page.getByTestId('data-answer')).toBeVisible({ timeout: 15_000 })
+
+  await page.getByRole('searchbox', { name: 'Find in the price list' }).fill('zzqqxx')
+  await expect(
+    page.getByText('Nothing on the price list holds “zzqqxx”: no maker, list, section or line.'),
+  ).toBeVisible()
+})
+
+test('the one write refuses a list with no name, says what it did, and can be taken back', async ({
   page,
 }) => {
   await onData(page)
-
-  const field = page.getByRole('searchbox', { name: 'Find a list' })
-  await field.fill('trailer')
-  const said = page.locator('#dt-find-said')
-  await expect(said).toContainText('lists match')
-  const grid = page.getByRole('grid', { name: 'Lists' })
-  await expect(grid.getByRole('row', { name: /Dunbier Trailers/ })).toBeVisible()
-  await expect(grid.getByRole('row', { name: /Labour Rates/ })).toHaveCount(0)
-  await expect(page).toHaveURL(/[?&]find=trailer/)
-
-  await field.fill('zzzz')
-  await expect(page.getByText(/Nothing on the price list is called/)).toBeVisible()
-})
-
-test('the one write says what it did and can be taken back, on the screen', async ({ page }) => {
-  await onData(page)
-
   await page.getByRole('button', { name: 'New list' }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
+  /* NO NAME IS REFUSED AT THE FIELD, in a sentence, and nothing is made (the judge, L8) */
+  await dialog.getByRole('button', { name: 'Make it' }).click()
+  await expect(dialog.getByText('A list needs a name.')).toBeVisible()
+  await expect(page.getByTestId('last-step')).toHaveCount(0)
+
   await dialog.getByRole('textbox').first().fill('Boat show leads')
   await dialog.getByRole('button', { name: 'Make it' }).click()
-
-  /* THE SENTENCE THE COMMAND SAID, with its way back pinned beside it
-     — the configurator's rail head, never a toast. */
   const step = page.getByTestId('last-step')
-  await expect(step).toBeVisible()
   await expect(step).toContainText('Boat show leads')
-
-  /* the list it made opens as its own spread, made here on the day it was made, and back
-     at the lists it is a row under the dealer's own place, said once in its head */
   const spread = page.getByTestId('data-page')
   await expect(spread.getByRole('heading', { name: 'Boat show leads' })).toBeVisible()
   await expect(spread).toContainText('Made here on')
+  await expect(spread).toContainText('0 lines')
+  await expect(spread).not.toContainText(/\brows?\b/)
   await spread.getByRole('button', { name: /Back to the lists/ }).click()
   const grid = page.getByRole('grid', { name: 'Lists' })
   await expect(
     grid
       .getByRole('rowgroup', { name: 'Your own lists' })
       .getByRole('row', { name: /Boat show leads/ }),
-  ).toContainText('Your own lists')
-  /* THE FILE DID NOT GROW (critique of Milestone 2's close, blocker 2):
-     the head counts the price file under its fingerprint, and the table
-     made here is the row filed at this desk above */
+  ).toBeVisible()
   await expect(page.getByTestId('data-counts')).toContainText(`${TABLES} lists`)
-  await expect(page.getByTestId('data-counts')).toContainText(`${ROWS} lines`)
 
   await step.getByRole('button', { name: 'Undo' }).click()
   await expect(grid.getByRole('row', { name: /Boat show leads/ })).toHaveCount(0)
-  await expect(page.getByTestId('data-counts')).toContainText(`${TABLES} lists`)
   await expect(step.getByRole('button', { name: 'Put it back' })).toBeVisible()
 })
 
-/* NO KEYCAP AT ANY SIZE, AND NO LETTER IS A SHORTCUT (m2-last-critique.md major 7,
-   2026-09-25): twenty-five caps taught J, K, N and the slash at a desk. The sentence that
-   replaced them went on 2026-10-20 — it explained the screen to the person using it — and the
-   keys every list has still work. */
-test('prints no keycap at any size, and the keys every list has still work', async ({
-  page,
-  hasTouch,
-}) => {
+test('prints no keycap, and the keys every list has still work', async ({ page, hasTouch }) => {
   await onData(page)
-
-  await expect(page.getByText(/one more press/)).toHaveCount(0)
   const caps = await page
     .locator('main kbd')
     .evaluateAll((all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length)
   expect(caps, 'no keycap is drawn').toBe(0)
   if (!hasTouch) {
-    /* AND THEY WORK. The grid is one tab stop — the APG `aria-activedescendant`
-       pattern — so the cursor moves without a key handler per row; a letter does nothing */
     const grid = page.getByRole('grid', { name: 'Lists' })
     await grid.focus()
     await page.keyboard.press('n')
@@ -269,119 +225,82 @@ test('prints no keycap at any size, and the keys every list has still work', asy
     await page.keyboard.press('ArrowDown')
     await page.keyboard.press('Space')
     await expect(page.getByTestId('data-page')).toBeVisible()
+    await expect(page.getByTestId('data-page')).toBeFocused()
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('data-page')).toHaveCount(0)
+    await expect(grid).toBeFocused()
   }
 })
 
-test('a browser with no name in it never reaches the register of tables', async ({ page }) => {
+test('a browser with no name in it never reaches Data', async ({ page }) => {
   await page.goto('/data')
-  /* the shell's first-visit rule, which belongs to every screen */
   await expect(page).toHaveURL(/\/sign-in$/)
   await expect(page.getByTestId('entry')).toBeVisible()
 })
 
-/* A BROWSER THAT HOLDS NO COPY OF THE FILE — read once and not kept, or let go. Walked to by
-   losing the copy since 2026-09-25, when Entry's second door (a business with no file) went. */
-test('a desk with no file open is told so, and offered the door back', async ({ page }) => {
+test('a computer with no file open is told so, and offered the door back', async ({ page }) => {
   await withoutTheFile(page)
   await page.goto('/data')
   await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible()
-
   await expect(page.getByTestId('data-counts')).toHaveCount(0)
+  await expect(page.getByTestId('data-needs')).toHaveCount(0)
   await expect(
     page.getByRole('heading', { name: 'No price list is open on this computer.' }),
   ).toBeVisible()
-  for (const question of ['What lands here', 'Why it is empty today', 'What to do']) {
-    await expect(page.getByText(question)).toBeVisible()
-  }
-  /* why it is empty is said as Northside's own state, never a door nobody has any more, and
-     no business is said to be unnamed */
   await expect(page.getByText(/This computer holds no copy of it/)).toBeVisible()
-  await expect(page.getByTestId('data')).not.toContainText(/blank door|not been named/)
-  /* NOTHING IS STOOD IN FOR: no plate, no row, no picture. */
   await expect(page.getByTestId('plate')).toHaveCount(0)
-  expect(await page.locator('main img').count(), 'no picture on a register with no file').toBe(0)
-
+  expect(await page.locator('main img').count(), 'no picture with no file').toBe(0)
   await page.getByRole('button', { name: 'Load the Master Price File' }).click()
   await expect(page).toHaveURL(/\/sign-in\?again=true$/)
 })
 
-test('the pill goes home and the head does not repeat it, and nothing scrolls sideways', async ({
+test('nothing scrolls sideways, at rest or with the longest-named list open', async ({
   page,
   viewport,
 }) => {
   await onData(page)
-
-  const over = await page.evaluate(() => ({
-    scroll: document.documentElement.scrollWidth,
-    client: document.documentElement.clientWidth,
-  }))
   expect(
-    over.scroll,
-    `nothing runs off the side at ${viewport?.width}x${viewport?.height}`,
-  ).toBeLessThanOrEqual(over.client)
-
-  /* RULE (a): THE PILL CARRIES THE DOORS. The head's own Home was the
-     third way back in one window (critique #13). */
-  await expect(page.locator('.dt-head').getByRole('button', { name: 'Home' })).toHaveCount(0)
-  await expect(page.locator('.dt-head').getByRole('link', { name: 'Home' })).toHaveCount(0)
-  await page.getByRole('navigation').getByRole('link', { name: /^Home/ }).click()
-  /* fifteen seconds for the same reason `onData` takes them: Home is a
-     lazy chunk that reads the whole sheet back before it draws, and
-     five is a budget for an idle machine rather than for this one */
-  await expect(page.getByTestId('home')).toBeVisible({ timeout: 15_000 })
+    await sideways(page),
+    `at rest, ${viewport?.width}x${viewport?.height}`,
+  ).toBeLessThanOrEqual(0)
+  /* THE OBSOLETE SPREAD scrolled a 390 window to 425 (the judge, L3) */
+  await page.goto('/data?at=trl_obsolete')
+  await expect(page.getByTestId('data-page')).toBeVisible({ timeout: 15_000 })
+  expect(
+    await sideways(page),
+    `OBSOLETE open, ${viewport?.width}x${viewport?.height}`,
+  ).toBeLessThanOrEqual(0)
+  await page.getByRole('searchbox', { name: 'Find in the price list' }).fill('F115')
+  await expect(page.getByTestId('data-answer')).toBeVisible()
+  expect(
+    await sideways(page),
+    `F115 answered, ${viewport?.width}x${viewport?.height}`,
+  ).toBeLessThanOrEqual(0)
 })
 
-test('a maker opens as its own spread where the ledger was, and closes back to it', async ({
-  page,
-}) => {
+test('a spread opens where it can be seen, its head clear of the bar', async ({ page }) => {
   await onData(page)
-
-  const highfield = page.getByRole('button', { name: /^Highfield Inflatables · / })
-  await highfield.click()
+  await page.getByRole('button', { name: /^Highfield Inflatables · / }).click()
   const spread = page.getByTestId('data-page')
-  await expect(spread).toBeVisible()
-  await expect(highfield).toHaveAttribute('aria-pressed', 'true')
-  await expect(page).toHaveURL(/[?&]at=boat_highfield/)
-
-  /* NOT A COLUMN BESIDE THE ROWS (critique #6): the ledger steps away and
-     the spread takes the whole measure the ledger had. */
-  await expect(page.getByRole('grid', { name: 'Lists' })).toHaveCount(0)
-  const widths = await page.evaluate(() => ({
-    spread: document.querySelector('.dt-spread')!.getBoundingClientRect().width,
-    shelf: document.querySelector('.dt-plates__list')!.getBoundingClientRect().width,
-  }))
-  expect(
-    Math.abs(widths.spread - widths.shelf),
-    'the spread is as wide as the shelf above it',
-  ).toBeLessThanOrEqual(1)
-
-  /* ITS OWN MARK, LARGE, on its own paper — the showpiece */
-  await expect(spread.locator('.dt-cover__img')).toBeVisible()
-  /* its lineup, the file's own seven series, adding back to 588 */
-  const counts = await spread.locator('.dt-bar__n').allTextContents()
-  expect(counts).toHaveLength(7)
-  expect(counts.reduce((n, c) => n + Number(c.replace(/,/g, '')), 0)).toBe(588)
-  /* what pairs with it, five tiles, each a door to that pairing list */
-  await expect(
-    spread.getByRole('button', { name: /opens the list of which fits which/ }),
-  ).toHaveCount(5)
-  await expect(spread.getByRole('button', { name: /Open the list/ })).toHaveAttribute(
-    'data-intent',
-    'act',
+  await expect(spread.getByRole('heading', { name: 'Highfield Inflatables' })).toBeInViewport()
+  /* THE JUDGE'S L9: at 844 x 390 the spread opened at y 4 under a bar at 8–52 */
+  await page.waitForTimeout(300)
+  const clear = await page.evaluate(() => {
+    const top = document.querySelector('[data-testid="data-page"]')!.getBoundingClientRect().top
+    const pill = document.querySelector('[data-testid="shell-pill"]')!.getBoundingClientRect()
+    const atFoot = pill.top > innerHeight / 2
+    return atFoot || top >= pill.bottom
+  })
+  expect(clear, 'the spread’s top is below a bar at the top').toBe(true)
+  await expect(page.getByTestId('plate').first()).toBeAttached()
+  await expect(page.getByRole('button', { name: /^Highfield Inflatables · / })).toHaveAttribute(
+    'aria-pressed',
+    'true',
   )
-
-  await spread.getByRole('button', { name: /Back to the lists/ }).click()
-  await expect(spread).toHaveCount(0)
-  await expect(page.getByRole('grid', { name: 'Lists' })).toBeVisible()
 })
 
 test('the find field’s own words fit the field', async ({ page, viewport }) => {
   await onData(page)
-  /* critique #19: at 390 the placeholder read "…the workbook it came fro".
-     The words are measured in the field's own face against the room its
-     padding leaves. */
   const fit = await page.evaluate(() => {
     const field = document.querySelector<HTMLInputElement>('#dt-find-field')!
     const cs = getComputedStyle(field)
@@ -394,145 +313,75 @@ test('the find field’s own words fit the field', async ({ page, viewport }) =>
   })
   expect(
     fit.text,
-    `the placeholder fits its field at ${viewport?.width}x${viewport?.height}`,
+    `the placeholder fits at ${viewport?.width}x${viewport?.height}`,
   ).toBeLessThanOrEqual(fit.room)
 })
 
-test.describe('the window it is drawn at', () => {
-  test.skip(
-    ({ viewport }) => (viewport?.width ?? 0) < 1200,
-    'under 1200 the page is the scrollport, on purpose (data.css, the ladder)',
-  )
-
-  test('fits the window at rest and with a maker open — rule (d)', async ({ page, viewport }) => {
-    await onData(page)
-    const height = () =>
-      page.evaluate(() => ({
-        scroll: document.scrollingElement!.scrollHeight,
-        inner: window.innerHeight,
-      }))
-    const rest = await height()
-    expect(rest.scroll, `at rest, ${viewport?.width}x${viewport?.height}`).toBeLessThanOrEqual(
-      rest.inner,
-    )
-    await page.getByRole('button', { name: /^Stacer · / }).click()
-    await expect(page.getByTestId('data-page')).toBeVisible()
-    const opened = await height()
-    expect(opened.scroll, `opened, ${viewport?.width}x${viewport?.height}`).toBeLessThanOrEqual(
-      opened.inner,
-    )
-    /* and the spread holds its whole self in the room it is given, rather
-       than a scrollbar's worth of it */
-    const spilled = await page.evaluate(() => {
-      const s = document.querySelector('.dt-spread')!
-      return s.scrollHeight - s.clientHeight
-    })
-    expect(spilled, 'the spread fits the room under the shelf').toBeLessThanOrEqual(1)
-  })
-})
-
-/* THE DENSITY THIS REGISTER OWES is measured in one place, `e2e/rulers/density.spec.ts`.
-   Until 2026-09-23 this file added up its own room — the body track less the legend, over
-   `--row-h` — while the ruler read the same screen as passing, because it counted the two
-   rows under the list's own scrollport as readable. Two arithmetics for one requirement gave
-   two answers about one tree; there is one now, and this file keeps only the count below,
-   which is a fact about the file rather than about the room. */
-
-test.describe('every register the file carries is a row', () => {
-  test.skip(({ viewport }) => viewport?.width !== 1280, 'a count of the file, read once')
-
-  test('the ledger draws the eighteen registers that are not plates', async ({ page }) => {
-    await onData(page)
-    /* 25 base tables less the 7 that are plates is 18 rows exactly — every one of them in
-       the ledger, whether or not the room shows them all at once. */
-    await expect(page.locator('.dt-row')).toHaveCount(18)
-  })
-})
-
-/* THE FIRST WINDOW ENDS ON A SEAM BETWEEN TWO PLATES (refine-critique.md, major 5): at 390
-   Formosa's "Yamaha Outboards" stood half over the tab bar and half under it with nothing
-   scrolled. Every door now takes the air that ends a whole plate above the bar (`useShelfFit` in
-   Data.tsx). */
-test('in a hand, the shelf ends on a seam between two plates with nothing scrolled', async ({
-  page,
-}) => {
+/* IN A HAND THE FIRST WINDOW ENDS ON A SEAM between two needs (refine-critique.md, major 5,
+   kept for this composition by `useFoldAir` in State.tsx) */
+test('in a hand, the first window ends on a seam with nothing scrolled', async ({ page }) => {
   const size = page.viewportSize() as { width: number; height: number }
   test.skip(size.width >= 600, `the pill is not at the foot at ${size.width}`)
   await onData(page)
-  await expect(page.getByTestId('data-shelf')).toBeVisible()
+  await expect(page.getByTestId('data-wrong')).toBeVisible({ timeout: 15_000 })
   await expect.poll(() => acrossTheBar(page, '[data-testid="data"]')).toEqual([])
 })
 
-/* THE PRICE LIST'S ROOMS HAVE DOORS (2026-10-22, the critique of Milestone 3, blocker 1). Each
-   press is followed to where it LANDS — the screen's own `data-read`, and the pill lighting Data
-   there — rather than counted as a link on the page; and on a phone, Rules is reached from Data
-   with the bar still holding its five doors.
-
-   THE ROOMS ARE READ FROM THE ONE LIST (2026-10-30, the critique of Milestone 4, blocker 7): this
-   walk counted five rooms by hand and went red the day Shelf became the sixth. The count is now
-   `PRICE_LIST_ROOMS` itself, and every room in it must name where it lands below, so a seventh
-   room fails here with its own word rather than with a stale number. */
+/* THE PRICE LIST'S ROOMS ARE COUNTED DOORS, each followed to where it LANDS. */
 const LANDS: Record<string, string> = {
   '/rules': '[data-testid="rules"][data-read]',
   '/fitment': '[data-testid="fitment"][data-read]',
-  /* the chandlery (the flow round, 2026-10-30) draws no data-read: its main is its landing */
   '/catalogue': '[data-testid="catalogue"]',
   '/review': '[data-testid="review"][data-read]',
   '/levels': '[data-testid="levels"][data-read]',
   '/shelf': '[data-testid="shelf"][data-read]',
 }
 
-test('every room behind Data is one press from its head, and lands with Data lit', async ({
+test('every room behind Data is one press from its state, and lands with Data lit', async ({
   page,
 }) => {
   test.setTimeout(120_000)
   await onData(page)
-  const rooms = page.getByRole('navigation', { name: 'Behind the price list' })
+  const rooms = page.getByRole('navigation', { name: 'The rooms of the price list' })
   await expect(rooms.getByRole('link')).toHaveCount(PRICE_LIST_ROOMS.length)
   expect(
     PRICE_LIST_ROOMS.filter((room) => !LANDS[room.href]).map((room) => room.word),
     'a room with nowhere named to land',
   ).toEqual([])
-  /* Review's door counts the cases left to settle, as Review does, once the screen has read it */
   await expect(rooms.getByTestId('data-wrong')).toHaveText(/^\d[\d,]* to settle$/, {
     timeout: 15_000,
   })
   const pill = page.getByTestId('shell-pill')
   for (const { word, href } of PRICE_LIST_ROOMS) {
-    const ready = LANDS[href]!
     await rooms.getByRole('link', { name: new RegExp(`^${word} — `) }).click()
-    await expect(page.locator(ready), word).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator(LANDS[href]!), word).toBeVisible({ timeout: 15_000 })
     await expect(pill.getByRole('link', { name: /^Data( |$)/ }), word).toHaveAttribute(
       'aria-current',
       'page',
     )
-    /* the pill carries its five doors and no sixth, at every size */
     await expect(pill.locator('.way-door'), word).toHaveCount(5)
     await page.goBack()
     await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
   }
 })
 
-test('a maker’s prices open Prices at that maker, and what goes with it opens Fitment on a boat', async ({
+test('a maker’s prices open Prices at it, and Fitment opens its models to choose', async ({
   page,
 }) => {
   test.setTimeout(120_000)
-  await onData(page)
-  await page.goto('/data?at=boat_stacer')
+  await onData(page, '/data?at=boat_stacer')
   const spread = page.getByTestId('data-page')
   await expect(spread).toBeVisible({ timeout: 15_000 })
   await spread.getByRole('link', { name: /: set on Prices$/ }).click()
   await expect(page).toHaveURL(/\/levels\?list=boat_stacer$/)
   await expect(page.locator('[data-testid="levels"][data-read]')).toBeVisible({ timeout: 15_000 })
-
   await page.goBack()
   await expect(page.getByTestId('data-page')).toBeVisible({ timeout: 15_000 })
-  const fits = page.getByTestId('data-page').getByRole('link', { name: /^What fits the / })
-  const named = ((await fits.textContent()) ?? '').replace(/^What fits the /, '')
-  await fits.click()
-  await expect(page).toHaveURL(/\/fitment\?boat=boat_stacer%3A/)
-  /* the boat the press named is the boat Fitment opened on */
-  await expect(page.getByRole('heading', { level: 1 })).toContainText(named, {
-    timeout: 15_000,
-  })
+  /* A CHOICE, NOT A BOAT THIS SCREEN PICKED (the judge, L15) */
+  await page
+    .getByTestId('data-page')
+    .getByRole('link', { name: 'Choose its model on Fitment' })
+    .click()
+  await expect(page).toHaveURL(/\/fitment\?maker=Stacer$/)
+  await expect(page.locator('[data-testid="fitment"][data-read]')).toBeVisible({ timeout: 15_000 })
 })

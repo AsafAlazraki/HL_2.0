@@ -1,33 +1,16 @@
-import { useMemo, useState, type ComponentType } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  AnchorIcon,
   ArrowsOutSimpleIcon,
-  BatteryChargingIcon,
   BoatIcon,
   CheckIcon,
   DotsSixVerticalIcon,
-  DropIcon,
-  FanIcon,
-  FishSimpleIcon,
-  LifebuoyIcon,
-  LightbulbIcon,
-  LightningIcon,
   MagnifyingGlassIcon,
   PlusIcon,
   QuestionIcon,
-  RadioIcon,
-  SpeakerHifiIcon,
-  SteeringWheelIcon,
-  StickerIcon,
   ToolboxIcon,
-  TruckTrailerIcon,
-  UmbrellaIcon,
-  WavesIcon,
-  WrenchIcon,
-  type IconProps as PhosphorProps,
 } from '@phosphor-icons/react'
 import type { CatalogueCtx, QuoteLine } from '@/domain/model'
-import { aisleById, aislesOf, makersOf, UNSORTED } from '@/domain/catalogue/aisles'
+import { aisleById, aislesOf, makersOf } from '@/domain/catalogue/aisles'
 import { money } from '@/domain/money'
 import { itemOf, placeIn, type Item } from '@/data/pictures'
 import { shotsOf, useGallery, useOptionPicture } from '@/app/optionPicture'
@@ -47,12 +30,14 @@ import { DRAG_HOW, usePart } from './drag'
 import {
   PARTS_TABLE,
   hasPicture,
-  matchesName,
+  shelfAisle,
   pricerFor,
   shelfOf,
   type PartTile,
   type ShelfPart,
 } from './shelf'
+import { findLines } from '@/domain/chandlery/find'
+import { DRAWN } from './drawn'
 import './chandlery.css'
 
 /* ============================================================
@@ -65,7 +50,8 @@ import './chandlery.css'
      · the boat it is fitting, held as a chip with what the price list
        makes for it, and "What fits this boat", one press from Fitment
        already on that boat (`/fitment?boat=`);
-     · a find field that answers to a part's NAME, never its code;
+     · a find field that answers to a part's name, its code, its supplier or its heading
+       (`findLines`, the judge of the chandlery, 2026-11-03), the name's matches first;
      · what is on this quote, once, as a basket with each part's way off
        (the walk: parts showed twice, "and not in the list above");
      · what the price list makes for this boat, first;
@@ -87,31 +73,6 @@ import './chandlery.css'
    screen's (`aisle`, `maker`), so Back and a shared link land on them.
    What is typed into its find field is the field's alone.
    ============================================================ */
-
-type Phosphor = ComponentType<PhosphorProps>
-
-/** THE DRAWING EACH AISLE IS NAMED BY: a kind of thing, never a product (BCF's "shop by"). */
-const DRAWN: Record<string, Phosphor> = {
-  sounders: WavesIcon,
-  radios: RadioIcon,
-  stereo: SpeakerHifiIcon,
-  safety: LifebuoyIcon,
-  anchoring: AnchorIcon,
-  power: BatteryChargingIcon,
-  lights: LightbulbIcon,
-  trailer: TruckTrailerIcon,
-  covers: UmbrellaIcon,
-  fishing: FishSimpleIcon,
-  electric: LightningIcon,
-  propellers: FanIcon,
-  steering: SteeringWheelIcon,
-  plumbing: DropIcon,
-  deck: WrenchIcon,
-  highfield: BoatIcon,
-  decals: StickerIcon,
-  workshop: ToolboxIcon,
-  [UNSORTED]: QuestionIcon,
-}
 
 /** How many cards an aisle shows before "Show the next". */
 const PAGE = 24
@@ -171,7 +132,7 @@ export function Chandlery({
   const [shown, setShown] = useState(PAGE)
   const shelf = useMemo(() => shelfOf(ctx), [ctx])
   const price = useMemo(() => pricerFor(ctx, levelKey), [ctx, levelKey])
-  const counted = useMemo(() => aislesOf(shelf, hasPicture), [shelf])
+  const counted = useMemo(() => aislesOf(shelf, hasPicture, shelfAisle), [shelf])
   const byId = useMemo(() => new Map(shelf.map((p) => [p.id, p])), [shelf])
 
   const open = aisle === '' ? undefined : aisleById(aisle)
@@ -183,7 +144,7 @@ export function Chandlery({
   const narrowed = maker === '' ? inAisle : inAisle.filter((p) => p.maker === maker)
   const query = find.trim()
   const found = useMemo(
-    () => (query.length < 2 ? [] : shelf.filter((p) => matchesName(p, query))),
+    () => findLines(shelf.map(findable), query).found.map((f) => f.part),
     [shelf, query],
   )
 
@@ -235,7 +196,7 @@ export function Chandlery({
         </p>
         <div className="cat-find">
           <label className="cat-find__label" htmlFor="cat-find">
-            Find a part by its name
+            Find a part by its name, code or supplier
           </label>
           <Input
             id="cat-find"
@@ -290,7 +251,7 @@ export function Chandlery({
           price={price}
           fitting={fitting}
           open={opener}
-          empty={`No part on the price list is named “${query}”. A code is not a name: try what the part is.`}
+          empty={`Nothing on the price list answers to “${query}” by its name, its code, its supplier or its heading.`}
         />
       ) : (
         <>
@@ -408,6 +369,17 @@ export function Chandlery({
     </div>
   )
 }
+
+/** What find reads of a part on the shelf: its words, its code, its supplier and its heading. */
+const findable = (part: ShelfPart) => ({
+  part,
+  name: part.product,
+  product: part.product,
+  code: part.code,
+  op: part.op,
+  heading: part.heading,
+  maker: part.maker,
+})
 
 /** HOW A CARD OPENS ITS PART'S GALLERY: the tile, the picture to open on, and the gallery large. */
 type Opener = (tile: PartTile, at: number, set: readonly LightboxPicture[]) => void

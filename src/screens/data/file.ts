@@ -42,6 +42,10 @@ export interface ShippedFile {
   sha256: string
   /** ISO, when the packer ran */
   packedAt: string
+  /** THE FILE'S OWN COUNT OF ITSELF, so Data can say whether every list it carries is on this
+   *  computer: 53 lists and 15,691 lines on the pack of 16 September 2026. Null where the
+   *  manifest does not count itself. */
+  counts: { tables: number; rows: number } | null
 }
 
 function read(raw: string): ShippedFile | null {
@@ -60,7 +64,12 @@ function read(raw: string): ShippedFile | null {
   const sha256 = str('sourceSha256')
   const packedAt = str('packedAt')
   if (!version || !fingerprint || !sha256 || !packedAt) return null
-  return { version, fingerprint, sha256, packedAt }
+  const c = m['counts'] as Record<string, unknown> | undefined
+  const counts =
+    c && typeof c['tables'] === 'number' && typeof c['rows'] === 'number'
+      ? { tables: c['tables'], rows: c['rows'] }
+      : null
+  return { version, fingerprint, sha256, packedAt, counts }
 }
 
 const shipped = read(manifestRaw)

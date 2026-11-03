@@ -433,40 +433,42 @@ export const routes: Route[] = [
     density: { list: '.cu-list' },
   },
   {
-    /* DATA, AND IT IS THE THIRD COCKPIT SCREEN: the register of the
-       dealer's own tables, at its own door — "I WANT THE DATA STUFF AS
-       ITS OWN MENU ITEM. NOT UNDER ADMIN!" — dense, worked in, and it
-       owes eighteen rows at 1280×800.
+    /* DATA (direction A, "The Monday list", 2026-11-03): the Master Price File as one place —
+       what needs Northside, what is new, the rooms, then every list it carries. A FOUNDATION
+       and no longer a Cockpit register: the judge of Data (docs/directions/data-round/data/
+       judge.md) found the screen a register of containers with no place for the price file's
+       state, and the direction the owner's brief asks for leads with that state above the
+       inventory, so the eighteen lists stand under it and are not owed in the first window at
+       1280×800 (docs/DECISIONS.md, 2026-11-03). All eighteen are still one ledger, counted by
+       data.spec.
 
-       THROUGH THE DOOR, because this screen reads this browser and never
-       the file: only the blue door on Entry puts a table where this
-       address can find it, and with no file in this browser it draws the teaching
-       state instead, which has no rows in it at all. It needs no
-       document: its records are the tables the file brought, so the walk
-       that mints a quote would cost two minutes and change nothing it
-       measures.
-
-       `ready` is the screen's own `data-read`, set once the catalogue
-       store has ANSWERED — the same main draws "Reading what this
-       browser has kept…" for the first paint, and a ruler that measured
-       then would measure a sentence.
-
-       THE LIST is `.dt-list`, the ledger's own scroller, with the legend
-       under it. The plates above it are not in the room, which is the
-       point: they are what this screen spends its height on, and the
-       ruler reads what is left. Its rows are `rowgroup`s per place with
-       no head row of their own — the place is a cell in the margin of
-       its first row — so the ruler's `heads` reading is 0 here and every
-       row in the room is a record. On this file all eighteen registers
-       are drawn at once, and until 2026-09-23 the ruler counted all
-       eighteen as readable because they were inside the WINDOW, while
-       the last two were outside the list's own scrollport. */
+       THROUGH THE DOOR, because this screen reads this browser and never the file; `ready` is
+       the screen's own `data-read`, set once the catalogue store has answered. */
     path: '/data',
     name: 'data',
-    register: 'cockpit',
+    register: 'foundation',
     ready: '[data-testid="data"][data-read]',
     arrive: 'through-the-door',
-    density: { list: '.dt-list' },
+  },
+  {
+    /* DATA ANSWERING A FIND (2026-11-03, the judge's L5): one find over the whole price file,
+       its answer drawn under the field and the tiles and the ledger narrowed. F115 is a code the
+       file carries in 306 lines across twelve lists, so the answer is at its longest here. */
+    path: '/data?find=F115',
+    name: 'data-find',
+    register: 'foundation',
+    ready: '[data-testid="data-answer"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* THE LIST NO LONGER SOLD, OPENED (the judge's L3: at 390 its spread scrolled the page to
+       425px, and no ruler had ever opened it) */
+    path: '/data?at=trl_obsolete',
+    name: 'data-obsolete',
+    register: 'foundation',
+    /* at rest: the arrival's scroll has been made (Data.tsx, `data-rested`) */
+    ready: '[data-testid="data"][data-rested] [data-testid="data-page"]',
+    arrive: 'through-the-door',
   },
   {
     /* A MAKER'S SPREAD ON DATA, with the door to its own page (2026-10-30, built-critique-m4.md
@@ -476,7 +478,8 @@ export const routes: Route[] = [
     path: '/data?at=boat_stacer',
     name: 'data-stacer',
     register: 'foundation',
-    ready: '[data-testid="data-page"] a[href="/places/boat_stacer"]',
+    ready:
+      '[data-testid="data"][data-rested] [data-testid="data-page"] a[href="/places/boat_stacer"]',
     arrive: 'through-the-door',
   },
   {

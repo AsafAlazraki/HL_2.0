@@ -143,7 +143,23 @@ export function readOrg(raw: unknown, stamp = ''): OrgProfile | undefined {
   if (h) out.home = h
   const c = colours(raw.colours)
   if (c) out.colours = c
+  const s = words(raw.suppliers, 80, 40)
+  if (s) out.suppliers = s
+  const a = words(raw.aisles, 400, 40)
+  if (a) out.aisles = a
   return out
+}
+
+/** A small map of Northside's own words (the chandlery's supplier names and aisle placings): each
+ *  key and word a non-empty string within its bound; anything else is left out. */
+function words(raw: unknown, keyMax: number, wordMax: number): Record<string, string> | undefined {
+  if (!isBag(raw)) return undefined
+  const out: Record<string, string> = {}
+  for (const [key, v] of Object.entries(raw)) {
+    const word = text(v)
+    if (key.trim() !== '' && key.length <= keyMax && word && word.length <= wordMax) out[key] = word
+  }
+  return Object.keys(out).length > 0 ? out : undefined
 }
 
 /** The colour key's letters Northside named: a capital letter or three, each a colour it can draw. */

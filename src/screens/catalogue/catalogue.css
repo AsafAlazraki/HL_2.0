@@ -1,80 +1,1294 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   /catalogue (Catalogue.tsx) — the chandlery's own page: a head on the
-   room's plain ground and the chandlery under it, in the page's
-   measure. The chandlery draws itself (chandlery.css).
+   /catalogue — THE CHANDLERY (Catalogue.tsx and its pages): direction
+   A of docs/directions/data-round/catalogue/, "the aisle as a page",
+   with board C's photograph cards and shop sign grafted on. This
+   screen's rules alone, every colour, face, space, radius and
+   duration a token (docs/CUSTOMISATION.md), so a dealer's own look
+   reaches it. Nothing here reaches into the kit's `.ui-*`.
 
-   THE REFLOW: the gutter is 16px in a hand (390 × 844), 32 on a
-   tablet and a phone turned over (834 × 1112, 844 × 390), 56 at a desk
-   (1280 × 800, 1440 × 900) and the measure stops at 90rem, centred, at
-   1920 × 1080. The head clears the shell's pill where it floats at the
-   top, and the page clears its tab bar where it stands at the foot.
+   THE THREE PAGES. The front: Northside's mark beside the word
+   Chandlery, find and the boat, then every aisle as a plate with its
+   largest headings. An aisle: its name large, a dock that stays under
+   the bar, the tools, what is made for the boat, then the headings as
+   sections — the pictured parts as cards first, every other part a
+   ruled line. The suppliers: one list, each code with its name.
+
+   ------------------------------------------------------------------
+   THE REFLOW, at the six sizes the rulers run.
+     390 × 844   gutter 16. The front's aisles in one column of plates,
+                 each with its four largest headings. An aisle: the name
+                 at 4xl over its counts; the dock (find) sticks at the
+                 top of the window, with the aisle · supplier · boat
+                 line once the name has gone; Show takes its own row and
+                 the suppliers fold to one menu; a line is the name, then
+                 code · supplier, then its two prices labelled; two cards
+                 a row. The bar is at the foot, and the page keeps its
+                 height clear above it.
+     844 × 390   gutter 32. The window is short, so the aisle's tile and
+                 name shrink to one line and the dock is one row (the
+                 where-line beside find); the suppliers fold to a menu;
+                 a line is the name over code · supplier with the prices
+                 at its right; four cards a row.
+     834 × 1112  gutter 32. Two aisle plates a row; a line as at 844;
+                 suppliers as filters that wrap; three cards a row.
+     1280 × 800  gutter 56. Three aisle plates a row; the ledger has its
+                 column heads — part, code, supplier, supply, fitted —
+                 and each line is one row of them; five cards a row.
+     1440 × 900  as 1280, four plates a row; five cards a row.
+     1920 × 1080 the page's measure stops at 100rem, centred; five plates
+                 a row; six cards a row; the ledger's name column takes
+                 the width, the figures stay at their measure.
+   The grids are `auto-fill` on a minimum and the line's layout is a
+   container query on the ledger, so the count a row holds is the
+   room's and an opened card's panel reads the same anywhere.
+
+   MOTION. An opened line or card is a position, not an animation: its
+   panel is in the page at its full height, and nothing else moves but
+   what is below it. The dock does not move; it is where it is. The
+   caret turns over the kit's press duration where motion is wanted.
    ============================================================ */
-.catp {
+
+.chd {
   --gutter: --spacing(14);
   box-sizing: border-box;
   inline-size: 100%;
-  max-inline-size: --spacing(360);
+  max-inline-size: --spacing(400);
   min-block-size: 100dvh;
   margin-inline: auto;
   padding: max(--spacing(6), var(--shell-inset)) var(--gutter)
     calc(var(--shell-foot) + --spacing(16));
-  display: grid;
-  align-content: start;
-  gap: --spacing(6);
   background: var(--color-ground);
   color: var(--color-ink);
 }
-.catp-head {
-  display: grid;
-  gap: --spacing(2);
+@media (max-width: 1199.98px) {
+  .chd {
+    --gutter: --spacing(8);
+  }
 }
-.catp-eyebrow {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
+@media (max-width: 639.98px) {
+  .chd {
+    --gutter: --spacing(4);
+  }
 }
-.catp-title {
-  margin: 0;
-  font-size: var(--text-6xl);
-  line-height: var(--text-6xl--line-height);
-  font-weight: 300;
-  letter-spacing: var(--tracking-display);
-}
-.catp-lede {
-  margin: 0;
-  max-inline-size: --spacing(160);
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-ink-2);
-  text-wrap: pretty;
-}
-.catp-none {
+
+.chd-none {
   display: grid;
   gap: --spacing(3);
   justify-items: start;
   margin: 0;
   color: var(--color-ink-2);
 }
-.catp-none > p {
+.chd-none > p {
   margin: 0;
 }
-@media (max-width: 1199.98px) {
-  .catp {
-    --gutter: --spacing(8);
+
+.chd-said {
+  margin: 0;
+  max-inline-size: 72ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.chd-way {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: --spacing(6);
+  gap: --spacing(1);
+  font-weight: 600;
+  color: var(--color-ink-file);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.chd-way:hover {
+  text-decoration: underline;
+}
+.chd-way:focus-visible,
+.chd-back:focus-visible,
+.chd-aisle__go:focus-visible,
+.chd-aisle__heads a:focus-visible,
+.chd-keep:focus-visible,
+.chd-line__head:focus-visible,
+.chd-card__name:focus-visible,
+.chd-boat:focus-visible,
+.chd-boat__off:focus-visible,
+.chd-boats__one:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+.chd-code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  overflow-wrap: anywhere;
+}
+
+/* ---- the way back, on an aisle and the suppliers ------------------------------ */
+.chd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-block-size: --spacing(8);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-file);
+  text-decoration: none;
+}
+
+/* ================================================================================
+   THE FRONT
+   ================================================================================ */
+.chd-door {
+  display: grid;
+  gap: --spacing(6);
+}
+.chd-door__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(4) --spacing(6);
+}
+/* NORTHSIDE'S MARK AT SHOP-SIGN SIZE, on a white sign of its own so the dark mark reads on
+   any ground the dealer sets */
+.chd-mark {
+  display: inline-grid;
+  place-items: center;
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-tile);
+  background: var(--color-white);
+  box-shadow:
+    var(--shadow-plate),
+    0 0 0 1px var(--color-rule);
+}
+.chd-mark img {
+  display: block;
+  block-size: --spacing(14);
+  inline-size: auto;
+  max-inline-size: --spacing(64);
+  object-fit: contain;
+}
+.chd-door__words {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+  flex: 1 1 --spacing(80);
+}
+.chd-door__title {
+  margin: 0;
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+}
+.chd-door__count {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.chd-door__count b,
+.chd-head__count b {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+.chd-door__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(3);
+}
+.chd-find {
+  flex: 1 1 --spacing(80);
+  min-inline-size: 0;
+  max-inline-size: --spacing(190);
+}
+
+/* THE AISLES: a plate each, its drawing or a photograph, its name and counts, and its largest
+   headings — the room's own count a row (`auto-fill`) */
+.chd-aisles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(68)), 1fr));
+  gap: --spacing(4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chd-aisle {
+  display: grid;
+  align-content: start;
+  gap: --spacing(3);
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  box-shadow:
+    var(--shadow-plate),
+    0 0 0 1px var(--color-rule);
+}
+.chd-aisle[data-unsorted] {
+  background: var(--color-plate-tint);
+}
+.chd-aisle__go {
+  display: grid;
+  grid-template-columns: --spacing(16) minmax(0, 1fr);
+  grid-template-areas: 'tile name' 'tile count';
+  align-items: center;
+  column-gap: --spacing(3);
+  color: inherit;
+  text-decoration: none;
+}
+.chd-aisle__tile,
+.chd-head__tile {
+  grid-area: tile;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: --spacing(16);
+  block-size: --spacing(16);
+  padding: --spacing(3);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate-tint);
+  color: var(--color-ink-file);
+  overflow: hidden;
+}
+.chd-aisle__tile[data-photo],
+.chd-head__tile[data-photo] {
+  padding: --spacing(1);
+  background: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-rule);
+}
+.chd-aisle__name {
+  grid-area: name;
+  align-self: end;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+}
+@media (hover: hover) and (pointer: fine) {
+  .chd-aisle__go:hover .chd-aisle__name {
+    color: var(--color-ink-file);
+    text-decoration: underline;
   }
 }
-@media (max-width: 639.98px) {
-  .catp {
-    --gutter: --spacing(4);
+.chd-aisle__count {
+  grid-area: count;
+  align-self: start;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.chd-aisle__heads {
+  display: grid;
+  gap: --spacing(0.5);
+  margin: 0;
+  padding: --spacing(3) 0 0;
+  border-block-start: 1px solid var(--color-rule);
+  list-style: none;
+}
+.chd-aisle__heads li {
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(3);
+  min-inline-size: 0;
+}
+.chd-aisle__heads a {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding-block: --spacing(1);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-file);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.chd-aisle__heads a:hover {
+  text-decoration: underline;
+}
+.chd-aisle__n {
+  flex: none;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.chd-aisle__more {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* FOUND, over the whole chandlery: one sentence, then each aisle's parts as a section */
+.chd-found {
+  display: grid;
+  gap: --spacing(6);
+}
+.chd-found__said {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+}
+
+/* NORTHSIDE'S WORK OVER EVERY AISLE: pictures by code, and the suppliers named */
+.chd-door__keep {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(100)), 1fr));
+  gap: --spacing(4);
+  padding-block-start: --spacing(4);
+  border-block-start: 1px solid var(--color-rule-strong);
+}
+.chd-bycode,
+.chd-keep {
+  display: grid;
+  grid-template-columns: --spacing(10) minmax(0, 1fr);
+  align-items: start;
+  gap: --spacing(3) --spacing(4);
+  padding: --spacing(5);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  box-shadow:
+    var(--shadow-plate),
+    0 0 0 1px var(--color-rule);
+  color: inherit;
+  text-decoration: none;
+}
+.chd-bycode[data-over] {
+  box-shadow: var(--ring-chosen);
+  background: var(--color-plate-tint);
+}
+.chd-keep {
+  grid-template-columns: --spacing(10) minmax(0, 1fr) auto;
+  align-items: center;
+}
+.chd-bycode__glyph,
+.chd-keep__glyph {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(10);
+  block-size: --spacing(10);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate-tint);
+  color: var(--color-ink-file);
+}
+.chd-bycode__words,
+.chd-keep__words {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.chd-bycode__title,
+.chd-keep__title {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+}
+.chd-bycode__act,
+.chd-bycode__out {
+  grid-column: 2;
+  min-inline-size: 0;
+}
+.chd-bycode__out {
+  display: grid;
+  gap: --spacing(2);
+}
+.chd-bycode__out:empty {
+  display: none;
+}
+.chd-bycode__input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.chd-bycode__list {
+  display: grid;
+  gap: --spacing(1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.chd-bycode__list li[data-refused] {
+  color: var(--color-ink-reason);
+}
+
+/* ================================================================================
+   AN AISLE
+   ================================================================================ */
+.chd-page {
+  display: grid;
+  gap: --spacing(4);
+}
+.chd-head {
+  display: grid;
+  grid-template-columns: --spacing(20) minmax(0, 1fr) auto;
+  grid-template-areas: 'tile words boat';
+  align-items: center;
+  gap: --spacing(5);
+}
+.chd-head__tile {
+  inline-size: --spacing(20);
+  block-size: --spacing(20);
+  padding: --spacing(4);
+  background: var(--color-plate);
+  box-shadow:
+    var(--shadow-plate),
+    0 0 0 1px var(--color-rule);
+}
+.chd-head__boat {
+  grid-area: boat;
+  align-self: center;
+  min-inline-size: 0;
+  max-inline-size: --spacing(110);
+}
+.chd-head__words {
+  grid-area: words;
+  display: grid;
+  gap: --spacing(1.5);
+  min-inline-size: 0;
+}
+.chd-head__title {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  overflow-wrap: anywhere;
+}
+.chd-head__count {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+/* THE DOCK: under the bar while the parts scroll. Once the aisle's name has gone under it, its
+   first line says where this is: aisle · supplier · boat */
+.chd-sentinel {
+  block-size: 1px;
+  margin-block-end: calc(-1 * --spacing(4));
+}
+.chd-dock {
+  position: sticky;
+  inset-block-start: var(--shell-inset);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+  margin-inline: calc(-1 * var(--gutter));
+  padding: --spacing(3) var(--gutter);
+  background: var(--color-ground);
+}
+/* STUCK, the band between the window's edge and the dock is the dock's too, so no part scrolls
+   into sight around the pill above it */
+.chd-dock[data-stuck]::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 100%;
+  block-size: var(--shell-inset);
+  background: var(--color-ground);
+}
+.chd-dock[data-stuck] {
+  border-block-end: 1px solid var(--color-rule-strong);
+  box-shadow: var(--shadow-sm);
+}
+.chd-dock__where {
+  display: none;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.chd-dock[data-stuck] .chd-dock__where {
+  display: block;
+  flex-basis: 100%;
+}
+.chd-dock .chd-find {
+  flex: 1 1 --spacing(80);
+}
+.chd-dock__show {
+  flex: 0 0 auto;
+  max-inline-size: 100%;
+}
+
+.chd-tools {
+  display: grid;
+  gap: --spacing(3);
+}
+.chd-tools__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+}
+.chd-suppliers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+  flex: 1 1 --spacing(120);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.chd-suppliers-folded {
+  display: none;
+  flex: 1 1 --spacing(56);
+  min-inline-size: 0;
+}
+.chd-sort {
+  flex: 0 1 --spacing(64);
+  min-inline-size: 0;
+  margin-inline-start: auto;
+}
+
+/* THE CUSTOMER'S BOAT: a pill of its own, the file's deep blue when one is chosen */
+.chd-boat {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  min-block-size: --spacing(10);
+  max-inline-size: 100%;
+  margin-inline-start: auto;
+  padding: --spacing(1) --spacing(4) --spacing(1) --spacing(1);
+  border: 1px solid var(--color-control-edge);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  color: var(--color-ink-file);
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chd-boat[data-on] {
+  padding-inline-end: --spacing(1);
+  border-color: transparent;
+  background: var(--color-blue-900);
+  color: var(--color-white);
+  cursor: default;
+}
+.chd-boat__glyph {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
+}
+.chd-boat[data-on] .chd-boat__glyph {
+  background: --alpha(var(--color-white) / 16%);
+}
+.chd-boat__name {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.chd-boat__count {
+  font-weight: 500;
+}
+.chd-boat__off {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: --alpha(var(--color-white) / 16%);
+  color: inherit;
+  cursor: pointer;
+}
+.chd-boats {
+  display: grid;
+  gap: --spacing(3);
+  inline-size: min(--spacing(96), calc(100vw - --spacing(8)));
+}
+.chd-boats__lead,
+.chd-boats__none {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.chd-boats__list {
+  display: grid;
+  gap: --spacing(1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chd-boats__one {
+  display: grid;
+  inline-size: 100%;
+  gap: --spacing(0.5);
+  padding: --spacing(2) --spacing(3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.chd-boats__one:hover {
+  background: var(--color-plate-tint);
+}
+.chd-boats__name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+}
+.chd-boats__detail,
+.chd-boats__more {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* ONE STEP NORTHSIDE TOOK HERE, with its way back; nothing drawn until there is one */
+.chd-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.chd-step:empty {
+  display: none;
+}
+.chd-step__said {
+  font-weight: 600;
+}
+
+/* MADE FOR THE CUSTOMER'S BOAT, first and set apart */
+.chd-made {
+  display: grid;
+  gap: --spacing(2);
+  padding: --spacing(4) --spacing(5);
+  border-radius: var(--radius-plate);
+  background: var(--color-chosen-wash);
+  box-shadow: inset 0 0 0 1px var(--color-blue-300);
+  container-type: inline-size;
+}
+.chd-made__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(4);
+}
+.chd-made__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+}
+.chd-made__count {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+.chd-nothing {
+  padding-block: --spacing(8);
+}
+
+/* ---- the sections: the price list's own headings --------------------------------- */
+.chd-sections {
+  display: grid;
+  gap: --spacing(8);
+  padding-block-start: --spacing(2);
+}
+.chd-section {
+  display: grid;
+  gap: --spacing(3);
+  min-inline-size: 0;
+  /* a link from the front lands the heading clear of the bar and the dock */
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(20));
+}
+.chd-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  padding-block-end: --spacing(2);
+  border-block-end: 2px solid var(--color-ink);
+}
+.chd-section__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.chd-section__count {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.chd-section__say {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.chd-place {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+  min-inline-size: 0;
+}
+.chd-place--head {
+  margin-inline-start: auto;
+}
+.chd-place__label {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+
+/* ---- the pictured parts: cards, the photograph contained on white --------------- */
+.chd-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(56)), 1fr));
+  grid-auto-flow: row dense;
+  gap: --spacing(4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chd-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-inline-size: 0;
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  box-shadow:
+    var(--shadow-plate),
+    0 0 0 1px var(--color-rule);
+  overflow: hidden;
+}
+.chd-card__pic {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  padding: --spacing(3);
+  background: var(--color-white);
+}
+.chd-card__expand {
+  position: absolute;
+  inset-block-start: --spacing(2);
+  inset-inline-end: --spacing(2);
+}
+.chd-card__body {
+  display: grid;
+  align-content: start;
+  gap: --spacing(2);
+  padding: --spacing(3) --spacing(4) --spacing(4);
+  border-block-start: 1px solid var(--color-rule);
+  min-inline-size: 0;
+}
+.chd-card__name {
+  min-block-size: --spacing(6);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: --spacing(2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.chd-card__caret,
+.chd-line__caret {
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-ink-file);
+}
+.chd-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(3);
+  align-items: baseline;
+}
+/* AN OPENED CARD takes the whole row: the photograph at its left, what it says at its right */
+.chd-card[data-open] {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, --spacing(80)) minmax(0, 1fr);
+  grid-template-rows: auto;
+}
+.chd-card[data-open] .chd-card__pic {
+  align-self: start;
+}
+.chd-card[data-open] .chd-card__body {
+  border-block-start: 0;
+  border-inline-start: 1px solid var(--color-rule);
+  padding: --spacing(4) --spacing(5);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chd-card__caret,
+  .chd-line__caret {
+    transition: rotate var(--duration-press) var(--ease-out);
   }
-  .catp-title {
+}
+.chd-card[data-open] .chd-card__caret,
+.chd-line[data-open] .chd-line__caret {
+  rotate: 180deg;
+}
+
+/* ---- every other part: a ruled line, laid out by the room the ledger has ---------- */
+.chd-ledger {
+  container-type: inline-size;
+  min-inline-size: 0;
+}
+.chd-cols {
+  display: none;
+  margin: 0;
+  padding: --spacing(1) --spacing(3);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+  border-block-end: 1px solid var(--color-rule);
+}
+.chd-lines {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chd-line,
+.chd-note {
+  border-block-end: 1px solid var(--color-rule);
+  min-inline-size: 0;
+}
+/* the line itself is one press: name, code · supplier, the two prices, the caret */
+.chd-line__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) --spacing(9);
+  grid-template-areas: 'name caret' 'meta caret' 'prices caret';
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  inline-size: 100%;
+  min-block-size: --spacing(12);
+  margin: 0;
+  padding: --spacing(2.5) --spacing(3);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .chd-line__head:hover {
+    background: var(--color-plate);
+  }
+}
+.chd-line[data-open] {
+  background: var(--color-plate);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+.chd-line__name {
+  grid-area: name;
+  min-inline-size: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.chd-line__glyph {
+  display: inline-grid;
+  vertical-align: -0.15em;
+  margin-inline-end: --spacing(1.5);
+  color: var(--color-ink-2);
+}
+.chd-line__meta {
+  grid-area: meta;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(0.5) --spacing(3);
+  min-inline-size: 0;
+}
+.chd-line__supplier {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  overflow-wrap: anywhere;
+}
+.chd-line .chd-prices {
+  grid-area: prices;
+}
+.chd-line__caret {
+  grid-area: caret;
+  justify-self: end;
+}
+
+/* THE TWO PRICES: each figure over its word; one figure where the file gives one answer */
+.chd-prices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  justify-content: start;
+  align-items: start;
+  gap: --spacing(5);
+}
+.chd-prices[data-one] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.chd-fig {
+  display: grid;
+  gap: 0;
+  min-inline-size: 0;
+}
+.chd-fig__n {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chd-fig__w {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.chd-fig[data-said] .chd-fig__n {
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.chd-prices[data-none] .chd-fig__n {
+  color: var(--color-ink-2);
+}
+
+/* a ledger with room: the name over code · supplier, the prices at its right */
+@container (min-width: 560px) {
+  .chd-line__head {
+    grid-template-columns: minmax(0, 1fr) --spacing(56) --spacing(9);
+    grid-template-areas: 'name prices caret' 'meta prices caret';
+    row-gap: 0;
+  }
+  .chd-line .chd-prices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-items: end;
+    text-align: end;
+  }
+  .chd-line .chd-prices[data-one] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* a ledger at a desk: one row of columns, with their heads */
+@container (min-width: 960px) {
+  .chd-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) --spacing(40) --spacing(40) --spacing(28) --spacing(
+        28
+      ) --spacing(9);
+    gap: --spacing(4);
+  }
+  .chd-cols__fig {
+    text-align: end;
+  }
+  .chd-line__head {
+    grid-template-columns: minmax(0, 1fr) --spacing(84) --spacing(60) --spacing(9);
+    grid-template-areas: 'name meta prices caret';
+    column-gap: --spacing(4);
+  }
+  .chd-line__meta {
+    display: grid;
+    grid-template-columns: --spacing(40) --spacing(40);
+    gap: --spacing(4);
+  }
+  .chd-line .chd-prices {
+    gap: --spacing(4);
+  }
+}
+
+/* A NOTE OF THE WORKBOOK: said, never a part to buy */
+.chd-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  padding: --spacing(3);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.chd-note__glyph {
+  display: inline-grid;
+  align-self: center;
+}
+.chd-note__said {
+  flex: 1 1 --spacing(60);
+  min-inline-size: 0;
+  font-style: italic;
+}
+.chd-note__word {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+/* ---- a part opened: what the price list says of it, and its ways on --------------- */
+.chd-line__panel {
+  padding: 0 --spacing(3) --spacing(4) --spacing(4);
+}
+.chd-details {
+  display: grid;
+  gap: --spacing(4);
+  min-inline-size: 0;
+}
+.chd-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(56)), 1fr));
+  gap: --spacing(3) --spacing(5);
+  margin: 0;
+}
+.chd-facts dt {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+.chd-facts dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.chd-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2) --spacing(3);
+}
+.chd-own {
+  inline-size: min(100%, --spacing(80));
+}
+
+.chd-foot {
+  margin: 0;
+  padding-block-start: --spacing(6);
+}
+
+/* ================================================================================
+   THE SUPPLIERS
+   ================================================================================ */
+.chd-sup {
+  display: grid;
+  gap: --spacing(6);
+}
+.chd-sup__head {
+  display: grid;
+  gap: --spacing(2);
+}
+.chd-sup__title {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+}
+.chd-sup__lede {
+  margin: 0;
+  max-inline-size: 72ch;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.chd-sup__block {
+  display: grid;
+  gap: --spacing(3);
+}
+.chd-sup__h2 {
+  margin: 0;
+  padding-block-end: --spacing(2);
+  border-block-end: 2px solid var(--color-ink);
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+}
+.chd-sup__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+.chd-sup__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(2);
+  padding: --spacing(3) 0;
+  border-block-end: 1px solid var(--color-rule);
+}
+.chd-sup__code {
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.chd-sup__why {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.chd-sup__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+  margin: 0;
+}
+.chd-sup__name > :first-child {
+  flex: 1 1 --spacing(48);
+  min-inline-size: 0;
+}
+@container (min-width: 900px) {
+  .chd-sup__row {
+    grid-template-columns: --spacing(48) minmax(0, 1fr) --spacing(120);
+    align-items: center;
+    gap: --spacing(5);
+  }
+}
+
+/* ================================================================================
+   THE SIZES THE GRID AND THE CONTAINERS DO NOT SETTLE ON THEIR OWN
+   ================================================================================ */
+
+/* below a tablet the suppliers fold to one menu */
+@media (max-width: 833.98px) {
+  .chd-head {
+    grid-template-columns: --spacing(20) minmax(0, 1fr);
+    grid-template-areas: 'tile words' 'boat boat';
+    row-gap: --spacing(4);
+  }
+  .chd-head__boat {
+    max-inline-size: none;
+  }
+  .chd-suppliers {
+    display: none;
+  }
+  .chd-suppliers-folded {
+    display: block;
+  }
+}
+
+/* a phone in a hand */
+@media (max-width: 639.98px) {
+  .chd-door__title {
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
+  }
+  .chd-mark img {
+    block-size: --spacing(10);
+  }
+  .chd-head {
+    grid-template-columns: --spacing(14) minmax(0, 1fr);
+    gap: --spacing(3);
+  }
+  .chd-head__tile {
+    inline-size: --spacing(14);
+    block-size: --spacing(14);
+    padding: --spacing(2.5);
+  }
+  .chd-head__title {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  .chd-head__count {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+  .chd-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: --spacing(3);
+  }
+  .chd-card[data-open] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .chd-card[data-open] .chd-card__body {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--color-rule);
+  }
+  .chd-boat {
+    margin-inline-start: 0;
+  }
+  .chd-sort {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+  }
+  .chd-made {
+    padding: --spacing(3) --spacing(4);
+  }
+}
+
+/* a phone turned on its side: little height, so the head is one line and the dock one row */
+@media (max-height: 520px) {
+  .chd-head {
+    grid-template-columns: --spacing(12) minmax(0, 1fr);
+    gap: --spacing(3);
+  }
+  .chd-head__tile {
+    inline-size: --spacing(12);
+    block-size: --spacing(12);
+    padding: --spacing(2);
+  }
+  .chd-head__title {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  .chd-door__title {
     font-size: var(--text-4xl);
     line-height: var(--text-4xl--line-height);
   }
+  .chd-mark img {
+    block-size: --spacing(10);
+  }
+  .chd-dock {
+    padding-block: --spacing(2);
+  }
+}
+
+/* a sentence read aloud as it changes is an <output>, set as the block it reads as */
+output.chd-said,
+.chd-found__said,
+.chd-nothing {
+  display: block;
 }

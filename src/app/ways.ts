@@ -227,6 +227,11 @@ export const PRICE_LIST_ROOMS: readonly Room[] = DOORS.find((d) => d.href === '/
  */
 export const pricesOf = (list: string): string => `/levels?list=${encodeURIComponent(list)}`
 export const fitmentOf = (boat: string): string => `/fitment?boat=${encodeURIComponent(boat)}`
+/** FITMENT'S CHOOSER OPEN AT ONE MAKER (its route's `maker`, the word Home's door carries), so a
+ *  maker's spread on Data offers its models to choose from rather than one boat it picked
+ *  (2026-11-03, the judge of Data, L15). */
+export const fitmentMakerOf = (maker: string): string =>
+  `/fitment?maker=${encodeURIComponent(maker)}`
 /** A MAKER'S OWN PAGE — its line, mark, photograph and colour — as `/places/$id` reads it: the
  *  list it stands for (`addressOf`, src/domain/modules/livery.ts). */
 export const placeOf = (address: string): string => `/places/${encodeURIComponent(address)}`

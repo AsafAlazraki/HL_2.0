@@ -300,15 +300,18 @@ export interface PartIn {
 /**
  * EVERY AISLE, COUNTED OFF THE PARTS HANDED IN — the eighteen in their order, then "Not sorted
  * yet" where anything is. `pictured` says whether a part has its own picture (the reader's, so
- * this stays pure). An aisle with no parts is still an aisle, with its count of nothing.
+ * this stays pure), and `aisleFor` where it stands, which is Northside's placing where it made one
+ * (src/domain/chandlery/placing.ts). An aisle with no parts is still an aisle, with its count of nothing.
  */
 export function aislesOf(
   parts: readonly PartIn[],
   pictured: (id: string) => boolean = () => false,
+  /** where a part stands: its heading's aisle, or where Northside placed it */
+  aisleFor: (part: PartIn) => string = (part) => aisleOf(part.heading),
 ): AisleCount[] {
   const counts = new Map<string, { parts: number; pictured: number; headings: Set<string> }>()
   for (const part of parts) {
-    const id = aisleOf(part.heading)
+    const id = aisleFor(part)
     const at = counts.get(id) ?? { parts: 0, pictured: 0, headings: new Set<string>() }
     at.parts += 1
     if (pictured(part.id)) at.pictured += 1

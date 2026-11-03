@@ -1,317 +1,168 @@
-/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
-   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)` has
-   no theme to read. `@reference` loads the theme for this file's functions and adds not one
-   byte to the output. Nothing below uses a utility class and nothing below emits a token. */
+/* THE THEME, WITHOUT EMITTING IT AGAIN: `@reference` loads the theme for `--spacing()` and
+   `--alpha()` and adds not one byte to the output. Nothing below emits a token. */
 @reference '../../styles/app.css';
 
 /* ============================================================
-   DATA — direction C, "The showpiece row", ASSIGNED for this round (docs/research/refs/
-   data/notes.md §5; critique-m2.md §3). This screen's own rules; nothing here is shared with
-   the register, the sheet, the diary or Home, and nothing is stamped from any of them. Every
-   colour, size, radius, tracking and duration is a token from src/styles/tokens.css, so a
-   second dealership's ground, accent, act, paper and marks arrive through the cascade with no
-   rebuild (docs/CUSTOMISATION.md, layer 2). What a second dealership changes on THIS screen:
-   every plate is theirs — the marks are read off the ledger by the table's own name and a
-   table with no mark is its name set in type on the same paper; the kinds' inks are the seven
-   `--accent-*` tokens; the one act is `--color-act`. Nothing on it is a photograph.
+   DATA — direction A, "The Monday list" (docs/directions/data-round/data/boards/a.html),
+   picked 2026-11-03, with board C's matrix of the lists of what fits and its answer to a find
+   grafted on. This screen's own rules; nothing here is shared with another screen and nothing
+   is stamped from one. Every colour, size, radius, tracking and duration is a token from
+   src/styles/tokens.css, so Northside's own appearance arrives through the cascade
+   (docs/CUSTOMISATION.md): the doors and the room glyphs read --color-ink-file, an open item's
+   dot reads --accent-ochre, a done one --accent-viridian, the kinds their seven accents.
+
+   THE COMPOSITION: the head (the file and its three dates, and one find), then the STATE —
+   Needs Northside beside a column of New since and the six rooms — then WHAT THE FILE HOLDS:
+   eight maker tiles, and the lists you sell from beside the 28 lists of what fits as a matrix.
+   A press opens a spread in the room the two ledgers had, under the tiles. A find answers
+   under the field, the state steps aside, and the tiles and the ledger narrow.
 
    ------------------------------------------------------------------------------------
-   THE PLATE ROW IS AN INVENTION, AND IS OWNED AS ONE. The critic found that no frame in the
-   data sweep shows "seven boat-brand plates across the top" (critique-m2.md §1, "data C — one
-   mark, not a row of them"), and none does. Two frames INFORM it without being its picture:
-   `prov/dockerhub-tags.png` puts one mark large at the head of one page with that page's
-   rows beneath it and `+5 more…` where the list is cut, which is what ONE plate is — a mark,
-   a count, and what hangs off it; and `live/airtable-interface-designer.png` draws the
-   linked thing as a card INSIDE the record, which is what a pairing tile on a spread is —
-   the motor table drawn on the boat it fits, and drawn again as a row of its own.
+   HOW IT REFLOWS. The rulers run at six windows; the breakpoints are on width alone.
 
-   ------------------------------------------------------------------------------------
-   THE COMPOSITION, AT REST AND OPENED, AND WHY NEITHER IS ANOTHER SCREEN'S.
+     390 x 844 (phone)          One column, 16px gutter; the bar is at the foot. The head, the
+                                find, then Needs as tight rows: the figure in a 64px margin, the
+                                sentence, its "of" and its door under the words; the year strip
+                                is hidden (its sentence keeps the oldest date). The first window
+                                holds the head and the first two needs. Then New since, the
+                                rooms as six full-width doors with an edge, the makers 2-up
+                                (eight tiles, four rows, no empty slot), the lists one to a
+                                card line, and the matrix as one card per maker. A spread opens
+                                under the tiles and is scrolled to.
+     844 x 390 (phone, turned)  The tablet column under the floating bar. Every spread and every
+                                scrolled-to thing keeps `--shell-inset` and 16px above it
+                                (`scroll-margin-block-start`), so nothing opens under the bar.
+     834 x 1112 (tablet)        One column, 24px gutter: Needs full width, then New since beside
+                                the rooms, the makers 4 x 2, the two ledgers stacked.
+     1280 x 800 (laptop)        40px gutter. The head and the find on one line; Needs beside a
+                                column of New since over the rooms, 2 : 1; makers 4 x 2; the two
+                                ledgers side by side.
+     1440 x 900 (desk)          As 1280, and the eight makers in one row.
+     1920 x 1080 (showroom)     The frame caps at 1,760px with an 80px gutter; Needs and the
+                                column run 7 : 5, the rooms 2 x 3 under New since, and the
+                                makers one row of eight: the window holds the state and the
+                                makers, with no empty floor.
 
-   AT REST: a row of paper plates across the top of a dark room, and under it one full-width
-   ledger whose place heads are MARGIN HEADS — the place's name once, in the leading column
-   of its first row, the way a bank statement sets a date once in the margin — rather than
-   band rows. The register is bands with a panel; the diary is a spine with a fold; the sheet
-   is a grid with drawers; this is a shelf over a ledger.
-
-   OPENED (2026-09-23): a press OPENS the table under the shelf, in the room the ledger had.
-   Until that day it drew a --spacing(90)/(100)/(110) page BESIDE the rows, and the critique
-   (#6) measured that as the quotes register's `.qr-body` and the sheet's `.sh-body` — one
-   declaration, one value, one set of steps, three names. "The assignment moved the
-   repetition behind a state rather than removing it." So the opened state is a SPREAD, not
-   a column: a book laid open across the whole measure, its left page the maker (the cover —
-   its own mark on its own paper, large — and the lineup of what it holds in its kind's ink)
-   and its right page what a dealer does with it (the name, the one act, and what pairs with
-   it as tiles carrying the other makers' marks), with the file's facts across the foot of
-   both. The ledger steps away while it is open and comes back as it was. The shelf stays,
-   lit on the maker that is open, and its top edge points at that plate: pressing a plate
-   feels like opening that brand, because the brand is what fills the room.
-
-   ------------------------------------------------------------------------------------
-   THE DENSITY ARITHMETIC, MEASURED AND NOT ESTIMATED. A Cockpit screen owes 18 readable
-   rows at 1280x800, read by ONE instrument, `e2e/rulers/density.spec.ts`, which asks the
-   layout how much of a full `.dt-list` a person can see. Measured on 2026-09-23 through the
-   blue door in Chromium at 1280x800, BEFORE this round's change:
-
-     the pill's clearance   56px   --shell-inset, a floor under the head (tokens.css)
-     the head               60px   the business, the title, the find field, the act and the
-                                   two stamp lines, ALL ON ONE LINE
-     the plates            177px   a paper card, three named pairing lines and "and 2 more"
-     the list              465px   → 16 rows at 28px, the ruler's reading, and 40px of the
-                                   file's 18 under the list's own scrollport
-     the legend             34px   J K · Space · Enter · Esc, inside the body
-     the foot padding        8px
-
-   The critique's #5 is that 16. The whole of the answer is the plates: between 640 and 1439
-   a plate draws what pairs with it as ONE LINE OF INK — a tick per pairing list in the far
-   table's own ink, and the count of pairings — instead of three named lines and a counted
-   fourth. The names are one press away on the maker's spread. The plate row gives back what
-   the list was short of, and the arithmetic after it is in docs/SCREENS.md as measured by
-   the ruler, not here as expected. There is no `row-gap` on the screen grid: two of its
-   tracks (what the last write said, what a narrowing did) are empty at rest, and a gap would
-   charge the ledger for both anyway.
-
-   THE ROWS ARE NOT VIRTUALISED: there are eighteen of them on this file, and a second
-   dealership's file with two hundred registers scrolls the list the way the quotes register
-   does, every row in the accessibility tree and in find-in-page.
-
-   ------------------------------------------------------------------------------------
-   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
-   1920x1080; breakpoints are on width alone except the one that is honestly about height.
-
-     390 x 844 (phone)          One column, 16px gutter. THE PLATES STACK, one per line, the
-                                mark at 36px with every pairing line drawn and wrapping under
-                                it. THE ROWS STAY ROWS, on three lines: the name and its
-                                count first, the kind, what pairs with it and what it is cut
-                                into beneath, and the workbook sentence dropped —
-                                `hand/github-repo-390.png`'s own rule, name · size · age and
-                                no sentence. A SPREAD is one column under the plates — the
-                                cover, the name and the act, the lineup, the tiles one to a
-                                line, the facts — and it is scrolled to when it opens,
-                                because a spread that opened a screen and a half down looks
-                                like a press that did nothing. The head stacks. The act stays
-                                in the head, in the flow; never a floating bar, at any width.
-                                Eighteen rows is not owed here and is not pretended at.
-     844 x 390 (phone, turned)  One column, 24px gutter, the rows back to ONE line: 390px
-                                of window is thirteen 28px rows and six three-line ones, so
-                                height is the scarce thing and the row spends it. The plates
-                                run four and three, each with its line of ink; a spread keeps
-                                its two pages side by side. The title drops a step.
-     834 x 1112 (tablet)        One column, 32px gutter, one-line rows without the sentence
-                                column and without the headings column — 770px of measure
-                                cannot carry both and still call a table by its whole name —
-                                the plates four and three with their lines of ink. A spread
-                                keeps its two pages and the whole screen is the scrollport:
-                                two nested scrollers on a tablet is the shape where a thumb
-                                can never tell which one it is moving.
-     1280 x 800 (the laptop)    The composition, and the width the density ruler reads: 40px
-                                gutter, seven plates in one row each with its line of ink,
-                                the ledger under them with its margin heads, 28px rows. The
-                                screen is 800 in 800 at rest and opened (rule (d)); a spread
-                                that were taller than the room would scroll inside itself.
-     1440 x 900 (the desk)      The same, and every pairing line drawn on every plate by
-                                name: the ledger still holds its eighteen, measured.
-     1920 x 1080 (showroom)     The measure caps at --spacing(440) and centres; the marks at
-                                48px; each plate carries every pairing line and its workbook
-                                sentence, the lines taking the slack so the sentences sit on
-                                one line across the room. A plate OPENS ITS SPREAD here too —
-                                it used to open the sheet outright, so this width had no
-                                opened state at all (#26). A register 1,900px wide would put
-                                what a table holds a forearm from its name, and the cap is
-                                what stops that.
-
-   NO KEYCAP, AT ANY SIZE (2026-09-25, m2-last-critique.md major 7). The legend under the
-   ledger, the `/` beside the find field and the N on the act went with the single-character
-   keys they taught. The sentence that replaced them under the ledger ("Press a maker or a
-   list to open it here; its sheet is one more press") went on 2026-10-20: it explained the
-   screen, and a row that lights and carries its arrow says it.
-
-   EVERY FACT ONCE (2026-10-20, the refine round; docs/WORDS.md). What goes with a maker is
-   the plate's own foot, on its paper and inside its padding, with no count — the lines hung
-   under the plates on the room's ground and each count ran to within 2–6px of the next
-   maker's glyph. A row no longer says its kind in a word or the workbook it came from: the
-   glyph and the count's noun say the first, the spread says the second, once.
-
-   ------------------------------------------------------------------------------------
-   THE KIT, 2026-09-28 (board C "Signal", src/ui and tokens.css THE KIT). The composition
-   above is unchanged; what it is MADE OF is the kit's: every plate on the shelf is the kit's
-   white plate on its shadow, lit by the accent's ring when its spread is open; the ledger
-   stands on one white plate with the kit's register vocabulary in it — a kind's glyph in its
-   washed square, the current row in the accent's wash and edge, the arrow that slides; the
-   spread is a white plate whose tiles are option tiles; the acts carry their glyphs. The
-   screen's own "squares 0px" override of the primitives' radii is gone: the kit is round.
-
-   MOTION, and each one answers a press or a first sight — never a key, never a figure:
-     · the mark TURNS: a pointer's press on a plate flies the maker's mark off the shelf into
-       the spread's cover on the kit's morph spring, and back (`./turn.ts`, the View
-       Transitions API); where the spread opens out of sight it RISES instead, 8px on
-       --duration-enter;
-     · the lineup's bars GROW from their left edge one after another, a third of a press
-       apart, on the travel spring, and the tiles come up after them the same way;
-     · a control answers a pointer: a plate lifts a pixel on the kit's lift and gives to .985
-       under a press, a tile the same, a register row's arrow slides three pixels forward;
-     · the step line and a refusal RISE into their line when they are first said.
-   Transform and opacity only. Under prefers-reduced-motion nothing moves (a colour still
-   changes); while a caret is in a field nothing moves either (`:root[data-still]`, set by the
-   kit's MotionRoot). The cursor is still moved by scrolling a row into view without
-   smoothing, and no figure on this screen ever animates: a bar grows, the count at its end
-   is set once.
+   MOTION. On arrival nothing moves: the state is there when the page is (the judge, L16, found
+   a one-second stagger still fading at 450ms). A spread a pointer opened rises 6px into place
+   over --duration-enter; under reduced motion it is simply there. A row's arrow slides 3px
+   under a pointer. Nothing that is a figure moves.
    ============================================================ */
 
 .dt {
-  --gutter: --spacing(8);
-  --row-h: --spacing(7);
-  /* the current row's edge, the kit's 3px (src/ui/row.css) */
-  --edge-on: --spacing(0.75);
-  --mark-h: --spacing(7);
-  --cover-mark: --spacing(16);
-  --shelf-gap: --spacing(2);
-  --measure: none;
-
-  min-height: 100dvh;
-  max-block-size: 100dvh;
+  --gutter: --spacing(4);
+  min-block-size: 100dvh;
   background: var(--color-ground);
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
+  padding-block-start: max(--spacing(4), var(--shell-inset));
+  padding-block-end: calc(max(--spacing(4), var(--shell-foot)) + --spacing(6));
+}
+.dt-frame {
   display: grid;
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
-  padding: --spacing(2) 0;
-
-  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
-     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
-     rather than a tax — a head that already starts below the pill gives up nothing. Above
-     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
-     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
-  padding-block-start: max(--spacing(2), var(--shell-inset));
-  padding-block-end: max(--spacing(2), var(--shell-foot));
-  overflow: hidden;
-}
-
-/* Each block names the track it is in, so the lines that only exist while a query is
-   narrowing or a write has just landed cannot push the body out of its `1fr`. */
-.dt-head {
-  grid-row: 1;
-}
-.dt-said {
-  grid-row: 2;
-}
-.dt-plates {
-  grid-row: 3;
-}
-.dt-narrowed {
-  grid-row: 4;
-}
-.dt-body {
-  grid-row: 5;
-}
-
-/* ---- the head: one line of who, find, act and what is held --- */
-
-/* NO WAY HOME IN THE HEAD. The pill carries Home, Quotes, Customers, Data and History on
-   every screen, and a head that repeated one of them was the third way back in one window
-   (critique #13, rule (a)). */
-.dt-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: --spacing(5);
-  padding: 0 var(--gutter) --spacing(2);
-  max-inline-size: var(--measure);
-  margin-inline: auto;
   inline-size: 100%;
-}
-
-.dt-title {
-  margin: 0;
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
-  letter-spacing: var(--tracking-display);
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-/* The find control lives on the head's line and takes what the head has left over. */
-.dt-find {
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-  flex: 1 1 --spacing(70);
-  min-inline-size: 0;
-  max-inline-size: --spacing(110);
-}
-.dt-find__field {
-  flex: 1 1 auto;
+  max-inline-size: calc(--spacing(440) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
   min-inline-size: 0;
 }
-
-/* THE ONE ACT, IN THE HEAD. Amber while nothing is open; it steps back to the quiet step
-   while a spread is open, because the spread's own act is then the thing to press. */
-.dt-act {
-  flex: 0 0 auto;
-  /* THE HEAD IS ONE HEIGHT WHETHER THE ACT IS AMBER OR STEPPED BACK. The amber act is
-     --spacing(13) tall and the quiet step is not, so without this floor the whole shelf and
-     everything under it jumped 11px up the moment a spread opened — measured at 1280x800,
-     2026-09-23, head 60px at rest and 49px opened. */
-  display: flex;
-  align-items: center;
-  min-block-size: --spacing(13);
+.dt-frame > * {
+  min-inline-size: 0;
 }
-
-.dt-head__stamp {
-  display: grid;
-  gap: --spacing(1);
-  justify-items: end;
-  text-align: right;
-  max-inline-size: 56ch;
-}
-.dt-stamp-line {
+.dt :where(h1, h2, h3, p, ol, ul, dl, dd) {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-  text-wrap: balance;
 }
-/* a figure and its words are one unit: a line that breaks wraps between them, never after
-   "28" with its words on the next line */
-.dt-stamp-unit {
+.dt :where(ol, ul) {
+  padding: 0;
+  list-style: none;
+}
+.dt-sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
-.dt-stamp-line b {
-  font-weight: 600;
-  color: var(--color-ink);
+.dt-nw {
+  white-space: nowrap;
 }
-/* THE ONE BLUE IN THE HEAD, and it means what it means everywhere: the Master Price File —
-   here, the price list and its date, in its own case and a step up from the count under it.
-   The fingerprint is this line's hover and nowhere else. */
-.dt-stamp-file {
+.dt-eyebrow {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-ink-file);
-  text-transform: none;
-  letter-spacing: normal;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-ink-2);
 }
-.dt-stamp-file b {
-  color: var(--color-ink-file);
+/* A WHITE PLATE ON ITS SHADOW: the needs, New since, the ledgers, the matrix, the answer */
+.dt-needs,
+.dt-fresh,
+.dt-ledger,
+.dt-matrix,
+.dt-answer {
+  /* the plate's own ink, read again inside it: `data-ground="plate"` gives the day's inks to
+     the plate, and a word that only inherited the room's computed colour would be the night's
+     white on white */
+  color: var(--color-ink);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
 }
 
-/* ---- the step line and the alarm --------------------------- */
+/* ---- the head ---------------------------------------------- */
 
-/* WHAT THE LAST WRITE SAID, with its way back pinned beside it — the configurator's rail
-   head, not a toast. It is drawn between the head and the plates only after a write. */
+.dt-head {
+  display: grid;
+  gap: --spacing(4);
+  align-items: end;
+}
+.dt-head__title {
+  display: grid;
+  gap: --spacing(1);
+}
+.dt-title {
+  font-size: var(--text-6xl);
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  font-weight: 800;
+  color: var(--color-ink);
+}
+.dt-stamp {
+  margin-block-start: --spacing(2);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.dt-stamp b,
+.dt-dates b {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.dt-dates {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.dt-find {
+  min-inline-size: 0;
+}
+
+/* what the last write said, with its way back; and a refusal after a press */
 .dt-said {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
+  align-items: center;
   gap: --spacing(3);
-  margin: 0 auto;
-  padding: --spacing(2) var(--gutter);
-  inline-size: 100%;
-  max-inline-size: var(--measure);
+  margin-block-end: --spacing(3);
+  /* scrolled to with the spread it stands over, clear of the bar */
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
 }
-/* A WHITE CAPSULE ON ITS SHADOW: the done tick in the given ink, the sentence, and the way
-   back at its end — the kit's plate, drawn as the line it is. */
 .dt-step {
   display: flex;
   align-items: center;
@@ -334,9 +185,8 @@
 .dt-step__said {
   min-inline-size: 0;
 }
-/* A REFUSAL AFTER A PRESS: the kit's own sentence with its glyph, on a white capsule */
 .dt-alarm {
-  margin: 0;
+  color: var(--color-ink);
   padding: --spacing(1.5) --spacing(3);
   border-radius: var(--radius-field);
   background: var(--color-plate);
@@ -344,586 +194,970 @@
     0 0 0 1px var(--color-rule),
     var(--shadow-plate);
 }
-/* THEY RISE INTO THEIR LINE when first said, and only then: a write's second sentence
-   replaces the words in a line that is already there */
-@media (prefers-reduced-motion: no-preference) {
-  :root:not([data-still]) .dt-step,
-  :root:not([data-still]) .dt-alarm {
-    transition:
-      opacity var(--duration-enter) var(--ease-out),
-      transform var(--duration-enter) var(--ease-out);
-    @starting-style {
-      opacity: 0;
-      transform: translateY(--spacing(1.5));
-    }
-  }
+
+/* a section's own head inside its plate: its name and its count */
+.dt-sec-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  padding: --spacing(4) --spacing(4) --spacing(2);
+}
+.dt-sec-head h2 {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+}
+.dt-sec-count {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-sec-count b {
+  color: var(--color-ink);
 }
 
-/* ---- the plates: the showpiece row ------------------------- */
+/* ---- the state --------------------------------------------- */
 
-.dt-plates {
-  margin: 0 auto;
-  padding: 0 var(--gutter) --spacing(2);
-  inline-size: 100%;
-  max-inline-size: var(--measure);
-}
-/* THE SHELF IS ONE GRID OF TWO LINES — the doors, and what goes with them — and every plate
-   spans the two as a SUBGRID, so seven doors are one height whether a maker's name is set under
-   its mark or IS its mark, and seven feet start on one line. Measured at 1280x800 before this:
-   Stabicraft's door, the one set in type, was 20px shorter and its foot sat 20px above the six
-   beside it. */
-.dt-plates__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.dt-state {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-auto-rows: auto;
-  /* the gap between two rows of plates (a tablet's four and three); inside a plate the
-     subgrid sets its own row-gap to 0, so the door and its foot stay one card */
-  gap: var(--shelf-gap);
-  align-items: stretch;
-  /* THE BAR'S ROOM: brought into view, the shelf's foot stands clear of a hand's tab bar, and
-     this is where the screen reads that room from (`useShelfFit` in Data.tsx), 0 wherever the
-     bar is not at the foot. In a hand the screen writes one air for every plate's door here
-     (`--plate-air`, below), so the first window ends on a seam between two plates, 18px above
-     the bar, and never through one (refine-critique.md, major 5, 2026-10-21). */
-  --plate-air: 0px;
+  gap: --spacing(5);
+  align-items: start;
+}
+.dt-side {
+  display: grid;
+  gap: --spacing(5);
+  align-items: start;
+  min-inline-size: 0;
+}
+
+/* NEEDS NORTHSIDE: the figure in a margin with its dot, the sentence and what the figure is
+   out of, and the door. In a hand the "of" and the door go under the words. */
+.dt-needs__list {
+  /* the air each need takes at its foot so a hand's first window ends on a seam, set by
+     State.tsx (useFoldAir) on the list itself; none until it is measured */
+  --fold-air: 0px;
+  /* the bar's room at the foot, which the fold reads */
   scroll-margin-block-end: var(--shell-foot);
 }
-
-/* ONE PLATE IS ONE WHITE CARD, AND WHAT GOES WITH THE MAKER IS ITS FOOT (2026-10-20). Until
-   then the card was the door alone and the pairing lines hung under it on the room's ground,
-   where each line's count ran to within 2–6px of the next plate's glyph at 1280, 1440 and 1920
-   ("1,342 ▣ Dealer Fit Packages"). Now the card is the kit's option tile — the white plate on a
-   hairline and its shadow, a pixel's lift and the blue hairline under a pointer on its door,
-   the give of a press, and the accent's lit ring while its spread is open — and the plate's own
-   padding is the gutter between one maker's lines and the next maker's. */
-.dt-plate {
-  grid-row: span 2;
+.dt-need {
   display: grid;
-  grid-template-rows: subgrid;
-  row-gap: 0;
+  grid-template-columns: --spacing(16) minmax(0, 1fr);
+  gap: --spacing(0.5) --spacing(2);
+  padding: --spacing(3) --spacing(4) calc(--spacing(3) + var(--fold-air)) --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
+}
+.dt-need__fig {
+  grid-row: 1 / span 3;
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  align-self: start;
   min-inline-size: 0;
+}
+.dt-need__fig b {
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+.dt-need__dot {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  border-radius: 50%;
+  background: var(--accent-ochre);
+  box-shadow: 0 0 0 --spacing(0.75) --alpha(var(--accent-ochre) / 22%);
+}
+.dt-need[data-counting] .dt-need__dot {
+  background: var(--color-rule-strong);
+  box-shadow: none;
+}
+.dt-need[data-done] .dt-need__dot {
+  inline-size: --spacing(5);
+  block-size: --spacing(5);
+  margin-inline: calc(--spacing(-1.5));
+  background: var(--accent-viridian);
+  color: var(--color-white);
+  box-shadow: none;
+}
+.dt-need[data-done] .dt-need__fig {
+  gap: --spacing(2.5);
+}
+.dt-need[data-done] .dt-need__fig b {
+  color: var(--color-ink-2);
+}
+.dt-need__words {
+  grid-column: 2;
+  min-inline-size: 0;
+}
+.dt-need__say {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+.dt-need[data-done] .dt-need__say {
+  color: var(--color-ink-2);
+}
+/* IN A HAND A NEED IS ITS SENTENCE, WHAT ITS FIGURE IS OUT OF, AND ITS DOOR: the detail under
+   the sentence is the room's, one press away, and the first window holds the needs whole */
+.dt-need__sub {
+  display: none;
+  margin-block-start: --spacing(0.5);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.dt-need__q {
+  font-style: italic;
+  quotes: none;
+}
+.dt-need__of {
+  grid-column: 2;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.dt-need__door {
+  grid-column: 2;
+  justify-self: start;
+  margin-inline-start: calc(--spacing(-2));
+}
+.dt-need__door:empty {
+  display: none;
+}
+
+/* the dated headings by year: one capsule per year, its length the year's share */
+.dt-years {
+  display: none;
+  flex-wrap: wrap;
+  gap: --spacing(2) --spacing(4);
+  margin-block-start: --spacing(2.5);
+}
+.dt-years li {
+  --share: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: --spacing(1.5);
+  align-items: baseline;
+}
+.dt-years__bar {
+  grid-column: 1 / -1;
+  block-size: --spacing(1.5);
+  inline-size: calc(--spacing(4) + var(--share) * --spacing(20));
+  border-radius: var(--radius-pill);
+  background: var(--accent-ochre);
+  margin-block-end: --spacing(1);
+}
+.dt-years__y {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+}
+.dt-years__n {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+/* NEW SINCE: the zero said as a figure, the lists changed, and what Shelf keeps */
+.dt-fresh {
+  padding-block-end: --spacing(4);
+}
+.dt-zero {
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(3);
+  padding: 0 --spacing(4) --spacing(3);
+}
+.dt-zero b {
+  font-size: var(--text-mark);
+  line-height: 0.9;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+.dt-zero span {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  max-inline-size: 26ch;
+  text-wrap: pretty;
+}
+.dt-fresh__lists {
+  display: grid;
+  padding-inline: --spacing(2);
+  margin-block-end: --spacing(2);
+}
+.dt-fresh__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: --spacing(3);
+  align-items: center;
+  inline-size: 100%;
+  padding: --spacing(2);
+  border: 0;
+  border-radius: var(--radius-field);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
+}
+.dt-fresh__go {
+  display: inline-flex;
+  color: var(--color-ink-file);
+}
+.dt-fresh__facts {
+  display: grid;
+  padding-inline: --spacing(4);
+}
+.dt-fresh__facts > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  padding-block: --spacing(1.5);
+  border-block-start: 1px solid var(--color-rule);
+}
+.dt-fresh__facts dt {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-fresh__facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: --spacing(1) --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  min-inline-size: 0;
+}
+.dt-fresh__made {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(2);
+}
+.dt-fresh__name {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-ink-file);
+  text-decoration: underline;
+  text-underline-offset: --spacing(0.5);
+  cursor: pointer;
+}
+.dt-fresh__say {
+  padding: --spacing(2) --spacing(4) 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+/* THE ROOMS: six counted doors. In a hand they are one plate of rows with an edge; on a desk
+   each is its own white tile. */
+.dt-rooms {
+  display: grid;
+  gap: --spacing(2.5);
+}
+.dt-rooms__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(2);
+}
+.dt-room {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'glyph name'
+    'glyph fig'
+    'glyph sub';
+  column-gap: --spacing(3);
+  align-items: center;
+  block-size: 100%;
+  padding: --spacing(2.5) --spacing(10) --spacing(2.5) --spacing(3);
   border-radius: var(--radius-tile);
   background: var(--color-plate);
   color: var(--color-ink);
   box-shadow:
     0 0 0 1px var(--color-rule),
     var(--shadow-plate);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--duration-press) var(--ease-out),
     box-shadow var(--duration-hover) var(--ease-out);
 }
+.dt-room:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.dt-room:active {
+  transform: scale(0.99);
+}
+.dt-room__glyph {
+  grid-area: glyph;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(9);
+  block-size: --spacing(9);
+  border-radius: var(--radius-glyph);
+  background: var(--color-plate-tint);
+  color: var(--color-ink-file);
+}
+.dt-room__name {
+  grid-area: name;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  color: var(--color-ink-file);
+}
+.dt-room__fig {
+  grid-area: fig;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+}
+.dt-room__fig b {
+  font-weight: 800;
+}
+.dt-room__sub {
+  grid-area: sub;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-room__go {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: --spacing(3.5);
+  translate: 0 -50%;
+  display: inline-flex;
+  color: var(--color-ink-file);
+  transition: transform var(--duration-enter) var(--ease-out);
+}
 @media (hover: hover) and (pointer: fine) {
-  .dt-plate:not([data-on]):has(.dt-plate__door:hover) {
+  .dt-room:hover {
     box-shadow:
       0 0 0 1px var(--color-blue-400),
       var(--shadow-lift);
-    transform: translateY(-1px);
   }
-}
-.dt-plate:has(.dt-plate__door:active) {
-  transform: scale(0.985);
-}
-.dt-plate[data-on] {
-  box-shadow: var(--ring-chosen), var(--shadow-plate);
-}
-@media (prefers-reduced-motion: reduce) {
-  .dt-plate,
-  .dt-plate:has(.dt-plate__door:hover),
-  .dt-plate:has(.dt-plate__door:active) {
-    transform: none;
+  .dt-room:hover .dt-room__go {
+    transform: translateX(--spacing(0.75));
   }
-}
-
-/* THE DOOR IS THIS SCREEN'S OWN BUTTON (Data.tsx says why: the shelf is one tab stop and the
-   roving cursor needs `tabindex` on every button it moves between, which a Tile does not
-   give). It is the card's upper part, on the card's own paper. The mark is drawn at a fraction
-   of its own held height and never wider than its cell, so nothing is enlarged. */
-.dt-plate__door {
-  display: grid;
-  align-content: start;
-  gap: --spacing(1);
-  inline-size: 100%;
-  min-inline-size: 0;
-  padding: --spacing(2) --spacing(3) --spacing(1.5);
-  border: 0;
-  border-radius: var(--radius-tile) var(--radius-tile) 0 0;
-  background: transparent;
-  color: var(--color-ink);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-/* the air the screen gives every door alike in a hand, half over the mark and half under its
-   words (`useShelfFit`); 0 until it is written */
-.dt-plates__list[data-fit] .dt-plate__door {
-  padding-block: calc(--spacing(2) + var(--plate-air) / 2) calc(--spacing(1.5) + var(--plate-air) / 2);
-}
-.dt-plate__door:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-.dt-plate__mark {
-  display: flex;
-  align-items: center;
-  block-size: var(--mark-h);
-  min-inline-size: 0;
-}
-.dt-plate__img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-height: var(--mark-h);
-  max-width: 100%;
-  object-fit: contain;
-  object-position: left center;
-}
-/* A MAKER WITH NO MARK IS ITS NAME SET IN TYPE, at the size the marks are, on the same
-   paper — never a stand-in. The ledger's own reason is on its spread. */
-.dt-plate__typed {
-  font-size: var(--text-lg);
-  /* the step's own leading and not 1: at 1 the face's descent overran the line box by 2px,
-     and the box clips, so the cut ruler counted "Stabicraft" as the screen's one elision at
-     every size. The mark's row is taller than this line at every width, so nothing moves. */
-  line-height: var(--text-lg--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-display);
-  color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dt-plate__holds {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* THE PLATE'S FOOT: what goes with the maker, under a hairline in the card's own wash, inside
-   the card's own padding. */
-.dt-plate__foot {
-  display: grid;
-  align-content: start;
-  min-inline-size: 0;
-  margin-inline: --spacing(3);
-  padding-block: --spacing(1.5) --spacing(2);
-  border-top: 1px solid var(--color-wash);
-}
-
-/* THE LINES: one per list that goes with the maker, the list's own name led by its kind as the
-   kit's glyph in its own ink, and no count. A line is a raw button and not the kit's `Chip`,
-   deliberately: a Chip is a 32px capsule, and five of those on every plate would spend 160px
-   on one maker's lines alone. */
-.dt-chips {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: --spacing(0.5);
-  align-content: start;
-}
-.dt-chip {
-  display: grid;
-  grid-template-columns: var(--icon-sm) minmax(0, 1fr);
-  /* the glyph stands on the name's first line, where a long name wraps */
-  align-items: start;
-  gap: --spacing(1.5);
-  inline-size: 100%;
-  min-inline-size: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-glyph);
-  background: transparent;
-  font: inherit;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
-  text-align: start;
-  cursor: pointer;
-  transition: background-color var(--duration-hover) var(--ease-out);
-}
-.dt-chip:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-@media (hover: hover) and (pointer: fine) {
-  .dt-chip:hover {
+  .dt-fresh__list:hover {
     background: var(--color-wash);
   }
-  .dt-chip:hover .dt-chip__name {
-    color: var(--color-ink);
-  }
-}
-/* A KIND'S GLYPH, in its own ink on the plate — each measures well over the 3 : 1 a graphic
-   owes on the day's paper and the night's (tokens.css, THE KIT) */
-.dt-glyph {
-  display: inline-flex;
-  color: var(--accent-graphite);
-}
-.dt-glyph[data-accent='blue'] {
-  color: var(--accent-blue);
-}
-.dt-glyph[data-accent='carmine'] {
-  color: var(--accent-carmine);
-}
-.dt-glyph[data-accent='viridian'] {
-  color: var(--accent-viridian);
-}
-.dt-glyph[data-accent='ochre'] {
-  color: var(--accent-ochre);
-}
-.dt-glyph[data-accent='violet'] {
-  color: var(--accent-violet);
-}
-.dt-glyph[data-accent='teal'] {
-  color: var(--accent-teal);
-}
-/* A LIST'S NAME IS NEVER CUT ON THE SHELF (components critique major 14). A long name takes a
-   second line, balanced. */
-.dt-chip__name {
-  min-inline-size: 0;
-  text-wrap: balance;
-}
-/* A LIST THAT IS HISTORY IS DIMMED BY WEIGHT, NEVER BY COLOUR. */
-.dt-chip[data-retired] .dt-chip__name {
-  color: var(--color-ink-3);
 }
 
-/* THE ONE LINE — the laptop's and the tablet's foot, see PlateCard in Data.tsx: "Goes with" and
-   one glyph per kind of thing, in its own ink. It is a button: it opens the maker's spread,
-   where every one of those lists is named. Drawn between 640 and 1439 only; a phone and a desk
-   draw every line by name. */
-.dt-plate__strip {
-  display: none;
+/* ---- the answer to a find ---------------------------------- */
+
+.dt-answer {
+  display: grid;
+  gap: --spacing(3);
+  padding: --spacing(4);
+}
+.dt-answer__said {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.dt-answer__said b {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+}
+.dt-answer__groups {
+  display: grid;
+  gap: --spacing(4);
+}
+.dt-answer__group {
+  display: grid;
+  gap: --spacing(2);
+  align-content: start;
+  justify-items: start;
+  min-inline-size: 0;
+}
+.dt-answer__group > ul {
+  inline-size: 100%;
+}
+.dt-answer__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+.dt-hit {
+  display: inline-flex;
   align-items: center;
   gap: --spacing(2);
-  inline-size: 100%;
-  min-inline-size: 0;
-  padding: 0;
+  max-inline-size: 100%;
+  padding: --spacing(1) --spacing(3) --spacing(1) --spacing(1);
   border: 0;
-  border-radius: var(--radius-glyph);
-  background: transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
   font: inherit;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
   text-align: start;
   cursor: pointer;
-  transition: background-color var(--duration-hover) var(--ease-out);
 }
-.dt-plate__strip:focus-visible {
+.dt-hit__link {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(5.5);
+  block-size: --spacing(5.5);
+  border-radius: var(--radius-glyph);
+  color: var(--accent-graphite);
+  background: --alpha(var(--accent-graphite) / 12%);
+}
+.dt-answer__rows {
+  display: grid;
+}
+.dt-hitrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: --spacing(3);
+  align-items: center;
+  inline-size: 100%;
+  padding: --spacing(1.5) --spacing(2);
+  border: 0;
+  border-block-end: 1px solid var(--color-wash);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
+}
+.dt-hitrow__name {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.dt-hitrow__in {
+  color: var(--color-ink-2);
+}
+.dt-hitrow__go {
+  display: inline-flex;
+  color: var(--color-ink-file);
+}
+.dt-answer__desk {
+  display: flex;
+  gap: --spacing(2);
+  align-items: flex-start;
+  padding: --spacing(2.5) --spacing(3);
+  border-radius: var(--radius-field);
+  background: var(--color-plate-tint);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.dt-answer__glyph {
+  display: inline-flex;
+  flex: none;
+  margin-block-start: 1px;
+  color: var(--color-ink-file);
+}
+.dt-answer__desk a {
+  color: var(--color-ink-file);
+  font-weight: 600;
+}
+.dt-hit:focus-visible,
+.dt-hitrow:focus-visible,
+.dt-fresh__list:focus-visible,
+.dt-fresh__name:focus-visible,
+.dt-pair:focus-visible,
+.dt-bar:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-field);
 }
 @media (hover: hover) and (pointer: fine) {
-  .dt-plate__strip:hover {
+  .dt-hit:hover {
+    background: var(--color-chosen-wash);
+  }
+  .dt-hitrow:hover {
     background: var(--color-wash);
   }
-  .dt-plate__strip:hover .dt-strip__say {
-    color: var(--color-ink);
-  }
 }
-.dt-strip__say {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-.dt-strip__kinds {
-  display: flex;
-  flex: 0 1 auto;
+
+/* ---- what the file holds ----------------------------------- */
+
+/* ARRIVING AT A SPREAD BY ITS ADDRESS brings this section's head to the top (Data.tsx): the head
+   stands at the bar's room, and its own 28px of air with the frame's gap above it is what the
+   bar stands over — never the last line of the state above */
+.dt-holds {
+  display: grid;
+  gap: --spacing(3.5);
   min-inline-size: 0;
-  gap: --spacing(1);
+  /* its top 28px of padding over the frame's gap: the bar's 8–52 lands on ground; in a hand,
+     with no bar at the top, the head lands 16px down */
+  scroll-margin-block-start: max(--spacing(-3), calc(var(--shell-inset) - --spacing(7)));
 }
-.dt-plate__none {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
+/* WITH A SPREAD OPEN THE ROOM IS A WHOLE WINDOW, so its head can always come to the top: a
+   short spread (the obsolete trailers, 400px at 1920) on a short page left the arrival's scroll
+   at the page's end, the bar over the state's last words */
+.dt-holds:has(> .dt-body[data-open]) {
+  min-block-size: calc(100dvh - max(0px, var(--shell-inset) - --spacing(7)));
+  align-content: start;
 }
-
-/* ---- what a narrowing did ---------------------------------- */
-
-.dt-narrowed {
-  margin: 0 auto;
-  padding: 0 var(--gutter) --spacing(2);
-  inline-size: 100%;
-  max-inline-size: var(--measure);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+.dt-holds__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(4);
+  padding-block-start: --spacing(7);
+}
+.dt-holds__head h2 {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.dt-holds__head p {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
 
-/* ---- the body: the ledger, or the spread in its place ------ */
-
-.dt-body {
+/* THE MAKERS: eight tiles, the mark once each, at 26px */
+.dt-makers {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  padding: 0 var(--gutter);
-  margin-inline: auto;
-  inline-size: 100%;
-  max-inline-size: var(--measure);
-  min-block-size: 0;
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(2.5);
 }
-/* THE LEDGER STANDS ON ONE WHITE PLATE — the kit's register (src/ui/row.css) drawn at this
-   screen's 28px pitch: the rows are ruled inside it, the plate's own edge is the list's top,
-   and the sentence under the rows is its foot. It costs the room nothing: no padding above
-   the first row, and the plate's hairline is its shadow's, not a border's. */
-.dt-ledger {
-  display: flex;
-  flex-direction: column;
-  min-block-size: 0;
-  max-block-size: 100%;
+.dt-makers > li {
+  display: grid;
   min-inline-size: 0;
-  border-radius: var(--radius-plate);
+}
+.dt-maker {
+  display: grid;
+  gap: --spacing(1);
+  align-content: start;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: --spacing(3);
+  border: 0;
+  border-radius: var(--radius-tile);
   background: var(--color-plate);
+  color: var(--color-ink);
   box-shadow:
     0 0 0 1px var(--color-rule),
     var(--shadow-plate);
-  overflow: clip;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
 }
-/* THE LEDGER STEPS AWAY WHILE A SPREAD IS OPEN — `hidden` on it, which a `display: flex`
-   written above would otherwise overrule. */
-.dt-ledger[hidden] {
-  display: none;
+.dt-maker:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.dt-maker:active {
+  transform: scale(0.985);
+}
+.dt-maker[data-on] {
+  box-shadow:
+    0 0 0 2px var(--color-accent),
+    var(--shadow-lift);
+}
+.dt-maker--every {
+  background: var(--color-plate-tint);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-maker:not([data-on]):hover {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+  }
+}
+.dt-mark {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  block-size: --spacing(8.5);
+  margin-block-end: --spacing(1);
+  min-inline-size: 0;
+}
+.dt-mark__img {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: --spacing(8);
+  object-fit: contain;
+}
+.dt-mark__typed,
+.dt-mark--every {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 800;
+  color: var(--color-ink);
+}
+.dt-mark--sm {
+  block-size: --spacing(6.5);
+  margin: 0;
+}
+.dt-mark--sm .dt-mark__img {
+  max-block-size: --spacing(6);
+  max-inline-size: --spacing(28);
+}
+.dt-mark--sm .dt-mark__typed {
+  font-size: var(--text-base);
+}
+.dt-maker__a {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.dt-maker__b {
+  display: grid;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
 }
 
-/* A REGISTER DOES NOT STRETCH ITS OWN FRAME TO FIT A WINDOW — the register's rule, kept
-   here for the same reason: the list takes the height of its rows and scrolls only when they
-   are taller than the room, and the legend follows the last row. */
-.dt-list {
-  flex: 0 1 auto;
-  overflow: auto;
-  min-block-size: 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-rule-strong) transparent;
+.dt-body {
+  min-inline-size: 0;
 }
-/* the focus ring drawn inside the plate's rounded edge, which clips anything outside it */
+.dt-ledgers {
+  display: grid;
+  gap: --spacing(5);
+  align-items: start;
+}
+
+/* ---- the lists you sell from ------------------------------- */
+
+.dt-ledger {
+  padding-block-end: --spacing(2);
+  min-inline-size: 0;
+}
+.dt-ledger__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  padding: --spacing(4) --spacing(4) --spacing(1);
+}
+.dt-ledger__head h3 {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+}
+.dt-ledger__head p {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-ledger__act {
+  margin-inline-start: auto;
+  align-self: center;
+}
+.dt-ledger__said {
+  padding: 0 --spacing(4) --spacing(1);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-list {
+  display: grid;
+}
 .dt-list:focus-visible {
   outline: none;
   box-shadow: inset 0 0 0 var(--mark) var(--color-accent);
-  border-radius: var(--radius-plate) var(--radius-plate) 0 0;
+}
+.dt-group__head {
+  padding: --spacing(3) --spacing(4) --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-ink-2);
 }
 
-/* ---- a row, with its place in the margin ------------------- */
-
-/* THE COLUMNS, MEASURED AND NOT GUESSED (2026-09-29, components critique major 14). Read off
-   the laptop at 1280 x 800 on this file: the place head needs 144px ("PARTS & ACCESSORIES"),
-   the kind 93 ("Accessories" and its square), the count 93, the headings 98 ("in 187
-   categories"), what pairs 98 ("no boat pairs with it"), and a name 319 — "OBSOLETE Trailers —
-   No Longer Available" with its "no longer sold". The kind, headings and pairs columns gave
-   back what they held over that, and the name has a floor of what the longest one needs, so the
-   laptop cut it (173 of 240 before) and now does not. Where it came from takes the rest, whole:
-   the workbook and its sheet from 1440 up, the workbook alone between 1200 and 1440. */
+/* A ROW: the kind, the name (with what stands on it under it), its count in its own noun, what
+   it fits, and the arrow. The name is never cut: a long one takes a second line. */
 .dt-row {
   display: grid;
-  /* 2026-10-20: the kind's word and where-from columns are gone (Data.tsx's header says why);
-     the name keeps its floor and gives what it does not need to what it fits, so the count
-     stays a hand's width from the name at 1920 and the arrow keeps the row's end. */
-  grid-template-columns:
-    --spacing(37) auto minmax(--spacing(80), --spacing(120)) --spacing(28) --spacing(28)
-    minmax(--spacing(26), 1fr) var(--icon-sm);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'kind name go'
+    'kind holds go'
+    'kind fits go'
+    'kind stands go';
+  column-gap: --spacing(3);
   align-items: center;
-  column-gap: --spacing(2);
-  block-size: var(--row-h);
-  padding-inline: --spacing(3) --spacing(3);
-  border-bottom: 1px solid var(--color-wash);
+  padding: --spacing(2) --spacing(4);
+  border-block-start: 1px solid var(--color-wash);
   cursor: pointer;
   transition: background-color var(--duration-hover) var(--ease-out);
 }
-/* The first row of a place is ruled above in the stronger line, so a place reads as a run
-   even where its head has nothing new to say — except the very first, whose line is the
-   plate's own edge. */
-.dt-row[data-leads] {
-  border-top: 1px solid var(--color-rule);
-}
-.dt-place:first-child .dt-row[data-leads] {
-  border-top-color: transparent;
-}
-/* THE CURRENT ROW, as the kit draws "where you are": the accent's 10% wash and its edge */
-.dt-row[data-on] {
+/* THE CURSOR IS DRAWN ONLY WHILE THE LEDGER HAS THE KEYBOARD: at rest no row is lit, so the
+   first list does not read as chosen when nobody chose it */
+.dt-list:focus-visible .dt-row[data-on] {
   background: var(--color-chosen-wash);
-  box-shadow: inset var(--edge-on) 0 0 var(--color-accent);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
 }
 @media (hover: hover) and (pointer: fine) {
-  .dt-row:not([data-on]):hover {
+  .dt-row:hover {
     background: var(--color-wash);
   }
 }
 .dt-row:active {
   background: var(--color-rule);
 }
-
-/* A CELL IS A BLOCK AND NOT A FLEX BOX, and the reason is `text-overflow`: an ellipsis is a
-   property of a block's inline content, and a flex container has none — so a flex cell with
-   `text-overflow: ellipsis` on it CUTS its text at the edge and prints no ellipsis. The two
-   cells that hold more than one thing lay theirs out in a grid of their own. */
 .dt-cell {
   min-inline-size: 0;
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-
-/* THE MARGIN HEAD: the place's name, once, in caps, on the first row of its run. */
-.dt-cell--place {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-ink-2);
-}
-
-/* THE KIND: the kit's glyph in its washed square, and no word beside it. "Trailers" eight
-   times under TRAILERS was the same fact on every row (2026-10-20); the count's own noun
-   ("73 trailers") says it in words. */
 .dt-cell--kind {
+  grid-area: kind;
+  align-self: start;
   display: inline-flex;
-  align-items: center;
-  overflow: visible;
 }
-
 .dt-cell--name {
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
+  grid-area: name;
 }
 .dt-name {
-  min-inline-size: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   font-weight: 600;
   color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: pretty;
 }
-/* A retired table is drawn and said to be: weight, never opacity, for the register's reason. */
 .dt-row[data-retired] .dt-name {
   font-weight: 400;
   color: var(--color-ink-2);
 }
-.dt-retired {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-  white-space: nowrap;
-}
-
-/* THE COUNT, RIGHT-ALIGNED AND TABULAR, so 3,587 and 18 read against each other down the
-   column; the headings it is cut into follow it in the quiet ink, set from the left. */
 .dt-cell--holds {
-  text-align: right;
+  grid-area: holds;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-cell--holds b {
+  font-weight: 700;
   color: var(--color-ink);
 }
-.dt-cell--branch {
+.dt-cell--fits {
+  grid-area: fits;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
-
-.dt-cell--pairs {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+.dt-cell--fits[data-zero] {
+  color: var(--color-ochre-600);
+  font-weight: 600;
+}
+.dt-cell--stands {
+  grid-area: stands;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.dt-cell--stands:empty {
+  display: none;
+}
+.dt-stands {
+  color: var(--color-ochre-600);
+  font-weight: 600;
+}
+.dt-prices {
   color: var(--color-ink-2);
 }
-
-
-/* THE ARROW (src/ui/row.css's): quiet at rest, and on the row under the pointer or the
-   cursor it takes the file's blue and slides three pixels forward */
 .dt-cell--go {
+  grid-area: go;
   display: inline-flex;
-  overflow: visible;
   color: var(--color-ink-3);
-  opacity: 0;
   transition:
-    opacity var(--duration-hover) var(--ease-out),
     transform var(--duration-enter) var(--ease-out),
     color var(--duration-hover) var(--ease-out);
 }
-.dt-row[data-on] .dt-cell--go {
-  opacity: 1;
+.dt-list:focus-visible .dt-row[data-on] .dt-cell--go {
   color: var(--color-ink-file);
 }
 @media (hover: hover) and (pointer: fine) {
   .dt-row:hover .dt-cell--go {
-    opacity: 1;
     color: var(--color-ink-file);
     transform: translateX(--spacing(0.75));
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .dt-row:hover .dt-cell--go {
-    transform: none;
-  }
-}
 
-/* ---- the empty ledger, teaching ---------------------------- */
+/* ---- the lists of what fits which boat, as a table --------- */
 
-/* on the kit's white plate (Data.tsx hands it `Plate`), its measure this screen's own */
-.dt-teach {
-  max-inline-size: --spacing(160);
+.dt-matrix {
+  min-inline-size: 0;
+  padding-block-end: --spacing(3);
 }
-.dt-teach__in {
+.dt-matrix__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+.dt-matrix__table thead {
+  display: none;
+}
+.dt-matrix__table,
+.dt-matrix__table tbody,
+.dt-matrix__table tr,
+.dt-matrix__table td,
+.dt-matrix__table tbody th {
+  display: block;
+}
+/* IN A HAND, ONE CARD PER MAKER: its mark and count, then each kind it is paired with */
+.dt-matrix__table tbody {
   display: grid;
-  gap: --spacing(4);
-  align-content: start;
+  gap: --spacing(2);
+  padding: --spacing(2) --spacing(3) 0;
 }
-.dt-teach__head {
-  margin: 0;
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  color: var(--color-ink);
-  text-wrap: pretty;
+.dt-matrix__table tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: --spacing(2.5) --spacing(3);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate-tint);
 }
-.dt-teach__q {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
+.dt-matrix__table tbody th {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-block-end: --spacing(1.5);
+  font-weight: 400;
+  text-align: start;
 }
-.dt-teach__a {
-  margin: 0;
+.dt-matrix__lists {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
-  text-wrap: pretty;
 }
-.dt-teach__a b {
-  font-weight: 600;
+.dt-matrix__table td {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(3);
+  align-items: baseline;
+  padding-block: --spacing(1);
+  border-block-start: 1px solid var(--color-rule);
+}
+.dt-matrix__table td::before {
+  content: attr(data-col);
+  flex: 0 0 --spacing(22);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-matrix__table td[data-none] {
+  display: none;
+}
+.dt-matrix__table td.dt-matrix__n {
+  grid-column: 2;
+  grid-row: 1;
+  border: 0;
+  padding: 0 0 --spacing(1.5);
+  font-size: var(--text-base);
+}
+.dt-matrix__table td.dt-matrix__n::before {
+  content: none;
+}
+.dt-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: --spacing(1.5);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
 }
-.dt-teach__door {
-  display: grid;
+.dt-pair b {
+  font-weight: 700;
+  color: var(--color-ink-file);
+}
+.dt-pair span {
+  color: var(--color-ink-2);
+}
+.dt-pair[data-retired] b {
+  color: var(--color-ink-2);
+  font-weight: 400;
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-pair:hover b {
+    text-decoration: underline;
+    text-underline-offset: --spacing(0.5);
+  }
+}
+.dt-matrix__none {
+  color: var(--color-ink-3);
+}
+.dt-matrix__say {
+  display: flex;
   gap: --spacing(2);
-  justify-items: start;
+  align-items: flex-start;
+  padding: --spacing(3) --spacing(4) 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.dt-matrix__glyph {
+  display: inline-flex;
+  flex: none;
+  margin-block-start: 1px;
 }
 
 /* ============================================================
-   THE SPREAD — see the header's COMPOSITION and ./Spread.tsx.
+   THE SPREAD — ./Spread.tsx.
    ============================================================ */
 
-/* THE KIND'S INK, ONCE, as a local name the spread's edge, its tick and its bars all read.
-   Seven declared accents and nothing else; a pairing list, which is no kind, is graphite. */
 .dt-spread {
   --ink: var(--accent-graphite);
-  /* WHICH PLATE IT WAS OPENED FROM, as the shelf counts them: set on the element by
-     Spread.tsx from the register's own plate order, and these are only the declarations the
-     notch reads when no plate opened it (where it is not drawn at all) */
-  --at: 0;
-  --of: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'who' 'lineup' 'pairs' 'facts';
+  gap: --spacing(5);
+  align-content: start;
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  border-top: --spacing(1) solid var(--ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+  /* WHERE IT IS SCROLLED TO, ITS HEAD CLEARS THE BAR (the judge, L9: at 844 x 390 the spread
+     opened at y 4 under a bar at 8–52) */
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
+  min-inline-size: 0;
 }
 .dt-spread[data-accent='blue'] {
   --ink: var(--accent-blue);
@@ -943,186 +1177,62 @@
 .dt-spread[data-accent='teal'] {
   --ink: var(--accent-teal);
 }
-
-/* TWO PAGES AND A FOOT. The left page is 5 parts and the right 7: the cover is a picture of
-   a mark and wants less measure than a name, an act and a sentence. Where a table has no
-   lineup, what pairs with it takes both pages; where it is a pairing list, it has neither. */
-.dt-spread {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  grid-template-areas:
-    'cover who'
-    'lineup pairs'
-    'facts facts';
-  column-gap: --spacing(10);
-  /* 12px between the pages' rows and inside the plate's top and foot, and not 16 (2026-09-29):
-     at 1440 a shelf name that wraps rather than being cut makes the shelf 13px taller, and the
-     spread under it gives that back rather than scrolling inside itself — Stabicraft's and
-     Surtees' spreads, which fitted, would have scrolled 8 and 3px. */
-  row-gap: --spacing(3);
-  align-content: start;
-  padding: --spacing(3) --spacing(8);
-  /* THE KIT'S WHITE PLATE, its top edge in the kind's own ink: a book laid open on the desk */
-  border-radius: var(--radius-plate);
-  background: var(--color-plate);
-  color: var(--color-ink);
-  border-top: --spacing(1) solid var(--ink);
-  box-shadow:
-    0 0 0 1px var(--color-rule),
-    var(--shadow-plate);
-  /* where a spread is scrolled to (a phone), its inked edge lands with air above it */
-  scroll-margin-block-start: --spacing(3);
-  overflow: auto;
-  max-block-size: 100%;
-  min-block-size: 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-rule-strong) transparent;
-}
-.dt-spread:not([data-lineup]) {
-  grid-template-areas:
-    'cover who'
-    'pairs pairs'
-    'facts facts';
-}
-.dt-spread:not([data-pairs]) {
-  grid-template-areas:
-    'cover who'
-    'lineup lineup'
-    'facts facts';
-}
 .dt-spread:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
-
-/* THE EDGE POINTS AT THE PLATE IT WAS OPENED FROM: a notch hanging from the top edge, in the
-   same ink, centred under that plate's column. The spread and the shelf share one measure
-   and the shelf's columns are equal, so the centre of plate `--at` of `--of` is arithmetic
-   on the spread's own width and the shelf's gap. Drawn where the shelf is one row (1200 and
-   up); where plates wrap or stack there is no one column to point at. */
-.dt-spread[data-from]::before {
-  content: '';
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: calc(
-    (100% - (var(--of) - 1) * var(--shelf-gap)) / var(--of) * (var(--at) + 0.5) + var(--at) *
-      var(--shelf-gap) - --spacing(2)
-  );
-  inline-size: --spacing(4);
-  block-size: --spacing(2);
-  background: var(--ink);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-}
-
-.dt-spread__cover {
-  grid-area: cover;
-  display: grid;
-  min-inline-size: 0;
-}
 .dt-spread__who {
   grid-area: who;
   display: grid;
-  align-content: center;
   gap: --spacing(2);
+  align-content: start;
   min-inline-size: 0;
 }
 .dt-lineup {
   grid-area: lineup;
   display: grid;
-  align-content: start;
   gap: --spacing(2);
+  align-content: start;
   min-inline-size: 0;
 }
 .dt-pairs {
   grid-area: pairs;
   display: grid;
-  align-content: start;
   gap: --spacing(2);
+  align-content: start;
   min-inline-size: 0;
 }
 .dt-facts {
   grid-area: facts;
+  display: grid;
+  gap: --spacing(1.5);
+  padding-block-start: --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
 }
-
-/* THE COVER: the maker's own mark on its own paper, as large as the ledger allows — the
-   showpiece the owner asked for, and on this state the largest thing in the room. The mark is
-   drawn at no more than --cover-mark tall and never wider than the page, so nothing held is
-   enlarged past what a 111px-tall file resolves. */
-.dt-cover {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: --spacing(5);
-  min-block-size: --spacing(32);
-  padding: --spacing(5) --spacing(6);
-  /* the maker's own paper, sunk into the plate as a well, so the mark lands in something */
-  border-radius: var(--radius-tile);
-  background: var(--color-paper);
-  box-shadow: inset 0 0 0 1px var(--color-rule);
-}
-.dt-cover__img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-height: var(--cover-mark);
-  max-width: 100%;
-  object-fit: contain;
-}
-.dt-cover__typed {
-  font-size: var(--text-5xl);
-  line-height: var(--text-5xl--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-display);
-  color: var(--color-neutral-900);
-  text-align: center;
-  text-wrap: balance;
-}
-/* A pairing list's cover: its two ends, each in its own mark or its name in type. */
-.dt-cover--ends {
-  flex-wrap: wrap;
-}
-.dt-cover__end {
-  display: block;
-  width: auto;
-  height: auto;
-  max-height: --spacing(10);
-  max-width: 40%;
-  object-fit: contain;
-}
-.dt-cover__endtyped {
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  color: var(--color-neutral-900);
-  text-align: center;
-  text-wrap: balance;
-}
-.dt-cover__with {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-600);
-}
-
 .dt-spread__kind {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: --spacing(2);
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink);
 }
 .dt-spread__retired {
-  color: var(--color-ink-3);
+  color: var(--color-ink-2);
 }
-/* a pairing list's glyph, in the kit's washed square as a kind's would be, in graphite: it is
-   no kind of thing, it is two of them linked */
+.dt-spread__mark {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-block-size: --spacing(5);
+  max-inline-size: --spacing(28);
+  object-fit: contain;
+  margin-inline-start: auto;
+}
 .dt-spread__link {
   display: inline-grid;
   place-items: center;
@@ -1133,164 +1243,187 @@
   background: --alpha(var(--accent-graphite) / 12%);
 }
 .dt-spread__name {
-  margin: 0;
   font-size: var(--text-4xl);
   line-height: var(--text-4xl--line-height);
   letter-spacing: var(--tracking-display);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-ink);
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 .dt-spread__holds {
-  margin: 0;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   color: var(--color-ink);
+  text-wrap: pretty;
+}
+.dt-spread__state {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
   text-wrap: pretty;
 }
 .dt-spread__quiet {
   color: var(--color-ink-2);
 }
 .dt-spread__why {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
   text-wrap: pretty;
 }
 .dt-spread__acts {
   display: flex;
-  align-items: flex-start;
   flex-wrap: wrap;
-  gap: --spacing(3);
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
   margin-block-start: --spacing(1);
+  min-inline-size: 0;
 }
-.dt-spread__act {
-  flex: 0 0 auto;
+/* A BUTTON THAT NAMES A LONG LIST WRAPS RATHER THAN RUN PAST THE SPREAD (the judge, L3: the
+   OBSOLETE spread scrolled a 390 window to 425) */
+.dt-spread__acts > * {
+  max-inline-size: 100%;
 }
-.dt-spread__where {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  text-wrap: pretty;
+.dt-spread__acts :where(a, button) {
+  max-inline-size: 100%;
+  white-space: normal;
+  text-align: start;
+  overflow-wrap: anywhere;
 }
 .dt-spread__more {
-  display: grid;
-  gap: --spacing(1);
-  justify-items: start;
-  margin-block-start: --spacing(1);
+  display: flex;
 }
-
-/* A PAGE'S OWN SMALL HEAD, over the lineup and over the tiles. */
 .dt-spread__head {
-  margin: 0;
   padding-block-end: --spacing(1.5);
   border-bottom: 1px solid var(--color-rule);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+.dt-ends {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+}
+.dt-ends__img {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-block-size: --spacing(6);
+  max-inline-size: --spacing(32);
+  object-fit: contain;
+}
+.dt-ends__typed {
+  font-size: var(--text-base);
+  font-weight: 800;
+}
+.dt-ends__with {
+  font-size: var(--text-xs);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-ink-2);
 }
 
-/* ---- the lineup: how the file cuts it, in its kind's ink ----- */
-
-/* A BAR IS A SHARE OF THE LARGEST HEADING, with the count it stands for printed at its end.
-   THE NAMES ARE ONE COLUMN FOR THE WHOLE LINEUP — every bar is a subgrid of the list — so the
-   column is as wide as the longest name up to a cap, every bar starts at one edge and they read
-   as a chart. A name longer than the cap takes a second line and is never cut: a fixed 160px
-   column cut "ASSAULT PRO (TOURNAME…" on Stacer's spread at every desk width, and three of the
-   eight names on a phone (components critique major 14). */
+/* THE LINEUP: each heading a door, its name on its own line over its bar and count, so a long
+   name wraps without unsettling the pitch of the bars (the judge: Yamaha's nine wrapped on
+   four lines). A heading that dates itself carries an ochre dot. */
 .dt-lineup__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
   display: grid;
-  grid-template-columns: fit-content(--spacing(56)) minmax(0, 1fr) auto;
-  column-gap: --spacing(3);
-  row-gap: --spacing(0.5);
+  gap: --spacing(0.5);
 }
 .dt-bar {
-  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: subgrid;
+  grid-template-columns: minmax(0, 1fr) --spacing(12);
+  grid-template-areas:
+    'name n'
+    'track track';
+  column-gap: --spacing(3);
+  row-gap: --spacing(0.5);
   align-items: center;
-  min-block-size: --spacing(4.5);
+  inline-size: 100%;
+  padding: --spacing(1) --spacing(1.5);
+  border: 0;
+  border-radius: var(--radius-field);
+  background: transparent;
+  font: inherit;
+  color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-bar:hover {
+    background: var(--color-wash);
+  }
+  .dt-bar:hover .dt-bar__name {
+    color: var(--color-ink-file);
+  }
 }
 .dt-bar__name {
+  grid-area: name;
   min-inline-size: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   font-weight: 600;
-  color: var(--color-ink);
-  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
-/* the track and its fill are the kit's capsule: a bar that grows reads as a bar and not as a
-   cut-off box */
+.dt-bar__dated {
+  display: inline-block;
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  margin-inline-end: --spacing(1.5);
+  border-radius: 50%;
+  background: var(--accent-ochre);
+  vertical-align: 0.05em;
+}
 .dt-bar__track {
+  grid-area: track;
   display: block;
-  block-size: --spacing(2.5);
+  block-size: --spacing(2);
   border-radius: var(--radius-pill);
   background: var(--color-wash);
   overflow: hidden;
 }
 .dt-bar__fill {
-  /* the heading's rows over the largest heading's, and the bar's place in the order the bars
-     grow in, both set per bar by Spread.tsx */
   --share: 0;
-  --i: 0;
   display: block;
   block-size: 100%;
   inline-size: max(--spacing(1), calc(var(--share) * 100%));
   border-radius: var(--radius-pill);
   background: var(--ink);
-  transform-origin: left center;
 }
 .dt-bar__n {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink);
-  text-align: right;
-  white-space: nowrap;
+  grid-area: n;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  text-align: end;
 }
 .dt-lineup__rest {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
-  text-wrap: pretty;
 }
 
-/* ---- the tiles: what pairs with it -------------------------- */
-
-/* each tile's place in the order the tiles come up in, set per tile by Spread.tsx */
-.dt-tiles > li {
-  --i: 0;
-  /* the button fills its cell, so a row of tiles is one height when one name wraps */
-  display: grid;
-}
+/* THE TILES: what goes with it, each a door to that list of what fits */
 .dt-tiles {
-  margin: 0;
-  padding: 0;
-  list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(--spacing(64), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: --spacing(2);
 }
-/* A TILE IS A DOOR TO A PAIRING LIST'S SHEET, drawn as the kit's option tile (src/ui/tile.css)
-   in the kit's own tokens: a white plate on a hairline, a face on the left — the other table's
-   mark on its paper, or its kind's glyph in its washed disc where no mark is held — its name
-   and count, and the register's arrow at its end. Under a pointer it lifts a pixel on the
-   accent's lift and its arrow slides; a press gives to .985. A raw button, for the reason
-   Spread.tsx gives: its tooltip and its history are its own. */
-.dt-tile {
-  --tile-ink: var(--accent-graphite);
+.dt-tiles > li {
   display: grid;
-  grid-template-columns: --spacing(22) minmax(0, 1fr) auto;
+}
+.dt-tile {
+  display: grid;
+  grid-template-columns: --spacing(18) minmax(0, 1fr) auto;
   align-items: stretch;
   inline-size: 100%;
-  min-block-size: --spacing(13);
+  min-block-size: --spacing(12);
   padding: 0;
   border: 0;
   border-radius: var(--radius-tile);
@@ -1312,198 +1445,110 @@
   outline: none;
   box-shadow: var(--shadow-focus);
 }
+.dt-tile:active {
+  transform: scale(0.985);
+}
 @media (hover: hover) and (pointer: fine) {
   .dt-tile:hover {
     box-shadow:
       0 0 0 1px var(--color-blue-400),
       var(--shadow-lift);
-    transform: translateY(-1px);
   }
   .dt-tile:hover .dt-tile__go {
     color: var(--color-ink-file);
     transform: translateX(--spacing(0.75));
   }
 }
-.dt-tile:active {
-  transform: scale(0.985);
-}
-@media (prefers-reduced-motion: reduce) {
-  .dt-tile:hover,
-  .dt-tile:active,
-  .dt-tile:hover .dt-tile__go {
-    transform: none;
-  }
-}
 .dt-tile__face {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: --spacing(1.5) --spacing(2);
-  background: --alpha(var(--tile-ink) / 8%);
-  box-shadow: inset -1px 0 0 var(--color-rule);
-}
-.dt-tile__face[data-drawn] {
-  background: var(--color-paper);
-}
-.dt-tile__face[data-accent='blue'],
-.dt-tile__kind[data-accent='blue'] {
-  --tile-ink: var(--accent-blue);
-}
-.dt-tile__face[data-accent='carmine'],
-.dt-tile__kind[data-accent='carmine'] {
-  --tile-ink: var(--accent-carmine);
-}
-.dt-tile__face[data-accent='viridian'],
-.dt-tile__kind[data-accent='viridian'] {
-  --tile-ink: var(--accent-viridian);
-}
-.dt-tile__face[data-accent='ochre'],
-.dt-tile__kind[data-accent='ochre'] {
-  --tile-ink: var(--accent-ochre);
-}
-.dt-tile__face[data-accent='violet'],
-.dt-tile__kind[data-accent='violet'] {
-  --tile-ink: var(--accent-violet);
-}
-.dt-tile__face[data-accent='teal'],
-.dt-tile__kind[data-accent='teal'] {
-  --tile-ink: var(--accent-teal);
+  display: grid;
+  place-items: center;
+  padding: --spacing(2);
+  background: var(--color-plate-tint);
 }
 .dt-tile__img {
   display: block;
-  width: auto;
-  height: auto;
-  max-height: --spacing(7);
-  max-width: 100%;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: --spacing(6);
   object-fit: contain;
 }
 .dt-tile__body {
   display: grid;
   align-content: center;
   gap: --spacing(0.5);
+  padding: --spacing(2) --spacing(3);
   min-inline-size: 0;
-  padding: --spacing(2) --spacing(1) --spacing(2) --spacing(3);
 }
-/* A TILE'S NAME AND ITS LINE WRAP AND ARE NEVER CUT, for the shelf's reason (components
-   critique major 14): read on every spread, "OBSOLETE Trailers — No Longer Available", "Haines
-   Signature Factory Packages", "Dunbier / Haines BMT Trailers" and "Jeanneau Factory Packages"
-   lost their ends at one desk width or another, and "30 pairings · Trailers · no longer sold"
-   lost the words that say it is history. The tiles of one row stand as tall as the tallest. */
 .dt-tile__name {
-  min-inline-size: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-  text-wrap: balance;
-}
-.dt-tile__line {
-  min-inline-size: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
+  font-weight: 600;
   text-wrap: pretty;
 }
-.dt-tile__retired {
-  white-space: nowrap;
+.dt-tile[data-retired] .dt-tile__name {
+  font-weight: 400;
+  color: var(--color-ink-2);
 }
-.dt-tile__kind {
-  font-weight: 600;
-  color: var(--tile-ink);
+.dt-tile__line {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
 }
 .dt-tile__go {
   display: inline-flex;
   align-items: center;
-  padding-inline: --spacing(1) --spacing(3);
+  padding-inline-end: --spacing(3);
   color: var(--color-ink-3);
   transition:
     transform var(--duration-enter) var(--ease-out),
     color var(--duration-hover) var(--ease-out);
 }
-.dt-tile[data-retired] .dt-tile__name {
-  font-weight: 400;
-  color: var(--color-ink-3);
-}
 .dt-pairs__none {
-  margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
-  text-wrap: pretty;
+}
+.dt-pairs__boat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+  margin-block-start: --spacing(1);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
 }
 
-/* ---- the foot: what the file keeps about it ----------------- */
-
-.dt-facts {
-  margin: 0;
-  display: grid;
-  /* two facts since the refine round's third pass: its prices, and where it came from */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: --spacing(3) --spacing(6);
-  padding-block-start: --spacing(2);
-  border-top: 1px solid var(--color-rule);
-}
+/* the file's facts about it, across the foot */
 .dt-facts__row {
   display: grid;
-  align-content: start;
-  gap: --spacing(1);
-  min-inline-size: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(0.5) --spacing(4);
+  align-items: baseline;
 }
-.dt-facts__row dt {
-  display: flex;
+.dt-facts dt {
+  display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-ink-3);
-}
-/* a fact's glyph, in the file's blue: what kind of fact it is, before it is read */
-.dt-facts__glyph {
-  display: inline-flex;
-  color: var(--color-ink-file);
-}
-.dt-facts__row dd {
-  margin: 0;
-  min-inline-size: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+.dt-facts__glyph {
+  display: inline-flex;
+}
+.dt-facts dd {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   color: var(--color-ink);
-  text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
-/* ---- the spread arriving --------------------------------------
-
-   HOW IT LANDS DEPENDS ON HOW IT WAS OPENED (Spread.tsx `arrival`, `./turn.ts`):
-     turned   the View Transition carries the page — the mark flies into the cover and the
-              ledger and the spread crossfade — so the plate itself does not move;
-     risen    no transition carried it (a phone, where it opens out of sight, or a browser
-              without the API): it rises 8px into place on --duration-enter;
-     neither  a key opened it, and nothing moves.
-   Either way that it moved, its lineup's bars then grow from their left edge on the travel
-   spring, a third of a press apart, and its tiles come up after them the same way — the
-   group arrives in order rather than all at once. Transform and opacity only; a bar's count
-   is set once and never counts. */
-
 @keyframes dt-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(--spacing(2));
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes dt-grow {
-  from {
-    transform: scaleX(0);
-  }
-}
-@keyframes dt-rise {
   from {
     opacity: 0;
     transform: translateY(--spacing(1.5));
@@ -1513,383 +1558,323 @@
   .dt-spread[data-arrival='risen'] {
     animation: dt-arrive var(--duration-enter) var(--ease-out) both;
   }
-  .dt-spread[data-arrival] .dt-bar__fill {
-    animation: dt-grow var(--duration-travel) var(--ease-spring)
-      calc(var(--duration-press) + var(--i) * var(--duration-press) / 3) both;
-  }
-  .dt-spread[data-arrival] .dt-tiles > li {
-    animation: dt-rise var(--duration-enter) var(--ease-out)
-      calc(var(--duration-enter) + var(--i) * var(--duration-press) / 2) both;
-  }
 }
-
-/* ---- the mark between two places ----------------------------------
-
-   THE MARK IS THE ONE NAMED THING (`./turn.ts`); one whose other place is not on the next
-   screen — Data left for Home, a plate's mark with no spread to land in — fades with the room
-   over --duration-route instead of lingering for the morph's (src/ui/route.css, once for every
-   screen). */
-
-/* THE PAGE TURNING (`./turn.ts` types its transition `turn`). Under the flying mark the ledger
-   and the spread crossfade, and a plain crossfade reads as two pages printed on top of each
-   other for a moment. So the page that goes leaves on the kit's exit, faster than the one that
-   comes arrives on its enter, and both pass through a two-pixel blur that joins them into one
-   change (emil-design-eng, "use blur to mask imperfect transitions"). Opacity and a filter:
-   nothing moves, so a reduced-motion reader — who is never given a turn at all — loses
-   nothing. */
-@keyframes dt-page-out {
-  to {
-    opacity: 0;
-    filter: blur(--spacing(0.5));
+@media (prefers-reduced-motion: reduce) {
+  .dt-room,
+  .dt-maker,
+  .dt-tile,
+  .dt-row .dt-cell--go,
+  .dt-room__go,
+  .dt-tile__go {
+    transition: none;
+  }
+  .dt-room:hover .dt-room__go,
+  .dt-row:hover .dt-cell--go,
+  .dt-tile:hover .dt-tile__go {
+    transform: none;
   }
 }
-@keyframes dt-page-in {
-  from {
-    opacity: 0;
-    filter: blur(--spacing(0.5));
-  }
-}
-:root:active-view-transition-type(turn)::view-transition-old(root) {
-  animation: dt-page-out var(--duration-exit) var(--ease-out) both;
-}
-:root:active-view-transition-type(turn)::view-transition-new(root) {
-  animation: dt-page-in var(--duration-enter) var(--ease-out) both;
-}
 
-/* ---- the dialog's own two fields --------------------------- */
+/* ---- teaching, on a computer with no file ------------------ */
 
+.dt-teach {
+  max-inline-size: --spacing(160);
+}
+.dt-teach__in {
+  display: grid;
+  gap: --spacing(4);
+  align-content: start;
+}
+.dt-teach__head {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  text-wrap: pretty;
+}
+.dt-teach__q {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-ink-file);
+}
+.dt-teach__a {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.dt-teach__a b {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.dt-teach__door {
+  display: grid;
+  justify-items: start;
+}
 .dt-make {
   display: grid;
   gap: --spacing(4);
 }
-.dt-make__say {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-600);
-  text-wrap: pretty;
-}
-
 
 /* ============================================================
-   THE LADDER. The base above is the 1280 composition, because that is the window this
-   screen is measured at; every rule below is a departure from it with its reason.
+   THE LADDER, phone first. Each step is a departure with its reason.
    ============================================================ */
 
-/* ---- 1280 and up: the laptop and the desk ------------------ */
-@media (min-width: 1200px) {
-  .dt {
-    --gutter: --spacing(10);
-    --mark-h: --spacing(9);
-    --cover-mark: --spacing(18);
-  }
-}
-
-/* ---- 1920 x 1080: every line and sentence on the plate ------- */
-@media (min-width: 1900px) {
-  .dt {
-    --gutter: --spacing(14);
-    --mark-h: --spacing(12);
-    --cover-mark: --spacing(24);
-    --measure: --spacing(440);
-  }
-  .dt-spread {
-    padding: --spacing(8) --spacing(12) --spacing(8);
-    column-gap: --spacing(14);
-    row-gap: --spacing(7);
-  }
-}
-
-/* ---- the laptop's and the tablet's plate: one line of ink ----
-
-   It ends at 1439.98 and not at 1440.98, because the desk is exactly 1440 and the ladder
-   says every pairing line is drawn by name there. */
-@media (min-width: 640px) and (max-width: 1439.98px) {
-  .dt-chips {
-    display: none;
-  }
-  .dt-plate__strip {
-    display: flex;
-  }
-}
-
-/* ---- under 1200: one column, and the page scrolls ---------- */
-@media (max-width: 1199.98px) {
-  .dt {
-    --gutter: --spacing(8);
-    max-block-size: none;
-    overflow: visible;
-  }
-  .dt-head {
-    flex-wrap: wrap;
-  }
-  /* the find field takes the line it needs, rather than a line of its own under a head that
-     has already wrapped once */
-  .dt-find {
-    order: 1;
-    flex: 1 1 --spacing(60);
-    max-inline-size: none;
-  }
-  .dt-plates__list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .dt-ledger {
-    max-block-size: none;
-  }
-  .dt-list {
-    overflow: visible;
-    max-block-size: none;
-  }
-  /* THE SPREAD RUNS AS LONG AS IT IS; the page is the scrollport. And it points at no plate:
-     four to a row, there is no one column under the shelf that is that plate's. */
-  .dt-spread {
-    overflow: visible;
-    max-block-size: none;
-    padding: --spacing(5) --spacing(6);
-    column-gap: --spacing(6);
-  }
-  .dt-spread[data-from]::before {
-    content: none;
-  }
-  .dt-facts {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  /* WHAT THE ROWS ARE CUT INTO COMES OFF THE ROW UNDER 1200: 834px of window less its
-     gutters is 770, and the tablet keeps the glyph, the name, the count and what it fits; the
-     headings are on the list's own spread, and the phone gets them back on a line. */
-  .dt-row {
-    grid-template-columns: auto minmax(0, 1fr) --spacing(28) --spacing(32) var(--icon-sm);
-  }
-  .dt-cell--branch {
-    display: none;
-  }
-  /* AND THE PLACE COMES OUT OF THE MARGIN AND ONTO A LINE OF ITS OWN: above the run it is
-     whole, and it costs one line per place instead of a column on every row. */
-  .dt-cell--place {
-    display: none;
-  }
-  .dt-row[data-headed] {
-    block-size: auto;
-    padding-block-start: --spacing(2.5);
-  }
-  .dt-row[data-headed] .dt-cell--place {
-    display: block;
-    grid-column: 1 / -1;
-    padding-block-end: --spacing(1.5);
-  }
-}
-
-/* ---- 844 x 390: a phone turned, where height is scarce ----- */
-@media (max-width: 1199.98px) and (max-height: 560px) {
+/* ---- 600 and up: a turned phone and a tablet ------------- */
+@media (min-width: 600px) {
   .dt {
     --gutter: --spacing(6);
   }
-  .dt-title {
-    font-size: var(--text-xl);
-    line-height: var(--text-xl--line-height);
+  .dt-frame {
+    gap: --spacing(6);
   }
-  .dt-spread__name {
-    font-size: var(--text-2xl);
-    line-height: var(--text-2xl--line-height);
+  .dt-need {
+    grid-template-columns: --spacing(22) minmax(0, 1fr) --spacing(36);
+    padding-inline: --spacing(5);
+    column-gap: --spacing(4);
   }
-}
-
-/* ---- 390 x 844: the phone --------------------------------- */
-@media (max-width: 639.98px) {
-  .dt {
-    --gutter: --spacing(4);
-    --mark-h: --spacing(9);
-    --cover-mark: --spacing(14);
+  .dt-need__fig {
+    grid-row: 1 / span 2;
   }
-  .dt-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: --spacing(2);
+  .dt-need__fig b {
+    font-size: var(--text-4xl);
   }
-  .dt-head__stamp {
-    justify-items: start;
-    text-align: left;
+  .dt-need__dot {
+    inline-size: --spacing(2.5);
+    block-size: --spacing(2.5);
   }
-  .dt-head__who,
-  .dt-head__stamp,
-  .dt-act,
-  .dt-find {
-    flex: 0 0 auto;
-    inline-size: 100%;
-    max-inline-size: none;
-  }
-  /* THE PLATES STACK, one per line, every pairing line drawn and wrapping under its mark. */
-  .dt-plates__list {
-    grid-template-columns: minmax(0, 1fr);
-    gap: --spacing(3);
-  }
-  .dt-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: --spacing(1) --spacing(3);
-  }
-  .dt-chip {
-    inline-size: auto;
-    grid-template-columns: var(--icon-sm) auto;
-  }
-  /* A SPREAD IS ONE COLUMN: the cover, the name and the act, the lineup, the tiles, the foot. */
-  .dt-spread,
-  .dt-spread:not([data-lineup]),
-  .dt-spread:not([data-pairs]) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'cover'
-      'who'
-      'lineup'
-      'pairs'
-      'facts';
-    padding: --spacing(4);
-    row-gap: --spacing(5);
-  }
-  .dt-spread__name {
-    font-size: var(--text-3xl);
-    line-height: var(--text-3xl--line-height);
-  }
-  .dt-cover {
-    min-block-size: --spacing(24);
-  }
-  /* the phone's cap: a name past 144px takes its second line, and the bars keep 140px */
-  .dt-lineup__list {
-    grid-template-columns: fit-content(--spacing(36)) minmax(0, 1fr) auto;
-  }
-  .dt-facts {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  /* THE ROW BECOMES TWO LINES, under the place head the step above already put on a line
-     of its own: the glyph, the name and its count first, and what it fits and what it is cut
-     into beneath. */
-  .dt-row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    column-gap: --spacing(2);
-    row-gap: --spacing(0.5);
-    block-size: auto;
-    padding-block: --spacing(2);
-  }
-  .dt-row[data-headed] {
-    padding-block-start: --spacing(3);
-  }
-  .dt-row[data-headed] .dt-cell--place {
+  .dt-need__of {
+    grid-column: 3;
     grid-row: 1;
-    padding-block-end: --spacing(1);
+    text-align: end;
+    padding-block-start: --spacing(0.5);
   }
-  .dt-cell--name {
-    grid-column: 2;
+  .dt-need__door {
+    grid-column: 3;
     grid-row: 2;
+    justify-self: end;
+    margin: 0;
   }
-  .dt-row[data-headed] .dt-cell--name {
-    grid-row: 2;
+  .dt-need__words {
+    grid-row: 1 / span 2;
+  }
+  .dt-years {
+    display: flex;
+  }
+  .dt-need__sub {
+    display: block;
+  }
+  .dt-sec-head {
+    padding-inline: --spacing(5);
+  }
+  .dt-side {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .dt-makers {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .dt-answer__groups {
+    grid-template-columns: repeat(auto-fit, minmax(--spacing(64), 1fr));
+  }
+  /* THE MATRIX IS A TABLE FROM HERE: maker down the side, kinds across */
+  .dt-matrix__table {
+    display: table;
+  }
+  .dt-matrix__table thead {
+    display: table-header-group;
+  }
+  .dt-matrix__table tbody {
+    display: table-row-group;
+    padding: 0;
+  }
+  .dt-matrix__table tr {
+    display: table-row;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .dt-matrix__table td,
+  .dt-matrix__table th,
+  .dt-matrix__table tbody th {
+    display: table-cell;
+    padding: --spacing(2) --spacing(2.5);
+    border-block-start: 1px solid var(--color-rule);
+    vertical-align: middle;
+    text-align: start;
+  }
+  .dt-matrix__table td::before {
+    content: none;
+  }
+  .dt-matrix__table td[data-none] {
+    display: table-cell;
+  }
+  .dt-matrix__table thead th {
+    border-block-start: 0;
+    background: var(--color-plate-tint);
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--color-ink-2);
+  }
+  .dt-matrix__col {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: --spacing(1) --spacing(1.5);
+  }
+  .dt-matrix__table tbody th {
+    padding-inline-start: --spacing(4);
+  }
+  .dt-matrix__table tbody th > * {
+    display: block;
+  }
+  .dt-matrix__table td:not([data-none]) {
+    display: table-cell;
+  }
+  .dt-matrix__table td .dt-pair {
+    display: grid;
+    gap: 0;
+    padding-block: --spacing(0.5);
+  }
+  .dt-matrix__table thead th {
+    white-space: normal;
+  }
+  .dt-matrix__table td.dt-matrix__n,
+  .dt-matrix__table th.dt-matrix__n {
+    text-align: end;
+    padding-inline-end: --spacing(4);
+  }
+  .dt-row {
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(--spacing(26), auto) auto;
+    grid-template-areas:
+      'kind name holds fits go'
+      'kind stands stands stands go';
+    column-gap: --spacing(4);
+    padding-block: --spacing(1.5);
   }
   .dt-cell--holds {
-    grid-column: 3;
-    grid-row: 2;
+    text-align: end;
   }
-  .dt-cell--kind {
-    grid-column: 1;
-    grid-row: 2;
+  .dt-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(--spacing(60), 1fr));
   }
-  .dt-cell--pairs {
-    grid-column: 2;
-    grid-row: 3;
+  .dt-spread {
+    padding: --spacing(6);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'who who'
+      'lineup pairs'
+      'facts facts';
+    column-gap: --spacing(8);
   }
-  /* a hand presses the whole row; the arrow is the pointer's promise and goes */
-  .dt-cell--go {
-    display: none;
+  .dt-spread:not([data-lineup]) {
+    grid-template-areas:
+      'who who'
+      'pairs pairs'
+      'facts facts';
   }
-  /* what it is cut into follows the count down, right-aligned under it, so the phone keeps
-     both halves of the fact the laptop prints on one line */
-  .dt-cell--branch {
-    display: block;
-    grid-column: 3;
-    grid-row: 3;
-    text-align: right;
-    font-size: var(--text-2xs);
-    line-height: var(--text-2xs--line-height);
+  .dt-spread:not(:has(.dt-pairs)) {
+    grid-template-areas:
+      'who who'
+      'lineup lineup'
+      'facts facts';
   }
-  .dt-name {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-  }
-}
-
-/* ============================================================
-   THE PRICE LIST'S ROOMS, AT THE HEAD (2026-10-22, the critique of Milestone 3, blocker 1:
-   "three of the four new screens have no door"). Rules, Fitment, Review and Prices, as a small
-   white capsule of four doors in the pill's own vocabulary — a glyph, a word, and Review's
-   count in its well — standing in the head's line beside the title it belongs to.
-
-   WHERE IT STANDS, AT EACH SIZE, and what it costs the ledger:
-     1280 x 800 and up   in the head's one line, between the title and the find field, which
-                         gives up the width (its basis is 280px, its cap 440). The head stays
-                         one line, so the eighteen rows the ruler owes are not touched.
-     834 x 1112, 844 x 390
-                         the head already wraps under 1200; the capsule takes the line under
-                         the title, before the find field.
-     390 x 844           the head is a column: the capsule is the whole measure, its four doors
-                         two by two, under the price list's date and above the find field.
-   ============================================================ */
-.dt-rooms {
-  flex: 0 0 auto;
-  padding: --spacing(1);
-  border-radius: var(--radius-pill);
-  background: var(--color-plate);
-  box-shadow:
-    0 0 0 1px var(--color-rule),
-    var(--shadow-plate);
-}
-.dt-rooms__list {
-  display: flex;
-  align-items: center;
-  gap: --spacing(0.5);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.dt-room {
-  display: grid;
-}
-/* REVIEW'S COUNT, IN ITS WELL — the pill's count, said with its noun because it is the one
-   figure on the capsule and a bare number beside "Review" would not say what it counts */
-.dt-room__count {
-  display: inline-grid;
-  place-items: center;
-  margin-inline-start: --spacing(1.5);
-  block-size: --spacing(5);
-  padding-inline: --spacing(2);
-  border-radius: var(--radius-pill);
-  background: var(--color-wash);
-  color: var(--color-ink);
-  font-size: var(--text-2xs);
-  line-height: 1;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums lining-nums;
-  white-space: nowrap;
-}
-
-/* ---- the spread's two ways on: its prices, and one of its boats ---- */
-.dt-pairs__boat {
-  margin: --spacing(3) 0 0;
-}
-
-@media (max-width: 1199.98px) {
-  /* the head already wraps: the capsule leads the second line, the find field after it */
-  .dt-rooms {
-    order: 1;
+  .dt-facts__row {
+    grid-template-columns: --spacing(30) minmax(0, 1fr);
   }
 }
 
-@media (max-width: 639.98px) {
-  .dt-rooms {
-    inline-size: 100%;
-    border-radius: var(--radius-field);
+/* ---- 1100 and up: the laptop and the desk ---------------- */
+@media (min-width: 1100px) {
+  .dt {
+    --gutter: --spacing(10);
+  }
+  .dt-head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, --spacing(130));
+  }
+  .dt-state {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+  .dt-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dt-ledgers {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  /* ANSWERING A FIND the ledger stands alone, at a measure a row can be read across */
+  .dt-ledgers[data-one] {
+    grid-template-columns: minmax(0, --spacing(240));
+  }
+  .dt-answer__rows {
+    grid-template-columns: repeat(auto-fill, minmax(--spacing(88), 1fr));
+    column-gap: --spacing(6);
+  }
+  .dt-room {
+    grid-template-columns: auto --spacing(22) minmax(0, 1fr);
+    grid-template-areas:
+      'glyph name fig'
+      'glyph name sub';
+    column-gap: --spacing(3);
+    padding-block: --spacing(2);
+  }
+  .dt-spread {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'who lineup pairs'
+      'facts facts facts';
+  }
+  .dt-spread:not([data-lineup]) {
+    grid-template-areas:
+      'who pairs pairs'
+      'facts facts facts';
+  }
+  .dt-spread:not(:has(.dt-pairs)) {
+    grid-template-areas:
+      'who lineup lineup'
+      'facts facts facts';
+  }
+  .dt-spread:not([data-lineup]):not(:has(.dt-pairs)) {
+    grid-template-areas:
+      'who who who'
+      'facts facts facts';
+  }
+  .dt-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dt-spread:not([data-lineup]) .dt-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(--spacing(60), 1fr));
+  }
+}
+
+/* ---- 1366 and up: the eight makers in one row ------------- */
+@media (min-width: 1366px) {
+  .dt-makers {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+/* ---- 1600 and up: the showroom ---------------------------- */
+@media (min-width: 1600px) {
+  .dt-state {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
   .dt-rooms__list {
-    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dt-room {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'glyph name'
+      'glyph fig'
+      'glyph sub';
+  }
+}
+@media (min-width: 1800px) {
+  .dt {
+    --gutter: --spacing(20);
   }
 }

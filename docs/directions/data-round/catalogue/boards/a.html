@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chandlery · A</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans);
+  font-size: var(--text-base); line-height: 1.45; overflow-wrap: break-word; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
+h1 { font-weight: 800; } h2, h3, h4 { font-weight: 700; }
+ul, ol { list-style: none; }
+.num, b { font-variant-numeric: tabular-nums lining-nums; }
+.nw { white-space: nowrap; }
+.sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* THE BAR, as the app floats it: top on a desk, the foot on a phone. */
+.bar { position: fixed; z-index: 30; inset-block-start: 8px; inset-inline: 0; margin-inline: auto; inline-size: max-content;
+  display: flex; align-items: center; gap: 2px; padding: 4px 6px 4px 4px; border-radius: var(--radius-pill);
+  background: var(--color-door); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+.bar a { display: inline-flex; align-items: center; gap: 6px; min-block-size: 36px; padding-inline: 12px; border-radius: var(--radius-pill);
+  font-weight: 600; color: var(--color-ink-2); }
+.bar a.on { background: var(--color-blue-800); color: var(--color-white); }
+.bar .bar-find { box-shadow: inset 0 0 0 1px var(--color-rule-strong); background: var(--color-plate-tint); margin-inline-end: 6px; }
+.bar-disc { display: grid; place-items: center; inline-size: 40px; block-size: 40px; border-radius: 50%; background: var(--color-blue-800); color: var(--color-white); margin-inline-end: 4px; box-shadow: 0 0 0 3px var(--color-blue-200); }
+.bar-count { min-inline-size: 20px; padding-inline: 6px; border-radius: var(--radius-pill); background: var(--color-wash); font-size: var(--text-xs); text-align: center; color: var(--color-ink); }
+body { padding-block: 64px 48px; }
+@media (max-width: 599px) {
+  .bar { inset-block: auto 8px; inline-size: calc(100% - 16px); justify-content: space-between; padding: 4px; }
+  .bar a { flex-direction: column; gap: 0; padding-inline: 4px; min-block-size: 44px; font-size: var(--text-xs); justify-content: center; }
+  .bar .bar-find span, .bar .bar-count { display: none; }
+  .bar .bar-find { inline-size: 40px; block-size: 40px; border-radius: 50%; padding: 0; margin: 0; }
+  .bar-disc { inline-size: 44px; block-size: 44px; margin: 0; }
+  body { padding-block: 12px 104px; }
+}
+/* a phone held sideways is short: the bar sits at the foot and the page starts at the top */
+@media (max-height: 480px) and (min-width: 600px) {
+  .bar { inset-block: auto 6px; }
+  body { padding-block: 10px 72px; }
+}
+
+.frame { inline-size: min(100% - 32px, 1360px); margin-inline: auto; }
+@media (min-width: 600px) { .frame { inline-size: min(100% - 48px, 1360px); } }
+@media (min-width: 1600px) { .frame { inline-size: min(100% - 96px, 1720px); } }
+
+.eyebrow { font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--color-ink-3); }
+.door { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--color-ink-file); white-space: nowrap; }
+.door:hover { text-decoration: underline; }
+.code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-ink-3); letter-spacing: 0; }
+.find { display: flex; align-items: center; gap: 10px; min-block-size: 44px; padding-inline: 14px 8px; border-radius: var(--radius-field);
+  background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-control-edge); color: var(--color-ink-3); min-inline-size: 0; }
+.find input { all: unset; flex: 1; min-inline-size: 0; color: var(--color-ink); font-size: var(--text-base); }
+.find input::placeholder { color: var(--color-ink-3); }
+.ui-kbd { flex: none; }
+.said { font-size: var(--text-sm); color: var(--color-ink-reason); }
+
+/* A PRICE CELL: the figure, then its level in small words under it */
+.pc { display: inline-grid; justify-items: end; line-height: 1.15; }
+.pc b { font-weight: 700; font-size: var(--text-base); }
+.pc small { font-size: var(--text-xs); color: var(--color-ink-3); font-weight: 600; }
+.pc.quiet i { font-style: normal; font-size: var(--text-xs); color: var(--color-ink-3); font-weight: 600; white-space: nowrap; }
+.pc.f b { color: var(--color-ink); }
+.pc.none { justify-items: start; font-size: var(--text-sm); color: var(--color-ink-reason); grid-column: span 2; }
+
+/* THE NOTES: the board's own words, under the screen. Paper, so it never reads as the app. */
+.notes { margin-block-start: 72px; padding-block: 48px 24px; background: var(--color-paper); border-block-start: 1px solid var(--color-rule-strong); }
+.notes .frame { display: grid; gap: 36px; }
+.notes h2 { font-size: var(--text-3xl); line-height: 1.15; letter-spacing: -0.01em; }
+.notes h3 { font-size: var(--text-xl); margin-block-end: 8px; }
+.notes p:not(.state p), .notes li:not(.state li) { max-inline-size: 72ch; color: var(--color-ink-2); font-size: var(--text-lg); line-height: 1.55; }
+.notes li:not(.state li) { margin-block: 4px; }
+.notes ul.dash li::before { content: '— '; color: var(--color-ink-3); }
+.notes code { font-family: var(--font-mono); font-size: 0.9em; overflow-wrap: anywhere; }
+.notes .cols { display: grid; gap: 28px 40px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); }
+.notes table:not(.state table) { border-collapse: collapse; inline-size: 100%; font-size: var(--text-base); }
+.notes th:not(.state th), .notes td:not(.state td) { text-align: start; vertical-align: top; padding: 8px 10px 8px 0; border-block-end: 1px solid var(--color-rule); }
+.notes th:not(.state th) { color: var(--color-ink-3); font-weight: 700; font-size: var(--text-sm); }
+.notes td:not(.state td):first-child { white-space: nowrap; font-weight: 700; color: var(--color-ink); }
+.notes .state { padding: 24px; border-radius: var(--radius-plate); background: var(--color-ground); box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.notes .state > .eyebrow { margin-block-end: 14px; display: block; }
+.notes .state { font-size: var(--text-base); color: var(--color-ink); }
+.notes .state p { margin: 0; }
+.specimen { display: grid; gap: 10px; }
+.specimen > div { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 16px; align-items: baseline; border-block-end: 1px solid var(--color-rule); padding-block-end: 8px; }
+.specimen span:first-child { font-size: var(--text-sm); color: var(--color-ink-3); font-family: var(--font-mono); }
+.board-name { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; }
+.board-name .eyebrow { color: var(--color-ink-file); }
+.rec { display: inline-flex; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-weight: 700; font-size: var(--text-sm); }
+@media (max-width: 599px) { .notes p:not(.state p), .notes li:not(.state li) { font-size: var(--text-base); } .notes .state { padding: 14px; } .notes table:not(.state table) { font-size: var(--text-sm); } .notes td:not(.state td):first-child { white-space: normal; } }
+
+
+/* THE HEAD */
+.a-head { display: grid; gap: 10px; padding-block: 12px 18px; }
+.a-back { font-size: var(--text-sm); }
+.a-title { display: flex; align-items: center; gap: 16px; }
+.a-glyph { flex: none; display: grid; place-items: center; inline-size: 64px; block-size: 64px; border-radius: var(--radius-tile);
+  background: var(--color-plate); color: var(--color-ink-file); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+.a-glyph .ui-icon { inline-size: 36px; block-size: 36px; }
+.a-head h1 { font-size: var(--text-5xl); line-height: 1.05; letter-spacing: -0.02em; }
+.a-count { color: var(--color-ink-2); margin-block-start: 6px; }
+
+/* THE DOCK: sticky under the bar */
+.a-dock { position: sticky; inset-block-start: 60px; z-index: 10; display: grid; gap: 10px; padding: 12px 16px;
+  margin-inline: -16px; background: var(--color-ground); border-block-end: 1px solid var(--color-rule-strong); }
+.a-dock-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-inline-size: 0; }
+.a-where { flex: 1 1 260px; min-inline-size: 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+.a-where b { font-size: var(--text-base); color: var(--color-ink); }
+.a-find { flex: 1 1 320px; min-block-size: 40px; }
+.a-seg .ui-segmented-option[data-refused] { color: var(--color-ink-3); cursor: not-allowed; }
+.a-filter { display: none; }
+.a-boat { margin-inline-start: auto; }
+.a-why { margin: 0; }
+
+/* MADE FOR THIS BOAT */
+.a-made { margin-block: 20px 8px; padding: 16px 18px; border-radius: var(--radius-plate); background: var(--color-chosen-wash);
+  box-shadow: inset 0 0 0 1px var(--color-blue-300); display: grid; gap: 8px; }
+.a-made header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.a-made h2 { font-size: var(--text-xl); }
+.a-made header p { color: var(--color-ink-2); font-size: var(--text-sm); }
+
+/* SECTIONS AND LINES */
+.a-group { margin-block-start: 28px; }
+.a-ghead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding-block-end: 8px; border-block-end: 2px solid var(--color-ink); }
+.a-ghead h2 { font-size: var(--text-xl); }
+.a-ghead .num { font-weight: 700; color: var(--color-ink-3); }
+.a-ghead-say { font-size: var(--text-sm); color: var(--color-ink-3); }
+.a-lines { display: grid; }
+.a-lines { container-type: inline-size; }
+.a-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; grid-template-areas: 'name acts' 'meta acts' 'pr acts'; align-items: center; gap: 2px 16px;
+  min-block-size: 48px; padding-block: 6px; border-block-end: 1px solid var(--color-rule); }
+.a-name { grid-area: name; } .a-meta { grid-area: meta; } .a-pr { grid-area: pr; } .a-acts { grid-area: acts; }
+.a-colhead { display: none; min-block-size: 32px; font-size: var(--text-xs); font-weight: 700; color: var(--color-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.a-prh { text-align: end; }
+.a-name span { font-weight: 600; }
+.a-meta { display: flex; flex-wrap: wrap; gap: 2px 14px; align-items: baseline; min-inline-size: 0; }
+.a-meta .code { overflow-wrap: anywhere; }
+.a-sup { font-size: var(--text-sm); color: var(--color-ink-2); }
+.a-pr { display: grid; grid-template-columns: auto auto; justify-content: start; gap: 18px; margin-block-start: 4px; align-items: center; }
+.a-pr .pc { justify-items: start; }
+.a-pr-none { grid-template-columns: 1fr; }
+@container (min-width: 560px) {
+  .a-row { grid-template-columns: minmax(0, 1fr) 13rem 40px; grid-template-areas: 'name pr acts' 'meta pr acts'; row-gap: 0; }
+  .a-pr { grid-template-columns: 1fr 1fr; justify-content: stretch; justify-items: end; gap: 12px; margin: 0; }
+  .a-pr .pc { justify-items: end; }
+  .a-pr-none .pc.none { text-align: end; justify-items: end; }
+}
+@container (min-width: 1000px) {
+  .a-row { grid-template-columns: minmax(0, 1fr) 17rem 13rem 40px; grid-template-areas: 'name meta pr acts'; }
+  .a-colhead { display: grid; }
+  .a-meta .code { min-inline-size: 9rem; }
+}
+@container (max-width: 559px) { .a-lines .a-open dl { grid-template-columns: minmax(0, 1fr); } }
+.a-acts { justify-self: end; }
+.a-more { inline-size: 36px; min-block-size: 36px; padding: 0; }
+.a-row.is-open { border-block-end: 0; background: var(--color-plate); box-shadow: inset 3px 0 0 var(--color-accent); padding-inline-start: 10px; }
+.a-open { display: grid; gap: 12px; padding: 4px 16px 16px 13px; background: var(--color-plate); box-shadow: inset 3px 0 0 var(--color-accent);
+  border-block-end: 1px solid var(--color-rule); }
+.a-open dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.a-open dt { font-size: var(--text-xs); font-weight: 700; color: var(--color-ink-3); }
+.a-open dd { margin: 0; font-size: var(--text-sm); color: var(--color-ink); }
+.a-open-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* CARDS, in a pictured section */
+.a-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; padding-block: 14px; }
+.a-card { display: grid; gap: 6px; align-content: start; padding: 10px 10px 12px; border-radius: var(--radius-tile); background: var(--color-plate);
+  box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-rule); }
+.a-card-pic { position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-md); background: var(--color-white); overflow: hidden; }
+.a-zoom { position: absolute; inset-block-start: 6px; inset-inline-end: 6px; inline-size: 34px; padding: 0; }
+.a-card h3 { font-size: var(--text-base); line-height: 1.3; }
+.a-card-pr { display: flex; gap: 18px; align-items: center; }
+.a-card-pr .pc { justify-items: start; }
+
+/* THE DOOR (second state) */
+.ax { display: grid; gap: 20px; }
+.ax-head { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 420px); align-items: center; gap: 12px 20px; }
+.ax-mark { display: block; block-size: 40px; inline-size: auto; max-inline-size: 160px; object-fit: contain; }
+.ax-title { font-size: var(--text-3xl); }
+.ax-count { font-size: var(--text-sm); color: var(--color-ink-2); }
+.ax-grid { columns: 4 260px; column-gap: 28px; }
+.ax-aisle { break-inside: avoid; display: grid; gap: 6px; padding-block: 12px; border-block-start: 1px solid var(--color-rule-strong); }
+.ax-name { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: var(--text-lg); color: var(--color-ink); }
+.ax-name b { margin-inline-start: auto; color: var(--color-ink-2); }
+.ax-glyph { display: grid; place-items: center; inline-size: 32px; block-size: 32px; border-radius: var(--radius-md); background: var(--color-plate); color: var(--color-ink-file); box-shadow: 0 0 0 1px var(--color-rule); }
+.ax-aisle ul { display: grid; gap: 2px; padding-inline-start: 42px; }
+.ax-aisle li { display: flex; gap: 8px; font-size: var(--text-sm); color: var(--color-ink-file); max-inline-size: none; margin: 0; }
+.ax-aisle li .num { margin-inline-start: auto; color: var(--color-ink-3); }
+.ax-pic { padding-inline-start: 42px; font-size: var(--text-xs); color: var(--color-ink-3); max-inline-size: none; }
+.ax-unsorted .ax-name { color: var(--color-ink-2); }
+.ax-wrong { max-inline-size: 72ch; }
+
+/* REFLOW */
+.a-find { max-inline-size: 760px; }
+@media (min-width: 1600px) {
+  .a-sections { columns: 2; column-gap: 48px; }
+  .a-sections .a-group { break-inside: avoid; margin-block-start: 0; padding-block-start: 28px; }
+}
+@media (max-width: 1100px) {
+  .ax-head { grid-template-columns: auto minmax(0, 1fr); } .ax-find { grid-column: 1 / -1; }
+}
+@media (max-width: 760px), (max-height: 480px) {
+  .a-chips { display: none; }
+  .a-filter { display: inline-flex; }
+  .a-dock { inset-block-start: 0; padding-block: 10px; }
+}
+@media (max-height: 480px) and (min-width: 600px) {
+  .a-head { padding-block: 4px 8px; gap: 4px; } .a-head h1 { font-size: var(--text-3xl); } .a-glyph { inline-size: 44px; block-size: 44px; }
+  .a-glyph .ui-icon { inline-size: 26px; block-size: 26px; } .a-count { margin-block-start: 0; font-size: var(--text-sm); }
+  .a-dock-row { flex-wrap: nowrap; } .a-why { display: none; }
+}
+@media (max-width: 599px) {
+  .a-head h1 { font-size: var(--text-3xl); }
+  .a-glyph { inline-size: 48px; block-size: 48px; } .a-glyph .ui-icon { inline-size: 28px; block-size: 28px; }
+  .a-count { font-size: var(--text-sm); }
+  .a-find { flex-basis: 100%; }
+  .a-seg { flex: 1; }
+  .a-made { padding: 12px; }
+  .ax-head { grid-template-columns: minmax(0, 1fr); } .ax-mark { block-size: 32px; }
+  .ax-aisle ul, .ax-pic { padding-inline-start: 0; }
+}
+
+</style>
+</head>
+<body data-board="a">
+
+<nav class="bar" aria-label="The bar">
+  <span class="bar-disc" aria-hidden="true"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M225.24,174.74a12,12,0,0,1-1.58,16.89C205.49,206.71,189.06,212,174.15,212c-19.76,0-36.86-9.29-51.88-17.44-25.06-13.62-44.86-24.37-74.61.3a12,12,0,1,1-15.32-18.48c42.25-35,75-17.23,101.39-2.92,25.06,13.61,44.86,24.37,74.61-.3A12,12,0,0,1,225.24,174.74Zm-16.9-57.59c-29.75,24.67-49.55,13.91-74.61.3-26.35-14.3-59.14-32.11-101.39,2.92a12,12,0,0,0,15.32,18.48c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48ZM47.66,82.84c29.75-24.67,49.55-13.92,74.61-.3,15,8.15,32.12,17.44,51.88,17.44,14.91,0,31.34-5.29,49.51-20.36a12,12,0,0,0-15.32-18.48c-29.75,24.67-49.55,13.92-74.61.3-26.35-14.3-59.14-32.11-101.39,2.93A12,12,0,1,0,47.66,82.84Z"></path></svg></span>
+  <a class="bar-find" href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span>Find</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M222.14,105.85l-80-80a20,20,0,0,0-28.28,0l-80,80A19.86,19.86,0,0,0,28,120v96a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V164h24v52a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V120A19.86,19.86,0,0,0,222.14,105.85ZM204,204H164V152a12,12,0,0,0-12-12H104a12,12,0,0,0-12,12v52H52V121.65l76-76,76,76Z"></path></svg><span>Home</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,79.52l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.52ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Zm112-80a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,132Zm0,40a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,172Z"></path></svg><span>Quotes</span><b class="bar-count">0</b></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M125.18,156.94a64,64,0,1,0-82.36,0,100.23,100.23,0,0,0-39.49,32,12,12,0,0,0,19.35,14.2,76,76,0,0,1,122.64,0,12,12,0,0,0,19.36-14.2A100.33,100.33,0,0,0,125.18,156.94ZM44,108a40,40,0,1,1,40,40A40,40,0,0,1,44,108Zm206.1,97.67a12,12,0,0,1-16.78-2.57A76.31,76.31,0,0,0,172,172a12,12,0,0,1,0-24,40,40,0,1,0-10.3-78.67,12,12,0,1,1-6.16-23.19,64,64,0,0,1,57.64,110.8,100.23,100.23,0,0,1,39.49,32A12,12,0,0,1,250.1,205.67Z"></path></svg><span>Customers</span></a>
+  <a href="#" class="on" aria-current="page"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M196,35.52C177.62,25.51,153.48,20,128,20S78.38,25.51,60,35.52C39.37,46.79,28,62.58,28,80v96c0,17.42,11.37,33.21,32,44.48,18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52c20.66-11.27,32-27.06,32-44.48V80C228,62.58,216.63,46.79,196,35.52ZM204,128c0,17-31.21,36-76,36s-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94ZM128,44c44.79,0,76,19,76,36s-31.21,36-76,36S52,97,52,80,83.21,44,128,44Zm0,168c-44.79,0-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94V176C204,193,172.79,212,128,212Z"></path></svg><span>Data</span></a>
+  <a href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M140,80v41.21l34.17,20.5a12,12,0,1,1-12.34,20.58l-40-24A12,12,0,0,1,116,128V80a12,12,0,0,1,24,0ZM128,28A99.38,99.38,0,0,0,57.24,57.34c-4.69,4.74-9,9.37-13.24,14V64a12,12,0,0,0-24,0v40a12,12,0,0,0,12,12H72a12,12,0,0,0,0-24H57.77C63,86,68.37,80.22,74.26,74.26a76,76,0,1,1,1.58,109,12,12,0,0,0-16.48,17.46A100,100,0,1,0,128,28Z"></path></svg><span>History</span></a>
+</nav>
+
+<main class="a-page frame" id="main">
+  <header class="a-head">
+    <a class="door a-back" href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M228,128a12,12,0,0,1-12,12H69l51.52,51.51a12,12,0,0,1-17,17l-72-72a12,12,0,0,1,0-17l72-72a12,12,0,0,1,17,17L69,116H216A12,12,0,0,1,228,128Z"></path></svg>Every aisle · 19</a>
+    <div class="a-title">
+      <span class="a-glyph" aria-hidden="true"><svg class="ui-icon" data-size="lg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M152,56a24,24,0,1,1-24-24A24,24,0,0,1,152,56Z" opacity="0.2"></path><path d="M216,136a8,8,0,0,0-8,8c0,24.69-13.77,29.64-38.1,36.28-11.36,3.1-24.12,6.6-33.9,14.34V128h32a8,8,0,0,0,0-16H136V87a32,32,0,1,0-16,0v25H88a8,8,0,0,0,0,16h32v66.62c-9.78-7.74-22.54-11.24-33.9-14.34C61.77,173.64,48,168.69,48,144a8,8,0,0,0-16,0c0,38.11,27.67,45.66,49.9,51.72C106.23,202.36,120,207.31,120,232a8,8,0,0,0,16,0c0-24.69,13.77-29.64,38.1-36.28C196.33,189.66,224,182.11,224,144A8,8,0,0,0,216,136ZM112,56a16,16,0,1,1,16,16A16,16,0,0,1,112,56Z"></path></svg></span>
+      <div>
+        <h1>Anchoring &amp; mooring</h1>
+        <p class="a-count"><b>66</b> parts under <b>6</b> headings of the price list · <b>0</b> of 66 pictured</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="a-dock" role="search" aria-label="In this aisle">
+    <div class="a-dock-row">
+      <label class="find a-find"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span class="sr">Find in this aisle</span><input placeholder="In this aisle: a name, a code or a supplier"></label>
+      <div class="ui-segmented-frame a-seg"><fieldset class="ui-segmented"><legend class="ui-segmented-legend">Show</legend>
+        <label class="ui-segmented-option" data-refused><input class="ui-segmented-input" type="radio" name="a-show" disabled aria-describedby="a-why"><span class="ui-segmented-face">Pictured <b class="num">0</b></span></label>
+        <label class="ui-segmented-option" data-checked><span class="ui-segmented-thumb"></span><input class="ui-segmented-input" type="radio" name="a-show" checked><span class="ui-segmented-face">All <b class="num">66</b></span></label>
+      </fieldset></div>
+      <button class="ui-button a-filter" data-intent="secondary" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M234.29,47.91A20,20,0,0,0,216,36H40A20,20,0,0,0,25.2,69.45l.12.14L92,140.75V216a20,20,0,0,0,31.1,16.64l32-21.33A20,20,0,0,0,164,194.66V140.75l66.67-71.16.12-.14A20,20,0,0,0,234.29,47.91Zm-91,79.89A12,12,0,0,0,140,136v56.52l-24,16V136a12,12,0,0,0-3.25-8.2L49.23,60H206.77Z"></path></svg>Supplier, boat <b class="num">1</b></button>
+    </div>
+    <div class="a-dock-row a-chips">
+      <span class="ui-chip-frame"><button class="ui-chip" aria-pressed="true">Every supplier <span class="ui-chip-count">66</span></button></span>
+      <span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">LSM <span class="ui-chip-count">21</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">BBB <span class="ui-chip-count">10</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">SAW <span class="ui-chip-count">10</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">BLA <span class="ui-chip-count">8</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">ANC <span class="ui-chip-count">4</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">MWH <span class="ui-chip-count">4</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">NSM Service Dept <span class="ui-chip-count">4</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">EJM <span class="ui-chip-count">3</span></button></span><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="false">SUB <span class="ui-chip-count">2</span></button></span>
+      <span class="a-boat"><span class="ui-chip-frame"><button class="ui-chip" aria-pressed="true"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M222.33,106.79,212,103.35V56a20,20,0,0,0-20-20H140V24a12,12,0,0,0-24,0V36H64A20,20,0,0,0,44,56v47.35l-10.33,3.44a20,20,0,0,0-13.67,19V152c0,64.63,100.8,90.57,105.09,91.64a11.94,11.94,0,0,0,5.82,0C135.2,242.57,236,216.63,236,152V125.77A20,20,0,0,0,222.33,106.79ZM68,60H188V95.35L131.79,76.62a11.85,11.85,0,0,0-7.58,0L68,95.35Zm144,92c0,36.69-58.08,60.43-84,67.59-25.94-7.17-84-30.9-84-67.59V128.65l72-24V168a12,12,0,0,0,24,0V104.65l72,24Z"></path></svg>Stacer 529 Assault Pro (Tournament) <span class="sr">, press to fit no boat</span><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"></path></svg></button></span></span>
+    </div>
+    <p class="said a-why" id="a-why">Pictured is refused here: no part in this aisle has a picture yet, so all 66 show as lines.</p>
+  </div>
+
+  <section class="a-made" aria-labelledby="a-made-h">
+    <header><h2 id="a-made-h">Made for the Stacer 529 Assault Pro (Tournament)</h2><p><b>1</b> in this aisle, of the <b>4</b> parts its P/D list pairs with it</p></header>
+    <div class="a-lines" role="table" aria-label="Made for this boat">
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>D Shackle · 10 mm Galv</span></div>
+  <div class="a-meta" role="cell"><span class="code">110016</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$3</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open D Shackle · 10 mm Galv"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+</div>
+    <p class="said">The other 3 are in Batteries &amp; power. <a class="door" href="#">See all 4 <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></p>
+  </section>
+
+  <div class="a-sections">
+<section class="a-group" aria-labelledby="h-parts:38">
+  <header class="a-ghead"><h2 id="h-parts:38">Anchor kits</h2><span class="num">8</span></header>
+  <div class="a-lines" role="table" aria-label="Anchor kits">
+    <div class="a-row a-colhead" role="row"><span role="columnheader">Part</span><span role="columnheader">Code · Supplier</span><span role="columnheader" class="a-prh">Supply · Fitted</span><span role="columnheader"><span class="sr">Open</span></span></div>
+    
+<div class="a-row is-open" role="row">
+  <div class="a-name" role="cell"><span>Sand Anchor Kit · 4lb</span></div>
+  <div class="a-meta" role="cell"><span class="code">46070</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$69</b><small>supply</small></span><span class="pc f"><b>$112</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="true" aria-label="Close Sand Anchor Kit · 4lb"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,168.49a12,12,0,0,1-17,0L128,97,56.49,168.49a12,12,0,0,1-17-17l80-80a12,12,0,0,1,17,0l80,80A12,12,0,0,1,216.49,168.49Z"></path></svg></button></div>
+</div>
+
+<div class="a-open" role="region" aria-label="Sand Anchor Kit · 4lb, opened">
+  <dl>
+    <div><dt>Heading in the price list</dt><dd>ANCHOR KITS</dd></div>
+    <div><dt>How it is fitted</dt><dd>Labour Estimated - (0.25)</dd></div>
+    <div><dt>Paired with a boat</dt><dd>No boat: none of the six P/D lists names it</dd></div>
+  </dl>
+  <div class="a-open-acts">
+    <a class="ui-button" data-intent="secondary" data-size="sm" href="#"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,44H32A12,12,0,0,0,20,56V192a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V56A12,12,0,0,0,224,44ZM44,116H76v24H44Zm56,0H212v24H100ZM212,68V92H44V68ZM44,164H76v24H44Zm56,24V164H212v24Z"></path></svg>Open its line in Parts &amp; Accessories</a>
+    <button class="ui-button" data-intent="quiet" data-size="sm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,28H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28Zm-4,24v63.72L186.14,97.86a20,20,0,0,0-28.28,0L52,203.72V52ZM85.66,204,172,117.66l32,32V204ZM76,96a20,20,0,1,1,20,20A20,20,0,0,1,76,96Z"></path></svg>Add Northside’s own picture</button>
+  </div>
+  <p class="said">A quote cannot start with this part yet: Parts &amp; Accessories is sold only with a boat today. <a class="door" href="#">Let it be quoted on its own <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></p>
+</div>
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sand Anchor Kit · 6lb</span></div>
+  <div class="a-meta" role="cell"><span class="code">46075</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$79</b><small>supply</small></span><span class="pc f"><b>$122</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sand Anchor Kit · 6lb"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sand Anchor Kit · 8lb</span></div>
+  <div class="a-meta" role="cell"><span class="code">46080</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$99</b><small>supply</small></span><span class="pc f"><b>$142</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sand Anchor Kit · 8lb"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sand Anchor Kit · 10lb</span></div>
+  <div class="a-meta" role="cell"><span class="code">46085</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$138</b><small>supply</small></span><span class="pc f"><b>$181</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sand Anchor Kit · 10lb"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sand Anchor Kit · 13lb</span></div>
+  <div class="a-meta" role="cell"><span class="code">46090</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$149</b><small>supply</small></span><span class="pc f"><b>$192</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sand Anchor Kit · 13lb"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Reef Anchor Kit · 8 mm w 50mtr Rope &amp; 4mtr Chain</span></div>
+  <div class="a-meta" role="cell"><span class="code">146406</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Reef Anchor Kit · 8 mm w 50mtr Rope &amp; 4mtr Chain"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Reef Anchor Kit · 10 mm w 50mtr Rope &amp; 4mtr Chain</span></div>
+  <div class="a-meta" role="cell"><span class="code">146409</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Reef Anchor Kit · 10 mm w 50mtr Rope &amp; 4mtr Chain"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Reef Anchor Kit · 13 mm w 50mtr Rope &amp; 4mtr Chain</span></div>
+  <div class="a-meta" role="cell"><span class="code">146415</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Reef Anchor Kit · 13 mm w 50mtr Rope &amp; 4mtr Chain"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+  </div>
+</section>
+<section class="a-group" aria-labelledby="h-parts:46">
+  <header class="a-ghead"><h2 id="h-parts:46">Sarca anchors</h2><span class="num">8</span></header>
+  <div class="a-lines" role="table" aria-label="Sarca anchors">
+    <div class="a-row a-colhead" role="row"><span role="columnheader">Part</span><span role="columnheader">Code · Supplier</span><span role="columnheader" class="a-prh">Supply · Fitted</span><span role="columnheader"><span class="sr">Open</span></span></div>
+    
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca · No.1 Anchor Only</span></div>
+  <div class="a-meta" role="cell"><span class="code">SARCA1</span><span class="a-sup">ANC</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$199</b><small>supply</small></span><span class="pc f"><b>$216</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca · No.1 Anchor Only"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca · No.2 Anchor Only</span></div>
+  <div class="a-meta" role="cell"><span class="code">SARCA2</span><span class="a-sup">ANC</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$258</b><small>supply</small></span><span class="pc f"><b>$275</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca · No.2 Anchor Only"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca · No.3 Anchor Only</span></div>
+  <div class="a-meta" role="cell"><span class="code">SARCA3</span><span class="a-sup">ANC</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$368</b><small>supply</small></span><span class="pc f"><b>$385</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca · No.3 Anchor Only"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca · No.4 Anchor Only</span></div>
+  <div class="a-meta" role="cell"><span class="code">SARCA4</span><span class="a-sup">ANC</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$535</b><small>supply</small></span><span class="pc f"><b>$552</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca · No.4 Anchor Only"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca No. 1 Anchor w S/S Swivel</span></div>
+  <div class="a-meta" role="cell"><span class="code">ANC-SARCA1KIT01</span><span class="a-sup">NSM Service Dept</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$271</b><small>supply</small></span><span class="pc f"><b>$306</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca No. 1 Anchor w S/S Swivel"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca No. 2 Anchor w S/S Swivel</span></div>
+  <div class="a-meta" role="cell"><span class="code">ANC-SARCA2KIT01</span><span class="a-sup">NSM Service Dept</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$330</b><small>supply</small></span><span class="pc f"><b>$365</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca No. 2 Anchor w S/S Swivel"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca No. 3 Anchor w S/S Swivel</span></div>
+  <div class="a-meta" role="cell"><span class="code">ANC-SARCA3KIT01</span><span class="a-sup">NSM Service Dept</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$440</b><small>supply</small></span><span class="pc f"><b>$475</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca No. 3 Anchor w S/S Swivel"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Sarca No. 4 Anchor w S/S Swivel</span></div>
+  <div class="a-meta" role="cell"><span class="code">ANC-SARCA4KIT01</span><span class="a-sup">NSM Service Dept</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$607</b><small>supply</small></span><span class="pc f"><b>$642</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Sarca No. 4 Anchor w S/S Swivel"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+  </div>
+</section>
+<section class="a-group" aria-labelledby="h-parts:54">
+  <header class="a-ghead"><h2 id="h-parts:54">MMX anchors – Galvanized</h2><span class="num">4</span></header>
+  <div class="a-lines" role="table" aria-label="MMX anchors – Galvanized">
+    <div class="a-row a-colhead" role="row"><span role="columnheader">Part</span><span role="columnheader">Code · Supplier</span><span role="columnheader" class="a-prh">Supply · Fitted</span><span role="columnheader"><span class="sr">Open</span></span></div>
+    
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · MMX-2 Anchor</span></div>
+  <div class="a-meta" role="cell"><span class="code">MMX-2</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$219</b><small>supply</small></span><span class="pc f"><b>$236</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · MMX-2 Anchor"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · MMX-3 Anchor</span></div>
+  <div class="a-meta" role="cell"><span class="code">MMX-3</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$319</b><small>supply</small></span><span class="pc f"><b>$336</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · MMX-3 Anchor"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Anchor Swivel S/S · Med · Lone Star</span></div>
+  <div class="a-meta" role="cell"><span class="code">SSP-SW</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$51</b><small>supply</small></span><span class="pc f"><b>$68</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Anchor Swivel S/S · Med · Lone Star"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Anchor Swivel · S/S</span></div>
+  <div class="a-meta" role="cell"><span class="code">110342</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$72</b><small>supply</small></span><span class="pc f"><b>$89</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Anchor Swivel · S/S"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+  </div>
+</section>
+<section class="a-group" aria-labelledby="h-parts:58">
+  <header class="a-ghead"><h2 id="h-parts:58">Fenders &amp; mooring lines</h2><span class="num">15</span></header>
+  <div class="a-lines" role="table" aria-label="Fenders &amp; mooring lines">
+    <div class="a-row a-colhead" role="row"><span role="columnheader">Part</span><span role="columnheader">Code · Supplier</span><span role="columnheader" class="a-prh">Supply · Fitted</span><span role="columnheader"><span class="sr">Open</span></span></div>
+    
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Mooring Kit · Medium Size Boats · 2 x Fenders / 2 x Docking Lines</span></div>
+  <div class="a-meta" role="cell"><span class="code">FEN-KITMED</span><span class="a-sup">SUB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$162</b><small>supply</small></span><span class="pc f"><b>$188</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Mooring Kit · Medium Size Boats · 2 x Fenders / 2 x Docking Lines"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Mooring Kit · Large Size Boats · 4 x Fenders / 2 x Docking Lines</span></div>
+  <div class="a-meta" role="cell"><span class="code">FEN-KITLGE</span><span class="a-sup">SUB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$300</b><small>supply</small></span><span class="pc f"><b>$343</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Mooring Kit · Large Size Boats · 4 x Fenders / 2 x Docking Lines"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Twin Fender Pack · 16&quot; Sidewind w Lanyards</span></div>
+  <div class="a-meta" role="cell"><span class="code">327145</span><span class="a-sup">EJM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$59</b><small>supply</small></span><span class="pc f"><b>$76</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Twin Fender Pack · 16&quot; Sidewind w Lanyards"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Twin Fender Pack · 20&quot; Sidewind w Lanyards</span></div>
+  <div class="a-meta" role="cell"><span class="code">327155</span><span class="a-sup">EJM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$80</b><small>supply</small></span><span class="pc f"><b>$97</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Twin Fender Pack · 20&quot; Sidewind w Lanyards"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Twin Fender Pack · 23&quot; Sidewind w Lanyards</span></div>
+  <div class="a-meta" role="cell"><span class="code">327165</span><span class="a-sup">EJM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$109</b><small>supply</small></span><span class="pc f"><b>$126</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Twin Fender Pack · 23&quot; Sidewind w Lanyards"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Line · 8 mm x 6mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL86</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$18</b><small>supply</small></span><span class="pc f"><b>$25</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Line · 8 mm x 6mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Lines (Pair) · 8 mm x 6mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL86 x 2</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$36</b><small>supply</small></span><span class="pc f"><b>$43</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Lines (Pair) · 8 mm x 6mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Line · 8 mm x 10mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL810</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$22</b><small>supply</small></span><span class="pc f"><b>$29</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Line · 8 mm x 10mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Lines (Pair) · 8 mm x 10mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL810 x 2</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$44</b><small>supply</small></span><span class="pc f"><b>$51</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Lines (Pair) · 8 mm x 10mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Line · 10 mm x 6mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL106</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$22</b><small>supply</small></span><span class="pc f"><b>$29</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Line · 10 mm x 6mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Lines (Pair) · 10 mm x 6mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL1010 x 2</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$44</b><small>supply</small></span><span class="pc f"><b>$51</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Lines (Pair) · 10 mm x 6mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Line · 10 mm x 10mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL1010</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$29</b><small>supply</small></span><span class="pc f"><b>$36</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Line · 10 mm x 10mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Lines (Pair) · 10 mm x 10mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL1010 x 2</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$58</b><small>supply</small></span><span class="pc f"><b>$65</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Lines (Pair) · 10 mm x 10mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Line · 12 mm x 10mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL1210</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$41</b><small>supply</small></span><span class="pc f"><b>$48</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Line · 12 mm x 10mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Docking Lines (Pair) · 12 mm x 10mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">BBB-PIDL1210 x 2</span><span class="a-sup">BBB</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$82</b><small>supply</small></span><span class="pc f"><b>$89</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Docking Lines (Pair) · 12 mm x 10mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+  </div>
+</section>
+<section class="a-group" aria-labelledby="h-parts:73">
+  <header class="a-ghead"><h2 id="h-parts:73">Anchor winches – Lone Star</h2><span class="num">21</span></header>
+  <div class="a-lines" role="table" aria-label="Anchor winches – Lone Star">
+    <div class="a-row a-colhead" role="row"><span role="columnheader">Part</span><span role="columnheader">Code · Supplier</span><span role="columnheader" class="a-prh">Supply · Fitted</span><span role="columnheader"><span class="sr">Open</span></span></div>
+    
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-1 6 mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX1 6mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$2,100</b><small>supply</small></span><span class="pc f"><b>$3,081</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-1 6 mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-1 HS4mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX1 HS4mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-1 HS4mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-2 8 mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX2 8mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-2 8 mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-2 HS5mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX2 HS5mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-2 HS5mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-3 8 mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX3 8mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-3 8 mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-3 HS5mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX3 HS5mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$3,750</b><small>supply</small></span><span class="pc f"><b>$4,731</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-3 HS5mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-4 10 mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX4 10mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-4 10 mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star · GX-4 HS6mm Combo Winch Kit</span></div>
+  <div class="a-meta" role="cell"><span class="code">GX4 HS6mm Combo</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star · GX-4 HS6mm Combo Winch Kit"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star Wiring Loom · X/S to 5.5mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">1000XS</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$290</b><small>supply</small></span><span class="pc f"><b>$456</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star Wiring Loom · X/S to 5.5mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star Wiring Loom · Small</span></div>
+  <div class="a-meta" role="cell"><span class="code">1000s</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$360</b><small>supply</small></span><span class="pc f"><b>$526</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star Wiring Loom · Small"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star Wiring Loom · Large</span></div>
+  <div class="a-meta" role="cell"><span class="code">1000L</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$450</b><small>supply</small></span><span class="pc f"><b>$616</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star Wiring Loom · Large"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Chain Guard / Sock · 6 mm x 6mtr Lone Star</span></div>
+  <div class="a-meta" role="cell"><span class="code">CG6x6</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$29</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Chain Guard / Sock · 6 mm x 6mtr Lone Star"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Chain Guard / Sock · 8 mm x 8mtr Lone Star</span></div>
+  <div class="a-meta" role="cell"><span class="code">CG8x8</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$44</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Chain Guard / Sock · 8 mm x 8mtr Lone Star"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Chain Guard / Sock · 8 mm x 10mtr Lone Star</span></div>
+  <div class="a-meta" role="cell"><span class="code">CG8x10</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$53</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Chain Guard / Sock · 8 mm x 10mtr Lone Star"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Deck Roller &amp; Cradle · 135 mm Lone Star</span></div>
+  <div class="a-meta" role="cell"><span class="code">CR135</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$135</b><small>supply</small></span><span class="pc f"><b>$264</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Deck Roller &amp; Cradle · 135 mm Lone Star"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Deck Roller &amp; Cradle · 195 mm Lone Star</span></div>
+  <div class="a-meta" role="cell"><span class="code">CR195</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$148</b><small>supply</small></span><span class="pc f"><b>$277</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Deck Roller &amp; Cradle · 195 mm Lone Star"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Bow Sprit w 2 Rollers · CX315</span></div>
+  <div class="a-meta" role="cell"><span class="code">CX315</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$290</b><small>supply</small></span><span class="pc f"><b>$542</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Bow Sprit w 2 Rollers · CX315"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lone Star CX415+1 Bow Sprit w Rear Roller</span></div>
+  <div class="a-meta" role="cell"><span class="code">CX415+1</span><span class="a-sup">LSM</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$359</b><small>supply</small></span><span class="pc f"><b>$611</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lone Star CX415+1 Bow Sprit w Rear Roller"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lewmar Anchor Winch Switch</span></div>
+  <div class="a-meta" role="cell"><span class="code">154486</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$129</b><small>supply</small></span><span class="pc f"><b>$533</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lewmar Anchor Winch Switch"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lewmar Chain Counter · AA150</span></div>
+  <div class="a-meta" role="cell"><span class="code">154544</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lewmar Chain Counter · AA150"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Lewmar AA Sensor Cable · 10 mtr</span></div>
+  <div class="a-meta" role="cell"><span class="code">SP15156265</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr a-pr-none" role="cell"><span class="pc none">No price on the price list. <a class="door" href="#">Review <svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></svg></a></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Lewmar AA Sensor Cable · 10 mtr"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+  </div>
+</section>
+<section class="a-group" aria-labelledby="h-parts:1042">
+  <header class="a-ghead"><h2 id="h-parts:1042">Deck hardware – Shackles</h2><span class="num">10</span></header>
+  <div class="a-lines" role="table" aria-label="Deck hardware – Shackles">
+    <div class="a-row a-colhead" role="row"><span role="columnheader">Part</span><span role="columnheader">Code · Supplier</span><span role="columnheader" class="a-prh">Supply · Fitted</span><span role="columnheader"><span class="sr">Open</span></span></div>
+    
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>143008 · D Shackle · 10 mm Galv</span></div>
+  <div class="a-meta" role="cell"><span class="code">110016</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$3</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 143008 · D Shackle · 10 mm Galv"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>D Shackle · 10 mm Galv</span></div>
+  <div class="a-meta" role="cell"><span class="code">110016</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$3</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open D Shackle · 10 mm Galv"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>D Shackle · 13 mm Galv</span></div>
+  <div class="a-meta" role="cell"><span class="code">FM-28013</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$3</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open D Shackle · 13 mm Galv"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>2 x 6164 · Shackles, 1T 3/8&quot;</span></div>
+  <div class="a-meta" role="cell"><span class="code">2 x 6164</span><span class="a-sup">MWH</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$10</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 2 x 6164 · Shackles, 1T 3/8&quot;"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>2 x 6165 · Shackles, 1.5T 7/16&quot;</span></div>
+  <div class="a-meta" role="cell"><span class="code">2 x 6165</span><span class="a-sup">MWH</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$16</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 2 x 6165 · Shackles, 1.5T 7/16&quot;"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>2 x 6166 · Shackles, 2T 1/2&quot;</span></div>
+  <div class="a-meta" role="cell"><span class="code">2 x 6166</span><span class="a-sup">MWH</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$16</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 2 x 6166 · Shackles, 2T 1/2&quot;"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>2 x 6176 · Shackles, 3.25T 16 mm</span></div>
+  <div class="a-meta" role="cell"><span class="code">2 x 6176</span><span class="a-sup">MWH</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$26</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 2 x 6176 · Shackles, 3.25T 16 mm"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>2 x 143008 · D Shackles, 10 mm Galv</span></div>
+  <div class="a-meta" role="cell"><span class="code">2 x 143008</span><span class="a-sup">BLA</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$6</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 2 x 143008 · D Shackles, 10 mm Galv"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>2 x 110016 · D Shackles, 10 mm Galv</span></div>
+  <div class="a-meta" role="cell"><span class="code">2 x 110016</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$6</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 2 x 110016 · D Shackles, 10 mm Galv"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>2 x FM-28013 · D Shackles, 13 mm Galv</span></div>
+  <div class="a-meta" role="cell"><span class="code">2 x FM-28013</span><span class="a-sup">SAW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$6</b><small>supply</small></span><span class="pc f quiet"><i>supply only</i></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open 2 x FM-28013 · D Shackles, 13 mm Galv"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+  </div>
+</section></div>
+</main>
+
+<section class="notes" aria-label="About this board">
+<div class="frame">
+  <div class="board-name"><span class="eyebrow">Board A · the chandlery redrawn</span><h2>The aisle as a page</h2></div>
+  <p><b>The screen’s one job</b> (docs/SCREENS.md, the chandlery): let a salesperson with a customer at the desk find a part by what it is for, see what it costs supply and fitted, and put it on a quote; and let Northside keep the list it shows.</p>
+  <p><b>What this screen does that no other does:</b> it gives each of the 19 aisles its own page and address, which a salesperson can send, open on a phone at the boat, or keep in a tab; and on that page it puts first what the price list pairs with the customer’s boat. No other screen sorts parts by what they are for.</p>
+
+  <div class="cols">
+    <div>
+      <h3>Order and grouping</h3>
+      <ol class="dash">
+        <li>— A way back to every aisle, then the aisle’s name large, with its parts, headings and pictures counted.</li>
+        <li>— The docked head: find, <b>Pictured | All</b>, suppliers as chips, the boat as a chip. It stays in view while the parts scroll.</li>
+        <li>— <b>Made for this boat</b>: the parts the P/D list pairs with the chosen boat, in this aisle first.</li>
+        <li>— The file’s own headings as sections, in file order, each counted. In a section, pictured parts are cards and come first; the rest are ruled lines.</li>
+        <li>— A line opens in place: its heading, how it is fitted, the boats it is paired with, and three doors (its line in the sheet, Northside’s own picture, a quote).</li>
+      </ol>
+    </div>
+    <div>
+      <h3>References new to this board</h3>
+      <ul class="dash">
+        <li>— Apple, <i>Cases &amp; Protection</i>, scrolled: the chip row docks under the bar and keeps the aisle in view. <code>docs/research/refs/choosing/round-2/live/apple-iphone-cases-compat-scrolled.png</code>; on a phone it folds to one Filter button, <code>hand/apple-iphone-cases-390.png</code>.</li>
+        <li>— Mazda, <i>BT-50 accessories</i>: the vehicle held with <i>Change model</i>, the aisles as chips, the choices in the address. <code>live/mazda-bt50-accessories-top.png</code>.</li>
+        <li>— Supporting: DigiKey’s product index, each category with its sub-categories counted. <code>live/digikey-product-index.png</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="state"><span class="eyebrow">Second state · the door, <code>/catalogue</code></span>
+<div class="ax">
+  <header class="ax-head">
+    <img class="ax-mark" src="../../../../../public/brand-marks/northside-marine.png" alt="Northside Marine">
+    <div>
+      <h2 class="ax-title">The chandlery</h2>
+      <p class="ax-count"><b>2,238</b> parts on sale in <b>18</b> aisles and <b>Not sorted yet</b> · <b>180</b> headings of the price list · <b>197</b> pictured</p>
+    </div>
+    <label class="find ax-find"><svg class="ui-icon" data-size="md" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path></svg><span class="sr">Find a part</span><input placeholder="A name, a code, a maker or a heading"><kbd class="ui-kbd ui-kbd--quiet"><span class="ui-kbd-key">/</span></kbd></label>
+  </header>
+  <div class="ax-grid">
+    <section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216,70.39v112c-72,59.69-104-56.47-176,3.22v-112C112,13.92,144,130.08,216,70.39Z" opacity="0.2"></path><path d="M222.16,177.25a8,8,0,0,1-1,11.25c-17.36,14.39-32.86,19.5-47,19.5-18.58,0-34.82-8.82-49.93-17-25.35-13.76-47.24-25.64-79.07.74a8,8,0,1,1-10.22-12.31c40.17-33.28,70.32-16.92,96.93-2.48,25.35,13.75,47.24,25.63,79.07-.74A8,8,0,0,1,222.16,177.25Zm-11.27-57c-31.83,26.38-53.72,14.5-79.07.74-26.61-14.43-56.76-30.79-96.93,2.49a8,8,0,0,0,10.22,12.31c31.83-26.38,53.72-14.5,79.07-.74,15.11,8.19,31.35,17,49.93,17,14.14,0,29.64-5.11,47-19.5a8,8,0,1,0-10.22-12.31ZM45.11,79.8c31.83-26.37,53.72-14.49,79.07-.74,15.11,8.2,31.35,17,49.93,17,14.14,0,29.64-5.12,47-19.5a8,8,0,1,0-10.22-12.31c-31.83,26.38-53.72,14.5-79.07.74C105.21,50.58,75.06,34.22,34.89,67.5A8,8,0,1,0,45.11,79.8Z"></path></svg></span><span>Sounders &amp; chartplotters</span><b class="num">246</b></a>
+        <ul><li><a href="#">Navionics SD cards</a> <span class="num">2</span></li><li><a href="#">Radar mounts</a> <span class="num">1</span></li><li><a href="#">Garmin Striker Vivid</a> <span class="num">5</span></li><li><a href="#">Garmin Echomap</a> <span class="num">7</span></li><li><a href="#">Garmin GPSMAP – Head Units Only</a> <span class="num">7</span></li><li><a href="#">Garmin GPSMAP 9000 series</a> <span class="num">5</span></li><li><a href="#">Garmin range</a> <span class="num">1</span></li><li><a href="#">Garmin transducers</a> <span class="num">11</span></li><li><a href="#">Garmin range – accessories, maps &amp; handhelds</a> <span class="num">9</span></li><li><a href="#">Garmin range – radars</a> <span class="num">2</span></li><li><a href="#">Garmin range – autopiltos</a> <span class="num">2</span></li><li><a href="#">Garmin – Bluechart Range</a> <span class="num">3</span></li><li><a href="#">Lowrance</a> <span class="num">144</span></li><li><a href="#">Simrad – NSS Series EVO 3S</a> <span class="num">4</span></li><li><a href="#">Simrad – GO XS Series</a> <span class="num">30</span></li><li><a href="#">Raymarine – Axiom Series</a> <span class="num">2</span></li><li><a href="#">NMEA 2000 equipment</a> <span class="num">11</span></li></ul>
+        <p class="ax-pic">161 pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216,72H32V192a8,8,0,0,0,8,8H216a8,8,0,0,0,8-8V80A8,8,0,0,0,216,72Zm-56,96a32,32,0,1,1,32-32A32,32,0,0,1,160,168Z" opacity="0.2"></path><path d="M104,168a8,8,0,0,1-8,8H64a8,8,0,0,1,0-16H96A8,8,0,0,1,104,168Zm-8-40H64a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16Zm0-32H64a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16ZM232,80V192a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V72a8,8,0,0,1,5.7-7.66l160-48a8,8,0,0,1,4.6,15.33L86.51,64H216A16,16,0,0,1,232,80ZM216,192V80H40V192H216Zm-16-56a40,40,0,1,1-40-40A40,40,0,0,1,200,136Zm-16,0a24,24,0,1,0-24,24A24,24,0,0,0,184,136Z"></path></svg></span><span>Radios &amp; beacons</span><b class="num">47</b></a>
+        <ul><li><a href="#">Garmin VHF radios</a> <span class="num">3</span></li><li><a href="#">Garmin AIS transceivers</a> <span class="num">2</span></li><li><a href="#">GME – EPIRB's</a> <span class="num">4</span></li><li><a href="#">GME – personal locator beacon</a> <span class="num">2</span></li><li><a href="#">GME – VHF marine radios</a> <span class="num">4</span></li><li><a href="#">GME – handheld VHF marine radios</a> <span class="num">5</span></li><li><a href="#">GME – extension speakers</a> <span class="num">6</span></li><li><a href="#">GME – AIS Automatic Identification System</a> <span class="num">2</span></li><li><a href="#">GME – aerial bases</a> <span class="num">8</span></li><li><a href="#">GME – VHF marine antennas</a> <span class="num">8</span></li><li><a href="#">GME – marine radio accessories</a> <span class="num">3</span></li></ul>
+        <p class="ax-pic">12 pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M192,32H64a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H192a8,8,0,0,0,8-8V40A8,8,0,0,0,192,32ZM128,184a32,32,0,1,1,32-32A32,32,0,0,1,128,184Z" opacity="0.2"></path><path d="M192,24H64A16,16,0,0,0,48,40V216a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V40A16,16,0,0,0,192,24Zm0,192H64V40H192ZM116,76a12,12,0,1,1,12,12A12,12,0,0,1,116,76Zm12,116a40,40,0,1,0-40-40A40,40,0,0,0,128,192Zm0-64a24,24,0,1,1-24,24A24,24,0,0,1,128,128Z"></path></svg></span><span>Stereo &amp; TV</span><b class="num">41</b></a>
+        <ul><li><a href="#">Fusion – marine stereo head units</a> <span class="num">3</span></li><li><a href="#">Fusion – marine stereo packs</a> <span class="num">4</span></li><li><a href="#">Fusion – amplifiers</a> <span class="num">3</span></li><li><a href="#">Fusion – speakers</a> <span class="num">4</span></li><li><a href="#">Fusion accessories</a> <span class="num">2</span></li><li><a href="#">GME – marine entertainment systems</a> <span class="num">4</span></li><li><a href="#">GME – marine entertainment speakers</a> <span class="num">4</span></li><li><a href="#">GME – am/fm and TV antennas</a> <span class="num">9</span></li><li><a href="#">Marine extension cables</a> <span class="num">5</span></li><li><a href="#">Televisions &amp; accessories – Majestic (as at 1.02.2025)</a> <span class="num">3</span></li></ul>
+        <p class="ax-pic">10 pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M195.88,195.88l-39.6-39.6a40,40,0,0,0,0-56.56l39.6-39.6A96,96,0,0,1,195.88,195.88ZM60.12,60.12a96,96,0,0,0,0,135.76l39.6-39.6a40,40,0,0,1,0-56.56Z" opacity="0.2"></path><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm39.1,131.79a47.84,47.84,0,0,0,0-55.58l28.5-28.49a87.83,87.83,0,0,1,0,112.56ZM96,128a32,32,0,1,1,32,32A32,32,0,0,1,96,128Zm88.28-67.6L155.79,88.9a47.84,47.84,0,0,0-55.58,0L71.72,60.4a87.83,87.83,0,0,1,112.56,0ZM60.4,71.72l28.5,28.49a47.84,47.84,0,0,0,0,55.58L60.4,184.28a87.83,87.83,0,0,1,0-112.56ZM71.72,195.6l28.49-28.5a47.84,47.84,0,0,0,55.58,0l28.49,28.5a87.83,87.83,0,0,1-112.56,0Z"></path></svg></span><span>Safety gear &amp; life jackets</span><b class="num">48</b></a>
+        <ul><li><a href="#">Safety gear equipment (NB: Excludes PFD's &amp; Anchor)</a> <span class="num">4</span></li><li><a href="#">PFD's – Personal Floatation Devices</a> <span class="num">30</span></li><li><a href="#">Safety gear – General</a> <span class="num">14</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M152,56a24,24,0,1,1-24-24A24,24,0,0,1,152,56Z" opacity="0.2"></path><path d="M216,136a8,8,0,0,0-8,8c0,24.69-13.77,29.64-38.1,36.28-11.36,3.1-24.12,6.6-33.9,14.34V128h32a8,8,0,0,0,0-16H136V87a32,32,0,1,0-16,0v25H88a8,8,0,0,0,0,16h32v66.62c-9.78-7.74-22.54-11.24-33.9-14.34C61.77,173.64,48,168.69,48,144a8,8,0,0,0-16,0c0,38.11,27.67,45.66,49.9,51.72C106.23,202.36,120,207.31,120,232a8,8,0,0,0,16,0c0-24.69,13.77-29.64,38.1-36.28C196.33,189.66,224,182.11,224,144A8,8,0,0,0,216,136ZM112,56a16,16,0,1,1,16,16A16,16,0,0,1,112,56Z"></path></svg></span><span>Anchoring &amp; mooring</span><b class="num">66</b></a>
+        <ul><li><a href="#">Anchor kits</a> <span class="num">8</span></li><li><a href="#">Sarca anchors</a> <span class="num">8</span></li><li><a href="#">MMX anchors – Galvanized</a> <span class="num">4</span></li><li><a href="#">Fenders &amp; mooring lines</a> <span class="num">15</span></li><li><a href="#">Anchor winches – Lone Star</a> <span class="num">21</span></li><li><a href="#">Deck hardware – Shackles</a> <span class="num">10</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216,80v96a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V80A16,16,0,0,1,32,64H200A16,16,0,0,1,216,80Z" opacity="0.2"></path><path d="M200,56H32A24,24,0,0,0,8,80v96a24,24,0,0,0,24,24H200a24,24,0,0,0,24-24V80A24,24,0,0,0,200,56Zm8,120a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V80a8,8,0,0,1,8-8H200a8,8,0,0,1,8,8Zm48-80v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0ZM138.81,123.79a8,8,0,0,1,.35,7.79l-16,32a8,8,0,0,1-14.32-7.16L119.06,136H100a8,8,0,0,1-7.16-11.58l16-32a8,8,0,1,1,14.32,7.16L112.94,120H132A8,8,0,0,1,138.81,123.79Z"></path></svg></span><span>Batteries &amp; power</span><b class="num">105</b></a>
+        <ul><li><a href="#">Batteries – Supercharge (As at 30.06.2025)</a> <span class="num">28</span></li><li><a href="#">Batteries – Century</a> <span class="num">3</span></li><li><a href="#">Batteries – Lithium</a> <span class="num">4</span></li><li><a href="#">Batteries – Highfield E163</a> <span class="num">1</span></li><li><a href="#">Electrical – Battery Boxes &amp; Trays</a> <span class="num">12</span></li><li><a href="#">Electrical – Battery Terminals (as at 19.05.2023)</a> <span class="num">7</span></li><li><a href="#">Electrical – Battery Switches &amp; Relays</a> <span class="num">18</span></li><li><a href="#">Electrical – Battery Sockets &amp; USB Plugs</a> <span class="num">8</span></li><li><a href="#">Electrical – Circuit Breakers &amp; Fuse Boxes</a> <span class="num">9</span></li><li><a href="#">Electrical – Battery Charges &amp; Monitors</a> <span class="num">7</span></li><li><a href="#">Electrical – Charge Cables (Yamaha)</a> <span class="num">2</span></li><li><a href="#">Solar components</a> <span class="num">5</span></li><li><a href="#">Battery monitors</a> <span class="num">1</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,104a79.86,79.86,0,0,1-30.59,62.92A24.29,24.29,0,0,0,168,186v6a8,8,0,0,1-8,8H96a8,8,0,0,1-8-8v-6a24.11,24.11,0,0,0-9.3-19A79.87,79.87,0,0,1,48,104.45C47.76,61.09,82.72,25,126.07,24A80,80,0,0,1,208,104Z" opacity="0.2"></path><path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z"></path></svg></span><span>Lights</span><b class="num">20</b></a>
+        <ul><li><a href="#">Lighting – Underwater Lights</a> <span class="num">3</span></li><li><a href="#">Lighting – Hella</a> <span class="num">11</span></li><li><a href="#">Lighting – Strip Lights</a> <span class="num">3</span></li><li><a href="#">Lighting – Navigation</a> <span class="num">3</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M16,72H120V184H104a24,24,0,0,0-48,0,24,24,0,0,0-48,0V80A8,8,0,0,1,16,72Zm200,32V96a48,48,0,0,0-48-48h-8a8,8,0,0,0-8,8V184h48a24,24,0,0,1,48,0V136A32,32,0,0,0,216,104Z" opacity="0.2"></path><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM160,56h8a40,40,0,0,1,40,40v8a8,8,0,0,0,8,8,24,24,0,0,1,24,24v20.31A31.71,31.71,0,0,0,224,152a32.06,32.06,0,0,0-31,24H160ZM112,80v96h-1a32,32,0,0,0-55-13.13,31.9,31.9,0,0,0-40-6.56V80ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"></path></svg></span><span>Trailer parts</span><b class="num">52</b></a>
+        <ul><li><a href="#">Trailer parts – Trailer Plugs</a> <span class="num">4</span></li><li><a href="#">Trailer parts – Tie Downs</a> <span class="num">12</span></li><li><a href="#">Trailer parts – Trailer Locks</a> <span class="num">2</span></li><li><a href="#">Trailer parts – Powerwinches</a> <span class="num">2</span></li><li><a href="#">Trailer parts – Boat Catches</a> <span class="num">4</span></li><li><a href="#">Trailer parts – Jockey Wheels</a> <span class="num">5</span></li><li><a href="#">Trailer parts – Spare Wheels</a> <span class="num">6</span></li><li><a href="#">Trailer parts – Spare Wheel Holders</a> <span class="num">4</span></li><li><a href="#">Trailer adjustments (as at 27/9/2022)</a> <span class="num">5</span></li><li><a href="#">Trailer parts – Stone Guards (as at 27/9/2022)</a> <span class="num">3</span></li><li><a href="#">Trailer parts – Miscellaneous</a> <span class="num">5</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M128,32S88,64,88,136H32a8,8,0,0,1-8-8.71A104.21,104.21,0,0,1,128,32Zm104,95.29A104.21,104.21,0,0,0,128,32s40,32,40,104h56A8,8,0,0,0,232,127.29Z" opacity="0.2"></path><path d="M240,126.63A112.44,112.44,0,0,0,51.75,53.75a111.56,111.56,0,0,0-35.7,72.88A16,16,0,0,0,32,144h88v56a32,32,0,0,0,64,0,8,8,0,0,0-16,0,16,16,0,0,1-32,0V144h88a16,16,0,0,0,16-17.37ZM32,128l0,0a96.15,96.15,0,0,1,76.2-85.89C96.48,58,81.85,86.11,80.17,128Zm64.15,0c1.39-30.77,10.53-52.81,18.3-66.24A106.44,106.44,0,0,1,128,43.16a106.31,106.31,0,0,1,13.52,18.6C154.8,84.7,159,109.28,159.82,128Zm79.65,0c-1.68-41.89-16.31-70-28-85.94A96.07,96.07,0,0,1,224,128Z"></path></svg></span><span>Covers &amp; canopies</span><b class="num">144</b></a>
+        <ul><li><a href="#">Bimini kits</a> <span class="num">5</span></li><li><a href="#">Rear Awning – 795 Merry Fisher</a> <span class="num">2</span></li><li><a href="#">Boat covers</a> <span class="num">14</span></li><li><a href="#">Outboard covers</a> <span class="num">9</span></li><li><a href="#">Tube covers – To suit Highfield Boats</a> <span class="num">61</span></li><li><a href="#">Outboard cowl covers – 4-Stoke Outboards</a> <span class="num">16</span></li><li><a href="#">Cover options</a> <span class="num">37</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M202.43,151.85c-21.26,28.17-62.09,48.24-138.35,40C55.89,115.64,76,74.82,104.15,53.57A104,104,0,0,0,202.43,151.85Z" opacity="0.2"></path><path d="M168,76a12,12,0,1,1-12-12A12,12,0,0,1,168,76Zm42,79.08c-15.08,20.84-37.53,34.88-66.7,41.74-20.08,4.72-43.54,6-70.12,3.93q2.4,17.82,6.72,37.54a8,8,0,0,1-6.1,9.52,7.81,7.81,0,0,1-1.72.19,8,8,0,0,1-7.81-6.29q-4.89-22.36-7.41-42.62-20.22-2.51-42.58-7.41a8,8,0,0,1,3.43-15.63q19.7,4.32,37.5,6.73c-2.09-26.56-.78-50,3.93-70.06C66,83.55,80.05,61.1,100.88,46,115,35.76,140.12,23.64,179.27,24c21.19.21,40.83,4.33,43.81,6.08a8,8,0,0,1,2.83,2.83c1.75,3,5.87,22.59,6.08,43.78C232.21,98.31,228.57,129.44,210,155.08Zm-23.76,2.8A112.07,112.07,0,0,1,98.12,69.74C75.64,94,66.7,132.47,71.36,184.6,123.51,189.28,162,180.35,186.25,157.88ZM212.44,43.56a175.75,175.75,0,0,0-39.22-3.51c-24.34.64-44.71,6.49-60.76,17.39a96,96,0,0,0,86.09,86.1c10.91-16,16.76-36.42,17.4-60.76A175.82,175.82,0,0,0,212.44,43.56Z"></path></svg></span><span>Fishing &amp; mounts</span><b class="num">37</b></a>
+        <ul><li><a href="#">Fishing accessories</a> <span class="num">13</span></li><li><a href="#">Hook line N trimming</a> <span class="num">3</span></li><li><a href="#">RAM brackets</a> <span class="num">11</span></li><li><a href="#">Railblaza</a> <span class="num">10</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M96,240l16-80L48,136,160,16,144,96l64,24Z" opacity="0.2"></path><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"></path></svg></span><span>Electric &amp; trolling motors</span><b class="num">119</b></a>
+        <ul><li><a href="#">Garmin – Trolling Motor</a> <span class="num">16</span></li><li><a href="#">Powerdrive saltwater</a> <span class="num">1</span></li><li><a href="#">Terrova saltwater</a> <span class="num">7</span></li><li><a href="#">Terrova quest saltwater</a> <span class="num">4</span></li><li><a href="#">Instinct quest saltwater</a> <span class="num">8</span></li><li><a href="#">Brackets &amp; stabilizers</a> <span class="num">5</span></li><li><a href="#">Minn Kota remotes</a> <span class="num">2</span></li><li><a href="#">Quick release brackets &amp; stabilizers</a> <span class="num">1</span></li><li><a href="#">Replacement remotes</a> <span class="num">2</span></li><li><a href="#">I pilot accessories</a> <span class="num">1</span></li><li><a href="#">Accessories</a> <span class="num">6</span></li><li><a href="#">Propellers, nuts and sheerpins</a> <span class="num">6</span></li><li><a href="#">Wiring harnesses</a> <span class="num">1</span></li><li><a href="#">Momentum – Electric Motors (As at 27.11.2025)</a> <span class="num">11</span></li><li><a href="#">E propulsion</a> <span class="num">47</span></li><li><a href="#">Thrustme kicker – Electric Motors (as at 12.12.2023)</a> <span class="num">1</span></li></ul>
+        <p class="ax-pic">14 pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M136.5,150.45A52,52,0,1,1,33,155.13l71.91-20.54h0A24,24,0,0,0,128,152a23.75,23.75,0,0,0,8.5-1.56Zm-32.19-26.31h0a24,24,0,0,1,29.52-19.42h0L152,32.17a52,52,0,1,0-47.69,92ZM201,105.5a52,52,0,0,0-57.84,3.91h0a24,24,0,0,1,2.06,35.26h0l53.74,52a52,52,0,0,0,2-91.2Z" opacity="0.2"></path><path d="M233,135a60,60,0,0,0-89.62-35.45l16.39-65.44a8,8,0,0,0-3.45-8.68A60,60,0,1,0,95.69,128.91L30.82,147.44a8,8,0,0,0-5.8,7.32,60,60,0,0,0,44.42,60.66,60.52,60.52,0,0,0,15.62,2.07,60.07,60.07,0,0,0,59.88-62l48.48,46.92a8,8,0,0,0,9.25,1.35A60,60,0,0,0,233,135Zm-121-7a16,16,0,1,1,16,16A16,16,0,0,1,112,128ZM80,76a44,44,0,0,1,62.75-39.82L127.77,96A32,32,0,0,0,99.85,112.8,43.85,43.85,0,0,1,80,76Zm27,119.57a44,44,0,0,1-65.86-34.43l59.31-16.94A32,32,0,0,0,128,160l.91,0A43.82,43.82,0,0,1,107,195.57Zm106.17-23a43.92,43.92,0,0,1-13,14.14l-44.32-42.89a31.91,31.91,0,0,0-.59-32.57,44,44,0,0,1,57.91,61.32Z"></path></svg></span><span>Propellers &amp; motor care</span><b class="num">447</b></a>
+        <ul><li><a href="#">Propellers – Yamaha</a> <span class="num">260</span></li><li><a href="#">Yamaha fuel filters</a> <span class="num">9</span></li><li><a href="#">Tilt limit switches – Yamaha</a> <span class="num">11</span></li><li><a href="#">Flushers</a> <span class="num">11</span></li><li><a href="#">Yamaha Trailer Supports</a> <span class="num">9</span></li><li><a href="#">Yamaha add on kits</a> <span class="num">5</span></li><li><a href="#">Yamalube oil</a> <span class="num">6</span></li><li><a href="#">Yamalube Gearcase oil</a> <span class="num">8</span></li><li><a href="#">Yamaha propeller flag bags</a> <span class="num">2</span></li><li><a href="#">Yamaha service itiems</a> <span class="num">126</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M222.4,145.55A96.6,96.6,0,0,1,218.54,160h-53a8,8,0,0,0-7.5,5.19l-21.9,58.47c-2.69.22-5.41.34-8.15.34s-5.5-.12-8.2-.35L97.94,165.2a8,8,0,0,0-7.49-5.2h-53a96.6,96.6,0,0,1-3.86-14.45,128,128,0,0,1,188.8,0Z" opacity="0.2"></path><path d="M128,152a12,12,0,1,1,12-12A12,12,0,0,1,128,152Zm104-24A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128ZM40,128v.33a135.93,135.93,0,0,1,176,0V128a88,88,0,0,0-176,0Zm67.5,85.58L90.45,168H49.63A88.35,88.35,0,0,0,107.5,213.58ZM128,216c.83,0,1.66,0,2.49,0l20.07-53.57a16.07,16.07,0,0,1,15-10.39h47.12c.38-1.31.72-2.64,1-4a120,120,0,0,0-171.4,0c.31,1.34.65,2.67,1,4H90.45a16.08,16.08,0,0,1,15,10.4l20,53.56C126.31,216,127.15,216,128,216Zm78.37-48H165.55l-17.09,45.59A88.34,88.34,0,0,0,206.37,168Z"></path></svg></span><span>Steering, controls &amp; rigging</span><b class="num">226</b></a>
+        <ul><li><a href="#">Steering kits</a> <span class="num">5</span></li><li><a href="#">Control boxes – Mechanical</a> <span class="num">6</span></li><li><a href="#">Control boxes – Digital Electronic</a> <span class="num">8</span></li><li><a href="#">Control box accessories – Digital Electronic</a> <span class="num">4</span></li><li><a href="#">Key switches</a> <span class="num">14</span></li><li><a href="#">Gauge kits</a> <span class="num">7</span></li><li><a href="#">Tiller handle &amp; fitting kits</a> <span class="num">10</span></li><li><a href="#">Autopilot + joystick – Full Upgrade Kits</a> <span class="num">8</span></li><li><a href="#">Autopilot upgrade kits</a> <span class="num">3</span></li><li><a href="#">Bow thruster drivers</a> <span class="num">1</span></li><li><a href="#">Steering kit</a> <span class="num">1</span></li><li><a href="#">Helm kits</a> <span class="num">2</span></li><li><a href="#">Prop light kits</a> <span class="num">6</span></li><li><a href="#">Main harnesses – 10 Pin</a> <span class="num">7</span></li><li><a href="#">Control cables</a> <span class="num">50</span></li><li><a href="#">Main harnesses – 16 Pin DEC</a> <span class="num">10</span></li><li><a href="#">Pigtail bus wires</a> <span class="num">6</span></li><li><a href="#">Main bus wires</a> <span class="num">6</span></li><li><a href="#">SCU link harnesses</a> <span class="num">5</span></li><li><a href="#">DES actuator harnesses</a> <span class="num">3</span></li><li><a href="#">Helm harnesses</a> <span class="num">7</span></li><li><a href="#">Prop light extension harnesses</a> <span class="num">5</span></li><li><a href="#">2nd station harnesses</a> <span class="num">6</span></li><li><a href="#">Joystick station switch extension harnesses</a> <span class="num">7</span></li><li><a href="#">Rigging components – Misc</a> <span class="num">10</span></li><li><a href="#">Steering kit options</a> <span class="num">29</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M208,144a80,80,0,0,1-160,0c0-72,80-128,80-128S208,72,208,144Z" opacity="0.2"></path><path d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75ZM128,216a72.08,72.08,0,0,1-72-72c0-57.23,55.47-105,72-118,16.53,13,72,60.75,72,118A72.08,72.08,0,0,1,128,216Zm55.89-62.66a57.6,57.6,0,0,1-46.56,46.55A8.75,8.75,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"></path></svg></span><span>Fuel, water &amp; plumbing</span><b class="num">160</b></a>
+        <ul><li><a href="#">Gas components</a> <span class="num">3</span></li><li><a href="#">Fuel Water Seperators</a> <span class="num">2</span></li><li><a href="#">Water tanks &amp; accessories</a> <span class="num">9</span></li><li><a href="#">Plumbing – Wash Down Pumps</a> <span class="num">2</span></li><li><a href="#">Plumbing – Toilet Accessories</a> <span class="num">1</span></li><li><a href="#">Plumbing – hose (All Types)</a> <span class="num">15</span></li><li><a href="#">Hose, Taint Free Water – 1/2&quot; / Mtr</a> <span class="num">1</span></li><li><a href="#">Hose, Deck Wash Reinforced – 1/2&quot; / Mtr</a> <span class="num">3</span></li><li><a href="#">Hose, Spiral Bilge Pump – 28mm 1 1/8&quot; / Mtr</a> <span class="num">8</span></li><li><a href="#">Plumbing – Hose Clamps</a> <span class="num">11</span></li><li><a href="#">Plumbing – Stainless Steel, 316G</a> <span class="num">17</span></li><li><a href="#">Plumbing – Bronze</a> <span class="num">19</span></li><li><a href="#">Plumbing – Acetal / PVC / Nylon / Plastic</a> <span class="num">47</span></li><li><a href="#">Fuel tanks</a> <span class="num">2</span></li><li><a href="#">Fuel line components</a> <span class="num">20</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96a64,64,0,0,1-94.94,56L73,217A24,24,0,0,1,39,183L104,126.94a64,64,0,0,1,80-90.29L144,80l5.66,26.34L176,112l43.35-40A63.8,63.8,0,0,1,224,96Z" opacity="0.2"></path><path d="M226.76,69a8,8,0,0,0-12.84-2.88l-40.3,37.19-17.23-3.7-3.7-17.23,37.19-40.3A8,8,0,0,0,187,29.24,72,72,0,0,0,88,96,72.34,72.34,0,0,0,94,124.94L33.79,177c-.15.12-.29.26-.43.39a32,32,0,0,0,45.26,45.26c.13-.13.27-.28.39-.42L131.06,162A72,72,0,0,0,232,96,71.56,71.56,0,0,0,226.76,69ZM160,152a56.14,56.14,0,0,1-27.07-7,8,8,0,0,0-9.92,1.77L67.11,211.51a16,16,0,0,1-22.62-22.62L109.18,133a8,8,0,0,0,1.77-9.93,56,56,0,0,1,58.36-82.31l-31.2,33.81a8,8,0,0,0-1.94,7.1L141.83,108a8,8,0,0,0,6.14,6.14l26.35,5.66a8,8,0,0,0,7.1-1.94l33.81-31.2A56.06,56.06,0,0,1,160,152Z"></path></svg></span><span>Deck &amp; hardware</span><b class="num">91</b></a>
+        <ul><li><a href="#">Ventilation</a> <span class="num">2</span></li><li><a href="#">Windscreen wipers</a> <span class="num">1</span></li><li><a href="#">BBQs / stoves &amp; ovens</a> <span class="num">2</span></li><li><a href="#">Transom Spacers &amp; Wedges</a> <span class="num">5</span></li><li><a href="#">Salty captain products (As at 30.06.2025)</a> <span class="num">7</span></li><li><a href="#">Hydrofoils – SE Sport</a> <span class="num">6</span></li><li><a href="#">Hydrofoils – Permatrim</a> <span class="num">1</span></li><li><a href="#">Seats &amp; swivels</a> <span class="num">2</span></li><li><a href="#">Boweyes, s/s</a> <span class="num">2</span></li><li><a href="#">Trim tabs</a> <span class="num">7</span></li><li><a href="#">General hardware – Stainless Steel Fittings</a> <span class="num">56</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,125.77V152c0,56-96,80-96,80s-96-24-96-80V125.77a8,8,0,0,1,5.47-7.59L128,88l90.53,30.18A8,8,0,0,1,224,125.77Z" opacity="0.2"></path><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM64,56H192v44.9L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9Zm152,96c0,24.91-23.68,43-43.55,53.83A228.13,228.13,0,0,1,128,223.72,226.85,226.85,0,0,1,83.81,206C47.6,186.35,40,165.79,40,152V125.77L120,99.1V168a8,8,0,0,0,16,0V99.1l80,26.67Z"></path></svg></span><span>Highfield parts &amp; consoles</span><b class="num">177</b></a>
+        <ul><li><a href="#">Highfield – Consoles (as at 28.03.2024)</a> <span class="num">29</span></li><li><a href="#">Highfield – Standard Factory Option Installs</a> <span class="num">10</span></li><li><a href="#">Highfield – Spare Parts</a> <span class="num">138</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216,136c-8,24-56,72-80,80V184a48,48,0,0,1,48-48Z" opacity="0.2"></path><path d="M168,32H88A56.06,56.06,0,0,0,32,88v80a56.06,56.06,0,0,0,56,56h48a8.07,8.07,0,0,0,2.53-.41c26.23-8.75,76.31-58.83,85.06-85.06A8.07,8.07,0,0,0,224,136V88A56.06,56.06,0,0,0,168,32ZM48,168V88A40,40,0,0,1,88,48h80a40,40,0,0,1,40,40v40H184a56.06,56.06,0,0,0-56,56v24H88A40,40,0,0,1,48,168Zm96,35.14V184a40,40,0,0,1,40-40h19.14C191,163.5,163.5,191,144,203.14Z"></path></svg></span><span>Decals &amp; registration</span><b class="num">27</b></a>
+        <ul><li><a href="#">Registration – Decals, Graphics &amp; Holders</a> <span class="num">4</span></li><li><a href="#">Decals &amp; graphics</a> <span class="num">23</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M232,120v72a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V120Z" opacity="0.2"></path><path d="M224,64H176V56a24,24,0,0,0-24-24H104A24,24,0,0,0,80,56v8H32A16,16,0,0,0,16,80V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V80A16,16,0,0,0,224,64ZM96,56a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96ZM32,80H224v32H192v-8a8,8,0,0,0-16,0v8H80v-8a8,8,0,0,0-16,0v8H32ZM224,192H32V128H64v8a8,8,0,0,0,16,0v-8h96v8a8,8,0,0,0,16,0v-8h32v64Z"></path></svg></span><span>Workshop, labour &amp; notes</span><b class="num">157</b></a>
+        <ul><li><a href="#">Antifouling includes Hardstand &amp; Marina Fees (As at 5.08.2026 est off Launch Point PBS MF895)</a> <span class="num">10</span></li><li><a href="#">Misc sublets</a> <span class="num">3</span></li><li><a href="#">Boat sales promo packs</a> <span class="num">3</span></li><li><a href="#">Optional Fuel Tank Not Required</a> <span class="num">6</span></li><li><a href="#">Sublet work</a> <span class="num">26</span></li><li><a href="#">Labour estimates</a> <span class="num">86</span></li><li><a href="#">Electrical compliance components</a> <span class="num">10</span></li><li><a href="#">Credit allocations</a> <span class="num">2</span></li><li><a href="#">Special notes</a> <span class="num">11</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section><section class="ax-aisle ax-unsorted">
+        <a class="ax-name" href="#"><span class="ax-glyph"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z" opacity="0.2"></path><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path></svg></span><span>Not sorted yet</span><b class="num">28</b></a>
+        <ul><li><a href="#">DFO kits</a> <span class="num">3</span></li><li><a href="#">No heading in the price list</a> <span class="num">25</span></li></ul>
+        <p class="ax-pic">none pictured</p>
+      </section>
+  </div>
+  <p class="said ax-wrong">An address naming an aisle that is not one, <code>?aisle=nope</code>, opens here with the sentence: There is no aisle called “nope”. These are the 19.</p>
+</div></div>
+  <div class="state"><span class="eyebrow">Third state · a pictured section, <code>/catalogue?aisle=sounders</code></span>
+<div class="a-group a-mini">
+  <header class="a-ghead"><h2>Lowrance</h2><span class="num">144</span><span class="a-ghead-say">93 pictured, shown first as cards · 51 as lines</span></header>
+  <div class="a-cards">
+<article class="a-card">
+  <div class="a-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/zz01zdlmnzllytk2nzkxmwyxyjg0y2qymzq3zwq0ymy3yq-7ca5f4ed.webp" alt="HDS-16 PRO No Transducer · AUS/NZ" loading="lazy"><button class="ui-button a-zoom" data-intent="veiled" data-size="sm" aria-label="See HDS-16 PRO No Transducer · AUS/NZ larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>HDS-16 PRO No Transducer · AUS/NZ</h3>
+  <p class="a-card-meta"><span class="code">000-16007-001</span></p>
+  <div class="a-card-pr"><span class="pc s"><b>$5,500</b><small>supply</small></span><span class="pc f"><b>$5,911</b><small>fitted</small></span></div>
+</article>
+<article class="a-card">
+  <div class="a-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/zz05mtnhmgm2mdk2n2exmwyxode4ndu2njrkythkzwjkma-465719e8.webp" alt="HDS-16 PRO AUS/NZ + ActiveImaging™ HD 3-in-1 Transducer" loading="lazy"><button class="ui-button a-zoom" data-intent="veiled" data-size="sm" aria-label="See HDS-16 PRO AUS/NZ + ActiveImaging™ HD 3-in-1 Transducer larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>HDS-16 PRO AUS/NZ + ActiveImaging™ HD 3-in-1 Transducer</h3>
+  <p class="a-card-meta"><span class="code">000-15992-001</span></p>
+  <div class="a-card-pr"><span class="pc s"><b>$6,749</b><small>supply</small></span><span class="pc f"><b>$7,332</b><small>fitted</small></span></div>
+</article>
+<article class="a-card">
+  <div class="a-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/zz01mdaynmexmjk2n2exmwyxowq5yzg2mtc3zdewmtnloq-b2362811.webp" alt="HDS-12 PRO No Transducer · AUS/NZ" loading="lazy"><button class="ui-button a-zoom" data-intent="veiled" data-size="sm" aria-label="See HDS-12 PRO No Transducer · AUS/NZ larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>HDS-12 PRO No Transducer · AUS/NZ</h3>
+  <p class="a-card-meta"><span class="code">000-16004-001</span></p>
+  <div class="a-card-pr"><span class="pc s"><b>$4,400</b><small>supply</small></span><span class="pc f"><b>$4,811</b><small>fitted</small></span></div>
+</article>
+<article class="a-card">
+  <div class="a-card-pic"><img class="ui-picture" data-fit="contain" data-landed src="../../../../../public/seed-images/zz1lodjhnjm5ndk2n2exmwyxogqxmjqyzge1ndk2mjk2mg-d0491a22.webp" alt="HDS-12 PRO AUS/NZ + ActiveImaging™ HD 3-in-1 Transducer" loading="lazy"><button class="ui-button a-zoom" data-intent="veiled" data-size="sm" aria-label="See HDS-12 PRO AUS/NZ + ActiveImaging™ HD 3-in-1 Transducer larger"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M220,48V96a12,12,0,0,1-24,0V77l-39.51,39.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM99.51,139.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l39.52-39.51a12,12,0,0,0-17-17Z"></path></svg></button></div>
+  <h3>HDS-12 PRO AUS/NZ + ActiveImaging™ HD 3-in-1 Transducer</h3>
+  <p class="a-card-meta"><span class="code">000-15989-001</span></p>
+  <div class="a-card-pr"><span class="pc s"><b>$5,199</b><small>supply</small></span><span class="pc f"><b>$5,782</b><small>fitted</small></span></div>
+</article></div>
+  <div class="a-lines" role="table" aria-label="Lowrance, not pictured">
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Elite™ FS 12 No Transducer · AUS/NZ</span></div>
+  <div class="a-meta" role="cell"><span class="code">000-16435-001</span><span class="a-sup">LOW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$3,199</b><small>supply</small></span><span class="pc f"><b>$3,610</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Elite™ FS 12 No Transducer · AUS/NZ"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+
+<div class="a-row" role="row">
+  <div class="a-name" role="cell"><span>Elite™ FS 10 with Active Imaging 3-in-1 Transducer · AUS/NZ</span></div>
+  <div class="a-meta" role="cell"><span class="code">000-16434-001</span><span class="a-sup">LOW</span></div>
+  <div class="a-pr" role="cell"><span class="pc s"><b>$2,799</b><small>supply</small></span><span class="pc f"><b>$3,382</b><small>fitted</small></span></div>
+  <div class="a-acts" role="cell"><button class="ui-button a-more" data-intent="quiet" data-size="sm" aria-expanded="false" aria-label="Open Elite™ FS 10 with Active Imaging 3-in-1 Transducer · AUS/NZ"><svg class="ui-icon" data-size="sm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></svg></button></div>
+</div>
+</div>
+</div></div>
+
+  <div class="cols">
+    <div>
+      <h3>The two prices</h3>
+      <p>Every line says both of the file’s declared levels, labelled: supply (<code>parts.l</code>, Sell) and fitted (<code>parts.y</code>, Sell inc Install). They differ on 1,882 of 2,238 parts. 101 parts are priced fitted only and read <i>fitted only</i> with the fitted figure, never $0: <i>Trailer Adjustment · 15 to 17ft</i> reads $206 fitted. Where the Install Type is <i>Supply Only</i>, the fitted cell says so. 25 parts have no price at either level and say so with the door to Review. 15 carry $0 at both levels, as the file writes them (<i>Supplied with Motor</i>).</p>
+      <p><b>Hours are not drawn.</b> The judge asked for TTF hours on the card, but the manifest declares <code>parts.o</code> (TTF hours) a cost column with P&amp;A, CTD, MU, Base List, Labour $ and Total CTD. So hours stay in the sheet and never reach a surface a customer reads. The Install Type (<code>parts.n</code>, not a cost column) is shown when a line is opened.</p>
+    </div>
+    <div>
+      <h3>The mark</h3>
+      <p>Northside’s own mark heads the door: the chandlery is its shop. Inside an aisle the mark gives way to the aisle’s name, which is what the person needs at that point. Maker marks appear only where the marks ledger holds that maker’s (Yamaha, Highfield, ePropulsion). Garmin, Lowrance, GME and the rest are words, never a stand-in.</p>
+      <h3>What a dealer can replace</h3>
+      <p>The mark on the door, the accent, the aisle names and which headings each gathers (a Northside setting; <i>Not sorted yet</i> empties as headings are placed), the supplier names, and every picture. With no pictures at all, the page is the same lines and loses nothing.</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <h3>Type, at 1:1</h3>
+      <div class="specimen">
+        <div><span>h1 · 5xl/800</span><span style="font-size:var(--text-5xl);font-weight:800;line-height:1.05">Anchoring &amp; mooring</span></div>
+        <div><span>section · xl/700</span><span style="font-size:var(--text-xl);font-weight:700">Anchor winches – Lone Star</span></div>
+        <div><span>line · base/600</span><span style="font-weight:600">Lone Star · GX-1 6 mm Combo Winch Kit</span></div>
+        <div><span>code · mono xs</span><span class="code">GX1 6mm Combo</span></div>
+        <div><span>price · base/700</span><span class="num" style="font-weight:700">$2,100 <small style="font-size:var(--text-xs);color:var(--color-ink-3)">supply</small> $3,081 <small style="font-size:var(--text-xs);color:var(--color-ink-3)">fitted</small></span></div>
+      </div>
+      <p>Lines run to a measure of about 60 characters at a desk; the price columns are right-aligned, tabular.</p>
+    </div>
+    <div>
+      <h3>Motion</h3>
+      <p>Pressing an aisle on the door: the page is replaced and the window starts at the aisle’s top, so the result is under the person’s eye at every size. The docked head does not animate: it is position, not motion (Apple’s chip row). Once the aisle’s name has scrolled under it, the dock’s first row gains the name in small capitals (<i>Anchoring &amp; mooring · LSM · Stacer 529 Assault Pro</i>), so the person always knows where they are. Opening a line: the line’s own panel grows under it over 180 ms with the kit’s settle curve; nothing else on the page moves except what is below it. The supplier chips press at 0.96.</p>
+      <p><b>Reduced motion:</b> the panel appears at its full height, with no growth.</p>
+      <p><b>Keyboard:</b> <kbd>/</kbd> to find; Tab reaches the back door, find, Pictured | All, each chip, the boat chip, then each line’s open button in order; Escape closes an opened line and returns the caret to its button.</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <h3>How it reflows</h3>
+      <table><tbody>
+        <tr><td>1920 × 1080</td><td>Measure 1,720 px. The sections run in two columns, each line as the name over code · supplier with the two prices at its right, so a 21-line section and its neighbours are read side by side. Cards five to six a row in a pictured section. Find holds a 760 px measure.</td></tr>
+        <tr><td>1440 × 900 · 1280 × 800</td><td>As drawn: the dock in two rows (find and Pictured | All, then the chips), the boat chip at the end of the chips. At 1280 the first section starts above the fold.</td></tr>
+        <tr><td>834 × 1112</td><td>Lines as two rows: the name over code · supplier, the two prices at the right. The chips wrap to two rows.</td></tr>
+        <tr><td>844 × 390</td><td>The bar sits at the foot. The aisle’s name shrinks to one line; the dock folds to find, Pictured | All and one <i>Supplier, boat</i> button, so the dock is 52 px; the boat’s line is in the first window and the first section starts at the fold.</td></tr>
+        <tr><td>390 × 844</td><td>As drawn: the bar at the foot, the name in two lines, the dock folded to find over Pictured | All and the <i>Supplier, boat</i> button that opens a sheet. Each line is the name, then code · supplier, then the two prices.</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <h3>Honest constraints</h3>
+      <ul class="dash">
+        <li>— Anchoring holds no pictured part, so the page drawn is lines only. That is the truth for 15 of 19 aisles.</li>
+        <li>— Supplier codes stand as the file writes them (LSM, SAW, BBB) until Northside names them. Naming is a list in Data, set once, with Undo, never guessed.</li>
+        <li>— The P/D lists pair 41 parts on sale with boats, 2,561 pairings in 6 lists (measured: 42 distinct part rows; the judge’s 75 was not reproduced). So <i>Made for this boat</i> is short, and the boat is a chip, never the door.</li>
+        <li>— Quoting a part on its own is off for Parts &amp; Accessories on day one (<code>letQuote</code>). The refusal is one sentence in the opened line, with the switch.</li>
+        <li>— Cost, margin and hours appear on no surface of this board.</li>
+      </ul>
+    </div>
+  </div>
+
+  
+<section><h3>Every job the judge named, on this board</h3>
+<table><thead><tr><th>Job</th><th>Where it is done</th></tr></thead><tbody>
+<tr><td>J1 show an aisle</td><td>Pressing an aisle opens its page at the top: the name, the dock and the first section are in the first window at every size.</td></tr><tr><td>J2 fitted price</td><td>Both levels on every line, labelled; fitted only, supply only and no price each said; never $0 where the file prices fitted.</td></tr><tr><td>J3 maker word</td><td>Find reads name, code, supplier and heading: <i>lowrance</i> finds all 144, by the heading LOWRANCE.</td></tr><tr><td>J4 code</td><td>Find reads the code: <i>SG002</i> finds Safety Gear · Smooth Waters. The code is on every line.</td></tr><tr><td>J5 picture large</td><td>The card’s expand button opens the gallery, as today.</td></tr><tr><td>J6 his boat</td><td>The boat chip in the dock, and <i>Made for this boat</i> first.</td></tr><tr><td>J7 quote a part</td><td>The opened line’s quote sentence and its switch (off on day one).</td></tr><tr><td>J8 own picture</td><td>The opened line’s <i>Add Northside’s own picture</i>; a refusal is said inside the opened panel and read aloud, so no row grows.</td></tr><tr><td>J9 no-picture worklist</td><td>Pictured | All in every aisle; the worklist across aisles is Data’s, not drawn here.</td></tr><tr><td>J10 open its line</td><td>The opened line’s first door, to <code>/data/parts?at=parts:N</code>; a part with no price says so with the door to Review.</td></tr><tr><td>J11 place the unsorted</td><td>Not sorted yet is an aisle on the door; placing a heading is the Northside setting of aisles, opened from it.</td></tr><tr><td>J12 narrow by maker</td><td>Supplier chips, counted; named once Northside names them.</td></tr><tr><td>J13 447 propellers</td><td>Ten sections from the file’s headings, each counted, all on one page; no <i>Show the next</i>.</td></tr><tr><td>J14 no file</td><td>Unchanged: the sentence and the door.</td></tr><tr><td>J15 wrong address</td><td>A wrong aisle opens the door with its sentence; a wrong supplier is said in the dock.</td></tr>
+</tbody></table></section>
+</div>
+</section>
+</body>
+</html>

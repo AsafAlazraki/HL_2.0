@@ -99,6 +99,15 @@ export interface OrgProfile {
    *  own map names none (src/domain/catalogue/table/colourKey.ts). Each name is one of the
    *  colours the app can draw. Absent names nothing. */
   colours?: Record<string, string>
+  /** THE SUPPLIER CODES NORTHSIDE NAMED (the chandlery, 2026-11-03): the parts list's own code
+   *  ("LOW", "YAM", "Yam") → the maker's name Northside gave it. Two codes given one name are one
+   *  maker. Absent names nothing, and a code reads as the file writes it
+   *  (src/domain/chandlery/suppliers.ts). */
+  suppliers?: Record<string, string>
+  /** WHERE NORTHSIDE PUT A HEADING OR A LINE THE AISLES DO NOT NAME (the chandlery, 2026-11-03):
+   *  `heading:<the heading>` or `line:<its id>` → an aisle's id. Absent places nothing, and the
+   *  line stands in "Not sorted yet" (src/domain/chandlery/placing.ts). */
+  aisles?: Record<string, string>
 }
 
 /** One of Northside's people, as a quote prints them under "Prepared by". */

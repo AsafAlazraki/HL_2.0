@@ -111,7 +111,16 @@ function DataRoute() {
       /* ONE TABLE OPENS ON THE SHEET, at the address the sheet owns. The
          screen hands over the id and this route knows the address,
          which is the only place in the app that should. */
-      openTable={(table) => void navigate({ to: '/data/$table', params: { table } })}
+      openTable={(table, where) =>
+        void navigate({
+          to: '/data/$table',
+          params: { table },
+          /* at one of its headings (`in`, the sheet's chapter) or narrowed to a word (`find`) */
+          search: where
+            ? { ...(where.in ? { in: where.in } : {}), ...(where.find ? { find: where.find } : {}) }
+            : {},
+        })
+      }
       openCustomers={() => void navigate({ to: '/customers' })}
       /* THE PRICE LIST'S ROOMS AND A PLACE IN TWO OF THEM, as addresses `src/app/ways.ts`
          spells: a push, so Back comes home to Data */

@@ -1,103 +1,274 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useCatalogue } from '@/app/useStores'
+import { useCatalogue, useQuotes } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx } from '@/domain/model'
-import { defaultLevelKey } from '@/domain/quote/pricing'
-import { aislesOf } from '@/domain/catalogue/aisles'
-import type { Item } from '@/data/pictures'
+import { aisleById, aislesOf, UNSORTED } from '@/domain/catalogue/aisles'
+import { headingSaid, picturedFirst, sectionsOf, type Section } from '@/domain/chandlery/headings'
+import { findLines } from '@/domain/chandlery/find'
+import { isPlaced, placeInAisle } from '@/domain/chandlery/placing'
+import { sortFigure } from '@/domain/chandlery/prices'
+import { supplierSaid, suppliersIn } from '@/domain/chandlery/suppliers'
+import { copyOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
+import { letterheadNow } from '@/app/northside'
 import { RowGallery } from '@/app/RowGallery'
 import { Button } from '@/ui'
-import { Chandlery } from './Chandlery'
-import { hasPicture, partsTable, shelfOf } from './shelf'
+import { AislePage, type Shelved } from './Aisle'
+import { Door, type AisleFront } from './Door'
+import { hrefOf, type CatalogueAt } from './at'
+import {
+  boatsById,
+  madeForIn,
+  partsPlaceOf,
+  pricersOf,
+  wareOf,
+  type Pricers,
+  type Ware,
+} from './read'
+import { PARTS_TABLE, hasPicture, partsTable, shelfAisle, shelfOf, type ShelfPart } from './shelf'
+import { Suppliers } from './Suppliers'
+import { useStep } from './Step'
+import type { Around } from './Wares'
 import './catalogue.css'
 
 /* ============================================================
-   /catalogue — THE PARTS AND ACCESSORIES, ON THEIR OWN. The same
-   chandlery a quote's fit chapter opens (`Chandlery`), with no boat in
-   it: every part the price list sells, in its aisles, at the price the
-   price list sets for it, each with its own picture or the door to
-   Northside's. A room of the price list, so Data is lit while it is
-   open (src/app/ways.ts).
+   /catalogue — THE CHANDLERY: every part and accessory the price list
+   sells, by what it is for (direction A of the data round, "the aisle
+   as a page", 2026-11-03, with board C's photograph cards and shop
+   sign grafted on; docs/directions/data-round/catalogue/).
 
-   THE REFLOW is the chandlery's own (chandlery.css); this page adds a
-   head and the gutter: 16px in a hand, 32 on a tablet, 56 at a desk,
-   and the page's measure capped at 90rem so the aisles at 1920 are a
-   grid and not a line.
+   THREE PAGES AT ONE ADDRESS, each a position in the search params:
+   the front (every aisle), one aisle (`?aisle=`), and the suppliers
+   named (`?view=suppliers`). This file reads the sheet once, counts
+   off it, and hands each page what it draws; every derivation is the
+   domain's (`src/domain/chandlery`, `src/domain/catalogue/aisles.ts`)
+   and every price is the engine's own mint at a declared price
+   (`read.ts`). A room of the price list, so Data is lit while it is
+   open (src/app/ways.ts).
    ============================================================ */
 
 export interface CatalogueProps {
-  aisle: string
-  maker: string
-  onAisle: (aisle: string, maker: string) => void
-  /** the way back to the door, for a browser with no price file in it */
+  at: CatalogueAt
+  /** move to a position here: `page` is a new page (an aisle, the suppliers), pushed and at the
+   *  top of the window; anything else stays where it is and replaces */
+  go: (next: Partial<CatalogueAt>, page?: boolean) => void
+  /** follow an address anywhere in the app */
+  goHref: (href: string) => void
+  /** the way back to the door, for a computer with no price list on it */
   openTheFile?: () => void
-  go?: (href: string) => void
 }
 
-export function Catalogue({ aisle, maker, onAisle, openTheFile, go }: CatalogueProps) {
+/** The most a find over the whole chandlery draws at once; the rest are said and narrowed. */
+const FOUND_CAP = 200
+
+export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
   const sheet = useCatalogue((s) => s)
+  const quoted = useQuotes((s) => s.quotes)
   const ready = sheet.status === 'ready' && Object.keys(sheet.tables).length > 0
   const ctx = useMemo(
     () => makeCtx({ ...ctxFrom(sheet), views: { ...sheet.views }, orgId: PACK_ORG_ID }),
     [sheet],
   )
+  const step = useStep()
   /* THE PART WHOSE GALLERY IS OPEN, kept after it shuts so the plate's own exit is seen */
   const [large, setLarge] = useState<{ item: Item; name: string; at: number | null } | null>(null)
   const onAt = useCallback(
-    (at: number | null) => setLarge((was) => (was ? { ...was, at } : null)),
+    (n: number | null) => setLarge((was) => (was ? { ...was, at: n } : null)),
     [],
   )
 
   const table = ready ? partsTable(ctx) : undefined
+  const named = ctx.org?.suppliers
+  const placed = ctx.org?.aisles
   const shelf = useMemo(() => (table ? shelfOf(ctx) : []), [ctx, table])
-  const pictured = useMemo(
-    () => aislesOf(shelf, hasPicture).reduce((sum, a) => sum + a.pictured, 0),
-    [shelf],
+  const byId = useMemo(() => new Map(shelf.map((p) => [p.id, p])), [shelf])
+  const pricers = useMemo(() => pricersOf(ctx), [ctx])
+  /* A PART IS PRICED WHEN A PAGE SHOWS IT, once per sheet (`pricedOnce`) */
+  const ware = useCallback((p: ShelfPart): Ware => pricedOnce(p, pricers, named), [pricers, named])
+  const counted = useMemo(() => aislesOf(shelf, hasPicture, shelfAisle), [shelf])
+  const pictured = counted.reduce((n, a) => n + a.pictured, 0)
+  const headings = useMemo(() => new Set(shelf.map((p) => p.heading)).size, [shelf])
+  const fronts = useMemo<AisleFront[]>(
+    () =>
+      counted.map((count) => {
+        const parts = shelf.filter((p) => p.aisle === count.aisle.id)
+        const by = new Map<string, number>()
+        for (const p of parts) by.set(p.heading, (by.get(p.heading) ?? 0) + 1)
+        const heads = [...by]
+          .map(([heading, n]) => ({ heading, said: headingSaid(heading), parts: n }))
+          .toSorted((a, b) => b.parts - a.parts)
+        const first = parts.find((p) => hasPicture(p.id))
+        const held = first ? copyOf(itemOf(PARTS_TABLE, first.id)) : null
+        const srcSet = held ? srcSetOf(held) : undefined
+        return {
+          count,
+          heads,
+          photo: held ? { src: held.src, srcSet, width: held.width, height: held.height } : null,
+        }
+      }),
+    [counted, shelf],
+  )
+  const boats = useMemo(() => (ready ? boatsById(ctx) : new Map()), [ctx, ready])
+  const made = useMemo(() => (ready ? madeForIn(ctx) : null), [ctx, ready])
+  const place = useMemo(() => (ready ? partsPlaceOf(ctx) : null), [ctx, ready])
+  const boat = at.boat === '' ? null : (boats.get(at.boat) ?? null)
+  const madeParts = useMemo(
+    () =>
+      boat && made
+        ? (made.partsOf.get(boat.id) ?? []).flatMap((id) => {
+            const p = byId.get(id)
+            return p ? [p] : []
+          })
+        : [],
+    [boat, made, byId],
+  )
+  const timesQuoted = useMemo(() => {
+    const n = new Map<string, number>()
+    for (const q of quoted)
+      for (const line of q.lines)
+        if (line.entityId === PARTS_TABLE) n.set(line.rowId, (n.get(line.rowId) ?? 0) + 1)
+    return n
+  }, [quoted])
+  const mark = useMemo(
+    () => letterheadNow({ org: sheet.org, business: sheet.business })?.mark ?? null,
+    [sheet.org, sheet.business],
   )
 
-  return (
-    <main className="catp" data-testid="catalogue">
-      <header className="catp-head">
-        <p className="catp-eyebrow">The price list · parts and accessories</p>
-        <h1 className="catp-title">The chandlery</h1>
-        {table ? (
-          <p className="catp-lede">
-            {`${shelf.length.toLocaleString('en-AU')} parts on sale in 18 aisles · ${pictured.toLocaleString('en-AU')} with their own picture.`}{' '}
-            The same aisles and cards a quote&rsquo;s dealer fit opens, fitting its boat.
-          </p>
+  const open = at.aisle === '' ? undefined : aisleById(at.aisle)
+  const wrongAisle = at.aisle !== '' && !open ? at.aisle : ''
+  const figures = useMemo(
+    () =>
+      open
+        ? aisleFigures({
+            narrowed: { supplier: at.supplier, find: at.find, show: at.show, sort: at.sort },
+            aisleId: open.id,
+            shelf,
+            ware,
+            fronts,
+            named,
+            madeParts,
+            timesQuoted,
+          })
+        : null,
+    [
+      open,
+      at.supplier,
+      at.find,
+      at.show,
+      at.sort,
+      shelf,
+      ware,
+      fronts,
+      named,
+      madeParts,
+      timesQuoted,
+    ],
+  )
+
+  const around: Around = {
+    boats,
+    boatsOf: (id) => [...(made?.boatsOf.get(id) ?? [])],
+    place,
+    listName: table?.name ?? 'the parts list',
+    go: goHref,
+    placeLine: (key, aisle, said) =>
+      step.apply(placeInAisle(key, aisle, said), `${said} already stands there.`),
+    placedHere: (w) => isPlaced(w, placed),
+    onLarge: (w, n) => setLarge({ item: itemOf(PARTS_TABLE, w.id), name: w.name, at: n }),
+    open: at.open,
+    onOpen: (id) => go({ open: id }),
+  }
+
+  let body
+  if (sheet.status === 'empty' || sheet.status === 'loading') {
+    body = <output className="chd-none">Reading the price list kept on this computer…</output>
+  } else if (!ready) {
+    body = (
+      <section className="chd-none">
+        <p>
+          The price list is not open on this computer, so its parts cannot be shown. Open the Master
+          Price File to see them.
+        </p>
+        {openTheFile ? (
+          <Button intent="secondary" onClick={openTheFile}>
+            Open the price list
+          </Button>
         ) : null}
-      </header>
-      {sheet.status === 'empty' || sheet.status === 'loading' ? (
-        <output className="catp-none">Reading the price list kept on this computer…</output>
-      ) : !ready ? (
-        <section className="catp-none">
-          <p>
-            The price list is not open on this computer, so its parts cannot be shown. Open the
-            Master Price File to see them.
-          </p>
-          {openTheFile ? (
-            <Button intent="secondary" onClick={openTheFile}>
-              Open the price list
-            </Button>
-          ) : null}
-        </section>
-      ) : !table ? (
-        <p className="catp-none">The price list carries no parts and accessories.</p>
-      ) : (
-        <Chandlery
-          ctx={ctx}
-          levelKey={defaultLevelKey(table)}
-          aisle={aisle}
-          maker={maker}
-          onAisle={onAisle}
-          onLarge={() => undefined}
-          onGallery={(item, name, at) => setLarge({ item, name, at })}
-          go={go}
-        />
-      )}
+      </section>
+    )
+  } else if (!table) {
+    body = <p className="chd-none">The price list carries no parts and accessories.</p>
+  } else if (at.view === 'suppliers') {
+    body = <Suppliers shelf={shelf} named={named} back={hrefOf({ boat: at.boat })} go={goHref} />
+  } else if (open && figures) {
+    body = (
+      <AislePage
+        ctx={ctx}
+        at={at}
+        go={go}
+        aisle={open}
+        aisleCount={counted.length}
+        placed={placed}
+        placeHeading={(key, aisle, said) =>
+          step.apply(placeInAisle(key, aisle, said), `${said} already stands there.`)
+        }
+        step={step.said}
+        back={step.back}
+        around={around}
+        boat={boat}
+        {...figures!}
+      />
+    )
+  } else {
+    const query = at.find.trim()
+    const found =
+      query.length < 2
+        ? null
+        : findLines(
+            shelf.map((p) => ({ ...p, name: p.product, makerSaid: named?.[p.maker] ?? '' })),
+            query,
+          ).found
+    const shownFound = found?.slice(0, FOUND_CAP).map((f) => ware(byId.get(f.id)!))
+    const sections: Section<Shelved>[] | null = shownFound
+      ? counted
+          .map((c) => ({
+            heading: c.aisle.id,
+            said: c.aisle.name,
+            parts: shownFound.filter((w) => w.aisle === c.aisle.id),
+          }))
+          .filter((s) => s.parts.length > 0)
+      : null
+    body = (
+      <Door
+        ctx={ctx}
+        at={at}
+        go={go}
+        goHref={goHref}
+        fronts={fronts}
+        onSale={shelf.length}
+        pictured={pictured}
+        headings={headings}
+        wrongAisle={wrongAisle}
+        mark={mark}
+        business={sheet.business ?? ''}
+        boat={boat}
+        madeFor={madeParts.map(ware)}
+        found={sections}
+        foundTotal={found?.length ?? 0}
+        shelf={shelf}
+        nameOf={(p) => ware(p).name}
+        around={around}
+        suppliers={new Set(shelf.map((p) => p.maker.trim()).filter((m) => m !== '')).size}
+        namedSuppliers={Object.keys(named ?? {}).length}
+      />
+    )
+  }
+
+  return (
+    <main className="chd" data-testid="catalogue" data-read={ready ? '' : undefined}>
+      {body}
       {/* A PART'S GALLERY, with the dealer's acts on the picture open: this is a page of the
-          price list, never in front of a customer */}
+          price list Northside keeps, and the acts are Northside's */}
       {large ? (
         <RowGallery
           item={large.item}
@@ -109,4 +280,117 @@ export function Catalogue({ aisle, maker, onAisle, openTheFile, go }: CatalogueP
       ) : null}
     </main>
   )
+}
+
+/** The figures an aisle's page draws, worked from the parts it holds. */
+interface AisleFigures {
+  front: AisleFront | undefined
+  sections: Section<Shelved>[]
+  total: number
+  pictured: number
+  suppliers: ReturnType<typeof suppliersIn>
+  wrongSupplier: boolean
+  madeHere: Shelved[]
+  madeElsewhere: { name: string; parts: number }[]
+  madeTotal: number
+}
+
+/** ONE AISLE, NARROWED, SORTED AND GROUPED BY ITS HEADINGS: what its page draws. */
+function aisleFigures({
+  narrowed: at,
+  aisleId,
+  shelf,
+  ware,
+  fronts,
+  named,
+  madeParts,
+  timesQuoted,
+}: {
+  narrowed: Pick<CatalogueAt, 'supplier' | 'find' | 'show' | 'sort'>
+  aisleId: string
+  shelf: readonly ShelfPart[]
+  ware: (p: ShelfPart) => Ware
+  fronts: readonly AisleFront[]
+  named: Readonly<Record<string, string>> | undefined
+  madeParts: readonly ShelfPart[]
+  timesQuoted: ReadonlyMap<string, number>
+}): AisleFigures {
+  const inAisle = shelf.filter((p) => p.aisle === aisleId)
+  const wares = inAisle.map(ware)
+  const suppliers = suppliersIn(inAisle, named)
+  const wrongSupplier = at.supplier !== '' && !suppliers.some((s) => s.said === at.supplier)
+  const pictured = wares.filter((w) => w.tile?.picture).length
+  let list = wares
+  if (at.supplier !== '' && !wrongSupplier) list = list.filter((w) => w.supplier === at.supplier)
+  if (at.find.trim().length >= 2)
+    list = findLines(
+      list.map((w) => ({ ...w, makerSaid: w.supplier })),
+      at.find,
+    ).found
+  if (at.show === 'pictured') list = list.filter((w) => w.tile?.picture)
+  if (at.show === 'without') list = list.filter((w) => !w.tile?.picture)
+  /* the headings that hold a photograph first, so a pictured aisle opens on its pictures */
+  const sections = picturedFirst(sectionsOf(list), (w) => Boolean(w.tile?.picture)).map((s) => ({
+    ...s,
+    parts: sorted(s.parts, at.sort, timesQuoted),
+  }))
+  const madeHere = madeParts.filter((p) => p.aisle === aisleId).map(ware)
+  const elsewhere = new Map<string, number>()
+  for (const p of madeParts) {
+    if (p.aisle === aisleId) continue
+    const name = aisleById(p.aisle)?.name ?? aisleById(UNSORTED)!.name
+    elsewhere.set(name, (elsewhere.get(name) ?? 0) + 1)
+  }
+  return {
+    front: fronts.find((f) => f.count.aisle.id === aisleId),
+    sections,
+    total: wares.length,
+    pictured,
+    suppliers,
+    wrongSupplier,
+    madeHere,
+    madeElsewhere: [...elsewhere].map(([name, parts]) => ({ name, parts })),
+    madeTotal: madeParts.length,
+  }
+}
+
+/** EVERY PART PRICED ONCE PER SHEET: the pricers are made once per sheet, so they key the
+ *  cache, and the supplier is said again on each read because Northside may name it. */
+const PRICED = new WeakMap<Pricers, Map<string, Ware>>()
+function pricedOnce(
+  p: ShelfPart,
+  pricers: Pricers,
+  named: Readonly<Record<string, string>> | undefined,
+): Ware {
+  let cache = PRICED.get(pricers)
+  if (!cache) {
+    cache = new Map()
+    PRICED.set(pricers, cache)
+  }
+  let had = cache.get(p.id)
+  if (!had || had.row !== p.row) {
+    had = wareOf(p, pricers, undefined)
+    cache.set(p.id, had)
+  }
+  const supplier = supplierSaid(p.maker, named)
+  return supplier === had.supplier && had.aisle === p.aisle
+    ? had
+    : { ...had, aisle: p.aisle, supplier }
+}
+
+/** The order inside a heading: the price list's own, the lowest price first, or the most quoted. */
+function sorted(
+  parts: Shelved[],
+  sort: CatalogueAt['sort'],
+  quoted: ReadonlyMap<string, number>,
+): Shelved[] {
+  if (sort === 'price')
+    return parts.toSorted((a, b) => {
+      const x = sortFigure(a.prices)
+      const y = sortFigure(b.prices)
+      return x === null ? (y === null ? 0 : 1) : y === null ? -1 : x - y
+    })
+  if (sort === 'quoted')
+    return parts.toSorted((a, b) => (quoted.get(b.id) ?? 0) - (quoted.get(a.id) ?? 0))
+  return parts
 }

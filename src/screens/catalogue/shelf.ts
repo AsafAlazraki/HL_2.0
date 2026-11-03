@@ -16,7 +16,8 @@
 import type { CatalogueCtx, EntityDef, QuoteLine, RowData } from '@/domain/model'
 import { makeEngine } from '@/domain/catalogue/views/pairs'
 import { sellableRows } from '@/domain/catalogue/views/sellable'
-import { aisleOf, type PartIn } from '@/domain/catalogue/aisles'
+import { type PartIn } from '@/domain/catalogue/aisles'
+import { aisleWithPlacings } from '@/domain/chandlery/placing'
 import { lineAmount, mintLine } from '@/domain/quote'
 import { lineSaid, nameFirst } from '@/domain/quote/spoken'
 import { copyOf, creditOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
@@ -26,11 +27,18 @@ export const PARTS_TABLE = 'parts'
 
 /** One part on the shelf, before it is priced. */
 export interface ShelfPart extends PartIn {
+  /** the heading the price list files it under, '' where it gives none */
+  heading: string
   row: RowData
   aisle: string
   maker: string
   /** the price list's own product words, for the search and the picture's caption */
   product: string
+  /** the code the shop orders it by, the workbook's operation code, and how it is fitted, as the
+   *  price list writes them ('' where it writes none) */
+  code: string
+  op: string
+  install: string
 }
 
 /** One part as a tile draws it. */
@@ -61,6 +69,8 @@ export function partsTable(ctx: CatalogueCtx): EntityDef | undefined {
 }
 
 const text = (v: unknown): string => (typeof v === 'string' ? v.trim() : '')
+/** a code may be written as a number (46070): read as the shop writes it */
+const said = (v: unknown): string => (typeof v === 'number' ? String(v) : text(v))
 
 /** Every part on sale, in the price list's own order, with its aisle and maker. */
 export function shelfOf(ctx: CatalogueCtx): ShelfPart[] {
@@ -69,15 +79,25 @@ export function shelfOf(ctx: CatalogueCtx): ShelfPart[] {
   const heading = table.hierarchy?.[0] ?? `${PARTS_TABLE}.cat`
   const supplier = table.fields.find((f) => /^supplier$/i.test(f.name))?.id
   const product = table.fields.find((f) => /^product$/i.test(f.name))?.id
+  const named = (name: RegExp): string | undefined =>
+    table.fields.find((f) => name.test(f.name))?.id
+  const code = named(/^code$/i)
+  const op = named(/^operation code$/i)
+  const install = named(/^install type$/i)
+  /* WHERE NORTHSIDE PUT A HEADING NO AISLE NAMES (src/domain/chandlery/placing.ts) */
+  const placed = ctx.org?.aisles
   return sellableRows(ctx.rowsByEntity[table.id] ?? []).map((row) => {
     const h = text(row.values[heading])
     return {
       id: row.id,
       heading: h,
       row,
-      aisle: aisleOf(h),
+      aisle: aisleWithPlacings({ id: row.id, heading: h }, placed),
       maker: supplier ? text(row.values[supplier]) : '',
       product: product ? text(row.values[product]) : '',
+      code: code ? said(row.values[code]) : '',
+      op: op ? said(row.values[op]) : '',
+      install: install ? text(row.values[install]) : '',
     }
   })
 }
@@ -87,17 +107,9 @@ export function hasPicture(id: string): boolean {
   return copyOf(itemOf(PARTS_TABLE, id)) !== null
 }
 
-/** THE WORDS A SEARCH ANSWERS TO: the part's name, never its code (the board: "A name, never a
- *  code"). Every word typed must be in it. */
-export function matchesName(part: ShelfPart, query: string): boolean {
-  const words = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((w) => w !== '')
-  if (words.length === 0) return true
-  const hay = part.product.toLowerCase()
-  return words.every((w) => hay.includes(w))
-}
+/** WHERE A PART STANDS, for `aislesOf`: the aisle the shelf read for it, Northside's placing
+ *  included. */
+export const shelfAisle = (part: PartIn): string => (part as ShelfPart).aisle
 
 /** A pricer for one level, made once per shelf: the engine is built once, not per tile. */
 export function pricerFor(
