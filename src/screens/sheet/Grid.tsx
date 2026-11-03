@@ -222,8 +222,10 @@ export const cellDomId = (rowId: string, col: number): string => `sh-cell-${rowI
 export const rowDomId = (rowId: string): string => `sh-row-${rowId}`
 
 /** How many times a row the list has not drawn yet is asked for again, and how long each
- *  look waits for the list to measure what it passed (see `chase` in `Grid`). */
-const CHASE_TRIES = 8
+ *  look waits for the list to measure what it passed (see `chase` in `Grid`). Twenty-four,
+ *  because a look may now walk past one tall block at a time (`walkTo`): Rigging Kits'
+ *  Jeanneau DB/43 is eight blocks past where the estimate lands at 834 × 1112. */
+const CHASE_TRIES = 24
 const CHASE_GAP_MS = 60
 
 interface Editing {
@@ -258,6 +260,19 @@ function pieceOfLeaf(pieces: readonly Piece[], r: number): number {
     if (p.kind === 'block' && p.runs.some((run) => run.leaves.some((l) => l.r === r))) return i
   }
   return -1
+}
+
+/** How many lines the first paint draws to have a row asked for in it, at most. */
+const FIRST_PAINT_ROWS = 800
+
+/** The lines the pieces before `index`, and it, draw: a shut block is one line. */
+function drawnBefore(pieces: readonly Piece[], index: number): number {
+  let lines = 0
+  for (let i = 0; i <= index && i < pieces.length; i += 1) {
+    const p = pieces[i]!
+    lines += p.kind === 'block' && !p.shut ? p.runs.reduce((n, run) => n + run.leaves.length, 0) : 1
+  }
+  return lines
 }
 
 export function Grid(props: GridProps) {
@@ -461,6 +476,39 @@ export function Grid(props: GridProps) {
      that more blocks are measured. A few asks converge; a bound keeps a
      row that cannot be drawn from asking forever. */
   const chase = useRef<() => void>(() => undefined)
+  /* A BLOCK TALLER THAN THE WINDOW HIDES THE ONES PAST IT FROM THE ESTIMATE (the verifier of
+     Data, round 2). Rigging Kits' STACER block is 2,024 px and the eight blocks after it were
+     never drawn, so never measured: every ask for Jeanneau DB/43 (block 22) landed where the
+     estimate put it, inside STACER (block 14), at scrollTop 24,191 of 34,584 at 834 × 1112,
+     and the same ask came back eight times with the same answer. Parts' last heading did the
+     same from the other side, landing on block 187. So a look that finds the row's block not
+     drawn at all, and every block drawn on one side of it, walks the scroller past the last
+     (or first) block drawn, which draws and measures the next ones; the ask is made again
+     only when the row's block is among those drawn. */
+  const walkTo = useCallback((index: number): boolean => {
+    const sc = scroller.current
+    if (!sc) return false
+    const drawn = [...sc.querySelectorAll<HTMLElement>('[data-index]')]
+    let lo: HTMLElement | null = null
+    let hi: HTMLElement | null = null
+    for (const item of drawn) {
+      const i = Number(item.dataset.index)
+      if (!Number.isFinite(i)) continue
+      if (!lo || i < Number(lo.dataset.index)) lo = item
+      if (!hi || i > Number(hi.dataset.index)) hi = item
+    }
+    if (!lo || !hi) return false
+    const port = sc.getBoundingClientRect()
+    if (index > Number(hi.dataset.index)) {
+      sc.scrollTop += Math.max(1, hi.getBoundingClientRect().bottom - port.top)
+      return true
+    }
+    if (index < Number(lo.dataset.index)) {
+      sc.scrollTop -= Math.max(1, port.bottom - lo.getBoundingClientRect().top)
+      return true
+    }
+    return false
+  }, [])
   useEffect(() => {
     chase.current = () => {
       const p = pending.current
@@ -492,7 +540,8 @@ export function Grid(props: GridProps) {
              list's own ask lands on — is brought in by its own box; not
              drawn at all is asked for by its block */
           if (el) reveal(p.cell, p.third)
-          else handle.current?.scrollToIndex({ index: p.index, align: 'start', offset: -headH() })
+          else if (!walkTo(p.index))
+            handle.current?.scrollToIndex({ index: p.index, align: 'start', offset: -headH() })
         }
         /* a scroll that lands where it stood changes no range, so look again anyway */
         window.setTimeout(() => chase.current(), CHASE_GAP_MS)
@@ -504,8 +553,21 @@ export function Grid(props: GridProps) {
     if (rowCount === 0) return
     const asThird = third.current
     third.current = false
-    if (reveal(active, asThird)) return
     const index = pieceOfLeaf(pieces, active.row)
+    if (reveal(active, asThird)) {
+      /* DRAWN ON THE FIRST PAINT IS NOT DRAWN FOR GOOD (the verifier of Data, round 2). A row
+         the screen asked for is drawn at once by `initialItemCount` and stood a third of the
+         way down — and then the list takes over with its own estimate of every block it has
+         not measured, and lays itself out again: Rigging Kits' row 609 was found on the first
+         look and left at scrollTop 24,191, two blocks of STACER over it. So a row the screen
+         asked for is looked at again until it stands in the window twice running, as a row
+         the list had not drawn is. */
+      if (asThird && index >= 0) {
+        pending.current = { cell: active, third: true, index, tries: 0, settled: 0 }
+        window.setTimeout(() => chase.current(), CHASE_GAP_MS)
+      }
+      return
+    }
     if (index < 0) return
     pending.current = { cell: active, third: asThird, index, tries: 0, settled: 0 }
     handle.current?.scrollToIndex({ index, align: 'start', offset: -headH() })
@@ -1405,7 +1467,15 @@ export function Grid(props: GridProps) {
         computeItemKey={(_i, p) => p.key}
         rangeChanged={onRange}
         increaseViewportBy={{ top: rowH * 4, bottom: rowH * 8 }}
-        initialItemCount={Math.min(pieces.length, Math.max(12, focusIndex + 2))}
+        /* A ROW ASKED FOR DEEP IN A LONG LIST OPENS THE LIST AT ITS BLOCK, not with every
+           block above it drawn (the verifier of Data, round 2): Parts' last heading drew all
+           188 blocks, 2,937 lines, before the first paint — 19 s on this machine at 1440 ×
+           900 — to have block 186 there. Past `FIRST_PAINT_ROWS` the list starts at the row's
+           block (its own `initialTopMostItemIndex`), and the chase stands it; under it, every
+           block to the row's is drawn on the first paint, as before. */
+        {...(focusIndex >= 0 && drawnBefore(pieces, focusIndex) > FIRST_PAINT_ROWS
+          ? { initialTopMostItemIndex: focusIndex, initialItemCount: Math.min(pieces.length, 12) }
+          : { initialItemCount: Math.min(pieces.length, Math.max(12, focusIndex + 2)) })}
         components={components}
         context={context}
         itemContent={drawPiece}

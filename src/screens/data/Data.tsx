@@ -234,6 +234,8 @@ export function Data({
   const rowsRef = useRef(new Map<string, HTMLDivElement>())
   const focusSpread = useRef(false)
   const backToList = useRef(false)
+  /* the list whose spread a press inside it closed, so the keyboard goes back to where it stands */
+  const closedFrom = useRef('')
 
   const known = wanted !== '' && register.facts[wanted] !== undefined
   const onRows = shown.some((r) => r.id === wanted)
@@ -280,6 +282,19 @@ export function Data({
         backToList.current = true
         pageRef.current?.focus({ preventScroll: true })
       }
+      return
+    }
+    /* CLOSED FROM INSIDE THE SPREAD, THE FOCUS GOES TO WHERE IT STANDS (the verifier of Data,
+       round 2: on an address typed straight in, `Back to the lists` was pressed, went away, and
+       left the focus on the page's body). A maker goes back to its tile, a list of what fits to
+       its figure in the table, and a list you sell from to its row in the ledger. */
+    const from = closedFrom.current
+    closedFrom.current = ''
+    if (from !== '') {
+      backToList.current = false
+      const place = document.getElementById(`dt-tile-${from}`) ?? document.querySelector<HTMLElement>(`[data-join="${CSS.escape(from)}"]`)
+      if (place) place.focus({ preventScroll: true })
+      else list.current?.focus({ preventScroll: true })
       return
     }
     if (backToList.current) {
@@ -410,7 +425,12 @@ export function Data({
     [page, openPage],
   )
 
-  const closeSpread = useCallback(() => setPeeking(false), [])
+  const closeSpread = useCallback(() => {
+    const active = document.activeElement
+    if (pageRef.current && active instanceof Node && pageRef.current.contains(active))
+      closedFrom.current = wanted
+    setPeeking(false)
+  }, [wanted])
 
   /* ---- the one write, and its way back --------------------- */
   const make = useCallback((name: string, kind: TableKind): string | null => {
@@ -985,7 +1005,7 @@ function MakeDialog({
         if (!next) setError(null)
         onOpenChange(next)
       }}
-      size="sm"
+      size="md"
       actions={
         <>
           <DialogClose>

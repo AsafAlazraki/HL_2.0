@@ -1,5 +1,5 @@
 import { createElement, useState } from 'react'
-import { ArrowRightIcon, MagnifyingGlassIcon, TagIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, CameraPlusIcon, MagnifyingGlassIcon, TagIcon } from '@phosphor-icons/react'
 import type { CatalogueCtx } from '@/domain/model'
 import type { AisleCount } from '@/domain/catalogue/aisles'
 import type { Section } from '@/domain/chandlery/headings'
@@ -63,6 +63,8 @@ export function Door({
   around,
   suppliers,
   namedSuppliers,
+  without,
+  goPictures,
 }: {
   ctx: CatalogueCtx
   at: CatalogueAt
@@ -85,6 +87,9 @@ export function Door({
   /** the supplier codes on the list, and how many Northside has named */
   suppliers: number
   namedSuppliers: number
+  /** the parts on sale with no picture of their own, and the way to their worklist */
+  without: number
+  goPictures: () => void
 }) {
   const [typed, setTyped] = useState(at.find)
   const aisles = fronts.length
@@ -242,6 +247,25 @@ export function Door({
 
       <div className="chd-door__keep">
         <ByCode shelf={shelf} nameOf={nameOf} />
+        {without > 0 ? (
+          <a
+            className="chd-keep"
+            data-ground="plate"
+            href={hrefOf({ view: 'pictures', boat: at.boat })}
+            onClick={follow(goPictures, hrefOf({ view: 'pictures', boat: at.boat }))}
+          >
+            <span className="chd-keep__glyph" aria-hidden="true">
+              <Icon glyph={CameraPlusIcon} />
+            </span>
+            <span className="chd-keep__words">
+              <span className="chd-keep__title">The parts with no picture yet</span>
+              <span className="chd-said">
+                {`${without.toLocaleString('en-AU')} of ${onSale.toLocaleString('en-AU')} have none of their own: the ones on quotes here first, then aisle by aisle.`}
+              </span>
+            </span>
+            <Icon glyph={ArrowRightIcon} />
+          </a>
+        ) : null}
         <a
           className="chd-keep"
           data-ground="plate"

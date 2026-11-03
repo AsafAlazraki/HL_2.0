@@ -17,9 +17,10 @@ import { NOWHERE, type CatalogueAt, type Show, type Sort } from '@/screens/catal
    THE POSITION IS THE SEARCH PARAMS (src/screens/catalogue/at.ts):
    the aisle, the supplier, the customer's boat, which parts are shown,
    what is typed into find, the order, the part opened in place, the
-   heading a link lands on, and the suppliers' own page. An aisle or
-   the suppliers' page is a NEW PAGE, pushed and opened at the top of
-   the window, so Back leaves it for the front; everything else is a
+   heading a link lands on, the suppliers' own page and the parts with
+   no picture. An aisle or one of those pages is a NEW PAGE, pushed and
+   opened at the top of the window (or at its heading, where a link
+   names one), so Back leaves it for the front; everything else is a
    position on the page and is replaced where the window stands.
 
    `maker`, the old name of `supplier`, is still read, so a link sent
@@ -39,7 +40,7 @@ export interface CatalogueSearch {
   sort?: Sort
   open?: string
   heading?: string
-  view?: 'suppliers'
+  view?: 'suppliers' | 'pictures'
 }
 
 const word = (value: unknown, max = 120): string | undefined => {
@@ -66,7 +67,7 @@ export const Route = createFileRoute('/catalogue')({
     if (open) out.open = open
     const heading = word(search.heading, 200)
     if (heading) out.heading = heading
-    if (search.view === 'suppliers') out.view = 'suppliers'
+    if (search.view === 'suppliers' || search.view === 'pictures') out.view = search.view
     return out
   },
   beforeLoad: () => {
@@ -110,7 +111,9 @@ function CatalogueRoute() {
           return out as never
         },
         replace: !page,
-        resetScroll: Boolean(page),
+        /* a new page opens at its top, except one sent to a heading: the aisle lands it under
+           its dock itself (Aisle.tsx), and a reset after that would throw it back to the top */
+        resetScroll: Boolean(page) && !next.heading,
         viewTransition: false,
       })
     },

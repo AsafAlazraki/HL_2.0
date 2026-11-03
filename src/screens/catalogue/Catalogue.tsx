@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useCatalogue, useQuotes } from '@/app/useStores'
+import { useCatalogue, usePrefs, useQuotes } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx } from '@/domain/model'
@@ -9,6 +9,9 @@ import { findLines } from '@/domain/chandlery/find'
 import { isPlaced, placeInAisle } from '@/domain/chandlery/placing'
 import { sortFigure } from '@/domain/chandlery/prices'
 import { supplierSaid, suppliersIn } from '@/domain/chandlery/suppliers'
+import { noPriceStandings } from '@/domain/chandlery/reviewCase'
+import { unpicturedByUse } from '@/domain/chandlery/worklist'
+import { MEANT_PREF, meantOf } from '@/screens/review/read'
 import { copyOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
 import { letterheadNow } from '@/app/northside'
 import { RowGallery } from '@/app/RowGallery'
@@ -27,6 +30,7 @@ import {
 } from './read'
 import { PARTS_TABLE, hasPicture, partsTable, shelfAisle, shelfOf, type ShelfPart } from './shelf'
 import { Suppliers } from './Suppliers'
+import { Pictures } from './Pictures'
 import { useStep } from './Step'
 import type { Around } from './Wares'
 import './catalogue.css'
@@ -129,6 +133,19 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
         if (line.entityId === PARTS_TABLE) n.set(line.rowId, (n.get(line.rowId) ?? 0) + 1)
     return n
   }, [quoted])
+  /* WHERE EACH PART WITH NO PRICE STANDS ON REVIEW, so its door opens on its own case */
+  const meantPref = usePrefs((s) => s.values[MEANT_PREF])
+  const standings = useMemo(
+    () =>
+      table
+        ? noPriceStandings(table, ctx.rowsByEntity[table.id] ?? [], meantOf(meantPref))
+        : new Map(),
+    [table, ctx, meantPref],
+  )
+  const worklist = useMemo(
+    () => unpicturedByUse(shelf, hasPicture, timesQuoted),
+    [shelf, timesQuoted],
+  )
   const mark = useMemo(
     () => letterheadNow({ org: sheet.org, business: sheet.business })?.mark ?? null,
     [sheet.org, sheet.business],
@@ -175,6 +192,7 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
       step.apply(placeInAisle(key, aisle, said), `${said} already stands there.`),
     placedHere: (w) => isPlaced(w, placed),
     onLarge: (w, n) => setLarge({ item: itemOf(PARTS_TABLE, w.id), name: w.name, at: n }),
+    reviewOf: (id) => standings.get(id),
     open: at.open,
     onOpen: (id) => go({ open: id }),
   }
@@ -200,6 +218,19 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
     body = <p className="chd-none">The price list carries no parts and accessories.</p>
   } else if (at.view === 'suppliers') {
     body = <Suppliers shelf={shelf} named={named} back={hrefOf({ boat: at.boat })} go={goHref} />
+  } else if (at.view === 'pictures') {
+    body = (
+      <Pictures
+        list={{
+          ...worklist,
+          quoted: worklist.quoted.map((q) => ({ part: ware(q.part), times: q.times })),
+        }}
+        fronts={fronts}
+        around={around}
+        aisleCount={counted.length}
+        boat={at.boat}
+      />
+    )
   } else if (open && figures) {
     body = (
       <AislePage
@@ -260,6 +291,8 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
         around={around}
         suppliers={new Set(shelf.map((p) => p.maker.trim()).filter((m) => m !== '')).size}
         namedSuppliers={Object.keys(named ?? {}).length}
+        without={worklist.without}
+        goPictures={() => go({ view: 'pictures' }, true)}
       />
     )
   }

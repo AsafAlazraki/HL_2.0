@@ -106,6 +106,19 @@
   opacity: 0;
   transform: translate(-50%, calc(-50% + --spacing(2))) scale(0.97);
 }
+/* IN A SHORT WINDOW A DIALOG STANDS UNDER THE BAR, NOT OVER IT (the verifier of Data, round 2: at
+   844 x 390 the New list dialog ran 18-372 and the floating bar, 8-50, showed its ends either side
+   of the dialog's top). Where the bar stands at the top (`--shell-inset`), a centred dialog's
+   centre moves down by half of it and the dialog keeps to the window under it, drawn a little
+   closer so what it holds still fits. A large sheet keeps its own measures. */
+@media (max-height: 520px) {
+  .ui-dialog[data-placement='centre']:not([data-size='xl']) {
+    top: calc(50% + var(--shell-inset) / 2);
+    max-height: calc(100dvh - var(--shell-inset) - --spacing(4));
+    gap: --spacing(3);
+    padding: --spacing(4) --spacing(5);
+  }
+}
 .ui-dialog[data-ending-style] {
   transition-duration: var(--duration-enter);
 }

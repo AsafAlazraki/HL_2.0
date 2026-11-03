@@ -296,7 +296,6 @@ export function Spread({
           <p className="dt-spread__head" id="dt-lineup-head">
             {`Its ${n(lineup.branches.length)} ${branchWord}`}
             {barsIn}
-            {lineup.branches.length > 1 ? ', in the price list’s order' : ''}
           </p>
           <ol className="dt-lineup__list" id="dt-lineup-list" ref={bars}>
             {shown.shown.map((b) => {
@@ -346,8 +345,18 @@ export function Spread({
               </Button>
             </p>
           ) : null}
-          {lineup.unfiled > 0 ? (
-            <p className="dt-lineup__rest">{`${n(lineup.unfiled)} in none of them`}</p>
+          {/* THE ORDER IS SAID UNDER THE BARS, NOT IN THE EYEBROW (the verifier of Data, round 2: "Its
+              187 categories, in the price list's order" took two lines at 1280, and "Its 7 series ·
+              588 variants, in the price list's order" at 844 x 390) */}
+          {lineup.branches.length > 1 || lineup.unfiled > 0 ? (
+            <p className="dt-lineup__rest">
+              {[
+                lineup.branches.length > 1 ? 'In the price list’s order' : '',
+                lineup.unfiled > 0 ? `${n(lineup.unfiled)} in none of them` : '',
+              ]
+                .filter((said) => said !== '')
+                .join(' · ')}
+            </p>
           ) : null}
         </section>
       ) : null}

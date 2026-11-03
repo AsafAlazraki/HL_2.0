@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import {
   ArrowRightIcon,
   ImagesIcon,
@@ -12,6 +12,8 @@ import { money } from '@/domain/money'
 import { headingSaid } from '@/domain/chandlery/headings'
 import { isSupplyOnly, noteSaid, type TwoPrices } from '@/domain/chandlery/prices'
 import { placeKeyOf } from '@/domain/chandlery/placing'
+import { boatsNamed } from '@/domain/chandlery/boatsNamed'
+import type { ReviewStanding } from '@/domain/chandlery/reviewCase'
 import { AISLES } from '@/domain/catalogue/aisles'
 import { useGallery, useOptionPicture } from '@/app/optionPicture'
 import { itemOf, placeIn } from '@/data/pictures'
@@ -122,6 +124,8 @@ export interface Around {
   /** whether this line stands where it does because Northside put it there */
   placedHere?: ((w: Ware) => boolean) | undefined
   onLarge: (w: Ware, at: number) => void
+  /** where a part with no price stands on Review: its own case, or left as meant */
+  reviewOf?: ((id: string) => ReviewStanding | undefined) | undefined
   open: string
   onOpen: (id: string) => void
 }
@@ -131,11 +135,14 @@ export function Line({
   w,
   around,
   openKey = w.id,
+  note,
 }: {
   w: Ware
   around: Around
   /** what `open` says when this line is the one opened; a second showing of a part has its own */
   openKey?: string
+  /** a word the page adds after code · supplier: "on 3 quotes" */
+  note?: string
 }) {
   const panel = useId()
   const head = useRef<HTMLButtonElement>(null)
@@ -171,6 +178,7 @@ export function Line({
         <span className="chd-line__meta">
           <span className="chd-code">{w.code === '' ? 'No code' : w.code}</span>
           <span className="chd-line__supplier">{w.supplier}</span>
+          {note ? <span className="chd-line__note">{note}</span> : null}
         </span>
         <Prices prices={w.prices} />
         <span className="chd-line__caret" aria-hidden="true">
@@ -300,16 +308,42 @@ export function Card({ w, around }: { w: Ware; around: Around }) {
   )
 }
 
-/** "Stacer 529 Assault Pro (Tournament), Highfield Sport 560 and 410 more" */
-function boatsSaid(ids: readonly string[], boats: ReadonlyMap<string, BoatSaid>): string {
-  const names = [...new Set(ids.map((id) => boats.get(id)?.name).filter((n): n is string => !!n))]
-  if (names.length === 0) return ''
-  const shown = names.slice(0, 3)
-  const more = names.length - shown.length
-  return more > 0
-    ? `${shown.join(', ')} and ${more.toLocaleString('en-AU')} more`
-    : shown.join(' and ')
+/** THE BOATS A PART IS MADE FOR, counted by their names and naming exactly as many as it counts:
+ *  the first three, then every other one a press away. */
+function MadeForSaid({ ids, boats }: { ids: readonly string[]; boats: Around['boats'] }) {
+  const said = boatsNamed(ids, (id) => boats.get(id)?.name)
+  /* every name, once asked: a reading aid inside an opened part, not a position worth an address */
+  const [all, setAll] = useState(false)
+  if (said.count === 0) return <>No boat in particular</>
+  const head = `${said.count.toLocaleString('en-AU')} boat${said.count === 1 ? '' : 's'}: `
+  if (said.rest.length === 0)
+    return (
+      <>
+        {head}
+        {andOf(said.shown)}
+      </>
+    )
+  if (all)
+    return (
+      <>
+        {head}
+        {andOf([...said.shown, ...said.rest])}
+      </>
+    )
+  return (
+    <>
+      {head}
+      {said.shown.join(', ')}{' '}
+      <button type="button" className="chd-boatsmore" onClick={() => setAll(true)}>
+        {`and ${said.rest.length.toLocaleString('en-AU')} more`}
+      </button>
+    </>
+  )
 }
+
+/** "A", "A and B", "A, B and C" */
+const andOf = (names: readonly string[]): string =>
+  names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
 
 /** WHAT THE OPENED PART SAYS, and its ways on. */
 function Details({ w, around, pictured = false }: { w: Ware; around: Around; pictured?: boolean }) {
@@ -317,7 +351,11 @@ function Details({ w, around, pictured = false }: { w: Ware; around: Around; pic
   const lineHref = `/data/${PARTS_TABLE}?at=${encodeURIComponent(w.id)}`
   const place = around.place
   const quoteHref = `/quote/new?brand=${encodeURIComponent(PARTS_TABLE)}&model=${encodeURIComponent(w.id)}`
-  const settingsHref = place ? `/places/${encodeURIComponent(place.id)}?tab=settings` : ''
+  const settingsHref = place ? `/places/${encodeURIComponent(place.address)}?tab=settings` : ''
+  const unpriced = w.prices.kind === 'none' || w.prices.kind === 'zero'
+  const standing = unpriced ? around.reviewOf?.(w.id) : undefined
+  const reviewHref =
+    standing && 'case' in standing ? `/review?case=${encodeURIComponent(standing.case)}` : ''
   const fitted =
     w.install === ''
       ? 'The price list does not say'
@@ -338,19 +376,27 @@ function Details({ w, around, pictured = false }: { w: Ware; around: Around; pic
         <div>
           <dt>Made for</dt>
           <dd>
-            {boats.length === 0
-              ? 'No boat in particular'
-              : `${boats.length.toLocaleString('en-AU')} boat${boats.length === 1 ? '' : 's'}: ${boatsSaid(boats, around.boats)}`}
+            <MadeForSaid ids={boats} boats={around.boats} />
           </dd>
         </div>
       </dl>
-      {w.prices.kind === 'none' ? (
+      {standing ? (
         <p className="chd-said">
-          The price list gives the {w.name} no price at either supply or fitted.{' '}
-          <a className="chd-way" href="/review" onClick={follow(around.go, '/review')}>
-            Put it right on Review
-            <Icon glyph={ArrowRightIcon} size="sm" />
-          </a>
+          {w.prices.kind === 'zero'
+            ? `The price list writes the ${w.name} at $0 at both supply and fitted.`
+            : `The price list gives the ${w.name} no price at either supply or fitted.`}{' '}
+          {'case' in standing ? (
+            <a className="chd-way" href={reviewHref} onClick={follow(around.go, reviewHref)}>
+              Put it right on Review
+              <Icon glyph={ArrowRightIcon} size="sm" />
+            </a>
+          ) : (
+            'Northside left it so on Review, as meant.'
+          )}
+        </p>
+      ) : w.prices.kind === 'none' ? (
+        <p className="chd-said">
+          The price list gives the {w.name} no price at either supply or fitted.
         </p>
       ) : null}
       <div className="chd-acts">
@@ -396,11 +442,32 @@ function Details({ w, around, pictured = false }: { w: Ware; around: Around; pic
  *  not a picture with its sentence, read aloud where it lands. */
 function OwnPicture({ w }: { w: Ware }) {
   const props = useOptionPicture(itemOf(PARTS_TABLE, w.id), w.name, 'accessory')
+  const own = useRef<HTMLDivElement>(null)
+  useInSight(own)
   return (
-    <div className="chd-own" aria-live="polite">
-      <AddPicture {...props} />
+    <div className="chd-own" aria-live="polite" ref={own}>
+      {/* the part's name is said by the line it opens from; the frame says only what it asks,
+          so a 160-letter name is not drawn twice (the verifier, b15) */}
+      <AddPicture {...props} ask="Add a picture of this part" />
     </div>
   )
+}
+
+/** WHAT CHANGES HERE STAYS IN SIGHT: a refusal or a picture that lands under the bar at the foot
+ *  of a phone is brought up above it, and no further (the verifier, b08). */
+function useInSight(box: { current: HTMLElement | null }): void {
+  useEffect(() => {
+    const el = box.current
+    if (!el || typeof MutationObserver === 'undefined') return
+    const seen = new MutationObserver(() => {
+      /* the bar's height, resolved by the browser: the box's own scroll margin (catalogue.css) */
+      const foot = parseFloat(getComputedStyle(el).scrollMarginBlockEnd) || 0
+      const over = el.getBoundingClientRect().bottom - (window.innerHeight - foot)
+      if (over > 0) window.scrollBy({ top: over, behavior: 'instant' })
+    })
+    seen.observe(el, { childList: true, subtree: true })
+    return () => seen.disconnect()
+  }, [box])
 }
 
 const UNPLACED = 'back'

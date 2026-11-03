@@ -11,7 +11,8 @@
      sort      file | price | quoted — the order inside each heading
      open      the part opened in place, by its line
      heading   the heading a link from the index lands on
-     view      'suppliers' for the page that names them
+     view      'suppliers' for the page that names them; 'pictures' for the parts
+               with no picture, across every aisle
    ============================================================ */
 
 export type Show = 'all' | 'pictured' | 'without'
@@ -26,8 +27,10 @@ export interface CatalogueAt {
   sort: Sort
   open: string
   heading: string
-  view: '' | 'suppliers'
+  view: View
 }
+
+export type View = '' | 'suppliers' | 'pictures'
 
 export const NOWHERE: CatalogueAt = {
   aisle: '',

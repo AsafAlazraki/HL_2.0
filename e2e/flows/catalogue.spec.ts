@@ -193,3 +193,130 @@ test('J8, J9: pictures land on the part their file name names by code, anything 
   await expect(page.locator('.chd-card')).toHaveCount(0)
   await expect(page.locator('.chd-line').first()).toBeVisible()
 })
+
+/* ============================================================
+   ROUND 2 — what the verifier of the chandlery found in round 1
+   (docs/directions/data-round/catalogue/verify-1.md), each proved by
+   where it lands and what the page then says, never by the sentence
+   alone.
+   ============================================================ */
+
+test('J7: “Let it be quoted on its own” opens the parts’ own settings, not a page that is not there', async ({
+  page,
+}) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await page.goto('/catalogue?aisle=anchoring&open=parts%3A38')
+  await expect(ready(page)).toBeVisible({ timeout: 30_000 })
+  const way = page.getByRole('link', { name: /Let it be quoted on its own/ })
+  await expect(way).toHaveAttribute('href', '/places/parts?tab=settings')
+  await way.click()
+  await expect(page).toHaveURL(/\/places\/parts\?tab=settings$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Parts & Accessories' })).toBeVisible({
+    timeout: 30_000,
+  })
+  await expect(page.getByText(/No place is called/)).toHaveCount(0)
+})
+
+test('J6: a part says as many boats as it names, and every one is a press away', async ({
+  page,
+}) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await page.goto('/catalogue?aisle=anchoring&boat=boat_stacer%3A30')
+  await expect(ready(page)).toBeVisible({ timeout: 30_000 })
+  /* D Shackle · 10 mm Galv, the one part in this aisle made for the 529 Assault Pro */
+  await page.locator('.chd-made .chd-line__head').first().click()
+  const made = page.locator('.chd-line[data-open] .chd-facts dd').nth(2)
+  const said = (await made.innerText()).replace(/\s+/g, ' ')
+  const m = /^([\d,]+) boats: (.+?), (.+?), (.+?) and ([\d,]+) more$/.exec(said)
+  expect(m, said).not.toBeNull()
+  const count = Number(m![1]!.replace(/,/g, ''))
+  expect(3 + Number(m![5]!.replace(/,/g, ''))).toBe(count)
+  await made.getByRole('button', { name: /^and [\d,]+ more$/ }).click()
+  const all = (await made.innerText()).replace(/^[\d,]+ boats: /, '').split(/, | and /)
+  expect(all).toHaveLength(count)
+  expect(new Set(all).size).toBe(count)
+})
+
+test('the front’s heading links land their heading under the dock, and a heading by address does too', async ({
+  page,
+}) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await page.goto('/catalogue')
+  await expect(page.getByTestId('catalogue-door')).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('link', { name: 'Flushers', exact: true }).click()
+  await expect(page).toHaveURL(/aisle=propellers&heading=FLUSHERS/)
+  const under = async (heading: string): Promise<number> =>
+    page.evaluate((h) => {
+      const head = document
+        .querySelector(`.chd-section[data-heading="${CSS.escape(h)}"] h2`)!
+        .getBoundingClientRect()
+      const dock = document.querySelector('.chd-dock')!.getBoundingClientRect()
+      return Math.round(head.top - dock.bottom)
+    }, heading)
+  await expect.poll(() => under('FLUSHERS'), { timeout: 10_000 }).toBeGreaterThanOrEqual(0)
+  expect(await under('FLUSHERS')).toBeLessThan(40)
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+  /* the dock says the heading it stands over */
+  await expect(page.locator('.chd-dock__where')).toHaveText(/Flushers/i)
+
+  await page.goto('/catalogue?aisle=anchoring&heading=SARCA%20ANCHORS')
+  await expect(ready(page)).toBeVisible({ timeout: 30_000 })
+  await expect.poll(() => under('SARCA ANCHORS'), { timeout: 10_000 }).toBeGreaterThanOrEqual(0)
+  expect(await under('SARCA ANCHORS')).toBeLessThan(40)
+})
+
+test('J10: a part with no price opens Review on its own case, which names it', async ({ page }) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await page.goto('/catalogue?aisle=anchoring&find=Reef%20Anchor')
+  await expect(ready(page)).toBeVisible({ timeout: 30_000 })
+  await page.locator('.chd-line__head').first().click()
+  await page.getByRole('link', { name: /Put it right on Review/ }).click()
+  await expect(page).toHaveURL(/\/review\?case=none/)
+  await expect(page.getByText(/Reef Anchor Kit/).first()).toBeVisible({ timeout: 30_000 })
+})
+
+test('J9: the parts with no picture, across every aisle, each aisle a press away', async ({
+  page,
+}) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await page.goto('/catalogue')
+  await expect(page.getByTestId('catalogue-door')).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('link', { name: /The parts with no picture yet/ }).click()
+  await expect(page).toHaveURL(/view=pictures/)
+  const pics = page.getByTestId('catalogue-pictures')
+  await expect(pics.getByRole('heading', { level: 1, name: 'No picture yet' })).toBeVisible()
+  /* a computer with no quote on it ranks nothing, and says so */
+  await expect(pics.getByText(/No quote kept on this computer carries a part/)).toBeVisible()
+  await pics.getByRole('link', { name: /^Open them: the 66 in Anchoring & mooring/ }).click()
+  await expect(page).toHaveURL(/aisle=anchoring&show=without/)
+  await expect(page.getByTestId('catalogue-aisle')).toBeVisible()
+})
+
+test('the boat’s find stays inside its popover, and a pressed aisle shows a part in the first window', async ({
+  page,
+}) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await page.goto('/catalogue')
+  await expect(page.getByTestId('catalogue-door')).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('link', { name: /^Anchoring & mooring/ }).click()
+  const first = page.getByTestId('catalogue-aisle').locator('.chd-ledger .chd-line').first()
+  await expect(first).toBeInViewport({ ratio: 1 })
+
+  await page.getByRole('button', { name: 'For a boat…' }).click()
+  const pop = page.locator('.ui-popover')
+  await expect(pop).toBeVisible()
+  const sideways = await pop.evaluate((p) => p.scrollWidth - p.clientWidth)
+  expect(sideways).toBe(0)
+  const [box, field] = await Promise.all([
+    pop.boundingBox(),
+    pop.getByRole('searchbox', { name: 'Find the boat' }).boundingBox(),
+  ])
+  expect(field!.x).toBeGreaterThanOrEqual(box!.x + 8)
+  expect(field!.x + field!.width).toBeLessThanOrEqual(box!.x + box!.width - 8)
+})

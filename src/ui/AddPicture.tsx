@@ -111,6 +111,9 @@ export interface HeldOptionPicture {
 export interface AddPictureProps {
   /** the option as the dealer reads it: "Yamaha F60LC", "Battery MFM50" */
   option: string
+  /** what the empty frame says, where the option's name is already said beside it and is too
+   *  long to draw twice ("Add a picture of this part"); its name for a reader keeps the option's */
+  ask?: string
   /** the option's gallery, the cover first */
   gallery: readonly GalleryShot[]
   /** put these pictures on the option, beside the ones it has */
@@ -411,6 +414,7 @@ export function GalleryActs({
 
 export function AddPicture({
   option,
+  ask,
   gallery,
   onAdd,
   onRemove,
@@ -525,7 +529,7 @@ export function AddPicture({
           ) : (
             <span className="ui-addpic-ask">
               <Icon glyph={CameraPlusIcon} size="lg" />
-              <span>Add a picture of the {said}</span>
+              <span>{ask ?? `Add a picture of the ${said}`}</span>
             </span>
           )}
           {/* the cover's mark is the frame's own, said in its name */}

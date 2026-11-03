@@ -1,10 +1,10 @@
-import { createElement, useEffect, useId, useRef, useState } from 'react'
+import { createElement, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
 import type { CatalogueCtx } from '@/domain/model'
 import { AISLES, UNSORTED, type Aisle as AisleDef } from '@/domain/catalogue/aisles'
 import type { Section } from '@/domain/chandlery/headings'
 import { isPlaced, placeKeyOf, type Placings } from '@/domain/chandlery/placing'
-import type { SupplierCount } from '@/domain/chandlery/suppliers'
+import { NO_SUPPLIER, type SupplierCount } from '@/domain/chandlery/suppliers'
 import { Button, Chip, Icon, Input, Picture, Segmented, Select } from '@/ui'
 import { hrefOf, type CatalogueAt, type Show, type Sort } from './at'
 import { BoatChoice } from './BoatChoice'
@@ -58,7 +58,12 @@ export function Wares({
     show === 'pictured' ? [] : section.parts.filter((w) => !(w.tile?.picture && w.kind === 'part'))
   const pictured = section.parts.filter((w) => w.tile?.picture).length
   return (
-    <section className="chd-section" aria-labelledby={id} data-heading={section.heading}>
+    <section
+      className="chd-section"
+      aria-labelledby={id}
+      data-heading={section.heading}
+      data-said={title}
+    >
       <header className="chd-section__head">
         <h2 id={id} className="chd-section__title">
           {title}
@@ -224,17 +229,51 @@ export function AislePage({
     return () => seen.disconnect()
   }, [])
 
-  /* A LINK FROM THE FRONT TO ONE HEADING lands on its section, once */
-  const landed = useRef('')
+  /* A LINK TO ONE HEADING LANDS IT JUST UNDER THE DOCK — from the front (whose press is not
+     followed by the router's reset to the top, src/routes/catalogue.tsx), from "Its headings",
+     or from an address. The dock is measured, not guessed, and grows once it is stuck (it says
+     where you are), so the heading is set again while the dock settles and until a person
+     scrolls (the verifier, g02–g05). */
+  const dock = useRef<HTMLDivElement>(null)
+  const land = useCallback((heading: string) => landOn(heading, dock.current), [])
+  useEffect(() => (at.heading === '' ? undefined : land(at.heading)), [at.heading, land])
+
+  /* WHICH HEADING IS UNDER THE DOCK, so the dock can say it inside a 260-line section */
+  const [inHeading, setInHeading] = useState('')
   useEffect(() => {
-    if (at.heading === '' || landed.current === at.heading) return
-    landed.current = at.heading
-    const el = document.querySelector(`[data-heading="${CSS.escape(at.heading)}"]`)
-    if (el instanceof HTMLElement) el.scrollIntoView({ block: 'start' })
-  }, [at.heading])
+    /* nothing drawn, nothing to say; drawn again, read again */
+    if (sections.length === 0) return
+    let frame = 0
+    const read = (): void => {
+      frame = 0
+      const edge = dock.current?.getBoundingClientRect().bottom ?? 0
+      let said = ''
+      for (const el of document.querySelectorAll<HTMLElement>('.chd-sections > .chd-section')) {
+        /* a heading just landed under the dock is the one you are in */
+        if (el.getBoundingClientRect().top > edge + LANDING_GAP * 2) break
+        said = el.dataset.said ?? ''
+      }
+      setInHeading(said)
+    }
+    const onScroll = (): void => {
+      if (frame === 0) frame = requestAnimationFrame(read)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (frame !== 0) cancelAnimationFrame(frame)
+    }
+  }, [sections])
 
   const backHref = hrefOf({ boat: at.boat })
-  const where = [aisle.name, at.supplier, boat?.full].filter((w): w is string => !!w).join(' · ')
+  const where = [aisle.name, stuck && sections.length > 0 ? inHeading : '', at.supplier, boat?.full]
+    .filter((w): w is string => !!w)
+    .join(' · ')
+  /* the suppliers still written as the price list's codes: Northside names each maker once */
+  const coded = suppliers.filter((s) => s.said !== NO_SUPPLIER)
+  const unnamed = coded.filter((s) => !s.named).length
+  const suppliersHref = hrefOf({ view: 'suppliers' })
   /* WHICH PARTS: offered only where there is a choice. An aisle with no picture has no
      "Pictured" to press, so none is drawn, and its counts already say 0 pictured */
   const showOptions: { value: Show; label: string }[] = [
@@ -303,7 +342,15 @@ export function AislePage({
                     const to = hrefOf({ ...at, heading: h.heading, open: '' })
                     return (
                       <li key={h.heading}>
-                        <a href={to} onClick={follow(() => go({ heading: h.heading }), to)}>
+                        <a
+                          href={to}
+                          onClick={(e) =>
+                            follow(() => {
+                              if (at.heading === h.heading) land(h.heading)
+                              else go({ heading: h.heading })
+                            }, to)(e)
+                          }
+                        >
                           {h.said}
                         </a>{' '}
                         <span className="chd-heads__n">{h.parts.toLocaleString('en-AU')}</span>
@@ -333,7 +380,7 @@ export function AislePage({
       </header>
 
       <div ref={sentinel} className="chd-sentinel" aria-hidden="true" />
-      <div className="chd-dock" data-stuck={stuck ? '' : undefined}>
+      <div className="chd-dock" data-stuck={stuck ? '' : undefined} ref={dock}>
         <p className="chd-dock__where" aria-hidden={!stuck}>
           {where}
         </p>
@@ -360,31 +407,9 @@ export function AislePage({
             />
           </div>
         ) : null}
-      </div>
-
-      <div className="chd-tools">
-        <div className="chd-tools__row">
-          {suppliers.length > 1 ? (
-            <fieldset className="chd-suppliers" aria-label={`${aisle.name} by supplier`}>
-              <Chip
-                count={total}
-                selected={at.supplier === ''}
-                onSelect={() => go({ supplier: '', open: '' })}
-              >
-                Every supplier
-              </Chip>
-              {suppliers.map((s) => (
-                <Chip
-                  key={s.said}
-                  count={s.lines}
-                  selected={at.supplier === s.said}
-                  onSelect={() => go({ supplier: at.supplier === s.said ? '' : s.said, open: '' })}
-                >
-                  {s.said}
-                </Chip>
-              ))}
-            </fieldset>
-          ) : null}
+        {/* THE SUPPLIER, FOLDED TO ONE MENU where the chips have no room, AND THE ORDER: in the
+            dock, so neither stands between two rows of chips (the verifier, b02 at 834) */}
+        <div className="chd-dock__tools">
           {suppliers.length > 1 ? (
             <div className="chd-suppliers-folded">
               <Select
@@ -411,13 +436,49 @@ export function AislePage({
             />
           </div>
         </div>
-        {wrongSupplier ? (
-          <output className="chd-said">
-            {`Nothing in ${aisle.name} is sold by ${at.supplier}. Every supplier of it is above.`}
-          </output>
-        ) : null}
-        <StepSaid said={step} back={back} />
       </div>
+
+      {suppliers.length > 1 ? (
+        <fieldset className="chd-suppliers" aria-label={`${aisle.name} by supplier`}>
+          <Chip
+            count={total}
+            selected={at.supplier === ''}
+            onSelect={() => go({ supplier: '', open: '' })}
+          >
+            Every supplier
+          </Chip>
+          {suppliers.map((s) => (
+            <Chip
+              key={s.said}
+              count={s.lines}
+              selected={at.supplier === s.said}
+              onSelect={() => go({ supplier: at.supplier === s.said ? '' : s.said, open: '' })}
+            >
+              {s.said}
+            </Chip>
+          ))}
+          {/* A CODE IS NOT A MAKER'S NAME: where the chips still print the price list's codes,
+              the way to name them stands at their end (the verifier, J12) */}
+          {unnamed > 0 ? (
+            <a
+              className="chd-way chd-suppliers__name"
+              href={suppliersHref}
+              onClick={follow(around.go, suppliersHref)}
+            >
+              {unnamed === coded.length
+                ? 'These are the price list’s codes: name the makers'
+                : `${unnamed.toLocaleString('en-AU')} still the price list’s code${unnamed === 1 ? '' : 's'}: name ${unnamed === 1 ? 'it' : 'them'}`}
+              <Icon glyph={ArrowRightIcon} size="sm" />
+            </a>
+          ) : null}
+        </fieldset>
+      ) : null}
+      {wrongSupplier ? (
+        <output className="chd-said">
+          {`Nothing in ${aisle.name} is sold by ${at.supplier}. Every supplier of it is above.`}
+        </output>
+      ) : null}
+      <StepSaid said={step} back={back} />
 
       {boat ? (
         <MadeForBox
@@ -479,6 +540,47 @@ export function AislePage({
       ) : null}
     </div>
   )
+}
+
+/** The room left between the dock's foot and a heading landed under it. */
+const LANDING_GAP = 12
+
+/**
+ * LAND A HEADING'S SECTION JUST UNDER THE DOCK, and keep it there while the dock settles — it
+ * grows by the line that says where you are once it is stuck — until a person scrolls, presses
+ * or types, or a second and a half has gone. A heading the page does not draw (narrowed away by
+ * a find or a supplier) leaves the page at its top. The return stops it.
+ */
+function landOn(heading: string, dock: HTMLElement | null): () => void {
+  const el = document.querySelector<HTMLElement>(
+    `.chd-section[data-heading="${CSS.escape(heading)}"]`,
+  )
+  if (!el) {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    return () => undefined
+  }
+  const align = (): void => {
+    const edge = dock?.getBoundingClientRect().bottom ?? 0
+    const off = el.getBoundingClientRect().top - edge - LANDING_GAP
+    if (Math.abs(off) >= 1) window.scrollBy({ top: off, behavior: 'instant' })
+  }
+  /* first past the dock, so it is stuck and its foot is where it will stay; then under it */
+  el.scrollIntoView({ block: 'start', behavior: 'instant' })
+  align()
+  const watch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(align)
+  if (dock) watch?.observe(dock)
+  const ends = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
+  let done = false
+  const stop = (): void => {
+    if (done) return
+    done = true
+    watch?.disconnect()
+    clearTimeout(timer)
+    for (const e of ends) window.removeEventListener(e, stop)
+  }
+  const timer = setTimeout(stop, 1500)
+  for (const e of ends) window.addEventListener(e, stop, { passive: true })
+  return stop
 }
 
 /** A HEADING NO AISLE NAMES, PUT IN ONE BY NORTHSIDE — or taken back to where the list puts it. */

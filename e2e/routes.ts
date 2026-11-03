@@ -615,6 +615,16 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
+    /* THE PARTS WITH NO PICTURE, ACROSS EVERY AISLE (the verifier of the chandlery, round 1, J9):
+       the parts the quotes here carry, the most quoted first (none on a fresh computer, which
+       the page says), then every aisle with how many of its parts have none and the way to them. */
+    path: '/catalogue?view=pictures',
+    name: 'catalogue-pictures',
+    register: 'foundation',
+    ready: '[data-testid="catalogue"][data-read] [data-testid="catalogue-pictures"]',
+    arrive: 'through-the-door',
+  },
+  {
     /* REVIEW (Milestone 3, rebuilt 2026-10-28 as board E, "The case queue"): what is wrong in
        Northside's own price list, one case at a time — a rail counting the 69 lines still wrong,
        one stage with the first case (a trailer registered as the wrong size, its cells as they

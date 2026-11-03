@@ -79,16 +79,61 @@ test('what needs Northside is a checklist of figures, each out of something, eac
     needs.getByRole('button', { name: /Oldest first/ }).click(),
   ])
   await expect(page.getByTestId('lost')).toHaveCount(0)
-  const width = page.viewportSize()!.width
-  /* THE SHEET'S OWN FAULT, NAMED AND NOT CHASED HERE: from 600 to 1099 wide the sheet does not
-     bring an `?at=` row of Rigging Kits into its window (measured 2026-11-03 at 834 x 1112: the
-     row is drawn about 5,500px down its list). The address this screen hands it is the one
-     asserted above, at every size. */
-  if (width < 600 || width >= 1100) {
+  /* AT EVERY SIZE (the verifier of Data, round 2: at 834 x 1112 the sheet stood in STACER, two
+     blocks over, because a block taller than the window kept the ones past it from being measured) */
+  await expect(
+    page.getByText('RIGGING KITS - Jeanneau DB/43 OB (as at 19/5/2022)').first(),
+  ).toBeInViewport({ timeout: 15_000 })
+})
+
+/* A HEADING PRESS LANDS ON ITS HEADING, AND BOTH SCREENS COUNT THE SAME HEADINGS (the verifier of
+   Data, round 2: the spec asserted only the address, and Parts' last heading, Generators, opened
+   on "(unassigned)" at 1280, 1440 and 1920; Data said 187 categories where the sheet said 188) */
+const HEADINGS: { list: string; heading: string; says: RegExp; sheet: RegExp }[] = [
+  {
+    list: 'parts',
+    heading: 'Generators (t/s Merry Fisher)',
+    says: /^Its 187 categories/,
+    sheet: /in 187 categories/,
+  },
+  {
+    list: 'dealer_fit',
+    heading: 'HIGHFIELD - Patrol 420',
+    says: /^Its 91 categories/,
+    sheet: /in 91 categories/,
+  },
+]
+for (const { list, heading, says, sheet } of HEADINGS) {
+  test(`${heading} on ${list} opens the sheet with that heading in the window`, async ({
+    page,
+  }) => {
+    await onData(page, `/data?at=${list}&headings=all`)
+    const spread = page.getByTestId('data-page')
+    await expect(spread.locator('#dt-lineup-head')).toHaveText(says, { timeout: 15_000 })
+    const bar = spread.getByRole('button', { name: `${heading}: `, exact: false }).first()
+    await Promise.all([page.waitForURL(new RegExp(`/data/${list}[?]at=`)), bar.click()])
+    await expect(page.locator('.sh-count')).toContainText(sheet, { timeout: 15_000 })
     await expect(
-      page.getByText('RIGGING KITS - Jeanneau DB/43 OB (as at 19/5/2022)').first(),
+      page.locator('[data-virtuoso-scroller]').getByText(heading, { exact: true }).first(),
     ).toBeInViewport({ timeout: 15_000 })
-  }
+  })
+}
+
+/* CLOSED FROM INSIDE, THE KEYBOARD GOES WHERE THE LIST STANDS (the verifier of Data, round 2: on
+   an address typed straight in, Back to the lists left the focus on the body) */
+test('Back to the lists, on an address typed in, gives the keyboard to the list', async ({
+  page,
+}) => {
+  await onData(page, '/data?at=rig_kits')
+  const spread = page.getByTestId('data-page')
+  await expect(spread).toBeVisible({ timeout: 15_000 })
+  await spread.getByRole('button', { name: /Back to the lists/ }).click()
+  await expect(spread).toHaveCount(0)
+  await expect(page.getByRole('grid', { name: 'Lists' })).toBeFocused()
+  await expect(page.getByRole('grid', { name: 'Lists' })).toHaveAttribute(
+    'aria-activedescendant',
+    /rig_kits/,
+  )
 })
 
 test('what is new says the zero as a figure, out of every line', async ({ page }) => {

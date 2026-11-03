@@ -18,6 +18,7 @@ import { kindWord, type Plate, type RegisterRow } from '@/domain/modules/registe
 import type { FitsMatrix } from '@/domain/modules/fitsMatrix'
 import { markFor } from '@/screens/home/ledgers'
 import type { FileFacts } from './facts'
+import { inTwo, type Part } from './halves'
 import { markName } from './turn'
 
 /* ============================================================
@@ -53,20 +54,39 @@ export function holdsSay(plate: Plate, models: number | undefined): string {
  *  Signature's script drew at 58 x 32 and 83 x 32 beside wordmarks four times as wide, and could
  *  not be read). A mark is sized by its own shape, read off the ledger's width and height: the
  *  narrower it is, the taller it stands, so every mark covers about the same area
- *  (data.css, `--aspect`). */
+ *  (data.css, `--aspect`).
+ *
+ *  AN EMBLEM CARRIES ITS NAME IN TYPE (the verifier of Data, round 2: Jeanneau still drew 59 x 33
+ *  in the table and Haines Signature 71 x 27, and neither could be read). A mark under three times
+ *  as wide as it is tall is an emblem or a script whose words are a small part of it — Jeanneau's
+ *  star over a wordmark a seventh of its height, Signature's script over HAINES — and at the size
+ *  a tile has room for its words are a few pixels tall. Such a mark is drawn with the maker's name
+ *  set beside it (`said`); a wordmark, whose words are the mark, is not. */
+const EMBLEM_BELOW = 3
+
+/** Whether a maker's held mark is an emblem whose words cannot be read at a tile's size. */
+function isEmblem(name: string): boolean {
+  const choice = markFor(name, 'paper')
+  return choice.drawn && choice.mark.width / choice.mark.height < EMBLEM_BELOW
+}
+
 function Mark({
   name,
   id,
   flies,
   alt = '',
+  said = false,
 }: {
   name: string
   id: string
   flies: boolean
   alt?: string
+  /** an emblem's name is set beside it */
+  said?: boolean
 }) {
   const choice = markFor(name, 'paper')
-  return choice.drawn ? (
+  const emblem = choice.drawn && choice.mark.width / choice.mark.height < EMBLEM_BELOW
+  const img = choice.drawn ? (
     <img
       className="dt-mark__img"
       src={choice.mark.src}
@@ -82,8 +102,14 @@ function Mark({
         } as CSSProperties
       }
     />
-  ) : (
-    <span className="dt-mark__typed">{name}</span>
+  ) : null
+  if (!img) return <span className="dt-mark__typed">{name}</span>
+  if (!emblem || !said) return img
+  return (
+    <>
+      {img}
+      <span className="dt-mark__said">{name}</span>
+    </>
   )
 }
 
@@ -161,8 +187,8 @@ export function Makers({
               aria-pressed={on}
               onClick={(event) => onPress(plate.id, byPointer(event))}
             >
-              <span className="dt-mark">
-                <Mark name={plate.name} id={plate.id} flies={true} />
+              <span className="dt-mark" data-emblem={isEmblem(plate.name) ? '' : undefined}>
+                <Mark name={plate.name} id={plate.id} flies={true} said={true} />
               </span>
               <span className="dt-maker__a">
                 {holds}
@@ -315,25 +341,43 @@ export function Lists({
         aria-activedescendant={at ? rowId(at.id) : undefined}
         onKeyDown={onKeyDown}
       >
-        {groupsOf(rows).map((group) => (
-          <div className="dt-group" role="rowgroup" aria-label={group.place} key={group.placeId}>
-            <p className="dt-group__head" aria-hidden="true">
-              {group.place}
-            </p>
-            {group.rows.map((row) => (
-              <Row
-                key={row.id}
-                row={row}
-                on={row.id === cursor}
-                peeking={row.id === open}
-                stands={standsSay(facts, row.id)}
-                onPoint={onPoint}
-                onOpen={onOpen}
-                hold={holdRow}
-              />
-            ))}
-          </div>
-        ))}
+        {/* IN TWO COLUMNS OF ONE HEIGHT at a desk, cut once in the file's order (`./halves.ts`);
+            in a hand and a tablet the two run on as one list, the second part's head unsaid */}
+        {inTwo(groupsOf(rows), (row) => (standsSay(facts, row.id).length > 0 ? 1.5 : 1)).map(
+          (column, c) =>
+            column.length > 0 ? (
+              <div className="dt-list__col" key={c}>
+                {column.map((group: Part<RegisterRow>) => (
+                  <div
+                    className="dt-group"
+                    role="rowgroup"
+                    aria-label={group.continued ? `${group.place}, continued` : group.place}
+                    key={`${group.placeId}${group.continued ? '+' : ''}`}
+                  >
+                    <p
+                      className="dt-group__head"
+                      data-continued={group.continued ? '' : undefined}
+                      aria-hidden="true"
+                    >
+                      {group.continued ? `${group.place}, continued` : group.place}
+                    </p>
+                    {group.rows.map((row) => (
+                      <Row
+                        key={row.id}
+                        row={row}
+                        on={row.id === cursor}
+                        peeking={row.id === open}
+                        stands={standsSay(facts, row.id)}
+                        onPoint={onPoint}
+                        onOpen={onOpen}
+                        hold={holdRow}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : null,
+        )}
       </div>
     </section>
   )
@@ -440,7 +484,15 @@ export function Matrix({
                 <span className="dt-mark dt-mark--sm">
                   <Mark name={row.name} id={row.id} flies={false} alt={row.name} />
                 </span>
-                <span className="dt-matrix__lists">{plural(row.lists, 'list', 'lists')}</span>
+                <span className="dt-matrix__lists">
+                  {isEmblem(row.name) ? (
+                    <>
+                      <span className="dt-matrix__named">{row.name}</span>
+                      {' · '}
+                    </>
+                  ) : null}
+                  {plural(row.lists, 'list', 'lists')}
+                </span>
               </th>
               {row.cells.map((cell, i) => (
                 <td
@@ -458,6 +510,7 @@ export function Matrix({
                         key={c.joinId}
                         type="button"
                         className="dt-pair"
+                        data-join={c.joinId}
                         data-retired={c.retired ? '' : undefined}
                         data-on={c.joinId === open ? '' : undefined}
                         aria-current={c.joinId === open ? 'true' : undefined}

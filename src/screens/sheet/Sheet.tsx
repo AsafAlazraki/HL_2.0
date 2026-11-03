@@ -644,6 +644,10 @@ const innermost = (nodes: readonly GroupNode[]): ViewRow[][] =>
 const nodesAt = (nodes: readonly GroupNode[], level: number): GroupNode[] =>
   nodes.flatMap((n) => (n.level === level ? [n] : nodesAt(n.children, level)))
 
+/** The drawers among `nodes` that carry a heading of the file's own: the `(unassigned)` drawer,
+ *  rows filed under none, is drawn and reachable but is not a heading the file carries. */
+const namedOf = (nodes: readonly GroupNode[]): number => nodes.filter((n) => n.value !== '').length
+
 /* ---------------------------------------------------------- */
 
 export function Sheet({
@@ -1997,6 +2001,12 @@ export function Sheet({
 
   const marked = markFor(table.name, 'dark')
   const spines = spineLevel >= 0 ? nodesAt(roots, spineLevel).length : 0
+  /* WHAT THE HEAD AND THE BAND COUNT ARE THE FILE'S OWN HEADINGS, the way Data and the register
+     count them (the verifier of Data, round 2: Data said Parts has 187 categories, and this head
+     said 188, the extra one being the "(unassigned)" drawer of 27 lines filed under none). The
+     drawer is still drawn and reachable; it is not counted as a heading the file carries. */
+  const namedSpines = spineLevel >= 0 ? namedOf(nodesAt(roots, spineLevel)) : 0
+  const namedRoots = namedOf(roots)
   const withPictures =
     image && spineLevel >= 1
       ? nodesAt(roots, spineLevel).filter(
@@ -2226,8 +2236,8 @@ export function Sheet({
             </h1>
             <p className="sh-count">
               <b>{counted(view.length, noun)}</b>
-              {spineNoun && spineLevel >= 1 ? ` of ${counted(spines, spineNoun)}` : ''}
-              {branch && roots.length > 0 ? ` in ${counted(roots.length, branch)}` : ''}
+              {spineNoun && spineLevel >= 1 ? ` of ${counted(namedSpines, spineNoun)}` : ''}
+              {branch && namedRoots > 0 ? ` in ${counted(namedRoots, branch)}` : ''}
               {' · '}
               {table.fields.length} columns
               {costFields.length > 0 ? `, ${costFields.length} of them ${COST_WORD}` : ''}
@@ -2391,8 +2401,8 @@ export function Sheet({
           </motion.div>
         ) : (
           <p className="sh-bar__what">
-            {spineNoun && spines > 0
-              ? `${counted(spines, spineNoun)}, each said once beside its ${noun.many}`
+            {spineNoun && namedSpines > 0
+              ? `${counted(namedSpines, spineNoun)}, each said once beside its ${noun.many}`
               : counted(view.length, noun)}
           </p>
         )}

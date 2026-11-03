@@ -1,0 +1,102 @@
+390x844 b01-front: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+390x844 b02-press-anchoring: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"firstPartTop":432,"firstPartBottom":540,"dockBottom":363,"h":844}
+390x844 b03-propellers-scrolled: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":2984} {"dockBottom":89,"where":"Propellers & motor care · Propellers – Yamaha","h":844}
+390x844 c01-boat-popup: {"sideways":0,"cuts":[],"popSideways":[0],"scrollY":0} {"pop":[16,376],"input":[32,360],"titleX":32}
+390x844 c02-boat-chosen: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"pillH":49,"code":[28,28],"fig":[63,63]}
+390x844 c03-line-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":["Anchor kits","Labour Estimated – (0.25)","No boat in particular"],"settings":"/places/parts?tab=settings"}
+390x844 g04-front-heading: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":33325} {"scrollY":33325,"headTop":101,"dockBottom":89}
+390x844 g02-heading-url: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":1272} {"headTop":101,"dockBottom":89,"where":"Anchoring & mooring · Sarca anchors"}
+390x844 b21-propellers: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"sort":[199,341,374,377],"chips":[0,0,0,0],"dock":[0,285,390,389]}
+390x844 b16-radios: {"sideways":0,"cuts":["ui-segmented-legend: Which parts"],"popSideways":[],"scrollY":0} {"firstTop":480,"h":844}
+390x844 c04-shackle-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":"73 boats: Stacer 309 Skimma, Stacer 319 Skimma, Stacer 359 Skimma and 70 more"}
+390x844 d06-reef: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"review":"/review?case=none%3Aparts%3AANCHOR%20KITS%3Ablank","said":"The price list gives the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain no price at either supply or fitted. Put it right on Review"}
+390x844 h01-pictures: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+390x844 b08-refusal: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":1004} {"ownBottom":780,"h":844,"said":"Add a picture of this part“notes.txt” is not a picture, so it cannot be the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain’s. A photograph or a drawing can: JPEG, PNG, WebP or GIF.Drop pictures here"}
+390x844 b15-longest: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":289}
+390x844 d01-quote-way: {"sideways":0,"cuts":["ui-segmented-legend: What to show of Parts & Accessories","ui-segmented-legend: Can a quote start from Parts & Accessori","ui-segmented-legend: Which of its maker’s marks, or its name,"],"popSideways":[],"scrollY":0} {"url":"/places/parts?tab=settings","h1":"Parts & Accessories","none":false}
+390x844 d06b-to-review: {"sideways":0,"cuts":["ui-figure__said: 37","ui-figure__said: $819","ui-figure__said: $234"],"popSideways":[],"scrollY":0} {"url":"/review?case=none%3Aparts%3AANCHOR+KITS%3Ablank","reef":true}
+844x390 b01-front: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+844x390 b02-press-anchoring: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"firstPartTop":287,"firstPartBottom":349,"dockBottom":226,"h":390}
+844x390 b03-propellers-scrolled: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":3001} {"dockBottom":121,"where":"Propellers & motor care · Propellers – Yamaha","h":390}
+844x390 c01-boat-popup: {"sideways":0,"cuts":[],"popSideways":[0],"scrollY":0} {"pop":[452,812],"input":[468,796],"titleX":468}
+844x390 c02-boat-chosen: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"pillH":42,"code":[44,44],"fig":[630,630]}
+844x390 c03-line-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":["Anchor kits","Labour Estimated – (0.25)","No boat in particular"],"settings":"/places/parts?tab=settings"}
+844x390 g04-front-heading: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":17697} {"scrollY":17697,"headTop":132,"dockBottom":121}
+844x390 g02-heading-url: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":683} {"headTop":132,"dockBottom":121,"where":"Anchoring & mooring · Sarca anchors"}
+844x390 b21-propellers: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"sort":[648,182,812,218],"chips":[0,0,0,0],"dock":[0,174,844,226]}
+844x390 b16-radios: {"sideways":0,"cuts":["ui-segmented-legend: Which parts"],"popSideways":[],"scrollY":0} {"firstTop":335,"h":390}
+844x390 c04-shackle-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":15} {"made":"73 boats: Stacer 309 Skimma, Stacer 319 Skimma, Stacer 359 Skimma and 70 more"}
+844x390 d06-reef: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"review":"/review?case=none%3Aparts%3AANCHOR%20KITS%3Ablank","said":"The price list gives the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain no price at either supply or fitted. Put it right on Review"}
+844x390 h01-pictures: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+844x390 b08-refusal: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":596} {"ownBottom":382,"h":390,"said":"Add a picture of this part“notes.txt” is not a picture, so it cannot be the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain’s. A photograph or a drawing can: JPEG, PNG, WebP or GIF.Drop pictures here"}
+844x390 b15-longest: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":278}
+844x390 d01-quote-way: {"sideways":0,"cuts":["ui-segmented-legend: What to show of Parts & Accessories","ui-segmented-legend: Can a quote start from Parts & Accessori","ui-segmented-legend: Which of its maker’s marks, or its name,"],"popSideways":[],"scrollY":0} {"url":"/places/parts?tab=settings","h1":"Parts & Accessories","none":false}
+844x390 d06b-to-review: {"sideways":0,"cuts":["ui-figure__said: 37","ui-figure__said: $819","ui-figure__said: $234"],"popSideways":[],"scrollY":0} {"url":"/review?case=none%3Aparts%3AANCHOR+KITS%3Ablank","reef":true}
+834x1112 b01-front: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+834x1112 b02-press-anchoring: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"firstPartTop":456,"firstPartBottom":518,"dockBottom":299,"h":1112}
+834x1112 b03-propellers-scrolled: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":3029} {"dockBottom":157,"where":"Propellers & motor care · Propellers – Yamaha","h":1112}
+834x1112 c01-boat-popup: {"sideways":0,"cuts":[],"popSideways":[0],"scrollY":0} {"pop":[442,802],"input":[458,786],"titleX":458}
+834x1112 c02-boat-chosen: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"pillH":42,"code":[44,44],"fig":[620,620]}
+834x1112 c03-line-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":["Anchor kits","Labour Estimated – (0.25)","No boat in particular"],"settings":"/places/parts?tab=settings"}
+834x1112 g04-front-heading: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":17849} {"scrollY":17849,"headTop":168,"dockBottom":157}
+834x1112 g02-heading-url: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":843} {"headTop":168,"dockBottom":157,"where":"Anchoring & mooring · Sarca anchors"}
+834x1112 b21-propellers: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"sort":[642,251,802,287],"chips":[32,315,802,379],"dock":[0,239,834,299]}
+834x1112 b16-radios: {"sideways":0,"cuts":["ui-segmented-legend: Which parts"],"popSideways":[],"scrollY":0} {"firstTop":464,"h":1112}
+834x1112 c04-shackle-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":"73 boats: Stacer 309 Skimma, Stacer 319 Skimma, Stacer 359 Skimma and 70 more"}
+834x1112 d06-reef: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"review":"/review?case=none%3Aparts%3AANCHOR%20KITS%3Ablank","said":"The price list gives the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain no price at either supply or fitted. Put it right on Review"}
+834x1112 h01-pictures: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+834x1112 b08-refusal: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":42} {"ownBottom":1104,"h":1112,"said":"Add a picture of this part“notes.txt” is not a picture, so it cannot be the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain’s. A photograph or a drawing can: JPEG, PNG, WebP or GIF.Drop pictures here"}
+834x1112 b15-longest: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+834x1112 d01-quote-way: {"sideways":0,"cuts":["ui-segmented-legend: What to show of Parts & Accessories","ui-segmented-legend: Can a quote start from Parts & Accessori","ui-segmented-legend: Which of its maker’s marks, or its name,"],"popSideways":[],"scrollY":0} {"url":"/places/parts?tab=settings","h1":"Parts & Accessories","none":false}
+834x1112 d06b-to-review: {"sideways":0,"cuts":["ui-figure__said: 37","ui-figure__said: $819","ui-figure__said: $234"],"popSideways":[],"scrollY":0} {"url":"/review?case=none%3Aparts%3AANCHOR+KITS%3Ablank","reef":true}
+1280x800 b01-front: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1280x800 b02-press-anchoring: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"firstPartTop":472,"firstPartBottom":531,"dockBottom":299,"h":800}
+1280x800 b03-propellers-scrolled: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":3028} {"dockBottom":157,"where":"Propellers & motor care · Propellers – Yamaha","h":800}
+1280x800 c01-boat-popup: {"sideways":0,"cuts":[],"popSideways":[0],"scrollY":0} {"pop":[864,1224],"input":[880,1208],"titleX":880}
+1280x800 c02-boat-chosen: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"pillH":42,"code":[568,568],"fig":[1032,1032]}
+1280x800 c03-line-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":["Anchor kits","Labour Estimated – (0.25)","No boat in particular"],"settings":"/places/parts?tab=settings"}
+1280x800 g04-front-heading: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":16992} {"scrollY":16992,"headTop":169,"dockBottom":157}
+1280x800 g02-heading-url: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":835} {"headTop":168,"dockBottom":157,"where":"Anchoring & mooring · Sarca anchors"}
+1280x800 b21-propellers: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"sort":[1064,251,1224,287],"chips":[56,315,1224,347],"dock":[0,239,1280,299]}
+1280x800 b16-radios: {"sideways":0,"cuts":["ui-segmented-legend: Which parts"],"popSideways":[],"scrollY":0} {"firstTop":420,"h":800}
+1280x800 c04-shackle-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":"73 boats: Stacer 309 Skimma, Stacer 319 Skimma, Stacer 359 Skimma and 70 more"}
+1280x800 d06-reef: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"review":"/review?case=none%3Aparts%3AANCHOR%20KITS%3Ablank","said":"The price list gives the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain no price at either supply or fitted. Put it right on Review"}
+1280x800 h01-pictures: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1280x800 b08-refusal: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":381} {"ownBottom":791,"h":800,"said":"Add a picture of this part“notes.txt” is not a picture, so it cannot be the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain’s. A photograph or a drawing can: JPEG, PNG, WebP or GIF.Drop pictures here"}
+1280x800 b15-longest: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1280x800 d01-quote-way: {"sideways":0,"cuts":["ui-segmented-legend: What to show of Parts & Accessories","ui-segmented-legend: Can a quote start from Parts & Accessori","ui-segmented-legend: Which of its maker’s marks, or its name,"],"popSideways":[],"scrollY":0} {"url":"/places/parts?tab=settings","h1":"Parts & Accessories","none":false}
+1280x800 d06b-to-review: {"sideways":0,"cuts":["ui-figure__said: 37","ui-figure__said: $819","ui-figure__said: $234"],"popSideways":[],"scrollY":0} {"url":"/review?case=none%3Aparts%3AANCHOR+KITS%3Ablank","reef":true}
+1440x900 b01-front: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1440x900 b02-press-anchoring: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"firstPartTop":440,"firstPartBottom":499,"dockBottom":299,"h":900}
+1440x900 b03-propellers-scrolled: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":3028} {"dockBottom":157,"where":"Propellers & motor care · Propellers – Yamaha","h":900}
+1440x900 c01-boat-popup: {"sideways":0,"cuts":[],"popSideways":[0],"scrollY":0} {"pop":[1024,1384],"input":[1040,1368],"titleX":1040}
+1440x900 c02-boat-chosen: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"pillH":42,"code":[728,728],"fig":[1192,1192]}
+1440x900 c03-line-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":["Anchor kits","Labour Estimated – (0.25)","No boat in particular"],"settings":"/places/parts?tab=settings"}
+1440x900 g04-front-heading: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":16988} {"scrollY":16988,"headTop":169,"dockBottom":157}
+1440x900 g02-heading-url: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":803} {"headTop":168,"dockBottom":157,"where":"Anchoring & mooring · Sarca anchors"}
+1440x900 b21-propellers: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"sort":[1224,251,1384,287],"chips":[56,315,1384,347],"dock":[0,239,1440,299]}
+1440x900 b16-radios: {"sideways":0,"cuts":["ui-segmented-legend: Which parts"],"popSideways":[],"scrollY":0} {"firstTop":420,"h":900}
+1440x900 c04-shackle-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":"73 boats: Stacer 309 Skimma, Stacer 319 Skimma, Stacer 359 Skimma and 70 more"}
+1440x900 d06-reef: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"review":"/review?case=none%3Aparts%3AANCHOR%20KITS%3Ablank","said":"The price list gives the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain no price at either supply or fitted. Put it right on Review"}
+1440x900 h01-pictures: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1440x900 b08-refusal: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":249} {"ownBottom":891,"h":900,"said":"Add a picture of this part“notes.txt” is not a picture, so it cannot be the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain’s. A photograph or a drawing can: JPEG, PNG, WebP or GIF.Drop pictures here"}
+1440x900 b15-longest: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1440x900 d01-quote-way: {"sideways":0,"cuts":["ui-segmented-legend: What to show of Parts & Accessories","ui-segmented-legend: Can a quote start from Parts & Accessori","ui-segmented-legend: Which of its maker’s marks, or its name,"],"popSideways":[],"scrollY":0} {"url":"/places/parts?tab=settings","h1":"Parts & Accessories","none":false}
+1440x900 d06b-to-review: {"sideways":0,"cuts":["ui-figure__said: 37","ui-figure__said: $819","ui-figure__said: $234"],"popSideways":[],"scrollY":0} {"url":"/review?case=none%3Aparts%3AANCHOR+KITS%3Ablank","reef":true}
+1920x1080 b01-front: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1920x1080 b02-press-anchoring: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"firstPartTop":440,"firstPartBottom":499,"dockBottom":299,"h":1080}
+1920x1080 b03-propellers-scrolled: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":3028} {"dockBottom":157,"where":"Propellers & motor care · Propellers – Yamaha","h":1080}
+1920x1080 c01-boat-popup: {"sideways":0,"cuts":[],"popSideways":[0],"scrollY":0} {"pop":[1344,1704],"input":[1360,1688],"titleX":1360}
+1920x1080 c02-boat-chosen: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"pillH":42,"code":[1048,1048],"fig":[1512,1512]}
+1920x1080 c03-line-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":["Anchor kits","Labour Estimated – (0.25)","No boat in particular"],"settings":"/places/parts?tab=settings"}
+1920x1080 g04-front-heading: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":16988} {"scrollY":16988,"headTop":169,"dockBottom":157}
+1920x1080 g02-heading-url: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":803} {"headTop":168,"dockBottom":157,"where":"Anchoring & mooring · Sarca anchors"}
+1920x1080 b21-propellers: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"sort":[1544,251,1704,287],"chips":[216,315,1704,347],"dock":[160,239,1760,299]}
+1920x1080 b16-radios: {"sideways":0,"cuts":["ui-segmented-legend: Which parts"],"popSideways":[],"scrollY":0} {"firstTop":420,"h":1080}
+1920x1080 c04-shackle-open: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"made":"73 boats: Stacer 309 Skimma, Stacer 319 Skimma, Stacer 359 Skimma and 70 more"}
+1920x1080 d06-reef: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0} {"review":"/review?case=none%3Aparts%3AANCHOR%20KITS%3Ablank","said":"The price list gives the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain no price at either supply or fitted. Put it right on Review"}
+1920x1080 h01-pictures: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1920x1080 b08-refusal: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":40} {"ownBottom":1072,"h":1080,"said":"Add a picture of this part“notes.txt” is not a picture, so it cannot be the Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain’s. A photograph or a drawing can: JPEG, PNG, WebP or GIF.Drop pictures here"}
+1920x1080 b15-longest: {"sideways":0,"cuts":[],"popSideways":[],"scrollY":0}
+1920x1080 d01-quote-way: {"sideways":0,"cuts":["ui-segmented-legend: What to show of Parts & Accessories","ui-segmented-legend: Can a quote start from Parts & Accessori","ui-segmented-legend: Which of its maker’s marks, or its name,"],"popSideways":[],"scrollY":0} {"url":"/places/parts?tab=settings","h1":"Parts & Accessories","none":false}
+1920x1080 d06b-to-review: {"sideways":0,"cuts":["ui-figure__said: 37","ui-figure__said: $819","ui-figure__said: $234"],"popSideways":[],"scrollY":0} {"url":"/review?case=none%3Aparts%3AANCHOR+KITS%3Ablank","reef":true}

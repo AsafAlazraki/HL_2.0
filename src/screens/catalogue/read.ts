@@ -27,6 +27,8 @@ import {
 } from '@/domain/chandlery/prices'
 import { supplierSaid, type SupplierNames } from '@/domain/chandlery/suppliers'
 import { madeForOf, type MadeFor } from '@/domain/chandlery/madeFor'
+import { addressOf, placeOfList } from '@/domain/modules/livery'
+import { placesOf } from '@/domain/modules/places'
 import { pricerFor, partsTable, type PartTile, type ShelfPart } from './shelf'
 
 /** One part as the chandlery draws it. */
@@ -114,9 +116,11 @@ export function madeForIn(ctx: CatalogueCtx): MadeFor | null {
   return table ? madeForOf(ctx.entities, ctx.rowsByEntity, table.id) : null
 }
 
-/** THE PLACE THAT SELLS THE PARTS, and whether a quote may start from it today. */
+/** THE PLACE THAT SELLS THE PARTS, its address, and whether a quote may start from it today. */
 export interface PartsPlace {
-  id: string
+  /** what `/places/$id` takes: the LIST the place stands for (`parts`), never its module's id
+   *  (the verifier of the chandlery, round 1, J7: the module's id opened "No place is called …") */
+  address: string
   name: string
   quotes: boolean
 }
@@ -124,8 +128,15 @@ export interface PartsPlace {
 export function partsPlaceOf(ctx: CatalogueCtx): PartsPlace | null {
   const table = partsTable(ctx)
   if (!table) return null
-  const place = Object.values(ctx.modules).find((m) => m.tableIds.includes(table.id))
-  return place
-    ? { id: place.id, name: place.name, quotes: place.capabilities.includes('quote') }
-    : null
+  const place = placeOfList(
+    placesOf(ctx.modules, ctx.entities, ctx.rowsByEntity),
+    ctx.modules,
+    table.id,
+  )
+  if (!place) return null
+  return {
+    address: addressOf(place, ctx.modules),
+    name: place.name,
+    quotes: ctx.modules[place.moduleId]?.capabilities.includes('quote') ?? false,
+  }
 }

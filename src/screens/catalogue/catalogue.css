@@ -352,10 +352,11 @@
   font-weight: 600;
 }
 
-/* NORTHSIDE'S WORK OVER EVERY AISLE: pictures by code, and the suppliers named */
+/* NORTHSIDE'S WORK OVER EVERY AISLE: pictures by code across the row, then the two ways on — the
+   parts with no picture and the suppliers named — side by side wherever two fit */
 .chd-door__keep {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(100)), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(80)), 1fr));
   gap: --spacing(4);
   padding-block-start: --spacing(4);
   border-block-start: 1px solid var(--color-rule-strong);
@@ -374,6 +375,9 @@
     0 0 0 1px var(--color-rule);
   color: inherit;
   text-decoration: none;
+}
+.chd-door__keep > .chd-bycode {
+  grid-column: 1 / -1;
 }
 .chd-bycode[data-over] {
   box-shadow: var(--ring-chosen);
@@ -596,36 +600,40 @@
   flex: 0 0 auto;
   max-inline-size: 100%;
 }
-
-.chd-tools {
-  display: grid;
-  gap: --spacing(3);
-}
-.chd-tools__row {
+/* the supplier folded to a menu (where the chips have no room) and the order, at the dock's end */
+.chd-dock__tools {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: --spacing(2) --spacing(3);
+  flex: 0 1 auto;
+  gap: --spacing(2);
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  margin-inline-start: auto;
 }
+.chd-suppliers-folded {
+  display: none;
+  flex: 1 1 --spacing(52);
+  min-inline-size: 0;
+}
+.chd-sort {
+  flex: 0 1 --spacing(60);
+  min-inline-size: 0;
+}
+
+/* THE SUPPLIERS AS CHIPS, a row of their own under the dock, with the way to name the codes */
 .chd-suppliers {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: --spacing(2);
-  flex: 1 1 --spacing(120);
   min-inline-size: 0;
   margin: 0;
   padding: 0;
   border: 0;
 }
-.chd-suppliers-folded {
-  display: none;
-  flex: 1 1 --spacing(56);
-  min-inline-size: 0;
-}
-.chd-sort {
-  flex: 0 1 --spacing(64);
-  min-inline-size: 0;
-  margin-inline-start: auto;
+.chd-suppliers__name {
+  margin-inline-start: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
 }
 
 /* THE CUSTOMER'S BOAT: a pill of its own, the file's deep blue when one is chosen */
@@ -672,6 +680,8 @@
 }
 .chd-boat__count {
   font-weight: 500;
+  /* "4 made for it" is said whole, on the name's last line or the next (the verifier, b05 at 390) */
+  white-space: nowrap;
 }
 .chd-boat__off {
   display: inline-grid;
@@ -688,7 +698,11 @@
 .chd-boats {
   display: grid;
   gap: --spacing(3);
-  inline-size: min(--spacing(96), calc(100vw - --spacing(8)));
+  /* the kit's popover is 360 at most, padded 16 each side: what is inside it is 328 at most, and
+     never wider than the window leaves it (the verifier, c01: a 384 field in a 360 popover) */
+  inline-size: --spacing(82);
+  max-inline-size: 100%;
+  min-inline-size: 0;
 }
 .chd-boats__lead,
 .chd-boats__none {
@@ -752,11 +766,20 @@
 .chd-made {
   display: grid;
   gap: --spacing(2);
-  padding: --spacing(4) --spacing(5);
+  /* no room at the sides: its lines are as wide as the ledger's under it, so code, supplier and
+     the two prices stand in the same columns (the verifier, b05 at 1920: 20 px left of them) */
+  padding: --spacing(4) 0 --spacing(2);
   border-radius: var(--radius-plate);
   background: var(--color-plate-tint);
   box-shadow: inset 0 0 0 1px var(--color-blue-300);
   container-type: inline-size;
+}
+.chd-made__head,
+.chd-made > .chd-said {
+  padding-inline: --spacing(3);
+}
+.chd-made > .chd-said {
+  padding-block-end: --spacing(2);
 }
 .chd-made__head {
   color: var(--color-ink);
@@ -1048,6 +1071,12 @@
 .chd-line .chd-prices {
   grid-area: prices;
 }
+.chd-line__note {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-file);
+}
 .chd-line__caret {
   grid-area: caret;
   justify-self: end;
@@ -1186,6 +1215,25 @@
   color: var(--color-ink);
   overflow-wrap: anywhere;
 }
+/* the boats past the first three, a press away and every one named */
+.chd-boatsmore {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-ink-file);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.chd-boatsmore:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
 .chd-acts {
   display: flex;
   flex-wrap: wrap;
@@ -1193,6 +1241,8 @@
 }
 .chd-own {
   inline-size: min(100%, --spacing(80));
+  /* what lands in it is brought clear of the bar at a phone's foot (Wares.tsx, useInSight) */
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(2));
 }
 /* with room, Northside's own picture stands at the opened part's right, beside what it says */
 @container (min-width: 760px) {
@@ -1214,6 +1264,106 @@
 .chd-foot {
   margin: 0;
   padding-block-start: --spacing(6);
+}
+
+/* ================================================================================
+   THE PARTS WITH NO PICTURE
+   ================================================================================ */
+.chd-pics {
+  display: grid;
+  gap: --spacing(6);
+}
+.chd-pics__head {
+  display: grid;
+  gap: --spacing(2);
+}
+.chd-pics__title {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+}
+.chd-pics__lede {
+  margin: 0;
+  max-inline-size: 72ch;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.chd-pics__lede b {
+  color: var(--color-ink);
+}
+.chd-pics__block {
+  display: grid;
+  gap: --spacing(3);
+  min-inline-size: 0;
+}
+.chd-pics__h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  margin: 0;
+  padding-block-end: --spacing(2);
+  border-block-end: --spacing(0.5) solid var(--color-ink);
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+}
+.chd-pics__n {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.chd-pics__more {
+  padding: --spacing(3);
+}
+.chd-pics__aisles {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+.chd-pics__aisle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'name way' 'count way';
+  align-items: center;
+  gap: 0 --spacing(4);
+  min-block-size: --spacing(12);
+  padding: --spacing(2.5) --spacing(3);
+  border-block-end: 1px solid var(--color-rule);
+}
+.chd-pics__name {
+  grid-area: name;
+  min-inline-size: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.chd-pics__count {
+  grid-area: count;
+  min-inline-size: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.chd-pics__aisle > .chd-way {
+  grid-area: way;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+@container (min-width: 720px) {
+  .chd-pics__aisle {
+    grid-template-columns: minmax(0, 1fr) --spacing(80) auto;
+    grid-template-areas: 'name count way';
+  }
 }
 
 /* ================================================================================
@@ -1366,13 +1516,21 @@
   .chd-boat {
     margin-inline-start: 0;
   }
+  /* the supplier and the order share a row of their own; once the dock is stuck it keeps only
+     what you are looking for (where, find, which parts), so it takes no more of a phone */
+  .chd-dock__tools {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
   .chd-suppliers-folded,
   .chd-sort {
     flex: 1 1 0;
-    margin-inline-start: 0;
+  }
+  .chd-dock[data-stuck] .chd-dock__tools {
+    display: none;
   }
   .chd-made {
-    padding: --spacing(3) --spacing(4);
+    padding-block: --spacing(3) --spacing(1);
   }
 }
 
@@ -1407,8 +1565,41 @@
   .chd-mark img {
     block-size: --spacing(10);
   }
+  /* the counts and the way to the headings share a line under the name */
+  .chd-head__words {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 --spacing(3);
+  }
+  .chd-head__title {
+    flex-basis: 100%;
+  }
+  /* THE DOCK IS ONE ROW where it can be (the verifier, b02 and b22 at 844×390: no part in the
+     first window, and the bar and dock 149 of 390 px once scrolled). At the top it is find, the
+     supplier and the order, with which parts beside them in an aisle that has pictures; stuck,
+     it is where you are and find, and nothing else */
   .chd-dock {
     padding-block: --spacing(2);
+  }
+  .chd-dock .chd-find {
+    flex: 1 1 --spacing(56);
+  }
+  .chd-dock__tools {
+    flex: 0 1 --spacing(84);
+  }
+  .chd-suppliers-folded,
+  .chd-sort {
+    flex: 1 1 0;
+  }
+  .chd-dock[data-stuck] .chd-dock__where {
+    flex: 0 1 auto;
+    order: -1;
+    max-inline-size: 45%;
+  }
+  .chd-dock[data-stuck] .chd-dock__tools,
+  .chd-dock[data-stuck] .chd-dock__show {
+    display: none;
   }
 }
 
