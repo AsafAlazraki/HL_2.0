@@ -1,0 +1,56 @@
+[
+  {
+    "id": "refero-product-catalog",
+    "url": "https://refero.design/search?q=product%20catalog",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://refero.design/search?q=product%20catalog",
+    "title": "Refero — Search",
+    "file": "refero-product-catalog.png"
+  },
+  {
+    "id": "refero-inventory",
+    "url": "https://refero.design/search?q=inventory",
+    "wait": 5000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://refero.design/search?q=inventory",
+    "title": "Refero — Search",
+    "file": "refero-inventory.png"
+  },
+  {
+    "id": "dribbble-inventory",
+    "url": "https://dribbble.com/tags/inventory_management",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://dribbble.com/tags/inventory_management",
+    "title": "Inventory Management designs, themes, templates and downloadable graphic elements on Dribbble",
+    "file": "dribbble-inventory.png"
+  },
+  {
+    "id": "dribbble-product-catalog",
+    "url": "https://dribbble.com/tags/product_catalog",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://dribbble.com/tags/product_catalog",
+    "title": "Product Catalog designs, themes, templates and downloadable graphic elements on Dribbble",
+    "file": "dribbble-product-catalog.png"
+  },
+  {
+    "id": "awwwards-ecommerce",
+    "url": "https://www.awwwards.com/websites/e-commerce/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.awwwards.com/websites/e-commerce/",
+    "title": "E-commerce Websites Examples",
+    "file": "awwwards-ecommerce.png"
+  },
+  {
+    "id": "nicelydone-tables",
+    "url": "https://nicelydone.club/tags/table",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://nicelydone.club/examples/tags/table",
+    "title": "Table screen examples - Nicelydone",
+    "file": "nicelydone-tables.png"
+  }
+]

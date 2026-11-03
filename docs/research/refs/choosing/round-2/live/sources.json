@@ -1,0 +1,962 @@
+[
+  {
+    "id": "mcmaster-cleats",
+    "url": "https://www.mcmaster.com/products/cleats/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mcmaster.com/products/cleats/",
+    "title": "McMaster-Carr",
+    "file": "mcmaster-cleats.png"
+  },
+  {
+    "id": "mcmaster-cleats-scrolled",
+    "url": "https://www.mcmaster.com/products/cleats/",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 2000
+      },
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mcmaster.com/products/cleats/",
+    "title": "McMaster-Carr",
+    "file": "mcmaster-cleats-scrolled.png"
+  },
+  {
+    "id": "digikey-toggle-filter",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-filter.png"
+  },
+  {
+    "id": "bluebottle-bla-brand",
+    "url": "https://www.bluebottlemarine.com/brands/BLA.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://bluebottlemarine.com/brands/BLA.html",
+    "title": "BLA Boating Products | Blue Bottle Marine",
+    "file": "bluebottle-bla-brand.png"
+  },
+  {
+    "id": "bluebottle-anchors",
+    "url": "https://www.bluebottlemarine.com/categories/marine-products/anchor-winches/anchors.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://bluebottlemarine.com/categories/marine-products/anchor-winches/anchors.html/",
+    "title": "Anchors | Blue Bottle Marine",
+    "file": "bluebottle-anchors.png"
+  },
+  {
+    "id": "boatwarehouse-anchors",
+    "url": "https://www.theboatwarehouse.com.au/categories/anchors-chain-fenders-buoys-mooring/anchors.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.theboatwarehouse.com.au/categories/anchors-chain-fenders-buoys-mooring/anchors.html",
+    "title": "Stainless Steel Anchors, Sand Anchors & More | The Boat Warehouse Australia",
+    "file": "boatwarehouse-anchors.png"
+  },
+  {
+    "id": "marinedepot-sand-anchor",
+    "url": "https://www.marinedepot.com.au/anchor-sand-22lb-10kg",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.marinedepot.com.au/anchor-sand-22lb-10kg",
+    "title": "10kg Mud and Sand Anchor Galvanised Boat Fishing Marine Mooring Retrieval Eye - BLA",
+    "file": "marinedepot-sand-anchor.png"
+  },
+  {
+    "id": "defender-search-anchor",
+    "url": "https://www.defender.com/en_us/catalogsearch/result/?q=anchor",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.defender.com/en_us/catalogsearch/result/?q=anchor",
+    "title": "Just a moment...",
+    "file": "defender-search-anchor.png"
+  },
+  {
+    "id": "jamestown-home",
+    "url": "https://www.jamestowndistributors.com/",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.jamestowndistributors.com/",
+    "title": "Jamestown Distributors: Boat Building Repair and Project Supplies",
+    "file": "jamestown-home.png"
+  },
+  {
+    "id": "svb-home",
+    "url": "https://www.svb-marine.com/en/",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.svb-marine.com/en/",
+    "title": "",
+    "file": "svb-home.png",
+    "error": "page.goto: net::ERR_CERT_AUTHORITY_INVALID at https://www.svb-marine.com/en/"
+  },
+  {
+    "id": "burnsco-home",
+    "url": "https://www.burnsco.co.nz/",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.burnsco.co.nz/",
+    "title": "Burnsco | Boating, Motorhome, Fishing & more | NZ",
+    "file": "burnsco-home.png"
+  },
+  {
+    "id": "repco-home",
+    "url": "https://www.repco.com.au/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.repco.com.au/",
+    "title": "Repco Australia | Auto Parts Store - Aftermarket Car Parts & Accessories",
+    "file": "repco-home.png"
+  },
+  {
+    "id": "autosuperstore-home",
+    "url": "https://automotivesuperstore.com.au/",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://automotivesuperstore.com.au/",
+    "title": "Just a moment...",
+    "file": "autosuperstore-home.png"
+  },
+  {
+    "id": "sparesbox-home",
+    "url": "https://www.sparesbox.com.au/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.sparesbox.com.au/",
+    "title": "Sparesbox — This E-Store Has Now Closed | Now Powering Repco",
+    "file": "sparesbox-home.png"
+  },
+  {
+    "id": "marineengine-yamaha",
+    "url": "https://www.marineengine.com/parts/yamaha-outboard-parts.php",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.marineengine.com/parts/yamaha-outboard-parts.php",
+    "title": "Just a moment...",
+    "file": "marineengine-yamaha.png"
+  },
+  {
+    "id": "crowley-yamaha",
+    "url": "https://www.crowleymarine.com/yamaha-outboard-parts.cfm",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.crowleymarine.com/yamaha/oem-parts/outboard",
+    "title": "Yamaha Outboard Parts | Crowley Marine",
+    "file": "crowley-yamaha.png"
+  },
+  {
+    "id": "partstream-home",
+    "url": "https://www.partstream.com/",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.partstream.com/",
+    "title": "Redirecting...",
+    "file": "partstream-home.png"
+  },
+  {
+    "id": "grainger-anchors",
+    "url": "https://www.grainger.com/category/fasteners/anchors",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.grainger.com/category/fasteners/anchors",
+    "title": "Whoops, we couldn't find that.",
+    "file": "grainger-anchors.png"
+  },
+  {
+    "id": "fastenal-fasteners",
+    "url": "https://www.fastenal.com/product/fasteners?categoryId=600000",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.fastenal.com/product/fasteners?categoryId=600000",
+    "title": "Access Denied",
+    "file": "fastenal-fasteners.png"
+  },
+  {
+    "id": "akeneo-product-grid",
+    "url": "https://help.akeneo.com/pim/v2/articles/products-grid.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/v2-take-the-power-over-your-products/83-v2-get-familiar-with-the-product-grid",
+    "title": "Get familiar with the product grid - Akeneo",
+    "file": "akeneo-product-grid.png"
+  },
+  {
+    "id": "akeneo-completeness",
+    "url": "https://help.akeneo.com/pim/serenity/articles/what-is-the-completeness.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/serenity-your-first-steps-with-akeneo/serenity-understand-product-completeness",
+    "title": "Understand product completeness - Akeneo",
+    "file": "akeneo-completeness.png"
+  },
+  {
+    "id": "polaris-index-table",
+    "url": "https://polaris-react.shopify.com/components/tables/index-table",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-index-table.png"
+  },
+  {
+    "id": "polaris-index-table-scrolled",
+    "url": "https://polaris-react.shopify.com/components/tables/index-table",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-index-table-scrolled.png"
+  },
+  {
+    "id": "polaris-index-filters",
+    "url": "https://polaris-react.shopify.com/components/selection-and-input/index-filters",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-index-filters.png"
+  },
+  {
+    "id": "shopify-bulk-editor",
+    "url": "https://help.shopify.com/en/manual/products/bulk-editing-products",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/products",
+    "title": "Shopify Help Center | Products",
+    "file": "shopify-bulk-editor.png"
+  },
+  {
+    "id": "shopify-products",
+    "url": "https://help.shopify.com/en/manual/products",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/products",
+    "title": "Shopify Help Center | Products",
+    "file": "shopify-products.png"
+  },
+  {
+    "id": "shopify-product-media",
+    "url": "https://help.shopify.com/en/manual/products/product-media",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.shopify.com/en/manual/products/product-media",
+    "title": "Shopify Help Center | Product media",
+    "file": "shopify-product-media.png"
+  },
+  {
+    "id": "stripe-product-catalog",
+    "url": "https://docs.stripe.com/products-prices/overview",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://docs.stripe.com/products-prices/overview",
+    "title": "Overview | Stripe Documentation",
+    "file": "stripe-product-catalog.png"
+  },
+  {
+    "id": "dockmaster-parts",
+    "url": "https://www.dockmaster.com/parts-inventory-management",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.dockmaster.com/parts-inventory-management",
+    "title": "DockMaster — Marina Management Software for Marinas, Boatyards & Dealerships",
+    "file": "dockmaster-parts.png"
+  },
+  {
+    "id": "goodui-list-or-grid",
+    "url": "https://goodui.org/patterns/37",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://goodui.org/patterns/37",
+    "title": "Pattern #37: List Or Grid View | GoodUI",
+    "file": "goodui-list-or-grid.png"
+  },
+  {
+    "id": "lightspeed-dms-parts",
+    "url": "https://www.lightspeeddms.com/solutions/parts/",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/parts/",
+    "title": "Parts Management Software | Lightspeed DMS",
+    "file": "lightspeed-dms-parts.png"
+  },
+  {
+    "id": "apple-accessories-compat",
+    "url": "https://www.apple.com/au/shop/accessories/all",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/accessories/all",
+    "title": "Apple accessories for Apple Watch, iPhone, iPad, Mac, and Vision Pro - Apple (AU)",
+    "file": "apple-accessories-compat.png"
+  },
+  {
+    "id": "apple-accessories-compat-scrolled",
+    "url": "https://www.apple.com/au/shop/accessories/all",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/accessories/all",
+    "title": "Apple accessories for Apple Watch, iPhone, iPad, Mac, and Vision Pro - Apple (AU)",
+    "file": "apple-accessories-compat-scrolled.png"
+  },
+  {
+    "id": "polaris-archive-index-table",
+    "url": "https://shopify.github.io/polaris-react-archive/components/tables/index-table",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://storybook.polaris.shopify.dev/components/tables/index-table",
+    "title": "Page not found · GitHub Pages",
+    "file": "polaris-archive-index-table.png"
+  },
+  {
+    "id": "polaris-archive-index-table-scrolled",
+    "url": "https://shopify.github.io/polaris-react-archive/components/tables/index-table",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://storybook.polaris.shopify.dev/components/tables/index-table",
+    "title": "Page not found · GitHub Pages",
+    "file": "polaris-archive-index-table-scrolled.png"
+  },
+  {
+    "id": "polaris-archive-index-filters",
+    "url": "https://shopify.github.io/polaris-react-archive/components/selection-and-input/index-filters",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://storybook.polaris.shopify.dev/components/selection-and-input/index-filters",
+    "title": "Page not found · GitHub Pages",
+    "file": "polaris-archive-index-filters.png"
+  },
+  {
+    "id": "akeneo-grid-display",
+    "url": "https://help.akeneo.com/pim/v2/articles/products-grid.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1500
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/v2-take-the-power-over-your-products/83-v2-get-familiar-with-the-product-grid",
+    "title": "Get familiar with the product grid - Akeneo",
+    "file": "akeneo-grid-display.png"
+  },
+  {
+    "id": "akeneo-grid-filters",
+    "url": "https://help.akeneo.com/pim/v2/articles/products-grid.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/v2-take-the-power-over-your-products/83-v2-get-familiar-with-the-product-grid",
+    "title": "Get familiar with the product grid - Akeneo",
+    "file": "akeneo-grid-filters.png"
+  },
+  {
+    "id": "akeneo-grid-search",
+    "url": "https://help.akeneo.com/pim/v2/articles/products-grid.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 4800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/v2-take-the-power-over-your-products/83-v2-get-familiar-with-the-product-grid",
+    "title": "Get familiar with the product grid - Akeneo",
+    "file": "akeneo-grid-search.png"
+  },
+  {
+    "id": "akeneo-grid-columns",
+    "url": "https://help.akeneo.com/pim/v2/articles/products-grid.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 6400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/v2-take-the-power-over-your-products/83-v2-get-familiar-with-the-product-grid",
+    "title": "Get familiar with the product grid - Akeneo",
+    "file": "akeneo-grid-columns.png"
+  },
+  {
+    "id": "akeneo-completeness-grid",
+    "url": "https://help.akeneo.com/pim/serenity/articles/what-is-the-completeness.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1300
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/en_US/serenity-your-first-steps-with-akeneo/serenity-understand-product-completeness",
+    "title": "Understand product completeness - Akeneo",
+    "file": "akeneo-completeness-grid.png"
+  },
+  {
+    "id": "digikey-toggle-table",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 720
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-table.png"
+  },
+  {
+    "id": "bluebottle-bla-list",
+    "url": "https://www.bluebottlemarine.com/brands/BLA.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "click": "a[title*='List' i], a[aria-label*='list' i], [data-grid-view-type='list'], .actionBar-list"
+      },
+      {
+        "wait": 2500
+      },
+      {
+        "scroll": 650
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.bluebottlemarine.com/brands/BLA.html",
+    "title": "",
+    "file": "bluebottle-bla-list.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "bluebottle-bla-grid-scrolled",
+    "url": "https://www.bluebottlemarine.com/brands/BLA.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 650
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://bluebottlemarine.com/brands/BLA.html",
+    "title": "BLA Boating Products | Blue Bottle Marine",
+    "file": "bluebottle-bla-grid-scrolled.png"
+  },
+  {
+    "id": "boatwarehouse-anchors-list",
+    "url": "https://www.theboatwarehouse.com.au/categories/anchors-chain-fenders-buoys-mooring/anchors.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "click": "a[title*='List' i], a[aria-label*='list' i], [data-grid-view-type='list'], .actionBar-list"
+      },
+      {
+        "wait": 2500
+      },
+      {
+        "scroll": 350
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.theboatwarehouse.com.au/categories/anchors-chain-fenders-buoys-mooring/anchors.html",
+    "title": "Stainless Steel Anchors, Sand Anchors & More | The Boat Warehouse Australia",
+    "file": "boatwarehouse-anchors-list.png"
+  },
+  {
+    "id": "crowley-yamaha-scrolled",
+    "url": "https://www.crowleymarine.com/yamaha-outboard-parts.cfm",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.crowleymarine.com/yamaha/oem-parts/outboard",
+    "title": "Yamaha Outboard Parts | Crowley Marine",
+    "file": "crowley-yamaha-scrolled.png"
+  },
+  {
+    "id": "lightspeed-dms-parts-scrolled",
+    "url": "https://www.lightspeeddms.com/solutions/parts/",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/parts/",
+    "title": "Parts Management Software | Lightspeed DMS",
+    "file": "lightspeed-dms-parts-scrolled.png"
+  },
+  {
+    "id": "repco-my-vehicle",
+    "url": "https://www.repco.com.au/",
+    "wait": 3000,
+    "steps": [
+      {
+        "key": "Escape"
+      },
+      {
+        "click": "button[aria-label*='Close' i], .QSIWebResponsiveDialog-Layout1-SI_bHGVBNKqTsSaXL8_close-btn, [class*='close-btn']"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "text": "My Vehicle"
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.repco.com.au/",
+    "title": "",
+    "file": "repco-my-vehicle.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "digikey-product-index",
+    "url": "https://www.digikey.com.au/en/products",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products",
+    "title": "Electronic Components and Parts Search | DigiKey",
+    "file": "digikey-product-index.png"
+  },
+  {
+    "id": "digikey-search-maker-word",
+    "url": "https://www.digikey.com.au/en/products/result?keywords=garmin",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/result?s=N4IgTCBcDaIOYEMBOBbAlgOxAXQL5A",
+    "title": "Electronic Components and Parts Search | DigiKey",
+    "file": "digikey-search-maker-word.png"
+  },
+  {
+    "id": "apple-iphone-cases-compat",
+    "url": "https://www.apple.com/au/shop/iphone/iphone-accessories/cases-protection",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories/cases-protection",
+    "title": "Cases & Protection - iPhone Accessories - Apple (AU)",
+    "file": "apple-iphone-cases-compat.png"
+  },
+  {
+    "id": "apple-iphone-cases-compat-scrolled",
+    "url": "https://www.apple.com/au/shop/iphone/iphone-accessories/cases-protection",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories/cases-protection",
+    "title": "Cases & Protection - iPhone Accessories - Apple (AU)",
+    "file": "apple-iphone-cases-compat-scrolled.png"
+  },
+  {
+    "id": "halfords-batteries",
+    "url": "https://www.halfords.com/motoring/car-batteries/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.halfords.com/motoring/car-batteries/",
+    "title": "Sites-halfords-uk-Site",
+    "file": "halfords-batteries.png"
+  },
+  {
+    "id": "tyroola-fitted",
+    "url": "https://www.tyroola.com.au/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.tyroola.com.au/",
+    "title": "Buy Tyres Online | Cheap Tyres Online | Tyroola",
+    "file": "tyroola-fitted.png"
+  },
+  {
+    "id": "bluebottle-quotes",
+    "url": "https://www.bluebottlemarine.com/quote/",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://bluebottlemarine.com/quote/",
+    "title": "Quote",
+    "file": "bluebottle-quotes.png"
+  },
+  {
+    "id": "marinedepot-sand-anchors-list",
+    "url": "https://www.marinedepot.com.au/boat-anchors-docking/boat-anchors/sand-anchors",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.marinedepot.com.au/boat-anchors-docking/boat-anchors/sand-anchors",
+    "title": "",
+    "file": "marinedepot-sand-anchors-list.png"
+  },
+  {
+    "id": "marinedepot-brand-bla",
+    "url": "https://www.marinedepot.com.au/brands/bla",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.marinedepot.com.au/brands/bla",
+    "title": "",
+    "file": "marinedepot-brand-bla.png"
+  },
+  {
+    "id": "toyota-hilux-acc-list",
+    "url": "https://www.toyota.com.au/hilux/accessories",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.toyota.com.au/hilux/accessories",
+    "title": "HiLux Accessories | Bull Bars, Roof Racks, Canopies, Seat Covers and More | Toyota Australia",
+    "file": "toyota-hilux-acc-list.png"
+  },
+  {
+    "id": "isuzu-dmax-accessories",
+    "url": "https://www.isuzuute.com.au/d-max/accessories",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.isuzuute.com.au/d-max/accessories",
+    "title": "Isuzu D-MAX Genuine Accessories | Isuzu UTE Australia",
+    "file": "isuzu-dmax-accessories.png"
+  },
+  {
+    "id": "mazda-bt50-accessories",
+    "url": "https://www.mazda.com.au/accessories/bt-50/",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/accessories/find-accessories/bt-50/?bodyStyle=Dual%20Cab&category=All%20Accessories",
+    "title": "Mazda BT-50 Accessories | Mazda Australia",
+    "file": "mazda-bt50-accessories.png"
+  },
+  {
+    "id": "ford-ranger-accessories",
+    "url": "https://www.ford.com.au/accessories/ranger/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.ford.com.au/accessories/ranger/",
+    "title": "Access Denied",
+    "file": "ford-ranger-accessories.png"
+  },
+  {
+    "id": "openrefine-cluster",
+    "url": "https://openrefine.org/docs/manual/cellediting",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Cluster and edit"
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://openrefine.org/docs/manual/cellediting",
+    "title": "Cell editing | OpenRefine",
+    "file": "openrefine-cluster.png"
+  },
+  {
+    "id": "akeneo-product-link-rules",
+    "url": "https://help.akeneo.com/pim/serenity/articles/assets-product-link-rules.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/akeneo-dam-prepare/the-basics-of-transformations-and-product-link-rules",
+    "title": "The Basics of Transformations and Product Link Rules - Akeneo",
+    "file": "akeneo-product-link-rules.png"
+  },
+  {
+    "id": "akeneo-product-link-rules-scrolled",
+    "url": "https://help.akeneo.com/pim/serenity/articles/assets-product-link-rules.html",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://help.akeneo.com/akeneo-dam-prepare/the-basics-of-transformations-and-product-link-rules",
+    "title": "The Basics of Transformations and Product Link Rules - Akeneo",
+    "file": "akeneo-product-link-rules-scrolled.png"
+  },
+  {
+    "id": "tyroola-size-list",
+    "url": "https://www.tyroola.com.au/tyres/size/265-65r17",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.tyroola.com.au/tyre/size/265-65r17/nsw/",
+    "title": "Size 265 65r17 Tyres in New South Wales at Best Prices - Tyroola Australia",
+    "file": "tyroola-size-list.png"
+  },
+  {
+    "id": "openrefine-cluster-dialog",
+    "url": "https://openrefine.org/docs/manual/cellediting",
+    "wait": 2000,
+    "steps": [
+      {
+        "text": "Cluster and edit"
+      },
+      {
+        "wait": 1500
+      },
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://openrefine.org/docs/manual/cellediting",
+    "title": "Cell editing | OpenRefine",
+    "file": "openrefine-cluster-dialog.png"
+  },
+  {
+    "id": "mazda-bt50-accessories-top",
+    "url": "https://www.mazda.com.au/accessories/bt-50/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/accessories/find-accessories/bt-50/?bodyStyle=Dual%20Cab&category=All%20Accessories",
+    "title": "Mazda BT-50 Accessories | Mazda Australia",
+    "file": "mazda-bt50-accessories-top.png"
+  },
+  {
+    "id": "digikey-toggle-844x390",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-844x390.png"
+  },
+  {
+    "id": "apple-iphone-cases-844x390",
+    "url": "https://www.apple.com/au/shop/iphone/iphone-accessories/cases-protection",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories/cases-protection",
+    "title": "Cases & Protection - iPhone Accessories - Apple (AU)",
+    "file": "apple-iphone-cases-844x390.png"
+  },
+  {
+    "id": "mazda-bt50-844x390",
+    "url": "https://www.mazda.com.au/accessories/bt-50/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/accessories/find-accessories/bt-50/?bodyStyle=Dual%20Cab&category=All%20Accessories",
+    "title": "Mazda BT-50 Accessories | Mazda Australia",
+    "file": "mazda-bt50-844x390.png"
+  },
+  {
+    "id": "digikey-toggle-834x1112",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-834x1112.png"
+  },
+  {
+    "id": "apple-iphone-cases-834x1112",
+    "url": "https://www.apple.com/au/shop/iphone/iphone-accessories/cases-protection",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories/cases-protection",
+    "title": "Cases & Protection - iPhone Accessories - Apple (AU)",
+    "file": "apple-iphone-cases-834x1112.png"
+  },
+  {
+    "id": "mazda-bt50-834x1112",
+    "url": "https://www.mazda.com.au/accessories/bt-50/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/accessories/find-accessories/bt-50/?bodyStyle=Dual%20Cab&category=All%20Accessories",
+    "title": "Mazda BT-50 Accessories | Mazda Australia",
+    "file": "mazda-bt50-834x1112.png"
+  },
+  {
+    "id": "digikey-toggle-1280x800",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-1280x800.png"
+  },
+  {
+    "id": "apple-iphone-cases-1280x800",
+    "url": "https://www.apple.com/au/shop/iphone/iphone-accessories/cases-protection",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories/cases-protection",
+    "title": "Cases & Protection - iPhone Accessories - Apple (AU)",
+    "file": "apple-iphone-cases-1280x800.png"
+  },
+  {
+    "id": "mazda-bt50-1280x800",
+    "url": "https://www.mazda.com.au/accessories/bt-50/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/accessories/find-accessories/bt-50/?bodyStyle=Dual%20Cab&category=All%20Accessories",
+    "title": "Mazda BT-50 Accessories | Mazda Australia",
+    "file": "mazda-bt50-1280x800.png"
+  },
+  {
+    "id": "digikey-toggle-1920x1080",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-1920x1080.png"
+  },
+  {
+    "id": "apple-iphone-cases-1920x1080",
+    "url": "https://www.apple.com/au/shop/iphone/iphone-accessories/cases-protection",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories/cases-protection",
+    "title": "Cases & Protection - iPhone Accessories - Apple (AU)",
+    "file": "apple-iphone-cases-1920x1080.png"
+  },
+  {
+    "id": "mazda-bt50-1920x1080",
+    "url": "https://www.mazda.com.au/accessories/bt-50/",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.mazda.com.au/accessories/find-accessories/bt-50/?bodyStyle=Dual%20Cab&category=All%20Accessories",
+    "title": "Mazda BT-50 Accessories | Mazda Australia",
+    "file": "mazda-bt50-1920x1080.png"
+  }
+]

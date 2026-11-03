@@ -1,0 +1,89 @@
+[
+  {
+    "id": "digikey-toggle-390",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-390.png"
+  },
+  {
+    "id": "digikey-toggle-390-scrolled",
+    "url": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.digikey.com.au/en/products/filter/toggle-switches/196",
+    "title": "Keylock Switches | Switches | DigiKey",
+    "file": "digikey-toggle-390-scrolled.png"
+  },
+  {
+    "id": "bluebottle-bla-390",
+    "url": "https://www.bluebottlemarine.com/brands/BLA.html",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://bluebottlemarine.com/brands/BLA.html",
+    "title": "BLA Boating Products | Blue Bottle Marine",
+    "file": "bluebottle-bla-390.png"
+  },
+  {
+    "id": "boatwarehouse-anchors-390",
+    "url": "https://www.theboatwarehouse.com.au/categories/anchors-chain-fenders-buoys-mooring/anchors.html",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.theboatwarehouse.com.au/categories/anchors-chain-fenders-buoys-mooring/anchors.html",
+    "title": "Stainless Steel Anchors, Sand Anchors & More | The Boat Warehouse Australia",
+    "file": "boatwarehouse-anchors-390.png"
+  },
+  {
+    "id": "apple-iphone-cases-390",
+    "url": "https://www.apple.com/au/shop/iphone/iphone-accessories/cases-protection",
+    "wait": 4000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories/cases-protection",
+    "title": "Cases & Protection - iPhone Accessories - Apple (AU)",
+    "file": "apple-iphone-cases-390.png"
+  },
+  {
+    "id": "crowley-yamaha-390",
+    "url": "https://www.crowleymarine.com/yamaha-outboard-parts.cfm",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.crowleymarine.com/yamaha/oem-parts/outboard",
+    "title": "Yamaha Outboard Parts | Crowley Marine",
+    "file": "crowley-yamaha-390.png"
+  },
+  {
+    "id": "marinedepot-sand-anchor-390",
+    "url": "https://www.marinedepot.com.au/anchor-sand-22lb-10kg",
+    "wait": 3000,
+    "capturedAt": "2026-11-03",
+    "finalUrl": "https://www.marinedepot.com.au/anchor-sand-22lb-10kg",
+    "title": "10kg Mud and Sand Anchor Galvanised Boat Fishing Marine Mooring Retrieval Eye - BLA",
+    "file": "marinedepot-sand-anchor-390.png"
+  }
+]
