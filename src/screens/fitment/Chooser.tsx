@@ -72,6 +72,12 @@ const noteOf = (b: BoatFound): string =>
 /** A model as its line says it: the name, and what a one-line model adds ("GRT 455 · Side Console"). */
 const modelSaid = (m: BoatModel): string => (m.trim === '' ? m.name : `${m.name} · ${m.trim}`)
 
+/** A model the maker gives no name is drawn by the price list's code, and its note says so, so
+ *  "SP300" beside "Sport 330" reads as the file's word, not a slip (the fitment verifier,
+ *  2026-11-03; the names ledger: Highfield's site has no Sport 300). */
+const withCode = (m: BoatModel, note: string): string =>
+  m.coded ? [note, 'the price list’s code'].join(' · ') : note
+
 /** The maker said once, above its models, not again on each of them. */
 const bare = (maker: string, name: string): string =>
   name.toLowerCase().startsWith(`${maker.toLowerCase()} `) ? name.slice(maker.length + 1) : name
@@ -221,13 +227,14 @@ function useFinder(
                     world={world}
                     model={m}
                     maker={maker.maker}
-                    note={
+                    note={withCode(
+                      m,
                       m.versions.length === 1
                         ? m.trim === ''
                           ? noteOf(m.versions[0]!)
                           : m.versions[0]!.code
-                        : plural(m.versions.length, 'version', 'versions')
-                    }
+                        : plural(m.versions.length, 'version', 'versions'),
+                    )}
                     onChoose={onChoose}
                   />
                 ))}
@@ -299,7 +306,7 @@ function useFinder(
                 <Row
                   kind="boat"
                   title={modelSaid(f.model)}
-                  note={note}
+                  note={withCode(f.model, note)}
                   href={hrefOf(first)}
                   onPress={() => onChoose(first.place.rowId)}
                 />

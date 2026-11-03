@@ -17,6 +17,7 @@
 import type { CellValue, EntityDef, FieldDef } from '@/domain/model'
 import { batch, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import type { ViewRow } from './core'
+import { leadOf, type LeadSplit } from './priceList'
 
 export type Move =
   /** by a share of itself: 4 is a rise of 4 %, −2.5 a fall */
@@ -25,6 +26,8 @@ export type Move =
   | { kind: 'add'; by: number }
   /** to the nearest multiple: 10 rounds $2,883 to $2,880 */
   | { kind: 'round'; to: number }
+  /** to its twin's figure and an amount more: Hypalon at its PVC line + $2,500 (`planTwin`) */
+  | { kind: 'twin'; base: string; by: number }
 
 export type MoveKind = Move['kind']
 
@@ -39,6 +42,9 @@ export function moved(value: number, move: Move): number {
       return cents(value + move.by)
     case 'round':
       return cents(Math.round(value / move.to) * move.to)
+    case 'twin':
+      /* a twin's figure is read off its twin, line by line (`planTwin`), never off itself */
+      return cents(value)
   }
 }
 
@@ -46,7 +52,7 @@ export function moved(value: number, move: Move): number {
  * What a person typed, read as a move of the kind they chose — or the sentence why not. A
  * percentage under −100 would take a price below nothing, and rounding to nothing is no rounding.
  */
-export function readMove(kind: MoveKind, typed: string): Move | { refused: string } {
+export function readMove(kind: MoveKind, typed: string, base = ''): Move | { refused: string } {
   const text = typed
     .replace(/[$,%\s]/g, '')
     .replace(/^\+/, '')
@@ -63,6 +69,8 @@ export function readMove(kind: MoveKind, typed: string): Move | { refused: strin
     if (n === 0) return { refused: 'Adding $0 changes nothing.' }
     return { kind, by: n }
   }
+  /* $0 more is a figure too: Hypalon at exactly its PVC line's price */
+  if (kind === 'twin') return { kind, base, by: n }
   if (n <= 0) return { refused: 'Round to an amount above $0, such as 10.' }
   return { kind, to: n }
 }
@@ -131,7 +139,100 @@ export function moveSaid(move: Move): string {
         : `$${plain.format(-move.by)} taken off`
     case 'round':
       return `rounded to the nearest $${plain.format(move.to)}`
+    case 'twin':
+      return move.by === 0
+        ? `set to its ${move.base} line`
+        : move.by > 0
+          ? `set to its ${move.base} line + $${plain.format(move.by)}`
+          : `set to its ${move.base} line − $${plain.format(-move.by)}`
   }
+}
+
+/**
+ * WHY A MOVE CANNOT BE WRITTEN, SAID BEFORE THE PRESS (the verifier: a −$6,000 move previewed
+ * "$2,770 → −$3,230" beside a live "Change 4", and said no only after it was pressed). The same
+ * reason `moveWrite` gives after a press, in the tense of a plan — or null where it can be.
+ */
+export function planRefusal(plan: MovePlan): string | null {
+  if (plan.negative === 0) return null
+  return `${plan.negative} ${plan.negative === 1 ? 'line' : 'lines'} would go below $0, so this change cannot be made. Nothing is written while any would.`
+}
+
+/* ---------------------------------------------------------- */
+/* A line from its twin                                        */
+/* ---------------------------------------------------------- */
+
+const escape = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * THE SAME LINE IN ANOTHER MATERIAL: "HYP B-G-B" is "PVC B-G-B", "Open (HYP) LG-W-DG" is "Open
+ * (PVC) LG-W-DG" — the leading word the price list already reads (`leadOf`) swapped for `base`
+ * where it stands, and nothing else touched. '' where the text names no leading word.
+ */
+export function twinText(split: LeadSplit, text: string, base: string): string {
+  const lead = leadOf(split, text)
+  if (lead === '') return ''
+  if (lead === base) return text.trim()
+  const m = new RegExp(`(^|[\\s(])${escape(lead)}(?=$|[\\s)])`).exec(text)
+  if (!m) return ''
+  const at = m.index + m[1]!.length
+  return `${text.slice(0, at)}${base}${text.slice(at + lead.length)}`.trim()
+}
+
+export interface TwinPlan extends MovePlan {
+  /** lines in the base material already: they are what the others are read from */
+  based: number
+  /** lines with no twin in the base material, or one with no figure: left as they are */
+  alone: number
+}
+
+/**
+ * HYPALON AT ITS PVC LINE AND AN AMOUNT MORE (the judge's missing arithmetic): each selected line
+ * that is not in the base material takes its twin's figure plus `by` — its twin being the line of
+ * the same model, the same colourway, in the base material (`twinOf`, which the screen builds over
+ * the whole list). A line in the base material, or one with no twin to read, is left as it is and
+ * counted; so is one already there.
+ */
+export function planTwin(
+  rows: readonly ViewRow[],
+  field: FieldDef,
+  rowIndexes: readonly number[],
+  move: { kind: 'twin'; base: string; by: number },
+  twinOf: (row: ViewRow) => ViewRow | 'base' | undefined,
+): TwinPlan {
+  const lines: MovedLine[] = []
+  let blank = 0
+  let same = 0
+  let negative = 0
+  let based = 0
+  let alone = 0
+  for (const i of rowIndexes) {
+    const row = rows[i]
+    if (!row) continue
+    const twin = twinOf(row)
+    if (twin === 'base') {
+      based += 1
+      continue
+    }
+    const from = twin ? figure(twin.values[field.id]) : null
+    if (from === null) {
+      alone += 1
+      continue
+    }
+    const before = figure(row.values[field.id])
+    if (before === null) {
+      blank += 1
+      continue
+    }
+    const after = cents(from + move.by)
+    if (after < 0) negative += 1
+    if (after === before) {
+      same += 1
+      continue
+    }
+    lines.push({ rowId: row.rowId, before, after })
+  }
+  return { lines, blank, same, negative, based, alone }
 }
 
 /**

@@ -168,17 +168,55 @@ export function figureSaid(table: EntityDef, field: FieldDef, n: number): string
 }
 
 /** The text a cell PAINTS: money as money, a link by its name, a
- *  picture as nothing (it is drawn, not printed). */
-export function paintOf(table: EntityDef, field: FieldDef, row: ViewRow): string {
+ *  picture as nothing (it is drawn, not printed). A money column that carries a cent anywhere
+ *  (`centsColumns`) says every figure to the cent. */
+export function paintOf(
+  table: EntityDef,
+  field: FieldDef,
+  row: ViewRow,
+  cents?: ReadonlySet<string>,
+): string {
   const value = row.values[field.id] ?? null
   if (field.type === 'image') return ''
   if (field.type === 'reference') return row.text[field.id] ?? ''
   const text = cellText(value, field)
   if (field.type === 'number')
     return typeof value === 'number' && Number.isFinite(value)
-      ? figureSaid(table, field, value)
+      ? toCents(figureSaid(table, field, value), cents?.has(field.id) ?? false)
       : cellPrintText(field, value, text)
   return formatCell(field, value, undefined, bandOf(table, field))
+}
+
+/** A whole dollar figure said to the cent, where its column says cents: "$159" is "$159.00". */
+const toCents = (said: string, cents: boolean): string =>
+  cents && /^−?\$[\d,]+$/.test(said) ? `${said}.00` : said
+
+/**
+ * THE MONEY COLUMNS THAT ARE KEPT TO THE CENT, so a column says every figure the same way (the
+ * verifier, Labour Rates: "$159" printed beside "$143.10" and "$110.00" in one column). A column
+ * is said to the cent where a quarter or more of its figures carry cents: Labour Rates' inc-GST
+ * rate carries them on 7 of 18 lines and its ex-GST rate on 14 of 18, so both are; Parts' Sell
+ * carries them on 103 of 2,910 and Highfield's Cash on none, so whole dollars stay whole there
+ * (measured on the Master Price File, 2026-11-03) and the few with cents keep them.
+ */
+export function centsColumns(
+  table: EntityDef,
+  rows: readonly { values: Record<string, unknown> }[],
+): ReadonlySet<string> {
+  const out = new Set<string>()
+  for (const f of table.fields) {
+    if (f.type !== 'number' || !figureSaid(table, f, 1).includes('$')) continue
+    let figures = 0
+    let cents = 0
+    for (const r of rows) {
+      const v = r.values[f.id]
+      if (typeof v !== 'number' || !Number.isFinite(v)) continue
+      figures += 1
+      if (Math.abs(v - Math.round(v)) >= 0.005) cents += 1
+    }
+    if (figures > 0 && cents * 4 >= figures) out.add(f.id)
+  }
+  return out
 }
 
 /** The column where the file wrote each line's own address. */

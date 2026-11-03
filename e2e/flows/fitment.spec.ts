@@ -411,3 +411,32 @@ test('the motors side by side, then a quote started with the one chosen and the 
   await expect(page.getByTestId('configurator')).toContainText('F200XC')
   await expect(page.getByTestId('configurator')).toContainText('TA600T-MOB')
 })
+
+/* THE FITMENT VERIFIER, 2026-11-03: a 20″ F150LC went onto the 25″ SP660 with no word, and the
+   GFAB, 750 kg over its ATM, could be quoted and recommended. Each is refused where it is pressed. */
+test('a wrong-shaft motor and a trailer over its ATM are refused where they are pressed', async ({
+  page,
+}) => {
+  await onTheBoat(page, '&all=motor&only=shaft')
+  await page.getByRole('button', { name: /^Put the Yamaha F150LC on/ }).click()
+  await expect(page.getByRole('alert')).toHaveText(
+    'The Yamaha F150LC’s shaft is not the extra-long (25″) the Highfield Sport 660’s transom takes, so it is not put on. The boat’s own shaft decides that.',
+  )
+
+  await page.goto(`${AT_REST}&line=trailer`)
+  const trailer = page.getByRole('region', { name: 'Trailer' })
+  await expect(trailer.getByText('Over its ATM, so not for a quote')).toBeVisible()
+  await trailer.getByRole('button', { name: /^Put the GFAB .* on the quote/ }).click()
+  await expect(page).not.toHaveURL(/trailer=/)
+  await expect(trailer.getByRole('alert')).toHaveText(
+    /750 kg over, so it is not put on the quote\. Its ATM decides that\.$/,
+  )
+  await trailer.getByRole('button', { name: /^Make the GFAB .* the recommended/ }).click()
+  await expect(trailer.getByRole('alert')).toHaveText(
+    /750 kg over, so it is not made the recommended trailer\. Its ATM decides that\.$/,
+  )
+  /* the quote the plate starts still carries the REDCO, which clears it */
+  const start = page.getByRole('heading', { name: 'A quote with' }).locator('..').locator('..')
+  await expect(start).toContainText('REDCO')
+  await expect(start).not.toContainText('GFAB')
+})

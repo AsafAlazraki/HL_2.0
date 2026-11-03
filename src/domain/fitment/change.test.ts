@@ -176,16 +176,37 @@ describe('on every version of the model, counted', () => {
     ).toEqual(['Yamaha F175XC'])
   })
 
-  it('makes the GFAB the recommended trailer across both trailer lists', () => {
+  /* THE FITMENT VERIFIER, 2026-11-03: the GFAB, 750 kg over its ATM on the SP660, could be made
+     the recommended trailer; it is refused with its figures, and the REDCO stays the star */
+  it('refuses to make the GFAB, over its ATM, the recommended trailer', () => {
     const fit = fitOf(sheet)
     const gfab = fit.trailer!.made.find((t) => !t.starred)!
-    const star = starFit(ctxOf(sheet), fit, gfab.place, 'trailer', versionsOfSp660())
-    if ('refused' in star) throw new Error(star.refused)
-    const done = star.command(sheet, NOW)
-    if (!isDone(done)) throw new Error('refused')
-    const after = readBoatFit(ctxOf(done.next), place)!
-    expect(after.trailer!.made.filter((t) => t.starred).map((t) => t.key)).toEqual([gfab.key])
-    expect(after.trailer!.made.find((t) => t.crosses)?.key).toBe(gfab.key)
+    expect(starFit(ctxOf(sheet), fit, gfab.place, 'trailer', versionsOfSp660())).toEqual({
+      refused: `The ${gfab.name} is rated 2,200 kg and would carry 2,950 kg, 750 kg over, so it is not made the recommended trailer. Its ATM decides that.`,
+    })
+  })
+
+  it('refuses a motor whose shaft the transom does not take, with the reason', () => {
+    const fit = fitOf(sheet)
+    const f150lc = fit.motor!.dots.find((d) => d.name === 'Yamaha F150LC')!
+    expect(f150lc.standing).toBe('shaft')
+    expect(changeFit(ctxOf(sheet), fit, f150lc.place, 'on', versionsOfSp660())).toEqual({
+      refused:
+        'The Yamaha F150LC’s shaft is not the extra-long (25″) the Highfield Sport 660’s transom takes, so it is not put on. The boat’s own shaft decides that.',
+    })
+  })
+
+  it('refuses a motor whose controls are not how the boat is steered, with the reason', () => {
+    /* the Stacer 359 Territory Striker L/S is steered by its tiller; the T9.9LPB is remote */
+    const stacer = pack.byKey('boat_stacer')
+    const striker = { tableId: stacer.id, rowId: 'boat_stacer:7' }
+    const fit = readBoatFit(ctxOf(sheet), striker)!
+    const remote = fit.motor!.dots.find((d) => d.standing === 'steering')!
+    expect(remote.name).toBe('Yamaha T9.9LPB')
+    expect(changeFit(ctxOf(sheet), fit, remote.place, 'on')).toEqual({
+      refused:
+        'The Yamaha T9.9LPB is a remote motor, and the Stacer 359 Territory Striker L/S is steered by its tiller, so it is not put on. The boat’s own steering decides that.',
+    })
   })
 
   it('refuses to recommend what is not made for the boat', () => {

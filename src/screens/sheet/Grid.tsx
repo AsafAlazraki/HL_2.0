@@ -58,8 +58,8 @@ import { CaretDownIcon, StarIcon } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
 import type { ColumnSection, EntityDef, FieldDef } from '@/domain/model'
 import { Icon, Input, Kbd, Refusal, closesStage, isField, move as kitMove, stageKeyOf } from '@/ui'
-import { colourwayOf, splitVariant, type Colourway } from '@/domain/quote/colourway'
-import { swatchesOf } from '@/domain/quote/spoken'
+import { splitVariant } from '@/domain/quote/colourway'
+import { stripesOf, type StripePart } from '@/domain/catalogue/table/colourKey'
 import {
   clampCell,
   normalizeRange,
@@ -168,6 +168,12 @@ export interface GridProps {
   banded: boolean
   /** what the price file held in a cell this computer changed, painted — or undefined */
   changedOf?: (rowId: string, fieldId: string) => string | undefined
+  /** the money columns said to the cent on every line (`centsColumns`) */
+  cents?: ReadonlySet<string>
+  /** the colour key's letters Northside named itself (`OrgProfile.colours`) */
+  named?: Readonly<Record<string, string>>
+  /** the colour key, drawn in the head of the colourway column */
+  colourKey?: ReactNode
   rowH: number
   /** the leading word's column, and the least the tail keeps for the lit row's keys */
   leadW: number
@@ -198,6 +204,13 @@ export interface GridProps {
   /** px kept clear at the list's foot, for the step line */
   foot: number
 }
+
+/** 1 where a line's extra track (`at`) falls inside a run of `n` lines from `from`, else 0. */
+const within = (at: number, from: number, n: number): number =>
+  at >= from && at < from + n ? 1 : 0
+
+/** A colourway drawn part by part, and said (`stripesOf`). */
+type Stripes = { parts: StripePart[]; say: string }
 
 /** One id per cell, so `aria-activedescendant` can name it. */
 export const cellDomId = (rowId: string, col: number): string => `sh-cell-${rowId}-${col}`
@@ -266,6 +279,9 @@ export function Grid(props: GridProps) {
     hand,
     banded,
     changedOf,
+    cents,
+    named,
+    colourKey,
     rowH,
     leadW,
     tailW,
@@ -876,8 +892,12 @@ export function Grid(props: GridProps) {
      do not, because a motor's shaft code is not a colour. */
   const levels = table.hierarchy ?? []
   const colourFieldId = levels.length >= 3 ? levels[levels.length - 1] : undefined
-  const colourOf = (field: FieldDef, row: ViewRow): Colourway | null =>
-    field.id === colourFieldId ? colourwayOf(splitVariant(row.text[field.id] ?? '').code) : null
+  /* EACH PART AS THE COLOUR KEY KNOWS IT (`stripesOf`): the file's own letters, the ones Northside
+     named, and the ones nobody has named drawn as not named — "I-B-C" is no longer a blank */
+  const colourOf = (field: FieldDef, row: ViewRow): Stripes | null =>
+    field.id === colourFieldId
+      ? stripesOf(splitVariant(row.text[field.id] ?? '').code, named ?? {})
+      : null
   const showLead = lead !== null
   const headed = hand || banded
   const spineCol = hasSpine && !headed ? 1 : 0
@@ -907,6 +927,14 @@ export function Grid(props: GridProps) {
     [hand, leadW, showLead, slots, spineCol, spineW, tailW],
   )
   const frame: CSSProperties = { gridTemplateColumns: template, minInlineSize: total }
+  /* A BAND'S RANGE STANDS UNDER THE PRICE IT RANGES (the verifier, Parts and Yamaha at 1440):
+     "$83–$667" sat under Code, a column to the left of SELL. A band lays its words on the rows'
+     own columns (`subgrid`), its range in the lit price's column, its name in every column before
+     it, what its lines share in every column after — so they line up whatever the window */
+  const rungAt = rungFieldId
+    ? slots.findIndex((s) => s.kind === 'field' && s.field.id === rungFieldId)
+    : -1
+  const bandRung = banded && !hand && rungAt >= 0 ? firstData + rungAt : undefined
 
   /* what a cell prints when it is not its own painted value: a variant
      with its leading word said at the head of its run, or a picture
@@ -930,7 +958,7 @@ export function Grid(props: GridProps) {
      a shared value once. */
   const quietRepeats = !leadCell
   const shownText = (field: FieldDef, row: ViewRow): string =>
-    paintName(field, row) || paintOf(table, field, row)
+    paintName(field, row) || paintOf(table, field, row, cents)
 
   const renderCells = (leaf: { r: number; rowId: string }, gridRow: number, prev?: ViewRow) => {
     const row = rows[leaf.r]
@@ -974,7 +1002,8 @@ export function Grid(props: GridProps) {
           }
           editing={editingKey === `${row.rowId}|${field.id}` ? editing : null}
           was={changedOf?.(row.rowId, field.id)}
-          pill={ownPill}
+          cents={cents}
+          pill={hand ? ownPill : null}
           onDown={onCellDown}
           onPress={onCellPress}
           onOpen={start}
@@ -1074,6 +1103,33 @@ export function Grid(props: GridProps) {
     </div>
   )
 
+  /* THE REFUSAL ON A ROW OF ITS OWN, UNDER THE CELL IT REFUSES (the verifier, 07-refused): lifted
+     over the row under it, the pill stood over that row's Cash and Trade, ",631". It takes a line
+     of the list now, from the refused cell's column to the end, and the rows under it move down
+     for as long as it is said, as the record does */
+  const pillRow = (p: Pill, gridRow: number) => {
+    const at = slots.findIndex((s) => s.kind === 'field' && s.field.id === p.fieldId)
+    return (
+      <div role="row" className="sh-pillrow" key={`pill:${p.rowId}`}>
+        <div
+          role="gridcell"
+          aria-colspan={Math.max(1, colCount)}
+          aria-label="Why it was not written"
+          className="sh-pillcell"
+          style={{ gridRow, gridColumn: `${at < 0 ? firstData : firstData + at} / -1` }}
+        >
+          <span className="sh-pill sh-pill--row" role="alert" data-ground="plate">
+            <Refusal>{p.reason}</Refusal>
+          </span>
+        </div>
+      </div>
+    )
+  }
+  /* A LIST OF LONG NAMES LETS A NAME TAKE A SECOND LINE: Parts, Dealer Fit and Rigging Kits name a
+     line in a sentence ("Minn Kota - Instinct Quest 60" (Black) with Quick Realease Bracket & 24v
+     100AMP Lithium Battery"), cut at 443-525px on a tablet (the verifier) */
+  const leafTrack = banded && !hand ? `minmax(${px(rowH)}, auto)` : px(rowH)
+
   const renderBlock = (p: Extract<Piece, { kind: 'block' }>) => {
     const says = spineOf(p)
     const leaves = p.runs.flatMap((run) => run.leaves)
@@ -1081,16 +1137,22 @@ export function Grid(props: GridProps) {
       !hand && peeking && cursorRowId !== null
         ? leaves.findIndex((l) => l.rowId === cursorRowId)
         : -1
-    const drawn = leaves.length + (openAt >= 0 ? 1 : 0)
+    const pillAt = pill && !hand ? leaves.findIndex((l) => l.rowId === pill.rowId) : -1
+    const drawn = leaves.length + (openAt >= 0 ? 1 : 0) + (pillAt >= 0 ? 1 : 0)
     const headRow = headed ? 1 : 0
-    const tracks = leaves.flatMap((_, i) => (i === openAt ? [px(rowH), 'auto'] : [px(rowH)]))
+    const tracks = leaves.flatMap((_, i) => [
+      leafTrack,
+      ...(i === pillAt ? ['auto'] : []),
+      ...(i === openAt ? ['auto'] : []),
+    ])
     /* A BAND'S BLOCK ENDS IN AIR AS TALL AS THE BAND: a sticky band is pushed off by the end of its
        own block, and without the air it slid over the block's last products as it went (the
        overlap ruler, Parts at 844 × 390 and 834 × 1112) — with it, it slides over nothing */
     const rowsTemplate = (
       headed ? ['auto', ...tracks, ...(banded && !hand ? [px(BAND_TAIL)] : [])] : tracks
     ).join(' ')
-    const gridOf = (i: number): number => headRow + i + 1 + (openAt >= 0 && i > openAt ? 1 : 0)
+    const gridOf = (i: number): number =>
+      headRow + i + 1 + (openAt >= 0 && i > openAt ? 1 : 0) + (pillAt >= 0 && i > pillAt ? 1 : 0)
 
     const spine = (
       <Spine
@@ -1107,6 +1169,7 @@ export function Grid(props: GridProps) {
         }
         span={Math.max(1, drawn)}
         shutCols={shutCols}
+        rungCol={bandRung}
         onToggle={() => onToggle(p.key)}
       />
     )
@@ -1137,7 +1200,8 @@ export function Grid(props: GridProps) {
         const gridRow = gridOf(index)
         const runRows =
           run.leaves.length +
-          (openAt >= index - k && openAt < index - k + run.leaves.length ? 1 : 0)
+          within(openAt, index - k, run.leaves.length) +
+          within(pillAt, index - k, run.leaves.length)
         const leadCellNode =
           showLead && k === 0 ? (
             <div
@@ -1158,9 +1222,10 @@ export function Grid(props: GridProps) {
             prev: index > 0 ? rows[leaves[index - 1]!.r] : undefined,
           }),
         )
+        if (index === pillAt && pill) out.push(pillRow(pill, gridRow + 1))
         if (index === openAt) {
           const row = rows[leaf.r]
-          if (row) out.push(recordRow(row, gridRow + 1))
+          if (row) out.push(recordRow(row, gridRow + 1 + (index === pillAt ? 1 : 0)))
         }
       })
     })
@@ -1207,13 +1272,22 @@ export function Grid(props: GridProps) {
   const renderFlat = (p: Extract<Piece, { kind: 'row' }>) => {
     const row = rows[p.leaf.r]
     const open = !hand && peeking && row !== undefined && row.rowId === cursorRowId
+    const refused = !hand && pill !== null && row !== undefined && pill.rowId === row.rowId
     return (
       <div
         className="sh-flat"
-        style={{ ...frame, gridTemplateRows: open ? `${px(rowH)} auto` : px(rowH) }}
+        style={{
+          ...frame,
+          gridTemplateRows: [
+            px(rowH),
+            ...(refused ? ['auto'] : []),
+            ...(open ? ['auto'] : []),
+          ].join(' '),
+        }}
       >
         {renderRow(p.leaf, 1)}
-        {open && row ? recordRow(row, 2) : null}
+        {refused && pill ? pillRow(pill, 2) : null}
+        {open && row ? recordRow(row, refused ? 3 : 2) : null}
       </div>
     )
   }
@@ -1238,6 +1312,8 @@ export function Grid(props: GridProps) {
         hand={hand}
         rungFieldId={rungFieldId}
         onRung={onRung}
+        colourFieldId={colourFieldId}
+        colourKey={colourKey}
         more={more}
       />
     ),
@@ -1364,6 +1440,9 @@ interface HeadProps {
   hand: boolean
   rungFieldId?: string
   onRung: (fieldId: string) => void
+  /** the colourway column, whose head carries the colour key */
+  colourFieldId?: string
+  colourKey?: ReactNode
   more?: ReactNode
 }
 
@@ -1384,6 +1463,8 @@ function Head({
   hand,
   rungFieldId,
   onRung,
+  colourFieldId,
+  colourKey,
   more,
 }: HeadProps) {
   const firstData = spineCol + (showLead ? 1 : 0) + 1
@@ -1488,6 +1569,7 @@ function Head({
                   {hand && slot.job === 'name' && spineHead !== '' ? spineHead : f.name}
                 </span>
               )}
+              {f.id === colourFieldId && colourKey && !hand ? colourKey : null}
               {cost ? (
                 <span className="sh-th__cost" aria-label="the dealer's own cost column">
                   {COST_WORD}
@@ -1580,6 +1662,7 @@ function Spine({
   place,
   span,
   shutCols,
+  rungCol,
   onToggle,
 }: {
   says: SpineSays
@@ -1593,6 +1676,8 @@ function Spine({
   place: CSSProperties
   span: number
   shutCols: { name: number; figures: number }
+  /** a band's words on the rows' own columns: the grid line of the lit price's column */
+  rungCol?: number
   onToggle: () => void
 }) {
   /* THE ORDER THE SPINE SAYS THINGS IN: the name and how many rows it
@@ -1713,19 +1798,30 @@ function Spine({
       data-fit={says.fit}
       data-shut={shut ? '' : undefined}
       data-band={banded ? '' : undefined}
+      data-aligned={banded && rungCol !== undefined ? '' : undefined}
       data-small={small ? '' : undefined}
-      style={place}
+      style={
+        banded && rungCol !== undefined
+          ? ({
+              ...place,
+              '--rung-col': String(rungCol),
+              '--after-col': String(rungCol + 1),
+            } as CSSProperties)
+          : place
+      }
     >
       <div
         className="sh-spine__in"
         /* a shut line's columns are the same down every shut line, so a
            price always sits in the same place (`shutCols`, Sheet.tsx) */
         style={
-          line && shutCols.name > 0
-            ? {
-                gridTemplateColumns: `${SHUT_TOGGLE_W}px ${shutCols.name}px ${shutCols.figures}px minmax(0, 1fr)`,
-              }
-            : undefined
+          banded && rungCol !== undefined
+            ? undefined
+            : line && shutCols.name > 0
+              ? {
+                  gridTemplateColumns: `${SHUT_TOGGLE_W}px ${shutCols.name}px ${shutCols.figures}px minmax(0, 1fr)`,
+                }
+              : undefined
         }
       >
         <button
@@ -1768,7 +1864,7 @@ interface CellProps {
   rest: string
   /** the colourway the cell's code reads as, drawn beside it where the
    *  decode names every part; null on every column that is not one */
-  colour: Colourway | null
+  colour: Stripes | null
   /** the cell is in the column a colourway is filed in, so it keeps the
    *  tile's room whether or not its own code decodes — the codes of a
    *  column stay in one line down it */
@@ -1781,6 +1877,7 @@ interface CellProps {
   editing: Editing | null
   /** what the price file held here, painted, where this computer's copy differs from it */
   was?: string
+  cents?: ReadonlySet<string>
   pill: Pill | null
   onDown: (event: ReactMouseEvent, cell: CellRef) => void
   /** the click after the mousedown, which opens the cell when the
@@ -1808,6 +1905,7 @@ function Cell({
   repeat,
   editing,
   was,
+  cents,
   pill,
   onDown,
   onPress,
@@ -1817,7 +1915,7 @@ function Cell({
   onCancel,
 }: CellProps) {
   const mark = job === 'mark' && field.type === 'boolean'
-  const text = rest !== '' ? rest : paintOf(table, field, row)
+  const text = rest !== '' ? rest : paintOf(table, field, row, cents)
   const num = field.type === 'number'
   const said = mark
     ? row.values[field.id] === true
@@ -1825,9 +1923,9 @@ function Cell({
       : 'no'
     : text === ''
       ? 'empty'
-      : colour?.read
-        ? `${colour.say}, ${paintOf(table, field, row) || text}`
-        : paintOf(table, field, row) || text
+      : colour
+        ? `${colour.say}, ${paintOf(table, field, row, cents) || text}`
+        : paintOf(table, field, row, cents) || text
   return (
     <div
       role="gridcell"
@@ -1915,17 +2013,22 @@ function Cell({
                   and the colour is drawn next to it, and a reader hears the
                   colour's name first. A code the decode cannot read draws
                   nothing. */}
-              {colour?.read ? (
+              {colour ? (
                 /* A STRIPE OF PAINT PER PART, NEVER A SQUARE OR A DOT (the judge's G15): a 12px
                    grey square on every LG row read as an unticked checkbox, and a round chip as
                    a radio button. A narrow upright stripe is a paint sample, and reads as no
                    control; each part's colour is its token (`--swatch-<name>`) */
                 <span className="sh-cell__paint" aria-hidden="true">
-                  {swatchesOf(colour).map((part, i) => (
+                  {colour.parts.map((part, i) => (
                     /* a part's identity IS its place in the code: B-G-B is two parts of the
-                       same black, and the list never reorders */
+                       same black, and the list never reorders; a part nobody has named is a
+                       stripe drawn as not named (the colour key) */
                     // eslint-disable-next-line react/no-array-index-key
-                    <span key={i} className="sh-cell__stripe">
+                    <span
+                      key={i}
+                      className="sh-cell__stripe"
+                      data-unnamed={part.name === null ? '' : undefined}
+                    >
                       {part.swatches.map((name, j) => (
                         // eslint-disable-next-line react/no-array-index-key
                         <span key={j} data-swatch={name} />

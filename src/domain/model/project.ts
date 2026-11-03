@@ -95,6 +95,10 @@ export interface OrgProfile {
   look?: OrgLook
   /** Home, as Northside arranges it */
   home?: OrgHome
+  /** THE COLOUR KEY'S LETTERS NORTHSIDE NAMED itself — "I" is "White" — where the price file's
+   *  own map names none (src/domain/catalogue/table/colourKey.ts). Each name is one of the
+   *  colours the app can draw. Absent names nothing. */
+  colours?: Record<string, string>
 }
 
 /** One of Northside's people, as a quote prints them under "Prepared by". */

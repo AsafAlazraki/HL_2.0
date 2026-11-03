@@ -73,6 +73,8 @@ export interface RecordProps {
   onCopy?: { label: string; press: () => void }
   /** the heading where the line has no name of its own yet: "A new variant of Roll Up 230 KAM" */
   unnamed?: string
+  /** the money columns said to the cent, as the list says them */
+  cents?: ReadonlySet<string>
   /** what the price file held in a field this computer changed, and who and when where the
    *  session kept it — or undefined (the judge's G12) */
   wasOf?: (fieldId: string) => string | undefined
@@ -111,6 +113,7 @@ export function Record({
   onAdd,
   onCopy,
   unnamed = '(no name)',
+  cents,
   wasOf,
   added = false,
   leadSectionId,
@@ -243,6 +246,7 @@ export function Record({
                         heldCopy={heldCopy}
                         commit={commit}
                         was={wasOf?.(f.id)}
+                        cents={cents}
                       />
                     ))}
                   </dl>
@@ -264,6 +268,7 @@ export function Record({
                     heldCopy={heldCopy}
                     commit={commit}
                     was={wasOf?.(f.id)}
+                    cents={cents}
                   />
                 ))}
               </dl>
@@ -375,6 +380,7 @@ function Fact({
   heldCopy,
   commit,
   was,
+  cents,
 }: {
   table: EntityDef
   row: ViewRow
@@ -383,6 +389,8 @@ function Fact({
   commit: (rowId: string, fieldId: string, text: string) => Written
   /** "The price file had $2,770 · Asaf, 3 Nov" where this computer changed it */
   was?: string
+  /** the money columns said to the cent, as the list says them */
+  cents?: ReadonlySet<string>
 }) {
   const [draft, setDraft] = useState<string | null>(null)
   const [pill, setPill] = useState<string | null>(null)
@@ -438,7 +446,7 @@ function Fact({
   }
 
   const value =
-    field.type === 'image' ? pictureWords(row, field, heldCopy) : paintOf(table, field, row)
+    field.type === 'image' ? pictureWords(row, field, heldCopy) : paintOf(table, field, row, cents)
   const num = field.type === 'number'
   return (
     <div

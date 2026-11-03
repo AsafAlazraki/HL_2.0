@@ -177,7 +177,11 @@ export function compareOf(ctx: CatalogueCtx, rigs: readonly Rigged[]): CompareRo
       const table = ctx.entities[r.motor.place.tableId]
       const row = rowOf(ctx, r.motor.place)
       const v = table && row ? specValue(spec(id), table, row) : null
-      return v === null ? '—' : valueSaid(spec(id), String(v))
+      if (v === null) return '—'
+      /* a cell begins a sentence, as the plate's own facts do: "Extra-long (25″)" (the fitment
+         verifier, 2026-11-03: the compare said "extra-long (25″)" under the plate's capital) */
+      const words = valueSaid(spec(id), String(v))
+      return words.charAt(0).toUpperCase() + words.slice(1)
     }
   const money = (n: number | null): string => (n === null ? '—' : AUD.format(n))
   const rows: CompareRow[] = [

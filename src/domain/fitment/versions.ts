@@ -23,6 +23,7 @@ import { isDiscontinued, isRetired, readCell, rowLabel } from '@/domain/model'
 import type { CatalogueCtx, EntityDef, RowData } from '@/domain/model'
 import { modelKeyOf } from '@/domain/quote/boats'
 import { spokenBoat, spokenModel } from '@/domain/quote/spoken'
+import { finishSaid } from './finish'
 import { trailOf } from '@/domain/modules/read'
 import { makerOfTable } from '@/domain/catalogue/makers'
 import { readPairs } from '@/domain/catalogue/views'
@@ -71,7 +72,7 @@ export function versionsOf(world: World, place: Place): BoatVersions | null {
       return {
         place: { tableId: entity.id, rowId: r.id },
         name: said.name,
-        detail: said.detail,
+        detail: finishSaid(said),
         maker: said.maker || makerOfTable(entity),
         code: textCell(entity, r, 'Model Code'),
       }

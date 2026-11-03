@@ -245,11 +245,19 @@
   grid-row: 1;
   display: grid;
   /* the find field and its "Show only" share the last column: wide enough for the field to keep
-     its whole placeholder beside the act */
-  grid-template-columns: auto minmax(0, 1fr) minmax(--spacing(80), --spacing(110));
+     its whole placeholder beside the act. WHAT IS SAID ONCE IS NEVER SQUEEZED (the verifier,
+     2026-11-03): its column is at least as wide as its own words, and the name's column gives way
+     instead, its count line taking a second line. With "Sport 560" typed, the count grew by
+     "· 15 match …" and the said-once block was pressed to three lines under the bar at 1280, and
+     with "zzqx" its $0 was clipped to 4px */
+  grid-template-columns:
+    minmax(0, max-content) minmax(max-content, 1fr)
+    minmax(--spacing(80), --spacing(110));
   align-items: center;
   column-gap: --spacing(8);
-  block-size: --spacing(18);
+  block-size: auto;
+  min-block-size: --spacing(18);
+  padding-block: --spacing(1);
 }
 
 .sh-mast__id {
@@ -298,9 +306,7 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--ink-quiet);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: pretty;
 }
 
 .sh-count b {
@@ -315,11 +321,12 @@
   align-content: center;
   margin: 0;
   min-inline-size: 0;
-  max-inline-size: 100%;
+  max-inline-size: --spacing(100);
 }
 
 .sh-said__lead {
   margin: 0 0 --spacing(0.5);
+  white-space: nowrap;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
@@ -341,6 +348,29 @@
   font-size: var(--text-xs);
   color: var(--ink-quiet);
   white-space: nowrap;
+}
+
+/* a figure's name that says what it is on one press: the kit's glyph after the word */
+.sh-said__ask {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--color-blue-700);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.sh-said__note {
+  max-inline-size: --spacing(80);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-soft);
 }
 
 .sh-said__cost,
@@ -1477,6 +1507,23 @@
   white-space: normal;
 }
 
+/* the refusal's own line under the refused cell (Grid.tsx `pillRow`): nothing under it */
+.sh-pillrow {
+  display: contents;
+}
+
+.sh-pillcell {
+  display: flex;
+  align-items: flex-start;
+  min-inline-size: 0;
+  padding-block: --spacing(1) --spacing(2);
+  border-block-end: 1px solid var(--rule-soft);
+}
+
+.sh-pill.sh-pill--row {
+  position: static;
+}
+
 .sh-pill--fact {
   position: static;
   display: block;
@@ -1511,6 +1558,30 @@
   .sh-hint--keys {
     display: none;
   }
+}
+
+/* AND THE TOUCH WORDS THE SAME: in a tablet's 96px tail "Press a value again to change it ·" was
+   drawn from under the Cash figure to under the close pill, and only "it ·" was seen (the verifier,
+   834 and 844). The record says how to change a value, at the value. Placed after the coarse
+   pointer's rule below by its weight, not its place */
+@container (max-width: 15rem) {
+  .sh-tail .sh-hint.sh-hint--touch {
+    display: none;
+  }
+}
+
+/* A LIST OF LONG NAMES (a band over its rows: Parts, Dealer Fit, Rigging Kits) SAYS EVERY NAME
+   WHOLE: a words column takes a second line where it needs one, and its row grows with it
+   (Grid.tsx `leafTrack`); a figure never wraps */
+.sh-block[data-band] .sh-cell:not([data-num]) .sh-cell__read {
+  padding-block: --spacing(1.5);
+  line-height: var(--text-sm--line-height);
+}
+
+.sh-block[data-band] .sh-cell:not([data-num]) .sh-cell__text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 /* THE RECORD'S CAPSULE: the kit's pale well with the plate's blue on it, its caret turning
@@ -1707,12 +1778,12 @@
   min-inline-size: 0;
 }
 
+/* A FACT IS SAID WHOLE, on a second line where its column is short: "Boat Registration Not
+   Required" was cut to "Not Requir…" in the record even at 1920 (the verifier) */
 .sh-fact__label {
   font-size: var(--text-xs);
   color: var(--ink-quiet);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .sh-fact__value {
@@ -1731,13 +1802,13 @@
   color: var(--ink);
   text-align: end;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .sh-fact__button[data-num] {
   font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
 .sh-fact__button:hover {
@@ -2694,8 +2765,12 @@
     block-size: --spacing(8);
   }
 
+  /* A LIST NAMED AFTER TWO MAKERS IS SAID WHOLE here too: "Highfield × Yamaha — Motor Fitment"
+     was cut to "× Yamaha …" at 834 and 844 (the verifier, 2026-11-03) */
   .sh-title {
     font-size: var(--text-2xl);
+    white-space: normal;
+    text-wrap: balance;
   }
 
   .sh-reading {
@@ -2731,6 +2806,13 @@
   }
 
   .sh-chapters {
+    block-size: --spacing(11);
+  }
+
+  /* a list with no series says its sentence on the chapters' own 44px line, centred in it, never
+     against the bar's top edge (the verifier, Rigging Kits and the pairings at 834 × 1112) */
+  .sh-bar__what {
+    flex: none;
     block-size: --spacing(11);
   }
 
@@ -3010,7 +3092,7 @@
   }
 
   .sh-mast {
-    block-size: --spacing(20);
+    min-block-size: --spacing(20);
   }
 
   .sh-mast__mark {
@@ -3072,6 +3154,63 @@
 
 .sh-spine[data-band] .sh-spine__name {
   font-size: var(--text-base);
+  /* a category's whole name, on two lines where the room before its price is short: "SAFETY GEAR
+     EQUIPMENT (NB: Excludes PFD's & Anchor)" was cut to "SAFETY GEAR … (NB: …)" at 844 */
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
+.sh-spine[data-band] .sh-spine__called {
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+.sh-spine[data-band]:not([data-hand]) .sh-spine__in {
+  block-size: auto;
+  min-block-size: --spacing(9);
+  padding-block: --spacing(1.5);
+}
+
+/* A BAND ON THE ROWS' OWN COLUMNS (Grid.tsx `bandRung`): the name in every column before the lit
+   price, the range in it, ending where its figures end, and what the lines share after it */
+.sh-spine[data-band][data-aligned]:not([data-hand]) {
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
+.sh-spine[data-band][data-aligned]:not([data-hand]) .sh-spine__in {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  column-gap: 0;
+  padding-inline: 0;
+}
+
+.sh-spine[data-band][data-aligned]:not([data-hand]) .sh-spine__toggle {
+  grid-row: 1;
+  grid-column: 1;
+  justify-self: start;
+  margin-inline-start: --spacing(4);
+}
+
+.sh-spine[data-band][data-aligned]:not([data-hand]) .sh-spine__name {
+  grid-row: 1;
+  grid-column: 1 / var(--rung-col);
+  padding-inline: --spacing(14) --spacing(3);
+}
+
+.sh-spine[data-band][data-aligned]:not([data-hand]) .sh-spine__figures {
+  grid-row: 1;
+  grid-column: var(--rung-col);
+  justify-self: end;
+  padding-inline-end: --spacing(3);
+  white-space: nowrap;
+}
+
+.sh-spine[data-band][data-aligned]:not([data-hand]) .sh-spine__one {
+  grid-row: 1;
+  grid-column: var(--after-col) / -1;
+  padding-inline: --spacing(3);
+  white-space: normal;
 }
 
 /* the air under a band's last product is as tall as the band and its rule: 37px, which
@@ -3664,7 +3803,9 @@
    (at 1280 the words took the room the said-once figures needed, and "$0" went missing) */
 @media (min-width: 1100px) and (max-width: 1439.98px) {
   .sh-mast {
-    grid-template-columns: auto minmax(0, 1fr) minmax(--spacing(72), --spacing(84));
+    grid-template-columns:
+      minmax(0, max-content) minmax(max-content, 1fr)
+      minmax(--spacing(72), --spacing(84));
   }
 
   .sh-ask__word {
@@ -3675,4 +3816,106 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
+}
+
+/* ---- the colour key (ColourKey.tsx) ------------------------------------------------------ */
+
+/* A PART NOBODY HAS NAMED is a stripe of the edge's hatching, never a blank: "I-B-C" draws its
+   I as not named beside the Black and Carbon the key knows (the verifier, 02-find) */
+.sh-cell__stripe[data-unnamed] {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--swatch-edge) 0 1px,
+    var(--color-paper) 1px 3px
+  );
+}
+
+/* the key's press in the colourway column's head: the kit's small capsule, its glyph a palette */
+.sh-key {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  margin-inline-start: --spacing(2);
+  padding: --spacing(0.5) --spacing(2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-blue-50);
+  font: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-blue-700);
+  cursor: pointer;
+}
+
+.sh-key__count {
+  min-inline-size: --spacing(4);
+  padding-inline: --spacing(1);
+  border-radius: var(--radius-pill);
+  background: var(--color-blue-700);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.sh-keylist {
+  display: grid;
+  gap: --spacing(3);
+  inline-size: min(--spacing(110), calc(100vw - --spacing(8)));
+}
+
+.sh-keylist__lead {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-soft);
+}
+
+.sh-keylist__lines {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-block-size: min(--spacing(100), 60vh);
+  overflow-y: auto;
+}
+
+.sh-keyline {
+  display: grid;
+  grid-template-columns: --spacing(3) --spacing(9) minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: --spacing(3);
+  min-block-size: --spacing(10);
+  border-block-end: 1px solid var(--rule-soft);
+}
+
+.sh-keyline__stripe {
+  block-size: --spacing(5);
+}
+
+.sh-keyline__token {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sh-keyline__name {
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.sh-keyline__choose {
+  min-inline-size: 0;
+}
+
+.sh-keyline__count {
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+  text-align: end;
+}
+
+/* a move that cannot be written says why in the plate, before the press */
+.sh-move__refused {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-sm);
 }

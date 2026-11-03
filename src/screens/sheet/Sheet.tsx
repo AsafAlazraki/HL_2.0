@@ -82,6 +82,7 @@ import {
   CheckIcon,
   ColumnsIcon,
   FunnelSimpleIcon,
+  InfoIcon,
   WarningIcon,
   XIcon,
   ImagesIcon,
@@ -141,6 +142,7 @@ import {
 } from '@/domain/catalogue/table/helpers'
 import { labelIndex, outlineLevels, viewRowsOf } from '@/domain/catalogue/table/outline'
 import { saidOnce } from '@/domain/catalogue/table/saidOnce'
+import { columnNote } from '@/domain/catalogue/table/columnNotes'
 import { alsoBySaid, spineName } from '@/domain/catalogue/views/spineSaid'
 import {
   blockPicture,
@@ -175,7 +177,16 @@ import {
   type Only,
   type PriceWarning,
 } from '@/domain/catalogue/table/only'
-import { moveWrite, planMove, readMove, type MoveKind } from '@/domain/catalogue/table/priceMove'
+import {
+  moveWrite,
+  planMove,
+  planRefusal,
+  planTwin,
+  readMove,
+  twinText,
+  type MoveKind,
+  type MovePlan,
+} from '@/domain/catalogue/table/priceMove'
 import {
   asLoaded,
   lastChangeOf,
@@ -188,6 +199,8 @@ import { elsewhere } from '@/domain/catalogue/table/elsewhere'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { priceReadOf } from '@/domain/modules/read'
 import { Grid, type BandSays, type Slot, type SpineSays, type Written } from './Grid'
+import { ColourKey } from './ColourKey'
+import { splitVariant } from '@/domain/quote/colourway'
 import { Record } from './Record'
 import { Gallery } from './Gallery'
 import { More } from './More'
@@ -208,6 +221,7 @@ import {
   noTable,
   changeSaid,
   paintOf,
+  centsColumns,
   pictureOf,
   pictureShows,
   picturesHeld,
@@ -522,15 +536,17 @@ function widthFor(
   floor: number,
   ceiling: number,
   capsW = 8.2,
+  share = 0.95,
 ): number {
-  /* the nineteenth value in twenty, not the longest: one variant typed
-     as a sentence (`540 open (PVC) LG-W-DG`) should ellipsise in its
-     cell rather than push the code out of a tablet's grid */
+  /* the nineteenth value in twenty, not the longest, over the whole list: one variant typed
+     as a sentence (`540 open (PVC) LG-W-DG`) should not push the code out of a tablet's grid
+     for every series. A name is measured over the lines DRAWN, every one of them (`share` 1),
+     so the series that holds such a line gives its column the room and the rest do not */
   const lengths: number[] = []
   const step = Math.max(1, Math.floor(rows.length / 400))
   for (let i = 0; i < rows.length; i += step) lengths.push(paint(rows[i]!).length)
   lengths.sort((a, b) => a - b)
-  const longest = lengths.length === 0 ? 0 : lengths[Math.floor((lengths.length - 1) * 0.95)]!
+  const longest = lengths.length === 0 ? 0 : lengths[Math.floor((lengths.length - 1) * share)]!
   const words = longest * 7.4 + 28
   /* a head in caps with the caps' tracking: a mark's head stands over a glyph and nothing else,
      so it is measured at 8.8px a letter — at 8.2 "Recommended" was given 118px and drawn
@@ -550,6 +566,9 @@ function widthFor(
 function priceWidth(field: FieldDef, floor: number): number {
   const one = field.name.length * 7.6 + 56
   if (one <= floor) return floor
+  /* A HEAD THAT FITS ON ONE LINE IN HALF AGAIN THE FLOOR IS GIVEN ONE LINE: "Sell Price" in a
+     tablet's 108px was set on two inside its pill, a two-line blob (the verifier, 834 × 1112) */
+  if (one <= Math.round(floor * 1.5)) return Math.round(one)
   return Math.max(floor, Math.min(Math.round(floor * 1.5), Math.round(one / 2) + 28))
 }
 
@@ -639,6 +658,8 @@ export function Sheet({
   const allRows = useCatalogue((s) => s.rows)
   const index = useCatalogue((s) => s.index)
   const events = useCatalogue((s) => s.events)
+  /* the colour key's letters Northside named itself, on its own profile */
+  const named = useCatalogue((s) => s.org?.colours)
 
   const table: EntityDef | undefined = tables[tableId]
   /* A MODEL'S BLOCK asks its model's picture too, as the picker does; a cell asks its own */
@@ -698,6 +719,29 @@ export function Sheet({
     [spineLevel, roots, leafLevel, textOf],
   )
   const chapters = useMemo(() => chaptersOf(roots, levels), [roots, levels])
+  /* A LINE'S TWIN IN THE LIST'S FIRST MATERIAL — "HYP B-G-B" of Sport 560 is "PVC B-G-B" of Sport
+     560 — read over the whole list, so a move can price Hypalon from its PVC line (Selection) */
+  const twin = useMemo((): Twin | undefined => {
+    if (!split || split.words.length < 2) return undefined
+    const base = split.words[0]!
+    const keyOf = (r: ViewRow, words: string): string =>
+      JSON.stringify([...levels.map((id) => (r.text[id] ?? '').trim()), words])
+    const based = new Map<string, ViewRow>()
+    for (const r of view) {
+      const words = (r.text[split.fieldId] ?? '').trim()
+      if (words !== '' && twinText(split, words, base) === words) based.set(keyOf(r, words), r)
+    }
+    return {
+      base,
+      of: (r) => {
+        const words = (r.text[split.fieldId] ?? '').trim()
+        const other = twinText(split, words, base)
+        if (other === '') return undefined
+        if (other === words) return 'base'
+        return based.get(keyOf(r, other))
+      },
+    }
+  }, [split, levels, view])
 
   const noun = useMemo(() => leafNoun(table), [table])
   const branch = useMemo(() => branchNoun(table), [table])
@@ -720,7 +764,23 @@ export function Sheet({
     return one ? [{ fieldId: one.field.id, label: one.label }] : []
   }, [table])
   const rungId = prices.some((p) => p.fieldId === rung) ? rung : prices[0]?.fieldId
+  /* the rung's word where it is not the list's own first price, which the heads read at rest */
+  const rungAt =
+    rungId !== undefined && rungId !== prices[0]?.fieldId
+      ? prices.find((p) => p.fieldId === rungId)?.label
+      : undefined
   const costOf = useCallback((f: FieldDef): boolean => (table ? isCost(table, f) : false), [table])
+  const cents = useMemo(
+    () => (table ? centsColumns(table, view) : new Set<string>()),
+    [table, view],
+  )
+  /* EVERY LINE'S COLOURWAY CODE, for the colour key: the last level of a list filed in three
+     (Highfield's Variant), as the Grid draws its stripes */
+  const colourCodes = useMemo(() => {
+    const h = table?.hierarchy ?? []
+    const id = h.length >= 3 ? h[h.length - 1] : undefined
+    return id ? view.map((r) => splitVariant(r.text[id] ?? '').code) : []
+  }, [table, view])
 
   /* A LIST THAT IS NOT A BOAT LIST READS ITS SPINE AS A BAND (the judge's G5, 2026-11-03): the
      boats and the pairings keep the spine beside their rows — a model's render and its facts are
@@ -989,7 +1049,23 @@ export function Sheet({
         if (s.kind === 'fold')
           out.push({ kind: 'fold', section: s.section, count: s.count, w: 132 })
         else {
-          const w = Math.max(FIT_MIN_COL_W, DEFAULT_COL_W[s.field.type])
+          /* AS WIDE AS ITS WORDS, up to two and a half floors: behind Every column the columns run
+             off sideways anyway, and a fixed 160px cut every Boat ("Highfield - RU230KAM (PV…")
+             and "INT LENGTH CM" at every size (the verifier, 2026-11-03) */
+          const floor = Math.max(FIT_MIN_COL_W, DEFAULT_COL_W[s.field.type])
+          const f = s.field
+          const w =
+            f.type === 'image' || !table
+              ? floor
+              : widthFor(
+                  f,
+                  view,
+                  (r) => paintOf(table, f, r),
+                  floor,
+                  Math.round(floor * 2.5),
+                  8.2,
+                  1,
+                )
           out.push({ kind: 'field', field: s.field, col: s.col, w, job: 'every' })
         }
       }
@@ -1023,7 +1099,7 @@ export function Sheet({
             ? widthFor(c.field, [], () => '', floor, floor * 1.5, 8.8)
             : widthFor(
                 c.field,
-                view,
+                c.job === 'name' ? shownRows : view,
                 (r) =>
                   split && c.field.id === split.fieldId
                     ? restOf(split, textOf(r, split.fieldId))
@@ -1031,6 +1107,8 @@ export function Sheet({
                 floor,
                 /* a banded list's names are what it is searched by: up to four floors wide */
                 Math.round(floor * (c.job === 'name' ? (banded ? 4 : 2.2) : 1.4)),
+                8.2,
+                c.job === 'name' ? 1 : 0.95,
               )
       widths.set(c.field.id, w)
       return w
@@ -1116,6 +1194,7 @@ export function Sheet({
     split,
     table,
     view,
+    shownRows,
     textOf,
   ])
 
@@ -1225,12 +1304,16 @@ export function Sheet({
           : counted(rows.length, noun)
       const code = spoken.code
       const each = rungId ? leadFigures(rows, rungId, split) : []
-      const figures = figuresText(each)
+      /* A FIGURE READ AT ANOTHER RUNG SAYS WHICH (the verifier, J14): pressing TRADE turned every
+         head to Trade's figures and only a tooltip said so — "Trade: PVC $2,631 · HYP …" now,
+         and the list's own first price says nothing, as it always has */
+      const atRung = rungAt ? `${rungAt}: ` : ''
+      const figures = each.length > 0 ? atRung + figuresText(each) : ''
       /* the same figure one material at a time, for a spine too narrow to say it on one line */
-      const leads = each.map((f) => figuresText([f]))
+      const leads = each.map((f, i) => (i === 0 ? atRung : '') + figuresText([f]))
       return { rows, name, count, code, figures, leads }
     },
-    [roots, spineLevel, narrowed, noun, rungId, split, table, spineRef],
+    [roots, spineLevel, narrowed, noun, rungId, rungAt, split, table, spineRef],
   )
 
   /* A SHUT MODEL IS A LINE OF A PRICE LIST: its name, its figure and
@@ -1524,6 +1607,27 @@ export function Sheet({
     onPosition?.(position)
   }, [onPosition, position, table])
 
+  /* IN A HAND, THE FIGURE JUST WRITTEN STANDS CLEAR OF ITS STEP (the verifier, 40-hand-warned): the
+     step and its warning ride the foot of the record, and they stood over the Trade and Warranty
+     under the Cash just changed. The record scrolls the changed fact and the two under it above
+     the step — no further, and not at all where they already are — at once under reduced motion */
+  useEffect(() => {
+    if (!hand || !step || step.wasUndo) return
+    const frame = requestAnimationFrame(() => {
+      const over = body.current?.ownerDocument.querySelector<HTMLElement>('.sh-over')
+      const active = over?.ownerDocument.activeElement
+      const fact = active instanceof HTMLElement ? active.closest<HTMLElement>('.sh-fact') : null
+      const foot = over?.querySelector<HTMLElement>('.sh-foot')
+      if (!over || !fact || !foot || !over.contains(fact)) return
+      const at = fact.getBoundingClientRect()
+      const room = foot.getBoundingClientRect().top - at.bottom
+      const want = at.height * 3
+      if (room >= want) return
+      over.scrollBy({ top: want - room, behavior: reducedMotion() ? 'auto' : 'smooth' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hand, step])
+
   const go = useCallback(
     (next: Partial<SheetPosition>) => {
       setAsked({ key: incomingKey, want: next })
@@ -1717,10 +1821,12 @@ export function Sheet({
   /* A LINE WITH NO NAME OF ITS OWN YET — one just added — is said by what it is and where it
      is filed: "A new variant of Roll Up 230 KAM", where the record read "(no name)" and its
      picture's offer stopped mid-sentence, "Add a picture of the" (the judge's J15) */
-  const unnamedLine = (row: ViewRow): string => {
+  /* AND IN A SENTENCE IT IS SAID WITHOUT ITS CAPITAL ARTICLE: the picture's offer is "Add a picture
+     of the new variant of Roll Up 230 KAM", never "…of the A new variant…" (the verifier, J15) */
+  const unnamedLine = (row: ViewRow, heading = true): string => {
     const model = spineLevel >= 0 ? (row.text[levels[spineLevel]!] ?? '').trim() : ''
     const spoken = model === '' || !table ? '' : spineName(table.id, model).name
-    return `A new ${noun.one}${spoken ? ` of ${spoken}` : ''}`
+    return `${heading ? 'A new' : 'new'} ${noun.one}${spoken ? ` of ${spoken}` : ''}`
   }
 
   /* A LINE A DEALER MAY PICTURE: a colourway, a motor, a trailer, a part, a package, a shelf */
@@ -1737,7 +1843,7 @@ export function Sheet({
       ...(address ? { address } : {}),
       name:
         recordSaid(table, pinId ? (row.text[pinId] ?? '') : '', codeOfRow(table, row.text)) ||
-        unnamedLine(row),
+        unnamedLine(row, false),
       ...(table.kind ? { kind: table.kind } : {}),
     }
   }
@@ -1897,12 +2003,15 @@ export function Sheet({
       if (was === undefined) return undefined
       const last = lastChangeOf(events, row.rowId, fieldId)
       const when = last ? dayOf(last.at) : ''
-      const who = last ? ` · changed ${last.by ? `by ${last.by} ` : ''}${when}` : ''
+      const who = last
+        ? ` · changed ${last.by ? `by ${last.by} ` : 'here '}${when ? `on ${when}` : ''}`.trimEnd()
+        : ''
       return `The Master Price File had ${was === '' ? 'nothing' : was}${who}`
     }
   const recordExtras = (row: ViewRow) => ({
     onCopy: copyOf(row),
     unnamed: unnamedLine(row),
+    cents,
     wasOf: knowsFile ? wasOf(row) : undefined,
     added: knowsFile && changes.added.has(row.rowId),
     ...(leadSectionId ? { leadSectionId } : {}),
@@ -2052,10 +2161,32 @@ export function Sheet({
             {(headFacts.length > 3 ? headFacts.slice(0, 2) : headFacts).map((f) => (
               <div key={f.id} className="sh-said__fact">
                 <dt className="sh-said__name">
-                  {f.name}
+                  {columnNote(f.id) !== '' ? (
+                    /* WHAT A FIGURE SAID ONCE IS, where its name does not say (the verifier:
+                       "Actual $105" stood unexplained over Labour Rates) — one press, its sentence */
+                    <Popover
+                      side="bottom"
+                      align="start"
+                      title={f.name}
+                      trigger={
+                        <button
+                          type="button"
+                          className="sh-said__ask"
+                          aria-label={`What ${f.name} is`}
+                        >
+                          {f.name}
+                          <Icon glyph={InfoIcon} />
+                        </button>
+                      }
+                    >
+                      <p className="sh-said__note">{columnNote(f.id)}</p>
+                    </Popover>
+                  ) : (
+                    f.name
+                  )}
                   {isCost(table, f) ? <span className="sh-said__cost">{COST_WORD}</span> : null}
                 </dt>
-                <dd className="sh-said__value">{paintOf(table, f, firstRow)}</dd>
+                <dd className="sh-said__value">{paintOf(table, f, firstRow, cents)}</dd>
               </div>
             ))}
             {headFacts.length > 3 ? (
@@ -2365,6 +2496,13 @@ export function Sheet({
             hand={hand}
             banded={banded}
             changedOf={knowsFile ? changedOf : undefined}
+            cents={cents}
+            named={named}
+            colourKey={
+              colourCodes.length > 0 ? (
+                <ColourKey codes={colourCodes} named={named ?? {}} noun={noun} apply={apply} />
+              ) : undefined
+            }
             rowH={m.rowH}
             leadW={m.lead}
             tailW={TAIL_W}
@@ -2418,6 +2556,7 @@ export function Sheet({
             refLabelsOf={refLabelsOf}
             prices={prices}
             costOf={costOf}
+            twin={twin}
           />
         ) : null}
 
@@ -2762,6 +2901,13 @@ const MOVES: { kind: MoveKind; label: string; placeholder: string }[] = [
 /** How many lines of a move the plate prints before and after; the rest are counted. */
 const MOVE_SHOWN = 3
 
+/** A line's twin in the base material, for the move that reads from it — or 'base' for a line
+ *  in the base material itself, or undefined for one with no twin. */
+interface Twin {
+  base: string
+  of: (row: ViewRow) => ViewRow | 'base' | undefined
+}
+
 function Selection({
   table,
   rows,
@@ -2772,6 +2918,7 @@ function Selection({
   refLabelsOf,
   prices,
   costOf,
+  twin,
 }: {
   table: EntityDef
   rows: ViewRow[]
@@ -2782,6 +2929,8 @@ function Selection({
   refLabelsOf: (field: FieldDef) => Map<string, string> | undefined
   prices: readonly { fieldId: string }[]
   costOf: (f: FieldDef) => boolean
+  /** the base material a line may be priced from, where the list reads one (`twinText`) */
+  twin?: Twin
 }) {
   const [text, setText] = useState('')
   const [said, setSaid] = useState<string | null>(null)
@@ -2812,9 +2961,25 @@ function Selection({
   /* A MOVE ON A COLUMN OF FIGURES (the judge's G10): each line before and after, worked out
      before anything is written, then one step with one Undo */
   const figures = one !== undefined && one.type === 'number'
-  const read = figures && by.trim() !== '' ? readMove(kind, by) : null
-  const plan =
-    one && figures && read && !('refused' in read) ? planMove(rows, one, rowIndexes, read) : null
+  /* HYPALON FROM ITS PVC LINE (the judge's missing arithmetic): offered where the list reads a
+     material and the selection holds a line that is not in the first of them */
+  const twinFits =
+    twin !== undefined && rowIndexes.some((i) => rows[i] && twin.of(rows[i]) !== 'base')
+  const kinds = twinFits
+    ? [...MOVES, { kind: 'twin' as const, label: `${twin.base} + $`, placeholder: '2500 or 0' }]
+    : MOVES
+  const read = figures && by.trim() !== '' ? readMove(kind, by, twin?.base) : null
+  const plan: (MovePlan & { based?: number; alone?: number }) | null =
+    one && figures && read && !('refused' in read)
+      ? read.kind === 'twin'
+        ? twin
+          ? planTwin(rows, one, rowIndexes, read, twin.of)
+          : null
+        : planMove(rows, one, rowIndexes, read)
+      : null
+  /* a plan that cannot be written says so before the press, and its figures below $0 are not
+     drawn as if they could be (the verifier, 36-move-refused) */
+  const refusal = plan ? planRefusal(plan) : null
   const rules = useMemo(
     () => (figures ? keptRules(table, rows, prices, costOf) : []),
     [figures, table, rows, prices, costOf],
@@ -2858,7 +3023,7 @@ function Selection({
     const n = Number(v)
     return f.type === 'number' && Number.isFinite(n) ? figureSaid(table, f, n) : v
   }
-  const how = MOVES.find((m) => m.kind === kind) ?? MOVES[0]!
+  const how = kinds.find((m) => m.kind === kind) ?? MOVES[0]!
 
   return (
     <section
@@ -2909,7 +3074,7 @@ function Selection({
           <div className="sh-move__row">
             <fieldset className="sh-move__kinds">
               <legend className="sh-vh">How</legend>
-              {MOVES.map((m) => (
+              {kinds.map((m) => (
                 <button
                   key={m.kind}
                   type="button"
@@ -2930,10 +3095,14 @@ function Selection({
               placeholder={how.placeholder}
             />
             <Button intent="primary" size="sm" type="submit" icon={CheckIcon}>
-              {plan && plan.lines.length > 0 ? `Change ${plan.lines.length}` : 'Change'}
+              {plan && !refusal && plan.lines.length > 0 ? `Change ${plan.lines.length}` : 'Change'}
             </Button>
           </div>
-          {plan ? (
+          {plan && refusal ? (
+            <p className="sh-move__refused" data-testid="sheet-move-plan">
+              <Refusal>{refusal}</Refusal>
+            </p>
+          ) : plan ? (
             <div className="sh-move__plan" data-testid="sheet-move-plan">
               <ul className="sh-move__lines">
                 {plan.lines.slice(0, MOVE_SHOWN).map((l) => (
@@ -2944,7 +3113,11 @@ function Selection({
                   </li>
                 ))}
               </ul>
-              {plan.lines.length > MOVE_SHOWN || plan.same > 0 || plan.blank > 0 ? (
+              {plan.lines.length > MOVE_SHOWN ||
+              plan.same > 0 ||
+              plan.blank > 0 ||
+              (plan.based ?? 0) > 0 ||
+              (plan.alone ?? 0) > 0 ? (
                 <p className="sh-move__more">
                   {[
                     plan.lines.length > MOVE_SHOWN
@@ -2952,6 +3125,10 @@ function Selection({
                       : '',
                     plan.same > 0 ? `${plan.same} already there` : '',
                     plan.blank > 0 ? `${plan.blank} with no ${one.name}, left as they are` : '',
+                    plan.based ? `${plan.based} in ${twin?.base ?? ''}, read from` : '',
+                    plan.alone
+                      ? `${plan.alone} with no ${twin?.base ?? ''} line to read, left as they are`
+                      : '',
                   ]
                     .filter((w) => w !== '')
                     .join(' · ')}

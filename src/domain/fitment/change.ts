@@ -28,7 +28,11 @@
    WHAT IS REFUSED, WITH ITS REASON. A motor OVER the horsepower the
    boat takes is not put on, and since 2026-11-03 neither is one UNDER
    it: a 2.5 hp went onto a 150–200 hp boat and its dot was drawn at
-   the band's 150 end. The price list's own figure decides both. A
+   the band's 150 end. The price list's own figure decides both. Nor,
+   since the verifier the same day, one whose shaft the transom does
+   not take or whose controls are not how the boat is steered: the
+   plate names both as reasons. A trailer over its ATM is never made
+   the recommended (`atm.ts`). A
    thing whose list has no pairing with this boat's maker cannot be put
    on, and the sentence names both lists.
 
@@ -58,6 +62,7 @@ import {
 } from '@/domain/catalogue/commands'
 import { lineSaid } from '@/domain/quote/spoken'
 import type { BoatFit, Place } from './boat'
+import { atmRefusal } from './atm'
 
 export type FitWay = 'on' | 'off'
 
@@ -116,6 +121,22 @@ export function changeFit(
     if (fit.motor?.tableId === target.tableId && dot?.standing === 'under') {
       return {
         refused: `The ${thing} is under the ${fit.motor.takes} the ${fit.name} takes, so it is not put on. The boat’s own horsepower decides that.`,
+      }
+    }
+    /* A LEG THE TRANSOM DOES NOT TAKE, OR CONTROLS THE BOAT IS NOT STEERED BY (the fitment
+       verifier, 2026-11-03): the plate names both as reasons a motor cannot go on, and an F150LC's
+       20″ leg went onto the 25″ transom of an SP660 with no word. The boat's own cells decide. */
+    if (fit.motor?.tableId === target.tableId && dot?.standing === 'shaft') {
+      return {
+        refused: `The ${thing}’s shaft is not the ${fit.motor.boatShaft} the ${fit.name}’s transom takes, so it is not put on. The boat’s own shaft decides that.`,
+      }
+    }
+    if (fit.motor?.tableId === target.tableId && dot?.standing === 'steering') {
+      const steered = /tiller/i.test(fit.motor.boatSteering)
+        ? `a remote motor, and the ${fit.name} is steered by its tiller`
+        : `a tiller motor, and the ${fit.name} is steered from its helm`
+      return {
+        refused: `The ${thing} is ${steered}, so it is not put on. The boat’s own steering decides that.`,
       }
     }
   }
@@ -221,6 +242,11 @@ export function starFit(
       refused: `The ${thing} is not made for the ${fit.name}, so it cannot be its recommended ${place}.`,
     }
   }
+  /* a trailer over its ATM is never what a new quote starts with (`atm.ts`) */
+  const trailer =
+    place === 'trailer' ? fit.trailer?.made.find((m) => m.place.rowId === target.rowId) : undefined
+  const over = trailer ? atmRefusal(ctx, fit, trailer, 'star') : ''
+  if (over !== '') return { refused: over }
   if (!ctx.entities[own.entityId]?.fields.some((f) => f.id === PAIR_RECOMMENDED_FIELD)) {
     return {
       refused: `${ctx.entities[own.entityId]?.name ?? 'That list'} keeps no recommended, so the ${fit.name} keeps what it has.`,

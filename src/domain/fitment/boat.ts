@@ -75,6 +75,7 @@ import {
   type PartnerVerdict,
 } from './trailerFitment'
 import { readRig } from './rigReading'
+import { finishSaid } from './finish'
 import { pairRuling } from '@/domain/rules/constraints/pairRules'
 import { PAIR_SPECS, specValue, type PairSpec } from '@/domain/rules/constraints/pairSpecs'
 import { unchosenOn, type SellFigure } from '@/domain/pricing/unchosen'
@@ -975,6 +976,9 @@ export interface BoatModel {
   /** every version of it still sold — a Highfield's materials and colourways — in the price
    *  list's own order; the boat itself where there is only one */
   versions: BoatFound[]
+  /** named by the price list's own code, because the names ledger holds no name the maker gives
+   *  it ("SP300": Highfield's site has no Sport 300); absent or false where it is spoken */
+  coded?: boolean
 }
 
 export interface BoatMaker {
@@ -1020,14 +1024,21 @@ export function boatMakers(world: {
       let model = models.get(key)
       if (!model) {
         const filed = deep ? (trailOf(entity, row).split(' ▸ ').at(-1) ?? '') : ''
-        const name = filed === '' ? spoken.name : spokenModel(entity.id, filed).name
-        model = { key, name, trim: deep ? '' : spoken.detail, versions: [] }
+        const words = filed === '' ? null : spokenModel(entity.id, filed)
+        const name = words ? words.name : spoken.name
+        model = {
+          key,
+          name,
+          trim: deep ? '' : spoken.detail,
+          versions: [],
+          coded: (words ? words.from : spoken.from) === 'code',
+        }
         models.set(key, model)
       }
       model.versions.push({
         place: { tableId: entity.id, rowId: row.id },
         name: spoken.name,
-        detail: spoken.detail,
+        detail: finishSaid(spoken),
         maker: spoken.maker || maker,
         code: textCell(entity, row, 'Model Code'),
       })

@@ -34,7 +34,7 @@
    NOT ONE SENTENCE OF A REASON IS WRITTEN HERE. Every "because" comes out
    of `@/domain/fitment` (`plate.ts` shapes it, `say.ts` says it).
    ============================================================ */
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   ArrowUpRightIcon,
   CaretDownIcon,
@@ -109,6 +109,8 @@ import {
   type Rigged,
 } from '@/domain/fitment/rigged'
 import { acrossSaid, sameAcross, versionSaid, versionsOf } from '@/domain/fitment/versions'
+import { atmRefusal } from '@/domain/fitment/atm'
+import { shareOf } from '@/domain/fitment/rows'
 import { spokenBoat } from '@/domain/quote/spoken'
 import { Whole } from './Whole'
 import { useFitChange, type FitAct, type FitRefusal } from './useFitChange'
@@ -167,6 +169,23 @@ const NOWHERE = (): void => {}
 const AU = new Intl.NumberFormat('en-AU')
 const count = (n: number): string => AU.format(n)
 
+/** Each of n things' share of its row at the three widths the stylesheet reflows at (`rows.ts`),
+ *  as the custom properties it reads: nothing alone on a row, no blank cell at a row's end. */
+function rowsStyle(n: number, most: { desk: number; mid: number; phone: number }): CSSProperties[] {
+  const desk = shareOf(n, most.desk)
+  const mid = shareOf(n, most.mid)
+  const phone = shareOf(n, most.phone)
+  return Array.from(
+    { length: n },
+    (_, i) =>
+      ({
+        '--ft-k-desk': String(desk[i] ?? 1),
+        '--ft-k-mid': String(mid[i] ?? 1),
+        '--ft-k-phone': String(phone[i] ?? 1),
+      }) as CSSProperties,
+  )
+}
+
 export function Fitment({
   boat,
   maker = '',
@@ -216,7 +235,7 @@ export function Fitment({
     [ctx, fit, all],
   )
   /* ONE PRESS PUTS A THING ON THIS BOAT OR TAKES IT OFF, on every version, with its Undo */
-  const { change, refusal } = useFitChange(ctx, fit, versions)
+  const { change, refusal, refuse } = useFitChange(ctx, fit, versions)
   const { start, refused: startRefused } = useStart(openQuote)
 
   /* THE BOATS ALREADY ON QUOTES HERE, most recent first, offered before a word is typed */
@@ -249,11 +268,31 @@ export function Fitment({
     if (chosenMotor === 'none') return null
     return rigs.find((r) => r.key === chosenMotor) ?? rigs.find((r) => r.motor.starred) ?? null
   }, [rigs, chosenMotor])
-  const trailerPick: TrailerMade | null = useMemo(() => {
+  /* A TRAILER OVER ITS ATM IS LEFT OFF THE QUOTE, and the plate's foot says why (`atm.ts`) */
+  const trailerWanted: TrailerMade | null = useMemo(() => {
     const offered = fit?.trailer ? offeredIn(fit.trailer.made) : []
     if (chosenTrailer === 'none') return null
     return offered.find((t) => t.key === chosenTrailer) ?? offered.find((t) => t.crosses) ?? null
   }, [fit, chosenTrailer])
+  const trailerLeft = useMemo(
+    () => (fit && trailerWanted ? atmRefusal(ctx, fit, trailerWanted, 'start') : ''),
+    [ctx, fit, trailerWanted],
+  )
+  const trailerPick = trailerLeft === '' ? trailerWanted : null
+  /* the press for the quote on a trailer tile: refused with its sentence where its ATM is over */
+  const chooseTrailer = useCallback(
+    (key: string) => {
+      const t = fit?.trailer?.made.find((m) => m.key === key)
+      const why = fit && t ? atmRefusal(ctx, fit, t, 'quote') : ''
+      if (t && why !== '') {
+        refuse(t.place.rowId, why)
+        return
+      }
+      refuse('', '')
+      onPosition({ trailer: key })
+    },
+    [ctx, fit, refuse, onPosition],
+  )
 
   const showAll = useCallback(
     (slot: string, group = '') => {
@@ -367,6 +406,7 @@ export function Fitment({
                 fit={fit}
                 motor={motorPick}
                 trailer={trailerPick}
+                left={trailerLeft}
                 refused={startRefused}
                 onStart={() => start(fit.place, picks)}
               />
@@ -411,7 +451,7 @@ export function Fitment({
                     fit={fit}
                     ctx={ctx}
                     chosen={trailerPick?.key ?? null}
-                    onChoose={(key) => onPosition({ trailer: key })}
+                    onChoose={chooseTrailer}
                     change={change}
                     refusal={refusal}
                     showAll={showAll}
@@ -486,6 +526,8 @@ function BoatPlate({
     .join(' · ')
   const tiles = motorTiles(ctx, fit)
   const facts = boatFacts(ctx, fit.place)
+  /* one row on the desk; four to a row at 834 and 844, three on a phone, none alone */
+  const factRows = rowsStyle(facts.length, { desk: facts.length, mid: 4, phone: 3 })
 
   return (
     <section className="ft-plate" data-ground="night" aria-labelledby="ft-name">
@@ -575,8 +617,8 @@ function BoatPlate({
       {/* THE BOAT'S OWN FACTS, off its own row (the fitment judge, major 5) */}
       {facts.length > 0 ? (
         <dl className="ft-facts" aria-label={`The ${fit.name}’s own figures`}>
-          {facts.map((f) => (
-            <div key={f.label} className="ft-facts__one">
+          {facts.map((f, i) => (
+            <div key={f.label} className="ft-facts__one" style={factRows[i]}>
               <dt className="ft-facts__label">{f.label}</dt>
               <dd className="ft-facts__value">{f.value}</dd>
             </div>
@@ -688,12 +730,15 @@ function StartLine({
   fit,
   motor,
   trailer,
+  left = '',
   refused,
   onStart,
 }: {
   fit: BoatFit
   motor: Rigged | null
   trailer: TrailerMade | null
+  /** the trailer left off because its ATM is over, as a sentence; '' for none */
+  left?: string
   refused: string
   onStart: () => void
 }) {
@@ -732,6 +777,12 @@ function StartLine({
             </span>
           </p>
         ) : null}
+        {left === '' ? null : (
+          <p className="ft-start__left">
+            <Icon glyph={WarningIcon} size="sm" />
+            <span>{left}</span>
+          </p>
+        )}
       </div>
       <span className="ft-start__act">
         <Button intent="primary" icon={ReceiptIcon} onClick={onStart}>
@@ -793,6 +844,9 @@ function TileActs({
   where: 'motor' | 'trailer'
   onAccent?: boolean
 }) {
+  /* THE SAME TWO ROWS ON EVERY TILE (the fitment verifier, 2026-11-03: the starred tile put its
+     two presses on one row while the others wrapped theirs, so a row of tiles ended unevenly): the
+     press for the quote on its own row, then what changes the boat */
   return (
     <span className="ft-acts">
       <span className="ft-acts__row">
@@ -810,6 +864,8 @@ function TileActs({
         >
           {chosen ? 'On the quote' : 'Quote this one'}
         </Button>
+      </span>
+      <span className="ft-acts__row">
         {starred ? null : (
           <Button
             intent={onAccent ? 'veiled' : 'quiet'}
@@ -875,6 +931,8 @@ function MotorOpen({
   /* the kit list's price, said once over the tiles where Northside has not chosen it */
   const unchosenKit = rigs.find((r) => r.kit?.unchosen)?.kit ?? null
   const shared = sharedFacts(rigs)
+  /* four to a row on the desk, three at 834 and 844, one on a phone, none alone */
+  const tileRows = rowsStyle(rigs.length, { desk: 4, mid: 3, phone: 1 })
   return (
     <section className="ft-place" aria-labelledby="ft-motor">
       <div className="ft-bar">
@@ -934,9 +992,10 @@ function MotorOpen({
         <CompareTable ctx={ctx} rigs={rigs} chosen={chosen} />
       ) : (
         <ul className="ft-tiles" aria-label="Made for it">
-          {rigs.map((r) => (
+          {rigs.map((r, i) => (
             <RigTile
               key={r.key}
+              style={tileRows[i]}
               r={r}
               shared={shared}
               saidAbove={unchosenKit !== null}
@@ -975,7 +1034,10 @@ function RigTile({
   refusal,
   shared,
   saidAbove,
+  style,
 }: Changing & {
+  /** its share of its row (`rowsStyle`) */
+  style?: CSSProperties | undefined
   r: Rigged
   /** what every tile shares, said once above them */
   shared: readonly { label: string; value: string }[]
@@ -990,6 +1052,7 @@ function RigTile({
   return (
     <li
       className="ft-tile"
+      style={style}
       data-ground="plate"
       data-star={star ? '' : undefined}
       data-chosen={chosen ? '' : undefined}
@@ -1274,8 +1337,15 @@ function TrailerTile({
           </span>
         )}
       </p>
-      <p className="ft-trl__tag">
-        {t.crosses ? 'On a new quote' : offeredInstead ? 'Offered in its place' : ''}
+      <p className="ft-trl__tag" data-over={over ? '' : undefined}>
+        {/* a trailer over its ATM is put on no quote here, and its weighing says by how much */}
+        {over
+          ? 'Over its ATM, so not for a quote'
+          : t.crosses
+            ? 'On a new quote'
+            : offeredInstead
+              ? 'Offered in its place'
+              : ''}
       </p>
       {rated !== null ? (
         <span className="ft-atm" aria-hidden="true" data-over={over ? '' : undefined}>
@@ -1496,14 +1566,6 @@ function doorSaid(door: Door, boatName: string, example: string): { word: string
   }
 }
 
-/** As many columns as n reasons share evenly, up to `most`: 4 at most 3 is two rows of 2, 6 at
- *  most 5 is two rows of 3 — never one reason alone on a row. */
-function columnsFor(n: number, most: number): number {
-  if (n <= most) return Math.max(1, n)
-  const rows = Math.ceil(n / most)
-  return Math.ceil(n / rows)
-}
-
 function Reasons({
   held,
   onShow,
@@ -1520,25 +1582,26 @@ function Reasons({
   boatName: string
 }) {
   if (held.groups.length === 0) return null
+  /* five to a row on the desk, three at 834 and 844 (five are 3 + 2, each row full), one on a
+     phone: never one alone, never a blank cell (`rows.ts`) */
+  const rows = rowsStyle(held.groups.length, { desk: 5, mid: 3, phone: 1 })
   return (
     <>
       <h3 className="ft-why">The other {count(held.others)}, and why</h3>
       {/* A ROW OF GAUGES ON THE ROOM, NOT A WHITE CARD OF ROWS: each reason stands in its own
           column under a track filled to its share of the others. The share is drawn only; the
           count is said. */}
-      <ul
-        className="ft-reasons"
-        data-n={held.groups.length}
-        style={{
-          ['--ft-desk' as string]: String(columnsFor(held.groups.length, 5)),
-          ['--ft-mid' as string]: String(columnsFor(held.groups.length, 3)),
-        }}
-      >
-        {held.groups.map((h) => {
+      <ul className="ft-reasons" data-n={held.groups.length}>
+        {held.groups.map((h, i) => {
           const door = h.door ? doorSaid(h.door, boatName, h.example?.name ?? '') : null
           const opens = h.door && h.door.kind !== 'rules' ? h.door.opens : null
           return (
-            <li key={h.id} className="ft-reason" data-ruled={h.id === 'ruled' ? '' : undefined}>
+            <li
+              key={h.id}
+              className="ft-reason"
+              style={rows[i]}
+              data-ruled={h.id === 'ruled' ? '' : undefined}
+            >
               <span className="ft-reason__gauge" aria-hidden="true">
                 <span
                   className="ft-reason__fill"

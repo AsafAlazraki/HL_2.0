@@ -942,8 +942,11 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
   return store
 }
 
-/** The app's catalogue. */
+/** The app's catalogue. Every step is stamped with the name at the door, so a changed price
+ *  says who changed it as well as when (the sheet's verifier, 2026-11-03: "changed 3 Nov",
+ *  never who — the option existed and the app never passed it). */
 export const catalogue: CatalogueStore = createCatalogueStore({
   onOwnPictures: holdOwnPictures,
   onGalleries: holdGalleries,
+  by: () => session.getState().name ?? undefined,
 })

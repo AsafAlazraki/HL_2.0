@@ -423,9 +423,38 @@
   list-style: none;
   margin: --spacing(3) 0 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-  gap: --spacing(3);
+  --ft-col-gap: --spacing(3);
+  row-gap: --spacing(3);
+}
+
+/* NOTHING ALONE ON A ROW, NO BLANK CELL AT A ROW'S END (the fitment verifier, 2026-11-03): the
+   tiles, the reasons and the boat's facts each wrap as a row of shares, every one told by the
+   screen how many share its row at each width (`rows.ts`), so seven tiles stand 4 + 3 on the
+   desk and 3 + 2 + 2 at 834, and every row is full. */
+:is(.ft-tiles, .ft-reasons, .ft-facts) {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--ft-col-gap);
+}
+:is(.ft-tiles, .ft-reasons, .ft-facts) > * {
+  /* one to a row where the screen says nothing; its inline shares win over these */
+  --ft-k-desk: 1;
+  --ft-k-mid: 1;
+  --ft-k-phone: 1;
+  --ft-k: var(--ft-k-desk, 1);
+  /* a pixel under its share, so rounding never pushes the last of a row onto the next */
+  flex: 1 1 calc((100% - (var(--ft-k) - 1) * var(--ft-col-gap)) / var(--ft-k) - 1px);
+  min-inline-size: 0;
+}
+@media (max-width: 1179px) {
+  :is(.ft-tiles, .ft-reasons, .ft-facts) > * {
+    --ft-k: var(--ft-k-mid, 1);
+  }
+}
+@media (max-width: 699px) {
+  :is(.ft-tiles, .ft-reasons, .ft-facts) > * {
+    --ft-k: var(--ft-k-phone, 1);
+  }
 }
 .ft-tile {
   display: flex;
@@ -556,6 +585,10 @@
   text-transform: uppercase;
   font-weight: 600;
   color: var(--color-ink-file);
+}
+/* over its ATM: the tag wears the weighing's own warning ink, not the quote's blue */
+.ft-trl__tag[data-over] {
+  color: var(--color-act-ink);
 }
 .ft-atm {
   position: relative;
@@ -693,13 +726,11 @@
   list-style: none;
   margin: --spacing(3) 0 0;
   padding: 0;
-  display: grid;
-  /* AS MANY COLUMNS AS THE REASONS SHARE EVENLY (set from their count), so the fourth never
-     stands alone on a row at 844 and the sixth never at 1440 (the fitment judge, minor 17) */
-  --ft-desk: 4;
-  --ft-mid: 3;
-  grid-template-columns: repeat(var(--ft-desk), minmax(0, 1fr));
-  gap: --spacing(8) --spacing(6);
+  /* AS MANY TO A ROW AS THE REASONS SHARE EVENLY (each told its row's share, `rows.ts`), so
+     none stands alone on a row and no row ends in a blank cell (the fitment judge, minor 17; the
+     fitment verifier, 2026-11-03: five stood 3 + 2 with a blank third at 834) */
+  --ft-col-gap: --spacing(6);
+  row-gap: --spacing(8);
   color: var(--color-ink);
 }
 .ft-reason {
@@ -1137,9 +1168,6 @@
     grid-template-columns: 8.5rem minmax(0, auto) minmax(0, 1fr) auto 1.25rem;
     column-gap: --spacing(3);
   }
-  .ft-reasons {
-    grid-template-columns: repeat(var(--ft-mid), minmax(0, 1fr));
-  }
 }
 
 /* A PHONE: the plate stacks, each line two rows, the reasons' doors under their sentence */
@@ -1244,7 +1272,6 @@
   }
   /* one gauge to a row: its track across, the count beside its sentence, the doors under */
   .ft-reasons {
-    grid-template-columns: minmax(0, 1fr);
     row-gap: --spacing(6);
   }
   .ft-reason {
@@ -1435,9 +1462,8 @@
   color: var(--color-ink);
 }
 .ft-facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
-  gap: --spacing(2) --spacing(4);
+  --ft-col-gap: --spacing(4);
+  row-gap: --spacing(2);
   margin: --spacing(4) 0 0;
   padding: --spacing(3) --spacing(3) 0;
   border-block-start: 1px solid var(--color-rule);
@@ -1537,6 +1563,19 @@
   justify-items: end;
   gap: --spacing(1);
 }
+/* the trailer left off the quote because its ATM is over, said at the plate's foot */
+.ft-start__left {
+  margin: 0;
+  display: flex;
+  gap: --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-act-ink);
+}
+.ft-start__left > :first-child {
+  flex: none;
+  margin-block-start: 1px;
+}
 .ft-start__why {
   max-inline-size: 22rem;
   font-size: var(--text-xs);
@@ -1633,8 +1672,10 @@
   gap: 0 --spacing(2);
   min-inline-size: 0;
 }
+/* the kit's name across the tile and its price under it, on a wide tile as on a narrow one, so a
+   row of three and a row of four read alike */
 .ft-rig__kit {
-  flex: 1 1 10rem;
+  flex: 1 1 100%;
   min-inline-size: 0;
 }
 .ft-rig__note {
@@ -1795,7 +1836,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* never squeezed under its 24 px by the head's words beside it (the fitment verifier,
+     2026-11-03: 16 × 24 px on a phone) */
+  flex: none;
   inline-size: --spacing(6);
+  min-inline-size: --spacing(6);
   block-size: --spacing(6);
   border: 0;
   border-radius: var(--radius-sm);
@@ -1887,10 +1932,13 @@
   mix-blend-mode: multiply;
 }
 /* WHAT EVERY MOTOR IS RIGGED WITH ALIKE, said once over the tiles */
+/* its head word in a column of its own, and what is alike wrapping beside it, never under it
+   (the fitment verifier, 2026-11-03: ENGINE HOLE wrapped under "Alike on all 7" at 834) */
 .ft-shared {
   margin: --spacing(3) 0 0;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
   gap: --spacing(1) --spacing(6);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
@@ -1907,7 +1955,10 @@
 }
 .ft-shared__list {
   margin: 0;
-  display: contents;
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(6);
+  min-inline-size: 0;
 }
 .ft-shared .ft-shared__one {
   display: flex;
@@ -1948,15 +1999,6 @@
   overflow: visible;
 }
 
-@media (max-width: 1179px) {
-  .ft-tiles {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  }
-  .ft-facts {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 833px) {
   .ft-heads {
     display: none;
@@ -1990,8 +2032,7 @@
     block-size: 4.5rem;
   }
   .ft-facts {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: --spacing(3);
+    --ft-col-gap: --spacing(3);
   }
   .ft-facts__value {
     font-size: var(--text-sm);

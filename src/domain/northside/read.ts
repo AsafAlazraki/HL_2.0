@@ -18,6 +18,7 @@ import type {
 import { parseHex } from './colour'
 import { HOME_SECTIONS } from './home'
 import { CORNERS, MOTIONS, SHADOWS, SPACINGS } from './look'
+import { COLOUR_CHOICES } from '@/domain/catalogue/table/colourKey'
 
 type Bag = Record<string, unknown>
 const isBag = (v: unknown): v is Bag => typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -140,5 +141,18 @@ export function readOrg(raw: unknown, stamp = ''): OrgProfile | undefined {
   if (l) out.look = l
   const h = home(raw.home)
   if (h) out.home = h
+  const c = colours(raw.colours)
+  if (c) out.colours = c
   return out
+}
+
+/** The colour key's letters Northside named: a capital letter or three, each a colour it can draw. */
+function colours(raw: unknown): Record<string, string> | undefined {
+  if (!isBag(raw)) return undefined
+  const out: Record<string, string> = {}
+  for (const [token, v] of Object.entries(raw)) {
+    const name = text(v)
+    if (/^[A-Z]{1,3}$/.test(token) && name && COLOUR_CHOICES.includes(name)) out[token] = name
+  }
+  return Object.keys(out).length > 0 ? out : undefined
 }

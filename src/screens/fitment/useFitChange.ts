@@ -73,5 +73,12 @@ export function useFitChange(ctx: CatalogueCtx, fit: BoatFit | null, versions: r
     [ctx, fit, boat, versions],
   )
 
-  return { change, refusal }
+  /** A press the screen itself refuses (a trailer over its ATM, for the quote), said where it
+   *  was pressed like any other refusal; '' clears it. */
+  const refuse = useCallback(
+    (rowId: string, why: string): void => setRefusal(why === '' ? null : { boat, rowId, why }),
+    [boat],
+  )
+
+  return { change, refusal, refuse }
 }

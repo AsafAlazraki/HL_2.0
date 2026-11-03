@@ -5,7 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { ONE_TRAILER, RULE_REFUSES } from '@/domain/fitment/say'
-import { rowLabel } from '@/domain/model'
+import { makeCtx, rowLabel } from '@/domain/model'
+import { readBoatFit } from '@/domain/fitment/boat'
 import { pairColumns, pairRule } from '@/domain/rules/constraints/pairRules'
 import { Fitment, type FitmentPosition } from './Fitment'
 import { sheetHref } from './sheet'
@@ -182,7 +183,35 @@ describe('the trailer line', () => {
     expect(screen.queryByText(/clears it by/)).toBeNull()
     expect(screen.getAllByText(ONE_TRAILER)).toHaveLength(1)
     expect(screen.getByText('On a new quote')).toBeInTheDocument()
-    expect(screen.getByText('Offered in its place')).toBeInTheDocument()
+    /* the GFAB, 750 kg over its ATM, is offered but put on no quote (the fitment verifier) */
+    expect(screen.getByText('Over its ATM, so not for a quote')).toBeInTheDocument()
+  })
+
+  it('refuses the GFAB, over its ATM, for the quote and the recommended, where it is pressed', async () => {
+    draw({ line: 'trailer' })
+    const before = positions.length
+    await userEvent.click(screen.getByRole('button', { name: /^Put the GFAB .* on the quote/ }))
+    expect(positions.length).toBe(before)
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /is rated 2,200 kg and would carry 2,950 kg, 750 kg over, so it is not put on the quote\. Its ATM decides that\.$/,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^Make the GFAB .* the recommended/ }))
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /so it is not made the recommended trailer\. Its ATM decides that\.$/,
+    )
+  })
+
+  it('leaves the GFAB off the quote the plate starts, even asked for by its address, and says why', () => {
+    const fit = readBoatFit(makeCtx({ ...pack.ctx, orgId: 'northside' }), {
+      tableId: 'boat_highfield',
+      rowId: SP660,
+    })!
+    const gfab = fit.trailer!.made.find((t) => !t.starred)!
+    draw({ line: 'trailer', trailer: gfab.key })
+    expect(screen.getByText(/so it is left off this quote\. Its ATM decides that\.$/)).toBeVisible()
+    /* the quote the plate starts names no trailer, and the GFAB tile is not marked on it */
+    expect(screen.getByText(/^This Highfield Sport 660 and the Yamaha F175XC/)).toBeVisible()
+    expect(screen.queryByRole('button', { name: /^The GFAB .* is on the quote/ })).toBeNull()
   })
 
   it('gives the other 432 trailers three counted reasons, the makers counted under one', () => {
