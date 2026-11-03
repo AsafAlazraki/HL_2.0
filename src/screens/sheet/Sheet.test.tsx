@@ -3,6 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
+import { updateCell } from '@/domain/catalogue/commands'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { NO_SHEET, noTable, recordSaid } from './read'
 import { spineName } from '@/domain/catalogue/views/spineSaid'
@@ -366,13 +367,15 @@ describe('the record', () => {
     expect(cell.querySelector('button')).toHaveAccessibleName(
       'Variant: Black / Grey / Black, HYP B-G-B',
     )
-    expect(cell.querySelectorAll('.ui-swatches[data-shape="flag"] .ui-swatch')).toHaveLength(3)
+    /* DRAWN AS STRIPES OF PAINT, never a square: a 12px grey square on every LG row read as an
+       unticked checkbox (the sheet's judge, 2026-11-03, G15) */
+    expect(cell.querySelectorAll('.sh-cell__stripe')).toHaveLength(3)
     expect(cell).toHaveTextContent('B-G-B')
     /* and a code with a token nobody decodes is the code, with no colour */
     for (const drawn of document.querySelectorAll<HTMLElement>('[role="gridcell"]')) {
       const said = drawn.querySelector('button')?.getAttribute('aria-label') ?? ''
       if (!/^Variant: .*\b(WH|O|R|I)\b/.test(said) || said.includes(' / ')) continue
-      expect(drawn.querySelector('.ui-swatches')).toBeNull()
+      expect(drawn.querySelector('.sh-cell__paint')).toBeNull()
     }
   })
 
@@ -428,7 +431,9 @@ describe('a cell', () => {
     const read = () => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === first.id)!
     expect(read().values[cash.id]).toBe(4321)
     const step = screen.getByTestId('last-step')
-    expect(step).toHaveTextContent(`Cell edit · ${hf().name}`)
+    /* THE STEP SAYS WHICH PRICE MOVED, not the kind of act (the judge's G19): "Cash on … $4,321" */
+    expect(step).toHaveTextContent(/^Cash on .*→ \$4,321/)
+    expect(step).not.toHaveTextContent('Cell edit')
     await person.click(within(step).getByRole('button', { name: 'Undo' }))
     expect(read().values[cash.id]).toBe(was)
     expect(within(step).getByRole('button', { name: 'Put it back' })).toBeInTheDocument()
@@ -474,6 +479,80 @@ describe('a cell', () => {
     } finally {
       window.matchMedia = real
     }
+  })
+
+  it('typing straight onto a cell keeps the first key: 2850 writes $2,850, never $850', async () => {
+    /* the judge's G1, 2026-11-03: the editor opened with its first key selected, the next key
+       replaced it, and 2850 wrote $850 */
+    const person = userEvent.setup()
+    draw()
+    grid().focus()
+    const col = colOf('Cash')
+    const cash = field('Cash')
+    const first = inFirstSeries()[0]!
+    for (let i = 0; i < col; i += 1) await person.keyboard('{ArrowRight}')
+    await person.keyboard('2850{Enter}')
+    const read = () => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === first.id)!
+    expect(read().values[cash.id]).toBe(2850)
+    await person.keyboard('{ArrowUp}5321{Tab}')
+    expect(read().values[cash.id]).toBe(5321)
+  })
+
+  it('a refusal keeps what was typed, open under its pill, to be mended', async () => {
+    const person = userEvent.setup()
+    draw()
+    grid().focus()
+    const col = colOf('Cash')
+    for (let i = 0; i < col; i += 1) await person.keyboard('{ArrowRight}')
+    await person.keyboard('{Enter}')
+    await person.keyboard('12abc{Enter}')
+    const box = screen.getByRole('textbox', { name: /editing$/ })
+    expect(box).toHaveValue('12abc')
+    expect(box).toHaveFocus()
+    /* Escape lets it go: the draft and its pill both */
+    await person.keyboard('{Escape}')
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.queryByRole('textbox', { name: /editing$/ })).toBeNull()
+    await person.keyboard('{Enter}12abc{Enter}')
+    await person.keyboard('{Backspace}{Backspace}{Backspace}{Enter}')
+    const cash = field('Cash')
+    const first = inFirstSeries()[0]!
+    const read = () => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === first.id)!
+    expect(read().values[cash.id]).toBe(12)
+  })
+
+  it('warns, beside Undo, when a Cash written is under the landed cost the file keeps it above', async () => {
+    const person = userEvent.setup()
+    const cash = field('Cash')
+    const landed = field('Landed Hull Cost')
+    const first = inFirstSeries()[0]!
+    expect(Number(first.values[landed.id])).toBeGreaterThan(850)
+    draw()
+    grid().focus()
+    const col = colOf('Cash')
+    for (let i = 0; i < col; i += 1) await person.keyboard('{ArrowRight}')
+    await person.keyboard('850{Enter}')
+    const warned = screen.getByTestId('step-warning')
+    expect(warned).toHaveTextContent(/Cash \$850 is under this line’s Landed Hull Cost/)
+    expect(warned).toHaveTextContent(/at or above it on [\d,]+ of [\d,]+ lines with both\./)
+    await person.click(within(warned).getByRole('button', { name: 'Keep it' }))
+    expect(screen.queryByTestId('step-warning')).toBeNull()
+    const read = () => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === first.id)!
+    expect(read().values[cash.id]).toBe(850)
+  })
+
+  it('Escape throws a typed figure away and writes nothing', async () => {
+    const person = userEvent.setup()
+    draw()
+    grid().focus()
+    const col = colOf('Cash')
+    const cash = field('Cash')
+    const first = inFirstSeries()[0]!
+    for (let i = 0; i < col; i += 1) await person.keyboard('{ArrowRight}')
+    await person.keyboard('9999{Escape}')
+    const read = () => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === first.id)!
+    expect(read().values[cash.id]).toBe(first.values[cash.id])
+    expect(screen.queryByTestId('last-step')).toBeNull()
   })
 
   it('a commit that changed nothing is not a step', async () => {
@@ -528,7 +607,7 @@ describe('what is shut stays shut', () => {
     grid().focus()
     await person.keyboard('{ArrowRight}{Enter}')
     await person.keyboard('X9{Enter}')
-    expect(screen.getByTestId('last-step')).toHaveTextContent(`Cell edit · ${hf().name}`)
+    expect(screen.getByTestId('last-step')).toHaveTextContent(/ → X9/)
     expect(screen.getByRole('button', { name: `Open ${first}` })).toBeInTheDocument()
     await person.click(
       within(screen.getByTestId('last-step')).getByRole('button', { name: 'Undo' }),
@@ -665,7 +744,153 @@ describe('the doors', () => {
     const label = String(
       rowsOf(HIGHFIELD).find((r) => r.id === firstHull)!.values[hf().displayFieldId!],
     )
-    expect(screen.getAllByRole('rowgroup', { name: label }).length).toBeGreaterThan(0)
+    /* THE HULL AS EVERY OTHER SCREEN SAYS IT (the judge's G7), never the file's key */
+    const said = recordSaid(hf(), label)
+    expect(said).not.toBe(label)
+    expect(screen.getAllByRole('rowgroup', { name: said }).length).toBeGreaterThan(0)
+    expect(screen.queryAllByRole('rowgroup', { name: label })).toHaveLength(0)
+  })
+})
+
+/** A 4 % rise, to the cent, as the move works it out. */
+const cents = (n: number): number => Math.round(n * 1.04 * 100) / 100
+
+describe('many at once', () => {
+  it('raises two Cash figures 4 %, shows each before and after first, and takes both back in one Undo', async () => {
+    const person = userEvent.setup()
+    const cash = field('Cash')
+    draw()
+    /* the first two lines in the order the list draws them */
+    const [a, b] = [...document.querySelectorAll('.sh-row')]
+      .slice(0, 2)
+      .map((el) => rowsOf(HIGHFIELD).find((r) => `sh-row-${r.id}` === el.id))
+    const was = [a!.values[cash.id] as number, b!.values[cash.id] as number]
+    grid().focus()
+    const col = colOf('Cash')
+    for (let i = 0; i < col; i += 1) await person.keyboard('{ArrowRight}')
+    await person.keyboard('{Shift>}{ArrowDown}{/Shift}')
+    const plate = screen.getByTestId('sheet-selection')
+    await person.type(within(plate).getByRole('textbox', { name: 'Cash, By %' }), '4')
+    const plan = within(plate).getByTestId('sheet-move-plan')
+    expect(plan).toHaveTextContent('→')
+    await person.click(within(plate).getByRole('button', { name: /^Change \d/ }))
+    const read = (id: string) => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === id)!
+    expect(read(a!.id).values[cash.id]).toBe(cents(was[0]!))
+    expect(read(b!.id).values[cash.id]).toBe(cents(was[1]!))
+    const step = screen.getByTestId('last-step')
+    expect(step).toHaveTextContent(/Cash raised 4 % on 2 variants/)
+    await person.click(within(step).getByRole('button', { name: 'Undo' }))
+    expect(read(a!.id).values[cash.id]).toBe(was[0])
+    expect(read(b!.id).values[cash.id]).toBe(was[1])
+  })
+})
+
+describe('asking the values', () => {
+  it('shows only the lines a question keeps, from the address, and says the question over the list', () => {
+    const maxHp = field('Max HP')
+    const want = rowsOf(HIGHFIELD).filter((r) => {
+      const n = parseFloat(String(r.values[maxHp.id] ?? ''))
+      return Number.isFinite(n) && n >= 150
+    }).length
+    expect(want).toBeGreaterThan(0)
+    draw({ start: { only: `at-least~${maxHp.id}~150` } })
+    expect(grid()).toHaveAttribute('data-rows', String(want))
+    expect(
+      screen.getByRole('button', { name: 'Stop showing only: Max HP at least 150' }),
+    ).toBeInTheDocument()
+  })
+
+  it('a question no line answers is a sentence where the list would be, with the way back', async () => {
+    const person = userEvent.setup()
+    const maxHp = field('Max HP')
+    const seen: SheetPosition[] = []
+    draw({ start: { only: `at-least~${maxHp.id}~100000` }, seen })
+    const nothing = screen.getByTestId('sheet-nothing')
+    expect(nothing).toHaveTextContent(
+      `No variant of ${hf().name} answers “Max HP at least 100,000”.`,
+    )
+    await person.click(within(nothing).getByRole('button', { name: 'Show every variant' }))
+    expect(seen.at(-1)?.only).toBeUndefined()
+    expect(screen.queryByTestId('sheet-nothing')).toBeNull()
+  })
+
+  it('a search that finds nothing says so where the list would be', () => {
+    draw({ start: { find: 'zzqx' } })
+    const nothing = screen.getByTestId('sheet-nothing')
+    expect(nothing).toHaveTextContent(`Nothing on ${hf().name} matches “zzqx”.`)
+    expect(nothing).toHaveTextContent('No other list of the Master Price File carries it either.')
+  })
+
+  it('a code that is on another list is offered there, counted', () => {
+    const yam = pack.byKey('mot_yamaha')
+    const codeField = yam.fields.find((f) => f.name === 'Model Code')!
+    const code = String(rowsOf('mot_yamaha')[0]!.values[codeField.id]).toLowerCase()
+    const carries = (r: { values: Record<string, unknown> }) =>
+      Object.values(r.values).some(
+        (v) =>
+          (typeof v === 'string' || typeof v === 'number') &&
+          String(v).toLowerCase().includes(code),
+      )
+    expect(rowsOf(HIGHFIELD).some(carries)).toBe(false)
+    draw({ start: { find: code } })
+    const nothing = screen.getByTestId('sheet-nothing')
+    const lines = rowsOf('mot_yamaha').filter(carries).length
+    expect(
+      within(nothing).getByRole('link', { name: new RegExp(`^${yam.name} ${lines} lines?`) }),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('a new colourway', () => {
+  it('copies a line with its prices and shared facts, leaves its code and picture to be given, and opens it', async () => {
+    const person = userEvent.setup()
+    const first = inFirstSeries()[0]!
+    const before = rowsOf(HIGHFIELD).length
+    draw({ start: { at: first.id } })
+    const record = screen.getByTestId('sheet-record')
+    await person.click(within(record).getByRole('button', { name: 'Copy as a new variant' }))
+    const rows = catalogue.getState().rows[HIGHFIELD]!
+    expect(rows).toHaveLength(before + 1)
+    const made = rows.find((r) => !rowsOf(HIGHFIELD).some((x) => x.id === r.id))!
+    expect(made.values[field('Cash').id]).toBe(first.values[field('Cash').id])
+    expect(made.values[field('Model Code').id] ?? null).toBeNull()
+    expect(made.values[field('Image Link').id] ?? null).toBeNull()
+    expect(screen.getByTestId('last-step')).toHaveTextContent(
+      /^Copied .* as a new variant\. Give it its own code and its own picture\./,
+    )
+  })
+})
+
+describe('what Northside changed', () => {
+  it('marks the one cell this computer changed against the file, and says what the file had', async () => {
+    const cash = field('Cash')
+    const first = inFirstSeries()[0]!
+    const was = first.values[cash.id] as number
+    catalogue.getState().apply(updateCell(HIGHFIELD, first.id, cash.id, was + 80))
+    render(
+      <Sheet tableId={HIGHFIELD} at={first.id} fileOf={() => Promise.resolve(rowsOf(HIGHFIELD))} />,
+    )
+    const marked = await screen.findAllByRole('button', {
+      name: /changed here; the Master Price File had/,
+    })
+    expect(marked).toHaveLength(1)
+    expect(marked[0]).toHaveAccessibleName(
+      `Cash: $${(was + 80).toLocaleString('en-AU')}, changed here; the Master Price File had $${was.toLocaleString('en-AU')}`,
+    )
+    expect(document.querySelectorAll('.sh-cell[data-changed]')).toHaveLength(1)
+    /* the record says it too, under the fact */
+    const record = screen.getByTestId('sheet-record')
+    expect(record.querySelectorAll('.sh-fact[data-changed]')).toHaveLength(1)
+    expect(within(record).getByText(/^The Master Price File had \$/)).toBeInTheDocument()
+  })
+
+  it('marks nothing where the file cannot be fetched', async () => {
+    const cash = field('Cash')
+    const first = inFirstSeries()[0]!
+    catalogue.getState().apply(updateCell(HIGHFIELD, first.id, cash.id, 1))
+    render(<Sheet tableId={HIGHFIELD} fileOf={() => Promise.reject(new Error('offline'))} />)
+    await Promise.resolve()
+    expect(document.querySelectorAll('.sh-cell[data-changed]')).toHaveLength(0)
   })
 })
 

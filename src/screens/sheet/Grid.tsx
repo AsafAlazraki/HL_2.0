@@ -57,18 +57,9 @@ import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso'
 import { CaretDownIcon, StarIcon } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
 import type { ColumnSection, EntityDef, FieldDef } from '@/domain/model'
-import {
-  Icon,
-  Input,
-  Kbd,
-  Refusal,
-  Swatches,
-  closesStage,
-  isField,
-  move as kitMove,
-  stageKeyOf,
-} from '@/ui'
+import { Icon, Input, Kbd, Refusal, closesStage, isField, move as kitMove, stageKeyOf } from '@/ui'
 import { colourwayOf, splitVariant, type Colourway } from '@/domain/quote/colourway'
+import { swatchesOf } from '@/domain/quote/spoken'
 import {
   clampCell,
   normalizeRange,
@@ -167,6 +158,16 @@ export interface GridProps {
   spineHead: string
   hasSpine: boolean
   hand: boolean
+  /**
+   * THE SPINE AS A BAND OVER ITS ROWS, not a column beside them (the judge's G5, 2026-11-03):
+   * a list that is not a boat list — parts, packages, kits, motors, trailers — says a category
+   * name and a price range on its spine, and as a column that took 41–43 % of the width while
+   * the product names people search by were cut. There it is one line over its rows, standing
+   * at the top while they scroll, and the names take the width.
+   */
+  banded: boolean
+  /** what the price file held in a cell this computer changed, painted — or undefined */
+  changedOf?: (rowId: string, fieldId: string) => string | undefined
   rowH: number
   /** the leading word's column, and the least the tail keeps for the lit row's keys */
   leadW: number
@@ -213,6 +214,10 @@ interface Editing {
   rowId: string
   fieldId: string
   draft: string
+  /** THE EDIT WAS STARTED BY A KEY, which is its first character (the judge's G1, 2026-11-03):
+   *  the field opens with the caret after it, never with it selected — selected, the next key
+   *  replaced it, and typing 2850 onto a cell wrote $850 */
+  seeded: boolean
 }
 
 interface Pill {
@@ -223,6 +228,10 @@ interface Pill {
 
 /** A shut line's toggle column, px — `sheet.css`'s `--shut-toggle`, and `SHUT_BOX` in Sheet.tsx. */
 const SHUT_TOGGLE_W = 24
+
+/** A band over a list's products, px: `.sh-spine[data-band] .sh-spine__in`'s 36 and its 1px rule
+ *  (sheet.css) — the air left under a banded block's last product, so the band slides over air. */
+const BAND_TAIL = 37
 
 /** A length the script decided, as a track size. */
 const px = (n: number): string => `${n}px`
@@ -255,6 +264,8 @@ export function Grid(props: GridProps) {
     spineHead,
     hasSpine,
     hand,
+    banded,
+    changedOf,
     rowH,
     leadW,
     tailW,
@@ -488,6 +499,12 @@ export function Grid(props: GridProps) {
 
   /* ---- editing ---------------------------------------------- */
 
+  /* AN EDIT ENDS ONCE. Taking the focus back to the grid blurs the field before React has drawn
+     it away, and its blur would finish the edit a second time from the old draft: Escape wrote
+     the draft it was pressed to throw away, and a refused draft came back under its pill (the
+     data round's screenshots, 2026-11-03). The field that has ended is let go of here. */
+  const ended = useRef(false)
+
   const start = useCallback(
     (cell: CellRef, seed?: string) => {
       const row = rows[cell.row]
@@ -520,7 +537,9 @@ export function Grid(props: GridProps) {
         rowId: row.rowId,
         fieldId: field.id,
         draft: seed ?? seedOf(field, row),
+        seeded: seed !== undefined,
       })
+      ended.current = false
     },
     [commit, fields, rows],
   )
@@ -528,8 +547,7 @@ export function Grid(props: GridProps) {
   const finish = useCallback(
     (move: 'down' | 'up' | 'right' | 'left' | 'none') => {
       const e = editing
-      if (!e) return
-      setEditing(null)
+      if (!e || ended.current) return
       const field = fields[e.col]
       const row = rows[e.row]
       /* A BLUR WITHOUT A CHANGE WRITES NOTHING: the engine refuses an
@@ -539,10 +557,18 @@ export function Grid(props: GridProps) {
         const outcome = commit(e.rowId, e.fieldId, e.draft)
         if ('refused' in outcome && outcome.refused !== '') {
           setPill({ rowId: e.rowId, fieldId: e.fieldId, reason: outcome.refused })
+          /* A REFUSAL KEEPS WHAT WAS TYPED (the judge's J6): Enter or Tab on "12abc" leaves the
+             field open on "12abc" under its pill, so the person mends it rather than typing it
+             all again. A blur — the person has gone elsewhere — shuts it, the pill staying. */
+          if (move !== 'none') return
+          ended.current = true
+          setEditing(null)
           frameRef.current?.focus()
           return
         }
       }
+      ended.current = true
+      setEditing(null)
       setPill(null)
       frameRef.current?.focus()
       if (move === 'none') return
@@ -562,7 +588,9 @@ export function Grid(props: GridProps) {
   )
 
   const cancel = useCallback(() => {
+    ended.current = true
     setEditing(null)
+    setPill(null)
     frameRef.current?.focus()
   }, [])
 
@@ -851,19 +879,25 @@ export function Grid(props: GridProps) {
   const colourOf = (field: FieldDef, row: ViewRow): Colourway | null =>
     field.id === colourFieldId ? colourwayOf(splitVariant(row.text[field.id] ?? '').code) : null
   const showLead = lead !== null
-  const spineCol = hasSpine && !hand ? 1 : 0
+  const headed = hand || banded
+  const spineCol = hasSpine && !headed ? 1 : 0
   const firstData = spineCol + (showLead ? 1 : 0) + 1
+  /* a banded list's name takes what the columns leave: the words a person searches by */
+  const fill = banded && !hand && slots.some((s) => s.kind === 'field' && s.job === 'name')
 
   const template = useMemo(() => {
     const tracks: string[] = []
     if (spineCol) tracks.push(`${spineW}px`)
     if (showLead) tracks.push(`${leadW}px`)
     for (const s of slots) {
-      tracks.push(hand && s.kind === 'field' && s.job === 'name' ? 'minmax(0, 1fr)' : `${s.w}px`)
+      const name = s.kind === 'field' && s.job === 'name'
+      tracks.push(
+        hand && name ? 'minmax(0, 1fr)' : fill && name ? `minmax(${s.w}px, 1fr)` : `${s.w}px`,
+      )
     }
-    if (!hand) tracks.push(`minmax(${tailW}px, 1fr)`)
+    if (!hand) tracks.push(fill ? `${tailW}px` : `minmax(${tailW}px, 1fr)`)
     return tracks.join(' ')
-  }, [hand, leadW, showLead, slots, spineCol, spineW, tailW])
+  }, [fill, hand, leadW, showLead, slots, spineCol, spineW, tailW])
   const total = useMemo(
     () =>
       (spineCol ? spineW : 0) +
@@ -939,6 +973,7 @@ export function Grid(props: GridProps) {
             shownText(field, row) === shownText(field, prev)
           }
           editing={editingKey === `${row.rowId}|${field.id}` ? editing : null}
+          was={changedOf?.(row.rowId, field.id)}
           pill={ownPill}
           onDown={onCellDown}
           onPress={onCellPress}
@@ -1047,10 +1082,14 @@ export function Grid(props: GridProps) {
         ? leaves.findIndex((l) => l.rowId === cursorRowId)
         : -1
     const drawn = leaves.length + (openAt >= 0 ? 1 : 0)
-    const headRow = hand ? 1 : 0
-    const rowsTemplate = hand
-      ? ['auto', ...leaves.map(() => px(rowH))].join(' ')
-      : leaves.flatMap((_, i) => (i === openAt ? [px(rowH), 'auto'] : [px(rowH)])).join(' ')
+    const headRow = headed ? 1 : 0
+    const tracks = leaves.flatMap((_, i) => (i === openAt ? [px(rowH), 'auto'] : [px(rowH)]))
+    /* A BAND'S BLOCK ENDS IN AIR AS TALL AS THE BAND: a sticky band is pushed off by the end of its
+       own block, and without the air it slid over the block's last products as it went (the
+       overlap ruler, Parts at 844 × 390 and 834 × 1112) — with it, it slides over nothing */
+    const rowsTemplate = (
+      headed ? ['auto', ...tracks, ...(banded && !hand ? [px(BAND_TAIL)] : [])] : tracks
+    ).join(' ')
     const gridOf = (i: number): number => headRow + i + 1 + (openAt >= 0 && i > openAt ? 1 : 0)
 
     const spine = (
@@ -1059,8 +1098,10 @@ export function Grid(props: GridProps) {
         says={says}
         shut={p.shut}
         hand={hand}
+        banded={banded && !hand}
+        small={table.role === 'join'}
         place={
-          hand
+          headed
             ? { gridRow: 1, gridColumn: '1 / -1' }
             : { gridRow: `1 / span ${Math.max(1, drawn)}`, gridColumn: 1 }
         }
@@ -1078,6 +1119,7 @@ export function Grid(props: GridProps) {
           className="sh-block"
           data-shut=""
           data-hand={hand ? '' : undefined}
+          data-band={banded && !hand ? '' : undefined}
         >
           <div role="row" className="sh-shutrow">
             {spine}
@@ -1111,7 +1153,7 @@ export function Grid(props: GridProps) {
           ) : undefined
         out.push(
           renderRow(leaf, gridRow, {
-            spine: index === 0 && !hand ? spine : undefined,
+            spine: index === 0 && !headed ? spine : undefined,
             lead: leadCellNode,
             prev: index > 0 ? rows[leaves[index - 1]!.r] : undefined,
           }),
@@ -1129,9 +1171,10 @@ export function Grid(props: GridProps) {
         aria-label={says.name}
         className="sh-block"
         data-hand={hand ? '' : undefined}
+        data-band={banded && !hand ? '' : undefined}
         style={{ ...frame, gridTemplateRows: rowsTemplate }}
       >
-        {hand ? (
+        {headed ? (
           <div role="row" className="sh-headrow">
             {spine}
           </div>
@@ -1221,7 +1264,7 @@ export function Grid(props: GridProps) {
       data-rows={rowCount}
       role="grid"
       aria-label={ariaLabel}
-      aria-rowcount={drawnRows(pieces, hand)}
+      aria-rowcount={drawnRows(pieces, headed)}
       aria-colcount={colCount}
       aria-multiselectable={true}
       aria-activedescendant={activeId}
@@ -1417,6 +1460,13 @@ function Head({
                       ? `${f.name}, the figure every model's head is reading`
                       : `Read every model's head at ${f.name}`
                   }
+                  /* THE SWITCH SAYS WHAT IT SWITCHES under a pointer (the judge's G21): the heads
+                     and bands read their figure at the lit price, and pressing another lights it */
+                  title={
+                    lit
+                      ? `Every head reads its figure at ${f.name}`
+                      : `Read every head's figure at ${f.name}`
+                  }
                 >
                   {/* THE LIT RUNG ON THE ACCENT'S THUMB, which travels from the rung that was
                       lit to the one pressed: "chosen" is the accent's one job in the kit */}
@@ -1431,7 +1481,12 @@ function Head({
                   <span className="sh-th__name">{f.name}</span>
                 </button>
               ) : (
-                <span className="sh-th__name">{f.name}</span>
+                /* IN A HAND THE HEAD NAMES WHAT IS UNDER IT: the list rests on its models' heads,
+                   so the name column's head says MODEL (BOAT on a pairing list), never VARIANT
+                   or MOTOR over them (the judge, 390 × 844) */
+                <span className="sh-th__name">
+                  {hand && slot.job === 'name' && spineHead !== '' ? spineHead : f.name}
+                </span>
               )}
               {cost ? (
                 <span className="sh-th__cost" aria-label="the dealer's own cost column">
@@ -1520,6 +1575,8 @@ function Spine({
   says,
   shut,
   hand,
+  banded = false,
+  small = false,
   place,
   span,
   shutCols,
@@ -1528,6 +1585,11 @@ function Spine({
   says: SpineSays
   shut: boolean
   hand: boolean
+  /** one line over its rows, standing at the top while they scroll (`GridProps.banded`) */
+  banded?: boolean
+  /** every head at the one size: a pairing list's hulls hold one row or twelve, and a head
+   *  that grew with its rows drew neighbouring hulls at two sizes (the judge's G7) */
+  small?: boolean
   place: CSSProperties
   span: number
   shutCols: { name: number; figures: number }
@@ -1536,13 +1598,16 @@ function Spine({
   /* THE ORDER THE SPINE SAYS THINGS IN: the name and how many rows it
      holds; then the lit rung's figure, per material — the first thing a
      customer asks — then what every row shares */
-  const full = says.fit !== 'name' || shut || hand
+  const line = shut || banded
+  const full = says.fit !== 'name' || line || hand
   const figureLine = full && says.figures !== ''
   const one = says.one
   const words = (
     <span className="sh-spine__words">
-      <span className="sh-spine__name">
-        {says.name}
+      {/* the count never gives way to the name: a long category's name is what is cut, never
+          how many it holds (the judge, Parts at 390: "PFD's … 30 pr…") */}
+      <span className="sh-spine__name" title={says.name}>
+        <span className="sh-spine__called">{says.name}</span>
         <span className="sh-spine__count"> {says.count}</span>
       </span>
       {figureLine
@@ -1598,7 +1663,7 @@ function Spine({
     </span>
   )
   const picture =
-    says.picture && (hand || (!shut && says.fit === 'full')) ? (
+    says.picture && (hand || (!line && says.fit === 'full')) ? (
       <figure className="sh-spine__picture" style={{ inlineSize: says.picture.w }}>
         <img
           src={says.picture.held.at}
@@ -1647,6 +1712,8 @@ function Spine({
       className="sh-spine"
       data-fit={says.fit}
       data-shut={shut ? '' : undefined}
+      data-band={banded ? '' : undefined}
+      data-small={small ? '' : undefined}
       style={place}
     >
       <div
@@ -1654,7 +1721,7 @@ function Spine({
         /* a shut line's columns are the same down every shut line, so a
            price always sits in the same place (`shutCols`, Sheet.tsx) */
         style={
-          shut && shutCols.name > 0
+          line && shutCols.name > 0
             ? {
                 gridTemplateColumns: `${SHUT_TOGGLE_W}px ${shutCols.name}px ${shutCols.figures}px minmax(0, 1fr)`,
               }
@@ -1712,6 +1779,8 @@ interface CellProps {
   /** the row above in its block said the same — drawn in the quiet ink */
   repeat: boolean
   editing: Editing | null
+  /** what the price file held here, painted, where this computer's copy differs from it */
+  was?: string
   pill: Pill | null
   onDown: (event: ReactMouseEvent, cell: CellRef) => void
   /** the click after the mousedown, which opens the cell when the
@@ -1738,6 +1807,7 @@ function Cell({
   rung,
   repeat,
   editing,
+  was,
   pill,
   onDown,
   onPress,
@@ -1774,6 +1844,7 @@ function Cell({
       data-selected={selected ? '' : undefined}
       data-cost={isCost(table, field) ? '' : undefined}
       data-colour={colourColumn ? '' : undefined}
+      data-changed={was !== undefined ? '' : undefined}
       style={place}
       onMouseDown={(event) => onDown(event, cell)}
       onDoubleClick={() => onOpen(cell)}
@@ -1787,7 +1858,13 @@ function Cell({
             mono={num}
             inputMode={num ? 'decimal' : undefined}
             autoFocus
-            onFocus={(e) => e.currentTarget.select()}
+            onFocus={(e) => {
+              const input = e.currentTarget
+              /* opened by Enter or a press: the whole value, ready to replace; opened by a key:
+                 the caret after that key, so the next one follows it */
+              if (editing.seeded) input.setSelectionRange(input.value.length, input.value.length)
+              else input.select()
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault()
@@ -1812,7 +1889,12 @@ function Cell({
           type="button"
           className="sh-cell__read"
           tabIndex={-1}
-          aria-label={`${field.name}: ${said}`}
+          aria-label={`${field.name}: ${said}${was === undefined ? '' : `, changed here; the Master Price File had ${was === '' ? 'nothing' : was}`}`}
+          title={
+            was === undefined
+              ? undefined
+              : `Changed here. The Master Price File had ${was === '' ? 'nothing' : was}.`
+          }
           onClick={() => onPress(cell)}
         >
           {mark ? (
@@ -1834,7 +1916,23 @@ function Cell({
                   colour's name first. A code the decode cannot read draws
                   nothing. */}
               {colour?.read ? (
-                <Swatches colour={colour} shape="flag" />
+                /* A STRIPE OF PAINT PER PART, NEVER A SQUARE OR A DOT (the judge's G15): a 12px
+                   grey square on every LG row read as an unticked checkbox, and a round chip as
+                   a radio button. A narrow upright stripe is a paint sample, and reads as no
+                   control; each part's colour is its token (`--swatch-<name>`) */
+                <span className="sh-cell__paint" aria-hidden="true">
+                  {swatchesOf(colour).map((part, i) => (
+                    /* a part's identity IS its place in the code: B-G-B is two parts of the
+                       same black, and the list never reorders */
+                    // eslint-disable-next-line react/no-array-index-key
+                    <span key={i} className="sh-cell__stripe">
+                      {part.swatches.map((name, j) => (
+                        // eslint-disable-next-line react/no-array-index-key
+                        <span key={j} data-swatch={name} />
+                      ))}
+                    </span>
+                  ))}
+                </span>
               ) : colourColumn ? (
                 /* the tile's room, empty: a code nothing decodes draws no colour */
                 <span className="sh-cell__noflag" aria-hidden="true" />

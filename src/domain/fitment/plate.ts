@@ -43,6 +43,7 @@ import {
   motorHeldSaid,
   rulesHereSaid,
   sayVerdict,
+  seriesSaid,
   type MotorHeldId,
 } from './say'
 import { TRAILER_ATM_FLOOR, loadFieldFor } from './trailerFitment'
@@ -52,6 +53,7 @@ import {
   refusedByRule,
   refusedIn,
   type BoatFit,
+  type ListFit,
   type Made,
   type Opens,
   type Place,
@@ -108,11 +110,19 @@ export function plateLines(fit: BoatFit): PlateLine[] {
   const motorFigures = figuresOf(fit, 'motor')
   if (motor && motorFigures) {
     const single = motor.envelope?.rigs.length === 1 && motor.envelope.rigs[0]!.count === 1
+    /* ONE MOTOR, AND THE RIGS THE PRICE LIST MAKES FOR IT ALL THE SAME (the fitment judge, major
+       7): the Stabicraft 2350 said "one motor" over two offered twin rigs */
+    const rigs = motor.madeRigs
     out.push({
       id: 'motor',
       word: 'Motor',
       value: motor.takes === '' ? 'no horsepower on its line' : motor.takes,
-      sub: motor.takes !== '' && single ? 'one motor' : '',
+      sub:
+        motor.takes !== '' && single
+          ? rigs > 0
+            ? `one motor, and ${AU.format(rigs)} twin ${rigs === 1 ? 'rig' : 'rigs'} made for it`
+            : 'one motor'
+          : '',
       ...motorFigures,
       note: '',
     })
@@ -124,7 +134,14 @@ export function plateLines(fit: BoatFit): PlateLine[] {
     out.push({
       id: 'trailer',
       word: 'Trailer',
-      value: trailer.maker ? `built for ${trailer.maker}` : 'built for this boat',
+      /* "built for Highfield" over "0 of 434 offered" said a thing the count denied (the fitment
+         judge, minor 16): where nothing is made for the boat, the line says that */
+      value:
+        trailer.made.length === 0
+          ? 'none made for it'
+          : trailer.maker
+            ? `built for ${trailer.maker}`
+            : 'built for this boat',
       sub: '',
       ...trailerFigures,
       note: crossing === 1 && trailer.made.length > 1 ? 'one on a new quote' : '',
@@ -158,8 +175,11 @@ export interface MotorTile {
   model: string
   hp: number | null
   /** where its horsepower stands on the boat's own single-motor range, 0 to 1; null where the
-   *  boat's line names no such range or the motor no horsepower */
+   *  boat's line names no such range or the motor no horsepower. A motor outside the range is
+   *  never drawn on it: `side` says which end it stands beyond. */
   at: number | null
+  /** 'under' or 'over' the range; null inside it (the fitment judge: a 2.5 hp drawn at 150) */
+  side: 'under' | 'over' | null
   /** the engine's reason where a motor made for this boat sits outside its range; '' inside */
   outside: string
 }
@@ -169,6 +189,9 @@ export interface MotorTiles {
   maker: string
   /** the range the tiles are pinned on, for a reader: "150–200 hp" */
   takes: string
+  /** the range's two ends, drawn at the band's ends; null where the boat names none */
+  min: number | null
+  max: number | null
   tiles: MotorTile[]
 }
 
@@ -188,7 +211,9 @@ export function motorTiles(ctx: CatalogueCtx, fit: BoatFit): MotorTiles | null {
     const measured = measureRig(motor.envelope, rig)
     const hp = rig && rig.count === 1 ? rig.each : null
     let at: number | null = null
+    let side: MotorTile['side'] = null
     if (hp !== null && single && single.min !== null && single.max !== null) {
+      side = hp < single.min ? 'under' : hp > single.max ? 'over' : null
       at =
         single.max === single.min
           ? 0.5
@@ -199,10 +224,17 @@ export function motorTiles(ctx: CatalogueCtx, fit: BoatFit): MotorTiles | null {
       model: modelOf(made.name, maker),
       hp,
       at,
+      side,
       outside: measured.kind === 'outside' ? sayVerdict(measured.verdict) : '',
     }
   })
-  return { maker, takes: motor.takes, tiles }
+  return {
+    maker,
+    takes: motor.takes,
+    min: single?.min ?? null,
+    max: single?.max ?? null,
+    tiles,
+  }
 }
 
 /** "Yamaha F175XC" under a head that says Yamaha once is "F175XC". */
@@ -256,7 +288,17 @@ export interface Held {
   makers: Array<{ maker: string; count: number }>
 }
 
-const ORDER: MotorHeldId[] = ['ruled', 'under', 'over', 'inside', 'unplaced', 'rigs', 'unrated']
+const ORDER: MotorHeldId[] = [
+  'ruled',
+  'under',
+  'over',
+  'shaft',
+  'steering',
+  'inside',
+  'unplaced',
+  'rigs',
+  'unrated',
+]
 
 /** Every Yamaha on sale that is not offered on this boat, by why. With the motors offered, the
  *  counts add up to every one on sale. */
@@ -287,10 +329,16 @@ export function motorHeld(ctx: CatalogueCtx, fit: BoatFit): Held[] {
   const refused = refusedIn(motor.made)
   const under = dots('under')
   const over = dots('over')
+  /* a rig or an unrated row the price list makes for this boat is one of the made, never a reason */
+  const madeIds = new Set(motor.made.map((m) => m.place.rowId))
   const rigs = live
-    .filter((r) => (rigOf(table, r)?.count ?? 1) > 1)
+    .filter((r) => !madeIds.has(r.id) && (rigOf(table, r)?.count ?? 1) > 1)
     .toSorted((a, b) => rowLabel(table, a).localeCompare(rowLabel(table, b), 'en-AU'))
-  const unrated = live.filter((r) => rigOf(table, r) === null)
+  const unrated = live.filter((r) => !madeIds.has(r.id) && rigOf(table, r) === null)
+  const first = (standing: string): HeldExample | null => {
+    const d = dots(standing)[0]
+    return d ? exampleOf(d.place, d.name) : null
+  }
 
   const groups: Record<MotorHeldId, Omit<Held, 'id' | 'because' | 'makers' | 'struck'>> = {
     ruled: {
@@ -316,11 +364,16 @@ export function motorHeld(ctx: CatalogueCtx, fit: BoatFit): Held[] {
       nearest: true,
       door: boatAt,
     },
+    shaft: { count: dots('shaft').length, example: first('shaft'), nearest: false, door: boatAt },
+    steering: {
+      count: dots('steering').length,
+      example: first('steering'),
+      nearest: false,
+      door: boatAt,
+    },
     inside: {
       count: dots('inside').length,
-      example: dots('inside')[0]
-        ? exampleOf(dots('inside')[0]!.place, dots('inside')[0]!.name)
-        : null,
+      example: first('inside'),
       nearest: false,
       door: pairing,
     },
@@ -347,7 +400,10 @@ export function motorHeld(ctx: CatalogueCtx, fit: BoatFit): Held[] {
   }
   return ORDER.filter((id) => groups[id].count > 0).map((id) => ({
     id,
-    because: motorHeldSaid(id, motor.takes, motor.rigsSay),
+    because: motorHeldSaid(id, motor.takes, motor.rigsSay, {
+      shaft: motor.boatShaft,
+      steering: motor.boatSteering,
+    }),
     makers: [],
     struck: true,
     ...groups[id],
@@ -383,7 +439,9 @@ export function trailerHeld(fit: BoatFit): Held[] {
       id: g.id,
       count: g.count,
       because: g.head,
-      example: first ? { name: first.name, facts: first.series, place: first.place } : null,
+      example: first
+        ? { name: first.name, facts: seriesSaid(first.series), place: first.place }
+        : null,
       nearest: false,
       door: first
         ? { kind: 'series', opens: { tableId: first.place.tableId, at: first.place.rowId } }
@@ -393,6 +451,23 @@ export function trailerHeld(fit: BoatFit): Held[] {
     })
   }
   return out
+}
+
+/** What one of the boat's other lists holds back: the counts "Also made for it" says under each
+ *  list, read off the same pair as its plate line, so the parts add up to the list's live lines. */
+export interface ListHeld {
+  /** live lines of the list not offered on this boat: `live − offered` */
+  others: number
+  /** made for this boat and refused by one of the dealer's rules */
+  refused: number
+  /** never made for this boat */
+  notMade: number
+}
+
+export function listHeld(list: ListFit): ListHeld {
+  const o = offeredOf(list.made)
+  const others = Math.max(0, list.live - o.offered)
+  return { others, refused: o.refused, notMade: Math.max(0, others - o.refused) }
 }
 
 /** One reason under a place, with its share of the others for the gauge it is drawn on. */

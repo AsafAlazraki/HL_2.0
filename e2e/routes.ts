@@ -339,6 +339,28 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
+    /* A LIST THAT IS NOT A BOAT LIST (the sheet's data round, 2026-11-03): Parts & Accessories,
+       2,937 products in 188 categories, each category a band over its products. The judge found
+       the finder standing 9px over the bar's own sentence at 834 and a price head drawn under the
+       lit one at 1440 and 1920 here, and no ruler had opened a list that is not a boat list.
+       `foundation`: contrast, cut, overlap and the ramp at six viewports. */
+    path: '/data/parts',
+    name: 'sheet-parts',
+    register: 'foundation',
+    ready: '[data-testid="sheet"][data-read] [data-testid="sheet-grid"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* A SEARCH THAT FINDS NOTHING (2026-11-03): the sentence where the list would be, the other
+       lists that carry the words, and the way back — a state that was column heads over a blank
+       page until the data round. */
+    path: '/data/boat_highfield?find=F4SMHA',
+    name: 'sheet-nothing',
+    register: 'foundation',
+    ready: '[data-testid="sheet"][data-read] [data-testid="sheet-nothing"]',
+    arrive: 'through-the-door',
+  },
+  {
     /* THE LETTER — CUSTOMERS AT REST, and the first of this screen's TWO
        rows in this list.
 

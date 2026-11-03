@@ -59,6 +59,7 @@ import {
   floorSaid,
   hullEnvelopeSaid,
   motorHeldSaid,
+  seriesSaid,
   sayVerdict,
   type MotorHeldId,
 } from './say'
@@ -75,6 +76,8 @@ import {
 } from './trailerFitment'
 import { readRig } from './rigReading'
 import { pairRuling } from '@/domain/rules/constraints/pairRules'
+import { PAIR_SPECS, specValue, type PairSpec } from '@/domain/rules/constraints/pairSpecs'
+import { unchosenOn, type SellFigure } from '@/domain/pricing/unchosen'
 import { readFanOut } from './reading'
 
 /* ---------------------------------------------------------- */
@@ -132,6 +135,9 @@ export interface Made {
   goesWith: Array<{ label: string; value: string }>
   /** a dealer's rule that refuses or flags it; null where none does */
   rule: RuleSaid | null
+  /** THE PRICE NORTHSIDE HAS NOT CHOSEN (`unchosenOn`, the build's and Prices' one reading): the
+   *  list names no price and the line holds sell figures. Null where it is priced, or holds none. */
+  unchosen: SellFigure[] | null
 }
 
 /** What the price list makes for one of the boat's places, as the build offers it. */
@@ -161,8 +167,11 @@ export function offeredOf(made: readonly Made[]): Offered {
   }
 }
 
-/** Every single-motor Yamaha, placed on the boat's horsepower axis. */
-export type DotStanding = 'made' | 'inside' | 'under' | 'over' | 'unplaced'
+/** Every single-motor Yamaha, placed on the boat's horsepower axis. Inside the range and not made
+ *  for it, a motor whose shaft is not the boat's own (`shaft`), or whose controls are not how the
+ *  boat is steered (`steering`), is said as that: the file carries both cells (the fitment judge,
+ *  2026-11-03: 10 of the SP660's 30 were a 20″ leg on a 25″ transom, said as "not made for it"). */
+export type DotStanding = 'made' | 'inside' | 'shaft' | 'steering' | 'under' | 'over' | 'unplaced'
 
 export interface MotorDot {
   key: string
@@ -186,6 +195,12 @@ export interface MotorFit {
   /** "150–200 hp", '' where the boat's row states none */
   takes: string
   made: Made[]
+  /** THE RIGGING KIT EACH MOTOR'S OWN PAIRING NAMES, keyed by the pairing (`Made.key`): the list
+   *  the boat's page reads through the motor's own pairing, priced as the build prices it */
+  kits: Map<string, Made>
+  /** the boat's own shaft and steering, as the trade says them: "extra-long (25″)", "remote" */
+  boatShaft: string
+  boatSteering: string
   /** every live single motor with a horsepower, lightest first */
   dots: MotorDot[]
   counts: {
@@ -195,6 +210,10 @@ export interface MotorFit {
     /** made for this boat, and refused by one of the dealer's rules in force */
     refused: number
     inside: number
+    /** inside the range, not made for it, and a shaft the boat's transom does not take */
+    shaft: number
+    /** inside the range, not made for it, and controls that are not how the boat is steered */
+    steering: number
     under: number
     over: number
     /** single motors on a boat whose figures name no single-motor envelope */
@@ -207,6 +226,8 @@ export interface MotorFit {
   }
   /** why the twin and triple rigs are counted rather than drawn */
   rigsSay: string
+  /** twin and triple rigs the price list makes for this boat, offered with the single motors */
+  madeRigs: number
 }
 
 export interface TrailerMember {
@@ -295,6 +316,8 @@ export interface BoatFit {
   imageAddress: string
   /** the price these figures are at, by its declared name ("Cash") */
   priceName: string
+  /** the boat itself at that price, as the build's first line would carry it; null where none */
+  price: number | null
   /** no longer sold: the boat itself says so, once */
   retired: boolean
   motor: MotorFit | null
@@ -323,7 +346,7 @@ const textCell = (entity: EntityDef, row: RowData, name: string): string => {
   return typeof v === 'string' ? v.trim() : typeof v === 'number' ? String(v) : ''
 }
 
-function imageAddressOf(entity: EntityDef, row: RowData): string {
+export function imageAddressOf(entity: EntityDef, row: RowData): string {
   const field = entity.fields.find((f) => f.type === 'image')
   const v = field ? readCell(row, field.id) : null
   if (!Array.isArray(v)) return ''
@@ -441,7 +464,9 @@ export function readBoatFit(ctx: CatalogueCtx, place: Place): BoatFit | null {
     return [{ block, target, join, result }]
   })
 
-  let priceName = ''
+  /* the boat's own line, minted as the quote's first line is (`mintQuoteFromView`) */
+  const subject = mintLine({ ctx, engine, entity: root, row, levelKey })
+  let priceName = subject.unitPrice === null ? '' : lineLevelSaid(subject)
   const madeOf = (entry: (typeof read)[number]): Made[] => {
     const { target, join, result } = entry
     return result.rows
@@ -472,6 +497,7 @@ export function readBoatFit(ctx: CatalogueCtx, place: Place): BoatFit | null {
           starred: r.recommended,
           goesWith: line.pairFacts ?? [],
           rule: rules.get(r.row.id) ?? null,
+          unchosen: line.unitPrice === null ? unchosenOn(target, r.row) : null,
         }
         return made
       })
@@ -480,7 +506,15 @@ export function readBoatFit(ctx: CatalogueCtx, place: Place): BoatFit | null {
 
   /* ── the motor ── */
   const motorEntry = read.find((e) => e.target.kind === 'motor')
-  const motor = motorEntry ? readMotor(ctx, root, row, motorEntry, madeOf(motorEntry), rules) : null
+  const motorJoin = motorEntry?.join?.entityId
+  /* the rigging kits ride on the motor's own pairing: one kit per pairing, keyed by it */
+  const kitEntry = read.find(
+    (e) => e.target.kind !== 'motor' && motorJoin !== undefined && e.join?.entityId === motorJoin,
+  )
+  const kits = new Map((kitEntry ? madeOf(kitEntry) : []).map((k) => [k.key, k]))
+  const motor = motorEntry
+    ? readMotor(ctx, root, row, motorEntry, madeOf(motorEntry), rules, kits)
+    : null
 
   /* ── the trailers ── */
   const trailerEntries = read.filter((e) => e.target.kind === 'trailer')
@@ -488,7 +522,6 @@ export function readBoatFit(ctx: CatalogueCtx, place: Place): BoatFit | null {
 
   /* ── everything else the page lists; a list carried on the motor's own
         pairing (the rigging kits) goes with the motor and is not its own ── */
-  const motorJoin = motorEntry?.join?.entityId
   const lists: ListFit[] = read
     .filter((e) => e.target.kind !== 'motor' && e.target.kind !== 'trailer')
     .filter((e) => !(motorJoin && e.join?.entityId === motorJoin))
@@ -520,6 +553,7 @@ export function readBoatFit(ctx: CatalogueCtx, place: Place): BoatFit | null {
     code: textCell(root, row, 'Model Code'),
     imageAddress: imageAddressOf(root, row),
     priceName,
+    price: subject.unitPrice,
     retired: isRetired(root) || isDiscontinued(row),
     motor,
     trailer,
@@ -542,6 +576,7 @@ function readMotor(
   entry: Entry,
   made: Made[],
   rules: Map<string, RuleSaid>,
+  kits: Map<string, Made>,
 ): MotorFit {
   const { target } = entry
   const envelope = envelopeOf(root, row)
@@ -550,17 +585,35 @@ function readMotor(
     ? []
     : (ctx.rowsByEntity[target.id] ?? []).filter((r) => !isDiscontinued(r))
 
+  /* THE BOAT'S OWN SHAFT AND STEERING, read the way a dealer's rule reads them (`pairSpecs.ts`:
+     one fold of a transom's letters and a leg's inches), so Rules and Fitment never read one
+     cell two ways. An unread cell never splits a reason out. */
+  const spec = (kind: 'boat' | 'motor', id: string): PairSpec =>
+    PAIR_SPECS.find((s) => s.kind === kind && s.id === id)!
+  const boatShaft = specValue(spec('boat', 'shaft'), root, row)
+  const boatSteering = specValue(spec('boat', 'steering'), root, row)
+  const tillerBoat = typeof boatSteering === 'string' && /tiller/i.test(boatSteering)
+  const misfit = (r: RowData): 'shaft' | 'steering' | null => {
+    const shaft = specValue(spec('motor', 'shaft'), target, r)
+    if (boatShaft !== null && shaft !== null && shaft !== boatShaft) return 'shaft'
+    const controls = specValue(spec('motor', 'controls'), target, r)
+    if (typeof boatSteering !== 'string' || typeof controls !== 'string') return null
+    return /tiller/i.test(controls) === tillerBoat ? null : 'steering'
+  }
+
   const dots: MotorDot[] = []
   let rigs = 0
   let unrated = 0
   for (const r of live) {
     const rig = rigOf(target, r)
+    /* a multi-motor rig or an unrated row the price list MAKES for this boat is one of the made,
+       never also one of the reasons (the Stabicraft 2350 counted its two twin rigs twice) */
     if (!rig) {
-      unrated += 1
+      if (!madeRows.has(r.id)) unrated += 1
       continue
     }
     if (rig.count > 1) {
-      rigs += 1
+      if (!madeRows.has(r.id)) rigs += 1
       continue
     }
     const mine = madeRows.get(r.id)
@@ -573,7 +626,7 @@ function readMotor(
       : measured.kind === 'outside'
         ? measured.side
         : measured.kind === 'inside'
-          ? 'inside'
+          ? (misfit(r) ?? 'inside')
           : 'unplaced'
     const rule = rules.get(r.id) ?? null
     dots.push({
@@ -605,6 +658,8 @@ function readMotor(
     made: offer.offered,
     refused: offer.refused,
     inside: dots.filter((d) => d.standing === 'inside').length,
+    shaft: dots.filter((d) => d.standing === 'shaft').length,
+    steering: dots.filter((d) => d.standing === 'steering').length,
     under: dots.filter((d) => d.standing === 'under').length,
     over: dots.filter((d) => d.standing === 'over').length,
     unplaced: dots.filter((d) => d.standing === 'unplaced').length,
@@ -612,12 +667,21 @@ function readMotor(
     unrated,
   }
   const twins = envelope?.rigs.filter((e) => e.count > 1) ?? []
+  /* ONE PLATE THAT DOES NOT CONTRADICT ITSELF (the fitment judge, major 7): the Stabicraft 2350's
+     own figures name one motor, and the price list makes two twin rigs for it. Those two are
+     offered and drawn as tiles; the sentence speaks of the others, and says why they are not. */
+  const madeRigs = made.filter((m) => {
+    const r = live.find((x) => x.id === m.place.rowId)
+    return r !== undefined && (rigOf(target, r)?.count ?? 1) > 1
+  }).length
   const rigsSay =
     rigs === 0
       ? ''
       : twins.length > 0
         ? `${count(rigs)} twin and triple rigs. This boat takes ${twins.map(envelopeSaid).join(', or ')}.`
-        : `${count(rigs)} twin and triple rigs. This boat’s own figures name ${single ? 'one motor' : 'no horsepower'}, so they are not placed on it.`
+        : madeRigs > 0
+          ? `${count(rigs)} more twin and triple rigs. This boat’s own figures name one motor, so a rig goes on it only where the price list makes it for this boat, as it makes ${count(madeRigs)}.`
+          : `${count(rigs)} twin and triple rigs. This boat’s own figures name ${single ? 'one motor' : 'no horsepower'}, so they are not placed on it.`
 
   return {
     tableId: target.id,
@@ -626,9 +690,13 @@ function readMotor(
     envelope,
     takes: envelope ? hullEnvelopeSaid(envelope) : '',
     made,
+    kits,
+    boatShaft: boatShaft === null ? '' : spec('boat', 'shaft').say(String(boatShaft)),
+    boatSteering: boatSteering === null ? '' : spec('boat', 'steering').say(String(boatSteering)),
     dots,
     counts,
     rigsSay,
+    madeRigs,
   }
 }
 
@@ -836,10 +904,10 @@ function readTrailers(
 }
 
 /** What is no longer sold, said once and never counted in. */
-const heldSaid = (n: number, lists: readonly string[]): string =>
-  n === 0
-    ? ''
-    : `${count(n)} more ${n === 1 ? 'is' : 'are'} no longer sold${lists.length > 0 ? ` (${lists.join(', ')})` : ''}, and never offered.`
+/* the retired list is not named: its own name is the price list's capitals ("OBSOLETE Trailers —
+   No Longer Available"), and the sentence already says what it means (the fitment judge, minor 18) */
+const heldSaid = (n: number, _lists: readonly string[]): string =>
+  n === 0 ? '' : `${count(n)} more ${n === 1 ? 'is' : 'are'} no longer sold, and never offered.`
 
 /* ---------------------------------------------------------- */
 /* Finding a boat                                              */
@@ -1041,7 +1109,7 @@ const hayOf = (...parts: string[]): string => parts.join(' ').toLowerCase()
  *  of `fit.lists`. Null where the boat has no such place. */
 export function readWhole(ctx: CatalogueCtx, fit: BoatFit, slot: string): WholeList | null {
   if (slot === 'motor') return wholeMotor(ctx, fit)
-  if (slot === 'trailer') return wholeTrailer(fit)
+  if (slot === 'trailer') return wholeTrailer(ctx, fit)
   return wholeList(ctx, fit, slot)
 }
 
@@ -1107,10 +1175,12 @@ function wholeMotor(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
       ? { tableId: motor.pairingTableId, find: rowLabel(boatTable, boatRow) }
       : null
   const rows = new Map((ctx.rowsByEntity[motor.tableId] ?? []).map((r) => [r.id, r]))
+  const price = pricer(ctx, fit)
   const dotRow = (d: MotorDot, opens: Opens | null): WholeRow => {
     const r = rows.get(d.place.rowId)
     return {
       ...struckRow(d.key, d.place, d.name, r ? goodsFacts(table, r) : '', opens),
+      price: r ? price(table, r) : null,
       rule: d.rule,
     }
   }
@@ -1124,40 +1194,41 @@ function wholeMotor(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
   /* ONE ORDER AND ONE SENTENCE PER REASON, the plate's and this list's alike (`motorHeldSaid`):
      under the boat's range, over it, inside it and not made for it, then what the boat's figures
      cannot place. Every motor on sale lands in exactly one of them. */
-  const said = (id: MotorHeldId): string => motorHeldSaid(id, motor.takes, motor.rigsSay)
+  const said = (id: MotorHeldId): string =>
+    motorHeldSaid(id, motor.takes, motor.rigsSay, {
+      shaft: motor.boatShaft,
+      steering: motor.boatSteering,
+    })
   const live = [...rows.values()].filter((r) => !isDiscontinued(r))
   const ofRows = (list: RowData[]): WholeRow[] =>
-    list.map((r) =>
-      struckRow(
+    list.map((r) => ({
+      ...struckRow(
         r.id,
         { tableId: table.id, rowId: r.id },
         lineSaid(rowLabel(table, r), table.name),
         goodsFacts(table, r),
         pairingList,
       ),
+      price: price(table, r),
+    }))
+  const madeIds = new Set(motor.made.map((m) => m.place.rowId))
+  for (const id of ['under', 'over', 'shaft', 'steering', 'inside', 'unplaced'] as const) {
+    push(
+      id,
+      said(id),
+      of(id).map((d) => dotRow(d, id === 'inside' ? pairingList : boatAt)),
     )
+  }
   push(
-    'under',
-    said('under'),
-    of('under').map((d) => dotRow(d, boatAt)),
+    'rigs',
+    said('rigs'),
+    ofRows(live.filter((r) => !madeIds.has(r.id) && (rigOf(table, r)?.count ?? 1) > 1)),
   )
   push(
-    'over',
-    said('over'),
-    of('over').map((d) => dotRow(d, boatAt)),
+    'unrated',
+    said('unrated'),
+    ofRows(live.filter((r) => !madeIds.has(r.id) && rigOf(table, r) === null)),
   )
-  push(
-    'inside',
-    said('inside'),
-    of('inside').map((d) => dotRow(d, pairingList)),
-  )
-  push(
-    'unplaced',
-    said('unplaced'),
-    of('unplaced').map((d) => dotRow(d, boatAt)),
-  )
-  push('rigs', said('rigs'), ofRows(live.filter((r) => (rigOf(table, r)?.count ?? 1) > 1)))
-  push('unrated', said('unrated'), ofRows(live.filter((r) => rigOf(table, r) === null)))
   return {
     slot: 'motor',
     title: motor.tableName,
@@ -1168,21 +1239,54 @@ function wholeMotor(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
   }
 }
 
-function wholeTrailer(fit: BoatFit): WholeList | null {
+/**
+ * A LINE'S PRICE AT THE BOAT'S OWN LEVEL, for a line not made for it — `mintLine` with no pairing,
+ * the one door every price on a quote goes through, so a figure in Show all is the figure the
+ * build would put on the quote. Null where the line has none (a list whose price Northside has not
+ * chosen). Show all priced only the offered seven (the fitment judge, major 11).
+ */
+function pricer(
+  ctx: CatalogueCtx,
+  fit: BoatFit,
+): (entity: EntityDef, row: RowData) => number | null {
+  const root = ctx.entities[fit.place.tableId]
+  const levelKey = root ? defaultLevelKey(root) : ''
+  const engine = makeEngine(ctx)
+  return (entity, row) => {
+    if (levelKey === '') return null
+    return mintLine({ ctx, engine, entity, row, levelKey }).unitPrice
+  }
+}
+
+function wholeTrailer(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
   const trailer = fit.trailer
   if (!trailer) return null
+  const price = pricer(ctx, fit)
   const groups: WholeGroup[] = madeGroups(
     trailer.made.map((m) =>
+      /* ITS ATM ALONE: the bare-hull "clears it by" set the ATM against the boat without its
+         motor or the trailer's own weight, which the plate corrected; the whole weigh is the
+         plate's, where the load is said */
       madeRow(m, {
-        facts: m.floorSays,
+        facts: m.capacity === null ? '' : `ATM ${count(m.capacity)} kg`,
         crosses: m.crosses,
-        hay: hayOf(m.name, m.label, m.floorSays),
+        hay: hayOf(m.name, m.label),
       }),
     ),
     trailer.oneTrailer,
   )
-  const memberRow = (m: TrailerMember): WholeRow =>
-    struckRow(m.key, m.place, m.name, m.series, { tableId: m.place.tableId, at: m.place.rowId })
+  const memberRow = (m: TrailerMember): WholeRow => {
+    const entity = ctx.entities[m.place.tableId]
+    const row = (ctx.rowsByEntity[m.place.tableId] ?? []).find((r) => r.id === m.place.rowId)
+    return {
+      ...struckRow(m.key, m.place, m.name, seriesSaid(m.series), {
+        tableId: m.place.tableId,
+        at: m.place.rowId,
+      }),
+      price: entity && row ? price(entity, row) : null,
+      hay: hayOf(m.name, m.series),
+    }
+  }
   for (const g of trailer.groups) {
     if (g.id !== 'another') {
       groups.push({ id: g.id, head: g.head, note: '', rows: g.members.map(memberRow) })
@@ -1212,6 +1316,7 @@ function wholeList(ctx: CatalogueCtx, fit: BoatFit, slot: string): WholeList | n
   const table = list ? ctx.entities[list.tableId] : undefined
   if (!list || !table) return null
   const mine = new Set(list.made.map((m) => m.place.rowId))
+  const price = pricer(ctx, fit)
   const rest = isRetired(table)
     ? []
     : (ctx.rowsByEntity[table.id] ?? [])
@@ -1226,6 +1331,7 @@ function wholeList(ctx: CatalogueCtx, fit: BoatFit, slot: string): WholeList | n
               '',
               { tableId: table.id, at: r.id },
             ),
+            price: price(table, r),
             hay: hayOf(lineSaid(label, table.name), label),
           }
         })

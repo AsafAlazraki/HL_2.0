@@ -558,7 +558,9 @@ test.describe('the sheet', () => {
     await page.keyboard.press('Enter')
 
     const step = page.getByTestId('last-step')
-    await expect(step).toContainText(`Cell edit · ${hf.name}`)
+    /* THE STEP SAYS WHICH PRICE MOVED (the sheet's judge, 2026-11-03, G19), never "Cell edit ·" */
+    await expect(step).toContainText(/^Cash on .* → \$/)
+    await expect(step).not.toContainText('Cell edit')
     await expect(theCell).not.toHaveText(before)
     await step.getByRole('button', { name: 'Undo' }).click()
     await expect(step).toContainText('Undone')
@@ -583,7 +585,8 @@ test.describe('the sheet', () => {
     await page.getByRole('textbox', { name: /editing$/ }).fill('X9')
     await page.keyboard.press('Enter')
     const step = page.getByTestId('last-step')
-    await expect(step).toContainText(`Cell edit · ${hf.name}`)
+    /* the step names the column and the line it wrote (the sheet's judge, 2026-11-03, G19) */
+    await expect(step).toContainText(' → X9')
     await expect(page.getByRole('button', { name: `Open ${firstModelSaid}` })).toBeVisible()
     await step.getByRole('button', { name: 'Undo' }).click()
     await expect(step).toContainText('Undone')
@@ -761,7 +764,13 @@ test.describe('the sheet', () => {
     )
     const boat = join.fields.find((f) => f.type === 'reference')!
     const hull = hfRows.find((r) => r.id === String(joinRows[0]!.values[boat.id]))!
-    await expect(page.getByRole('rowgroup', { name: labelOf(hull) }).first()).toBeVisible()
+    /* EACH HULL AS EVERY OTHER SCREEN SAYS IT (the judge's G7): its model in the maker's own
+       words, never the file's key "Highfield - RU230KAM (PVC) WH" */
+    const said = cardName(HIGHFIELD, cell(hull, 'Model'))
+    const named = (await page.locator('.sh-block').first().getAttribute('aria-label')) ?? ''
+    expect(named.startsWith(`${said} · `), `"${named}" opens on "${said} · "`).toBe(true)
+    await expect(page.getByRole('rowgroup', { name: named, exact: true }).first()).toBeVisible()
+    await expect(page.getByRole('rowgroup', { name: labelOf(hull), exact: true })).toHaveCount(0)
   })
 
   test('sheet — the pairings hold eighteen rows at 1280 × 800 too', async ({ page, viewport }) => {
@@ -879,5 +888,87 @@ test.describe('the sheet', () => {
       .boundingBox()
     const stepBox = (await step.boundingBox())!
     if (del) expect(del.y + del.height).toBeLessThanOrEqual(stepBox.y + 1)
+  })
+
+  /* ---- the data round's deepening, 2026-11-03 (docs/directions/data-round/sheet/) ---- */
+
+  test('sheet — typing straight onto a cell keeps its first key, and the changed cell is marked', async ({
+    page,
+    viewport,
+  }) => {
+    test.skip(!desk(viewport?.width), 'a hand edits in the record')
+    await openSheet(page, HIGHFIELD)
+    await page.getByRole('grid', { name: hf.name }).focus()
+    const cash = page.locator('.sh-th', { hasText: 'Cash' }).first()
+    const col = Number(await cash.getAttribute('aria-colindex')) - 1
+    for (let i = 0; i < col; i += 1) await page.keyboard.press('ArrowRight')
+    const first = hfRows[0]!
+    const theCell = page.locator(`[id="sh-cell-${first.id}-${col}"]`)
+    const was = Number(first.values[byName('Cash').id])
+    /* a figure no line of the file carries in that cell, typed as a person types it */
+    const typed = was + 80
+    await page.keyboard.type(String(typed))
+    await page.keyboard.press('Enter')
+    await expect(theCell).toHaveText(`$${typed.toLocaleString('en-AU')}`)
+    /* the cell is marked as changed here, and says what the Master Price File had */
+    await expect(theCell).toHaveAttribute('data-changed', '')
+    await expect(theCell.getByRole('button')).toHaveAccessibleName(
+      new RegExp(`changed here; the Master Price File had \\$${was.toLocaleString('en-AU')}$`),
+    )
+    await page.getByTestId('last-step').getByRole('button', { name: 'Undo' }).click()
+    await expect(theCell).not.toHaveAttribute('data-changed', '')
+  })
+
+  test('sheet — a search that finds nothing is a sentence where the list would be, with the way out', async ({
+    page,
+  }) => {
+    await openSheet(page, HIGHFIELD, '?find=zzqx')
+    const nothing = page.getByTestId('sheet-nothing')
+    await expect(nothing).toContainText(`Nothing on ${hf.name} matches “zzqx”.`)
+    await expect(nothing).toBeInViewport()
+    await nothing.getByRole('button', { name: 'Clear the search' }).click()
+    await expect(nothing).toHaveCount(0)
+    await expect(page).not.toHaveURL(/find=/)
+  })
+
+  test('sheet — a list that is not a boat list reads its category as a band, and nothing stands over anything', async ({
+    page,
+    viewport,
+  }) => {
+    await openSheet(page, 'parts')
+    /* the finder never stands over the bar under it (the judge's G2, at 834) */
+    const find = (await page.locator('.sh-find').boundingBox())!
+    const bar = (await page.getByTestId('sheet-tools').boundingBox())!
+    expect(find.y + find.height, 'the finder ends above the bar').toBeLessThanOrEqual(bar.y + 1)
+    if (desk(viewport?.width)) {
+      /* the category is a band over its products, not a column beside them */
+      await expect(page.locator('.sh-spine[data-band]').first()).toBeVisible()
+      await expect(page.locator('.sh-th--spine')).toHaveCount(0)
+      /* no column head runs into the next one: "Sell inc Install (if appl.)" stays in its own */
+      const heads = await page.locator('.sh-heads > .sh-th').evaluateAll((els) =>
+        els.map((el) => {
+          const name = el.querySelector('.sh-th__name') ?? el
+          const r = name.getBoundingClientRect()
+          const box = el.getBoundingClientRect()
+          return { left: r.left, right: r.right, boxLeft: box.left, boxRight: box.right }
+        }),
+      )
+      for (const h of heads) {
+        expect(h.left).toBeGreaterThanOrEqual(h.boxLeft - 1)
+        expect(h.right).toBeLessThanOrEqual(h.boxRight + 1)
+      }
+    }
+  })
+
+  test('sheet — a list with no declared price says so, with the way to Prices', async ({
+    page,
+  }) => {
+    await openSheet(page, 'dealer_fit')
+    const said = page.getByTestId('sheet-noprice')
+    await expect(said).toContainText('is declared its price yet')
+    await expect(said.getByRole('link', { name: 'Prices decides it' })).toHaveAttribute(
+      'href',
+      /\/levels\?list=dealer_fit/,
+    )
   })
 })

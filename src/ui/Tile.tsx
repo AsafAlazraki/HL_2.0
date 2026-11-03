@@ -97,9 +97,11 @@ export interface TileProps {
    * at rest and filled when chosen. `foot` is for a card whose top corner is a photograph,
    * the picker's boats: nothing is drawn at rest, and the filled disc stands at the card's
    * foot, at its inline end, only when the card is chosen. The screen keeps that corner
-   * clear in its own layout, the way it keeps any of its own words clear.
+   * clear in its own layout, the way it keeps any of its own words clear. `none` (2026-11-03,
+   * Fitment's makers at 390) is for a card too narrow to keep any corner clear: no disc is
+   * drawn, and the card's own lit ring and its pressed state say it is chosen.
    */
-  tick?: 'corner' | 'foot'
+  tick?: 'corner' | 'foot' | 'none'
 }
 
 export function Tile({
@@ -148,7 +150,7 @@ export function Tile({
         {/* THE TICK, on a card that chooses (board C's option tile): a disc at its corner
             that fills with the accent when the card is chosen. Only where `selected` says
             this card is a choice at all; a card that opens something has none. */}
-        {shape === 'card' && selected !== undefined ? (
+        {shape === 'card' && selected !== undefined && tick !== 'none' ? (
           <span className="ui-tile-tick" aria-hidden="true">
             <Icon glyph={CheckIcon} />
           </span>

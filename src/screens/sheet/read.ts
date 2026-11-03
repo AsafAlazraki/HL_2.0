@@ -45,7 +45,13 @@ import { countLabel, leafNoun, type LeafNoun } from '@/domain/catalogue/table/gr
 import { cellPrintText, cellText } from '@/domain/catalogue/table/helpers'
 import type { LeadFigure } from '@/domain/catalogue/table/priceList'
 import type { Said } from '@/domain/catalogue/table/saidOnce'
-import { bandOf, formatCell, rangePairs, splitUnit } from '@/domain/catalogue/views/columns'
+import {
+  bandOf,
+  formatCell,
+  formatNumber,
+  rangePairs,
+  splitUnit,
+} from '@/domain/catalogue/views/columns'
 import type { Held } from './pictures'
 
 /* ---------------------------------------------------------- */
@@ -140,6 +146,27 @@ export const PICTURE_CELL_REFUSAL = 'A picture cannot be typed in. Its details s
 /* Cells                                                       */
 /* ---------------------------------------------------------- */
 
+/**
+ * A COUNT OF LABOUR IS NOT MONEY, whatever band it is filed under. Dealer Fit's "Total Lab" holds
+ * 3.5 where the same line's "Labour Ret" is $556.50 — 3.5 × the $159 retail rate — so it is hours,
+ * and the spine printed it "$7.80" beside "Lab Hrs 4" (the judge's G4). The file names no unit for
+ * it, so none is printed: a "Lab" column is money only where its name says so — a dollar sign,
+ * the file's cost-to-dealer abbreviation, a retail or a sell figure.
+ */
+const LABOUR_COUNT = /\blab\b/i
+const SAYS_MONEY = /\$|\bctd\b|\bret\b|\bsell\b/i
+
+/**
+ * A FIGURE AS THE SHEET PRINTS IT: money as money where its name or the band the file filed it
+ * under says money — the same reading the spine and the record make (`formatCell` with its band),
+ * so a cell and its spine agree. Labour Rates printed "144.55" and "143.1" in its cells, money
+ * with no $ and one decimal, because the cell was read without its band "Rate" (the judge's G17).
+ */
+export function figureSaid(table: EntityDef, field: FieldDef, n: number): string {
+  if (LABOUR_COUNT.test(field.name) && !SAYS_MONEY.test(field.name)) return formatNumber(n)
+  return formatNumber(n, field.name, bandOf(table, field))
+}
+
 /** The text a cell PAINTS: money as money, a link by its name, a
  *  picture as nothing (it is drawn, not printed). */
 export function paintOf(table: EntityDef, field: FieldDef, row: ViewRow): string {
@@ -147,7 +174,10 @@ export function paintOf(table: EntityDef, field: FieldDef, row: ViewRow): string
   if (field.type === 'image') return ''
   if (field.type === 'reference') return row.text[field.id] ?? ''
   const text = cellText(value, field)
-  if (field.type === 'number') return cellPrintText(field, value, text)
+  if (field.type === 'number')
+    return typeof value === 'number' && Number.isFinite(value)
+      ? figureSaid(table, field, value)
+      : cellPrintText(field, value, text)
   return formatCell(field, value, undefined, bandOf(table, field))
 }
 
@@ -238,7 +268,22 @@ export function pictureOf(
   return held ? { kind: 'held', held } : { kind: 'link', address: first.src }
 }
 
-export const isCost = (table: EntityDef, field: FieldDef): boolean => isCostColumn(table, field)
+/**
+ * A COST ON THE SHEET SAYS SO. The shared reading (`isCostColumn`) knows the bare cost-to-dealer
+ * column and its total; the file writes that abbreviation into more names than those — Dealer
+ * Fit's labour, a kit's own, an install's total, each of a kit's four parts — and the sheet drew
+ * them as plain facts on the Dealer Fit and Rigging Kit spines (the judge's G4). The abbreviation
+ * is the file's own word for the dealer's cost (views/columns.ts says so with its source), so
+ * any figure named with it is marked cost here. The shared reading is not this screen's to change; the gap is named in
+ * docs/directions/data-round/sheet/built.md for the owner of customer-facing surfaces.
+ */
+/* …and the kits list's gross profit in dollars, the dealer's margin (views/columns.ts reads its abbreviation), which the
+   shared reading leaves as a plain column: the kits list drew it beside its Sell Price. It is held
+   with the costs, under the same word, and never read as a price */
+const COST_TO_DEALER = /\bctd\b|^gp\b/i
+
+export const isCost = (table: EntityDef, field: FieldDef): boolean =>
+  isCostColumn(table, field) || (field.type === 'number' && COST_TO_DEALER.test(field.name))
 
 /* ---------------------------------------------------------- */
 /* The price list's words                                      */
@@ -251,7 +296,7 @@ export function factText(table: EntityDef, field: FieldDef, text: string): strin
   const { base, unit } = splitUnit(field.name)
   const value =
     field.type === 'number' && text !== '' && Number.isFinite(Number(text))
-      ? formatCell(field, Number(text), undefined, bandOf(table, field))
+      ? figureSaid(table, field, Number(text))
       : text
   /* a value that already names its column is said once: Highfield's
      "Boat Registration" column holds "Boat Registration Not Required",
@@ -462,7 +507,7 @@ export function factLines(table: EntityDef, facts: readonly Said[]): FactLine[] 
   for (const f of table.fields) {
     const text = by.get(f.id)
     if (text === undefined || text === '' || skip.has(f.id)) continue
-    if (f.type === 'image' || isCostColumn(table, f)) continue
+    if (f.type === 'image' || isCost(table, f)) continue
     if (/^source$/i.test(f.name.trim()) || f.id.startsWith('__')) continue
     const key = f.sectionId && sections.some((s) => s.id === f.sectionId) ? f.sectionId : ''
     const list = lines.get(key) ?? []
@@ -854,6 +899,28 @@ export function recordSaid(table: EntityDef, label: string, code = ''): string {
     return said.detail === '' ? name : `${name} · ${said.detail}`
   }
   return nameFirst(goodsSaid(clean, table.name), code || undefined)
+}
+
+/**
+ * THE NAME ONLY SAYS THE CODE when, on nineteen lines in twenty that carry both, it ends in it
+ * with nothing but the maker's word before: Yamaha's "Yamaha - F4SMHA" beside "F4SMHA" (the
+ * judge's G6). Then the code is the name, said once.
+ */
+export function nameSaysCode(rows: readonly ViewRow[], name: FieldDef, code: FieldDef): boolean {
+  let both = 0
+  let says = 0
+  for (const r of rows) {
+    const n = (r.text[name.id] ?? '').trim().toLowerCase()
+    const c = (r.text[code.id] ?? '').trim().toLowerCase()
+    if (n === '' || c === '') continue
+    both += 1
+    if (
+      n === c ||
+      (n.endsWith(c) && /^[\p{L}&.' ]+\s[-–—]\s$/u.test(n.slice(0, n.length - c.length)))
+    )
+      says += 1
+  }
+  return both >= 3 && says * 20 >= both * 19
 }
 
 /** The line's order code, where its list keeps one; '' where not. */

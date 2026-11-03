@@ -35,6 +35,8 @@ import { motion } from 'motion/react'
 import {
   ArrowLeftIcon,
   ArrowUpRightIcon,
+  CaretDownIcon,
+  CaretRightIcon,
   ListBulletsIcon,
   MagnifyingGlassIcon,
   MinusCircleIcon,
@@ -89,10 +91,41 @@ export function Whole({
      figure of it is read in src/domain (`findInWhole`), never summed here */
   const seen = useMemo(() => findInWhole(list, only, words, DRAWN), [list, only, words])
   const { needles, narrowed, narrowedTo, groups, matched } = seen
-  const lines = useMemo(() => groups.flatMap((g) => g.drawn), [groups])
-  const [cursor, setCursor] = useState(0)
+  /* A GROUP FOLDS TO ITS HEAD AND ITS COUNT (the fitment judge, major 11: a 6,480 px page with no
+     way to fold one) — this screen's own view of the list, held while it is open */
+  const [folded, setFolded] = useState<ReadonlySet<string>>(() => new Set())
+  const fold = (group: string): void =>
+    setFolded((was) => {
+      const next = new Set(was)
+      if (next.has(group)) next.delete(group)
+      else next.add(group)
+      return next
+    })
+  const lines = useMemo(
+    () => groups.flatMap((g) => (folded.has(g.id) ? [] : g.drawn)),
+    [groups, folded],
+  )
+  /* THE GRID'S OWN LINE IS A THING, NOT A ROW NUMBER: a line put on or taken off moves to its new
+     group, and the lit line moves with it, scrolled to where it landed (the judge: "a moved line
+     said where it lands") */
+  const [cursorKey, setCursorKey] = useState<string | null>(null)
+  const cursor = Math.max(
+    0,
+    lines.findIndex((l) => l.key === cursorKey),
+  )
+  const setCursor = (next: number | ((was: number) => number)): void => {
+    const at = typeof next === 'function' ? next(cursor) : next
+    setCursorKey(lines[Math.min(Math.max(0, at), lines.length - 1)]?.key ?? null)
+  }
   const typed = needles.join(' ')
-  useEffect(() => setCursor(0), [typed])
+  useEffect(() => setCursorKey(null), [typed])
+  const [moved, setMoved] = useState<{ key: string; name: string; from: string } | null>(null)
+  /* where each line stands now, so a moved one says its new group */
+  const groupOf = useMemo(() => {
+    const out = new Map<string, string>()
+    for (const g of groups) for (const r of g.rows) out.set(r.key, g.head)
+    return out
+  }, [groups])
   const grid = useRef<HTMLDivElement>(null)
   const lineId = (key: string): string => `${id}-${key.replace(/[^A-Za-z0-9_-]/g, '-')}`
   const active = lines[Math.min(cursor, lines.length - 1)]
@@ -101,7 +134,7 @@ export function Whole({
     if (!active) return
     document.getElementById(lineId(active.key))?.scrollIntoView({ block: 'nearest' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active?.key])
+  }, [active?.key, groupOf])
 
   const onKey = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -116,6 +149,7 @@ export function Whole({
       openSheet(active.opens)
     } else if (event.key === ' ' && active) {
       event.preventDefault()
+      setMoved({ key: active.key, name: active.name, from: groupOf.get(active.key) ?? '' })
       onChange(active.place, active.made ? 'off' : 'on')
     }
   }
@@ -172,6 +206,12 @@ export function Whole({
         </p>
       ) : null}
 
+      {moved && groupOf.get(moved.key) && groupOf.get(moved.key) !== moved.from ? (
+        <p className="ft-whole__found" role="status">
+          {`The ${moved.name} now stands under “${groupOf.get(moved.key)}”`}
+        </p>
+      ) : null}
+
       <div
         ref={grid}
         className="ft-list"
@@ -183,56 +223,84 @@ export function Whole({
         aria-keyshortcuts="Space Enter"
         onKeyDown={onKey}
       >
-        {groups.map((g) => (
-          <div
-            key={g.id}
-            role="rowgroup"
-            className="ft-group"
-            data-made={g.id === 'made' ? '' : undefined}
-          >
-            <div role="row" className="ft-group__head">
-              <span role="columnheader" className="ft-group__say">
-                <span className="ft-group__n">{AU.format(g.found.length)}</span>
-                <span className="ft-group__why">
-                  {g.head}
-                  {g.note === '' ? null : <span className="ft-group__note"> {g.note}</span>}
+        {/* THE COLUMN HEADS, drawn once over the list (the fitment judge, major 11); every cell
+            under them says what it is, so they are for the eye */}
+        <div className="ft-heads" aria-hidden="true">
+          <span>
+            {list.slot === 'trailer' ? 'Trailer' : list.slot === 'motor' ? 'Motor' : 'Line'}
+          </span>
+          <span>{list.slot === 'trailer' ? 'Weighed, or its series' : 'Its own figures'}</span>
+          <span className="ft-heads__price">Price</span>
+          <span className="ft-heads__fit">On this boat</span>
+          <span />
+        </div>
+        {groups.map((g) => {
+          const shut = folded.has(g.id)
+          return (
+            <div
+              key={g.id}
+              role="rowgroup"
+              className="ft-group"
+              data-made={g.id === 'made' ? '' : undefined}
+              data-folded={shut ? '' : undefined}
+            >
+              <div role="row" className="ft-group__head">
+                <span role="columnheader" className="ft-group__say">
+                  <button
+                    type="button"
+                    className="ft-group__fold"
+                    aria-expanded={!shut}
+                    tabIndex={-1}
+                    onClick={() => fold(g.id)}
+                    aria-label={`${shut ? 'Open' : 'Fold'} the ${AU.format(g.found.length)}: ${g.head}`}
+                  >
+                    <Icon glyph={shut ? CaretRightIcon : CaretDownIcon} size="sm" />
+                  </button>
+                  <span className="ft-group__n">{AU.format(g.found.length)}</span>
+                  <span className="ft-group__why">
+                    {g.head}
+                    {g.note === '' ? null : <span className="ft-group__note"> {g.note}</span>}
+                  </span>
                 </span>
-              </span>
+              </div>
+              {!shut && g.drawn.length === 0 ? (
+                <div role="row" className="ft-group__empty">
+                  <span role="gridcell">Nothing on the price list is made for this boat here.</span>
+                </div>
+              ) : null}
+              {shut
+                ? null
+                : g.drawn.map((row) => (
+                    <Line
+                      key={row.key}
+                      id={lineId(row.key)}
+                      row={row}
+                      current={active?.key === row.key}
+                      onPoint={() => setCursorKey(row.key)}
+                      href={row.opens ? sheetHref(row.opens) : null}
+                      boatName={boatName}
+                      refused={refusal?.rowId === row.place.rowId ? refusal.why : ''}
+                      onChange={(way) => {
+                        setCursorKey(row.key)
+                        setMoved({ key: row.key, name: row.name, from: g.head })
+                        onChange(row.place, way)
+                      }}
+                      onOpen={() => {
+                        setCursorKey(row.key)
+                        if (row.opens) openSheet(row.opens)
+                      }}
+                    />
+                  ))}
+              {!shut && g.more > 0 ? (
+                <div role="row" className="ft-group__more">
+                  <span role="gridcell">
+                    {AU.format(g.more)} more here. Type a name or a code to find one.
+                  </span>
+                </div>
+              ) : null}
             </div>
-            {g.drawn.length === 0 ? (
-              <div role="row" className="ft-group__empty">
-                <span role="gridcell">Nothing on the price list is made for this boat here.</span>
-              </div>
-            ) : null}
-            {g.drawn.map((row) => (
-              <Line
-                key={row.key}
-                id={lineId(row.key)}
-                row={row}
-                current={active?.key === row.key}
-                onPoint={() => setCursor(lines.indexOf(row))}
-                href={row.opens ? sheetHref(row.opens) : null}
-                boatName={boatName}
-                refused={refusal?.rowId === row.place.rowId ? refusal.why : ''}
-                onChange={(way) => {
-                  setCursor(lines.indexOf(row))
-                  onChange(row.place, way)
-                }}
-                onOpen={() => {
-                  setCursor(lines.indexOf(row))
-                  if (row.opens) openSheet(row.opens)
-                }}
-              />
-            ))}
-            {g.more > 0 ? (
-              <div role="row" className="ft-group__more">
-                <span role="gridcell">
-                  {AU.format(g.more)} more here. Type a name or a code to find one.
-                </span>
-              </div>
-            ) : null}
-          </div>
-        ))}
+          )
+        })}
       </div>
       {list.held === '' ? null : <p className="ft-whole__held">{list.held}</p>}
     </motion.section>
@@ -295,11 +363,11 @@ function Line({
         {row.price === null ? null : <PriceFigure amount={row.price} />}
       </span>
       <span role="gridcell" className="ft-line__fit">
-        <Button
-          intent="quiet"
-          size="sm"
+        {/* the register's own press, at the 24 px floor, so a line keeps its 25 px pitch */}
+        <button
+          type="button"
+          className="ft-line__press"
           tabIndex={-1}
-          icon={row.made ? MinusCircleIcon : PlusCircleIcon}
           aria-label={
             row.made
               ? `Take the ${row.name} off what goes on the ${boatName}`
@@ -310,22 +378,26 @@ function Line({
             onChange(row.made ? 'off' : 'on')
           }}
         >
+          <Icon glyph={row.made ? MinusCircleIcon : PlusCircleIcon} size="sm" />
           {row.made ? 'Take it off' : 'Put it on'}
-        </Button>
+        </button>
       </span>
       <span role="gridcell" className="ft-line__open">
         {href && current ? (
-          <Button
-            intent="quiet"
-            size="sm"
+          <a
+            className="ft-line__press"
             href={href}
-            icon={ArrowUpRightIcon}
             tabIndex={-1}
             aria-label={`See ${row.name} on the price list`}
-            onClick={onOpen}
+            onClick={(event) => {
+              if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
+              event.preventDefault()
+              onOpen()
+            }}
           >
+            <Icon glyph={ArrowUpRightIcon} size="sm" />
             On the price list
-          </Button>
+          </a>
         ) : null}
       </span>
     </div>

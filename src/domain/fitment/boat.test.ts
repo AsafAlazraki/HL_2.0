@@ -62,20 +62,33 @@ describe('the motor', () => {
     expect(motor.takes).toBe('150–200 hp')
   })
 
-  it('counts all 209 Yamahas into one of five places, with nothing left over', () => {
+  /* REWRITTEN 2026-11-03 (the fitment judge, major 6): the 30 "inside the range and not made for
+     it" split by what the file says — 10 are a 20″ leg against the boat's 25″ transom */
+  it('counts all 209 Yamahas into one of its places, with nothing left over', () => {
     const c = motor.counts
     expect(c).toMatchObject({
       live: 209,
       made: 7,
       refused: 0,
-      inside: 30,
+      inside: 20,
+      shaft: 10,
+      steering: 0,
       under: 74,
       over: 51,
       rigs: 47,
     })
-    expect(c.made + c.refused + c.inside + c.under + c.over + c.unplaced + c.rigs + c.unrated).toBe(
-      c.live,
-    )
+    expect(
+      c.made +
+        c.refused +
+        c.inside +
+        c.shaft +
+        c.steering +
+        c.under +
+        c.over +
+        c.unplaced +
+        c.rigs +
+        c.unrated,
+    ).toBe(c.live)
     expect(motor.dots).toHaveLength(209 - 47)
   })
 
@@ -314,9 +327,18 @@ describe('what a dealer’s rule refuses is not counted as made for this boat', 
     expect(motor.counts).toMatchObject({ live: 209, made: 2, refused: 1 })
     expect(offeredOf(motor.made)).toEqual({ offered: 2, refused: 1, rules: 1 })
     const c = motor.counts
-    expect(c.made + c.refused + c.inside + c.under + c.over + c.unplaced + c.rigs + c.unrated).toBe(
-      c.live,
-    )
+    expect(
+      c.made +
+        c.refused +
+        c.inside +
+        c.shaft +
+        c.steering +
+        c.under +
+        c.over +
+        c.unplaced +
+        c.rigs +
+        c.unrated,
+    ).toBe(c.live)
   })
 
   it('opens the whole list on the two offered, and the refused one apart under its own reason', () => {

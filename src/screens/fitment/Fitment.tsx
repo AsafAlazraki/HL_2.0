@@ -9,45 +9,63 @@
    plate or the reasons. A cell is reached only through the doors.
 
    THE BOAT'S OWN PLATE IS THE SHOWPIECE. One dark riveted plate, the
-   name at 40px, the render in a window, and three lines that are the
-   boat's facts: the horsepower it takes, the trailers it is built for,
-   and what else is made for it. Each line is pressed to open what it
-   decides below the plate — one at a time, so the screen says one thing
-   at once. Which built screens it could repeat: the picker's and Levels'
-   dark bands; it stays its own because the band here is ONE plate of one
-   boat, riveted and inset, whose lines are the controls.
+   name at 40px, the render in a window, the boat's own facts, and three
+   lines that are the controls: the horsepower it takes, the trailers it
+   is built for, and what else is made for it. Each line is pressed to
+   open what it decides below the plate — one at a time. At the plate's
+   foot, the quote this answer starts.
 
-   UNDER A PRESSED LINE, THE ANSWER FIRST, THE REASONS AFTER. What is
-   made for the boat as priced tiles (the recommended in the accent),
-   then everything held back, ONE ROW PER REASON: its count, the engine's
-   sentence, the nearest or first one struck, "Show these" and the door
-   to the line of the price list that decides it. A dealer reads the tiles
-   and is done; the reasons are there when the customer asks why.
+   DEEPENED 2026-11-03 (the fitment judge's verdict, docs/directions/
+   data-round/fitment/judge.md). The composition stays; what it was
+   missing is here:
+
+     · THE MODEL IS THE UNIT. The plate names the model, its versions
+       are a choice on it (price and weight are a version's), and every
+       change is made on every version, counted (`versions.ts`).
+     · THE RIG, PRICED: each motor with its rigging kit, prop and engine
+       hole from its own pairing, and the two together where Northside
+       has chosen the kit list's price (`rigged.ts`).
+     · THE QUOTE STARTS HERE, with the motor and trailer chosen on the
+       tiles (`useStart.ts`).
+     · THE MOTORS SIDE BY SIDE, the boat's own facts, reasons by shaft
+       and steering, the recommended set here, and "Also made for it" at
+       the depth of the other two.
 
    NOT ONE SENTENCE OF A REASON IS WRITTEN HERE. Every "because" comes out
    of `@/domain/fitment` (`plate.ts` shapes it, `say.ts` says it).
-
-   EVERY NARROWING IS NAMED, COUNTED, AND CAN BE SWITCHED OFF — the
-   curation contract (`@/domain/catalogue/curation`): the plate's line
-   counts what is made for the boat of what is on sale, each reason counts
-   what it holds back, and Show all opens the whole list (`Whole.tsx`).
    ============================================================ */
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowUpRightIcon,
   CaretDownIcon,
-  MinusCircleIcon,
   CaretRightIcon,
+  CheckCircleIcon,
+  CircleIcon,
+  ColumnsIcon,
   DatabaseIcon,
   ListBulletsIcon,
+  MinusCircleIcon,
   NotePencilIcon,
+  ReceiptIcon,
   ScalesIcon,
+  SquaresFourIcon,
   StarIcon,
   WarningIcon,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Button, ExpandPicture, Icon, Picture, PriceFigure, Tile, move, transition } from '@/ui'
+import {
+  Button,
+  ExpandPicture,
+  Icon,
+  Picture,
+  PriceFigure,
+  Select,
+  Tile,
+  move,
+  transition,
+} from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
+import { pricesOf } from '@/app/ways'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { copyOf, itemOf, pictureOf, placeIn, srcSetOf } from '@/data/pictures'
@@ -68,6 +86,7 @@ import {
 } from '@/domain/fitment/boat'
 import {
   heldBack,
+  listHeld,
   loadOf,
   motorTiles,
   plateLines,
@@ -80,10 +99,20 @@ import {
   type PlateLine,
   type Tow,
 } from '@/domain/fitment/plate'
+import {
+  boatFacts,
+  compareOf,
+  riggedOf,
+  rigSaid,
+  sharedFacts,
+  type Pick,
+  type Rigged,
+} from '@/domain/fitment/rigged'
+import { acrossSaid, sameAcross, versionSaid, versionsOf } from '@/domain/fitment/versions'
 import { spokenBoat } from '@/domain/quote/spoken'
 import { Whole } from './Whole'
-import { useFitChange, type FitRefusal } from './useFitChange'
-import type { FitWay } from '@/domain/fitment/change'
+import { useFitChange, type FitAct, type FitRefusal } from './useFitChange'
+import { useStart } from './useStart'
 import { AnotherBoat, ChooseABoat } from './Chooser'
 import './fitment.css'
 
@@ -97,6 +126,9 @@ export interface FitmentPosition {
   all?: string
   only?: string
   find?: string
+  motor?: string
+  trailer?: string
+  compare?: string
 }
 
 export interface FitmentProps {
@@ -112,13 +144,25 @@ export interface FitmentProps {
   /** one reason's group of that list, from its "Show these" */
   only: string
   find: string
+  /** the motor and trailer chosen for the quote, by pairing; 'none'; '' for the recommended */
+  motor?: string
+  trailer?: string
+  /** the offered motors side by side */
+  compare?: boolean
   onPosition: (next: FitmentPosition) => void
   openBoat: (rowId: string) => void
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
   openRules: () => void
   openTheFile: () => void
+  /** any address of the app, pressed from a door here (Prices) */
+  openHref?: (href: string) => void
+  /** the build, on the quote just started here */
+  openQuote?: (quoteId: string) => void
 }
+
+/** a door with nowhere to go, for a component test with no router */
+const NOWHERE = (): void => {}
 
 const AU = new Intl.NumberFormat('en-AU')
 const count = (n: number): string => AU.format(n)
@@ -131,12 +175,17 @@ export function Fitment({
   all,
   only,
   find,
+  motor: chosenMotor = '',
+  trailer: chosenTrailer = '',
+  compare = false,
   onPosition,
   openBoat,
   sheetHref,
   openSheet,
   openRules,
   openTheFile,
+  openHref = NOWHERE,
+  openQuote = NOWHERE,
 }: FitmentProps) {
   const sheet = useCatalogue((s) => s)
   const filed = useQuotes((s) => s.quotes)
@@ -153,12 +202,22 @@ export function Fitment({
     return row ? { tableId: row.entityId, rowId: row.id } : null
   }, [sheet, boat])
   const fit = useMemo(() => (open && place ? readBoatFit(ctx, place) : null), [ctx, open, place])
+  /* THE MODEL, AND EVERY VERSION OF IT STILL SOLD: what a change here reaches */
+  const boatModel = useMemo(
+    () => (open && place ? versionsOf(ctx, place) : null),
+    [ctx, open, place],
+  )
+  const versions = useMemo(
+    () => (boatModel ? boatModel.versions.map((v) => v.place) : place ? [place] : []),
+    [boatModel, place],
+  )
   const whole = useMemo(
     () => (fit && all !== '' ? readWhole(ctx, fit, all) : null),
     [ctx, fit, all],
   )
-  /* ONE PRESS PUTS A THING ON THIS BOAT OR TAKES IT OFF, with its Undo (exposure.md, blocker) */
-  const { change, refusal } = useFitChange(ctx, fit)
+  /* ONE PRESS PUTS A THING ON THIS BOAT OR TAKES IT OFF, on every version, with its Undo */
+  const { change, refusal } = useFitChange(ctx, fit, versions)
+  const { start, refused: startRefused } = useStart(openQuote)
 
   /* THE BOATS ALREADY ON QUOTES HERE, most recent first, offered before a word is typed */
   const recent = useMemo<BoatFound[]>(() => {
@@ -182,6 +241,19 @@ export function Fitment({
     }
     return out
   }, [filed, ctx, open])
+
+  const rigs = useMemo(() => (fit ? riggedOf(ctx, fit) : []), [ctx, fit])
+  /* WHAT THE QUOTE STARTS WITH: the motor and trailer chosen on their tiles, or the price list's
+     recommended where nothing is chosen, or none where "none" is */
+  const motorPick: Rigged | null = useMemo(() => {
+    if (chosenMotor === 'none') return null
+    return rigs.find((r) => r.key === chosenMotor) ?? rigs.find((r) => r.motor.starred) ?? null
+  }, [rigs, chosenMotor])
+  const trailerPick: TrailerMade | null = useMemo(() => {
+    const offered = fit?.trailer ? offeredIn(fit.trailer.made) : []
+    if (chosenTrailer === 'none') return null
+    return offered.find((t) => t.key === chosenTrailer) ?? offered.find((t) => t.crosses) ?? null
+  }, [fit, chosenTrailer])
 
   const showAll = useCallback(
     (slot: string, group = '') => {
@@ -239,6 +311,11 @@ export function Fitment({
 
   const lines = plateLines(fit)
   const pressed = lines.find((l) => l.id === line) ?? lines[0] ?? null
+  const picks: Pick[] = [
+    ...(motorPick ? [{ tableId: motorPick.motor.place.tableId, key: motorPick.key }] : []),
+    ...(motorPick?.kit ? [{ tableId: motorPick.kit.place.tableId, key: motorPick.key }] : []),
+    ...(trailerPick ? [{ tableId: trailerPick.place.tableId, key: trailerPick.key }] : []),
+  ]
 
   return (
     <main
@@ -248,7 +325,7 @@ export function Fitment({
       data-boat={fit.place.rowId}
       data-mode={whole ? 'all' : 'plate'}
     >
-      <div className="ft-top">
+      <div className="ft-top" data-mode={whole ? 'all' : undefined}>
         {whole ? (
           <div className="ft-top__who">
             <p className="ft-eyebrow">Fitment</p>
@@ -272,7 +349,7 @@ export function Fitment({
           sheetHref={sheetHref}
           openSheet={openSheet}
           boatName={fit.name}
-          onChange={change}
+          onChange={(target, way) => change(target, way)}
           refusal={refusal}
         />
       ) : (
@@ -283,6 +360,17 @@ export function Fitment({
             lines={lines}
             pressed={pressed?.id ?? null}
             onLine={(id) => onPosition({ line: id })}
+            model={boatModel}
+            onVersion={(rowId) => onPosition({ boat: rowId, motor: '', trailer: '' })}
+            start={
+              <StartLine
+                fit={fit}
+                motor={motorPick}
+                trailer={trailerPick}
+                refused={startRefused}
+                onStart={() => start(fit.place, picks)}
+              />
+            }
           />
           <AnimatePresence mode="wait" initial={false}>
             {pressed ? (
@@ -297,23 +385,40 @@ export function Fitment({
                   <MotorOpen
                     fit={fit}
                     ctx={ctx}
+                    rigs={rigs}
+                    across={
+                      boatModel && fit.motor
+                        ? acrossSaid(
+                            boatModel.name,
+                            sameAcross(ctx, boatModel, fit.place, fit.motor.tableId),
+                          )
+                        : ''
+                    }
+                    chosen={motorPick?.key ?? null}
+                    onChoose={(key) => onPosition({ motor: key })}
+                    compare={compare}
+                    onCompare={(on) => onPosition({ compare: on ? 'side' : '' })}
                     change={change}
                     refusal={refusal}
                     showAll={showAll}
                     sheetHref={sheetHref}
                     openSheet={openSheet}
                     openRules={openRules}
+                    openHref={openHref}
                   />
                 ) : pressed.id === 'trailer' ? (
                   <TrailerOpen
                     fit={fit}
                     ctx={ctx}
+                    chosen={trailerPick?.key ?? null}
+                    onChoose={(key) => onPosition({ trailer: key })}
                     change={change}
                     refusal={refusal}
                     showAll={showAll}
                     sheetHref={sheetHref}
                     openSheet={openSheet}
                     openRules={openRules}
+                    openHref={openHref}
                   />
                 ) : (
                   <AlsoOpen
@@ -322,6 +427,7 @@ export function Fitment({
                     boatName={fit.name}
                     change={change}
                     refusal={refusal}
+                    openHref={openHref}
                   />
                 )}
               </motion.div>
@@ -334,7 +440,7 @@ export function Fitment({
 }
 
 /* ---------------------------------------------------------- */
-/* The plate: the boat, and its three lines                    */
+/* The plate: the boat, its facts, its three lines, its quote  */
 /* ---------------------------------------------------------- */
 
 function BoatPlate({
@@ -343,12 +449,18 @@ function BoatPlate({
   lines,
   pressed,
   onLine,
+  model,
+  onVersion,
+  start,
 }: {
   fit: BoatFit
   ctx: CatalogueCtx
   lines: PlateLine[]
   pressed: LineId | null
   onLine: (id: LineId) => void
+  model: ReturnType<typeof versionsOf>
+  onVersion: (rowId: string) => void
+  start: ReactNode
 }) {
   /* THE BOAT'S OWN RENDER — the price list's Image Link for this very finish, then the one
      picture reader's answer for this boat; the cover Northside chose wins over both. Never a
@@ -356,19 +468,24 @@ function BoatPlate({
      plate's width. */
   const item = itemOf(fit.place.tableId, fit.place.rowId, fit.imageAddress)
   const shown = copyOf(item) ?? pictureOf(item)
-  /* AND ITS GALLERY: every picture of this one boat, opened large on the one the window draws,
-     with the dealer's acts — Fitment is a page of the price list, not one a customer is shown */
+  /* AND ITS GALLERY: every picture of this one boat, opened large on the one the window draws */
   const gallery = useGallery(item)
   const [large, setLarge] = useState<number | null>(null)
   const maker = fit.trailer?.maker ?? spokenBoat(fit.place.tableId, '').maker
-  /* the maker's own words for where it sits, without the finish the detail line spells out */
+  /* the maker's own words for where it sits, without the finish the version line spells out */
   const mark = [maker, ...(fit.path.length > 1 ? fit.path.slice(0, -1) : fit.path)].filter(
     (s) => s !== '',
   )
-  const detail = [fit.detail, fit.code, fit.priceName === '' ? '' : `prices at ${fit.priceName}`]
+  const many = model !== null && model.versions.length > 1
+  const detail = [
+    many ? '' : fit.detail,
+    fit.code,
+    fit.priceName === '' ? '' : `prices at ${fit.priceName}`,
+  ]
     .filter((s) => s !== '')
     .join(' · ')
   const tiles = motorTiles(ctx, fit)
+  const facts = boatFacts(ctx, fit.place)
 
   return (
     <section className="ft-plate" data-ground="night" aria-labelledby="ft-name">
@@ -382,15 +499,51 @@ function BoatPlate({
           <h1 className="ft-id__name" id="ft-name">
             {fit.name}
           </h1>
-          {detail === '' ? null : <p className="ft-id__detail">{detail}</p>}
+          {many && model ? (
+            <div className="ft-version">
+              <span className="ft-version__word" id="ft-version">
+                {`Version, of ${count(model.versions.length)}`}
+              </span>
+              <span className="ft-version__pick">
+                <Select
+                  aria-label={`Which of the ${fit.name}’s ${count(model.versions.length)} versions`}
+                  options={model.versions.map((v) => ({
+                    value: v.place.rowId,
+                    label: versionSaid(model, v),
+                    ...(v.code === '' ? {} : { trail: v.code }),
+                  }))}
+                  value={fit.place.rowId}
+                  onValueChange={(next) => {
+                    if (next && next !== fit.place.rowId) onVersion(next)
+                  }}
+                />
+              </span>
+            </div>
+          ) : null}
+          {detail === '' && fit.price === null ? null : (
+            <p className="ft-id__detail">
+              {fit.price === null ? null : (
+                <span className="ft-id__price">
+                  <PriceFigure amount={fit.price} />
+                </span>
+              )}
+              {detail === '' ? null : <span>{detail}</span>}
+            </p>
+          )}
           {fit.retired ? <p className="ft-id__retired">No longer sold.</p> : null}
         </div>
         {shown ? (
-          <figure className="ft-window">
+          <figure
+            className="ft-window"
+            style={{
+              ['--ft-shape' as string]: `${shown.width} / ${shown.height}`,
+              ['--ft-ratio' as string]: String(shown.width / shown.height),
+            }}
+          >
             <Picture
               src={shown.src}
               srcSet={srcSetOf(shown)}
-              sizes="(min-width: 700px) 260px, 40vw"
+              sizes="(min-width: 700px) 260px, 80vw"
               alt={`The ${fit.name}${fit.detail === '' ? '' : `, ${fit.detail}`}`}
               width={shown.width}
               height={shown.height}
@@ -419,6 +572,18 @@ function BoatPlate({
         <RowGallery item={item} name={fit.name} kind="boat" at={large} onAt={setLarge} />
       </div>
 
+      {/* THE BOAT'S OWN FACTS, off its own row (the fitment judge, major 5) */}
+      {facts.length > 0 ? (
+        <dl className="ft-facts" aria-label={`The ${fit.name}’s own figures`}>
+          {facts.map((f) => (
+            <div key={f.label} className="ft-facts__one">
+              <dt className="ft-facts__label">{f.label}</dt>
+              <dd className="ft-facts__value">{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+
       <ul className="ft-lines" aria-label={`What the ${fit.name} takes`}>
         {lines.map((l) => (
           <li key={l.id} className="ft-lines__line">
@@ -426,7 +591,14 @@ function BoatPlate({
               <span className="ft-ln" data-line={l.id}>
                 <span className="ft-ln__word">{l.word}</span>{' '}
                 <span className="ft-ln__value">
-                  {l.value}
+                  {l.id === 'also'
+                    ? l.value.split(' · ').map((part, i) => (
+                        <span key={part}>
+                          {i > 0 ? ' · ' : ''}
+                          <span className="ft-ln__part">{part}</span>
+                        </span>
+                      ))
+                    : l.value}
                   {l.sub === '' ? null : <span className="ft-ln__sub"> {l.sub}</span>}
                 </span>
                 {l.id === 'motor' && tiles ? <Band tiles={tiles} /> : null}{' '}
@@ -442,33 +614,54 @@ function BoatPlate({
           </li>
         ))}
       </ul>
+      {start}
     </section>
   )
 }
 
-/** THE HORSEPOWER AS A FACT: the boat's own range drawn as a band, and ONE DOT PER MOTOR made for
- *  it, stacked where its horsepower stands, the recommended one ringed. The SP660's band said a
- *  bare "2" and "5" over its pins, with no unit (built-critique-m3.md, minor): a stack of dots
- *  is the count, and needs no word. The figures are on the line beside it and on each tile, so
- *  the band itself is not read aloud. */
+/** THE HORSEPOWER AS A FACT: the boat's own range drawn as a band between its two figures, and ONE
+ *  DOT PER MOTOR made for it, stacked where its horsepower stands, the recommended one ringed. A
+ *  motor outside the range stands BEYOND the band's end, hollow — never on it (the fitment judge:
+ *  a 2.5 hp drawn at the 150 end looked as though it fitted). The figures are on the line beside
+ *  it and on each tile, so the band itself is not read aloud. */
+/** Where a pin stands on the band, 0 to 100: the track stands inside the band's ends (9% to
+ *  91%), so what is beyond it has room to be beyond. */
+const bandX = (at: number): number => (at < 0 ? 2 : at > 1 ? 98 : 9 + at * 82)
+
 function Band({ tiles }: { tiles: MotorTiles }) {
-  const pins = new Map<number, { at: number; stars: Array<{ key: string; star: boolean }> }>()
+  const pins = new Map<
+    string,
+    { at: number; side: string; stars: Array<{ key: string; star: boolean }> }
+  >()
   for (const t of tiles.tiles) {
     if (t.at === null || t.hp === null) continue
-    const was = pins.get(t.hp) ?? { at: t.at, stars: [] }
+    const where = t.side ?? `${t.hp}`
+    const at = t.side === 'under' ? -1 : t.side === 'over' ? 2 : t.at
+    const was = pins.get(where) ?? { at, side: t.side ?? '', stars: [] }
     was.stars.push({ key: t.made.key, star: t.made.starred })
-    pins.set(t.hp, was)
+    pins.set(where, was)
   }
   if (pins.size === 0) return null
   return (
     <span className="ft-band" aria-hidden="true">
       <span className="ft-band__track" />
-      {[...pins.values()].map((p) => (
+      {tiles.min !== null && tiles.max !== null && tiles.min !== tiles.max ? (
+        <>
+          <span className="ft-band__end" data-at="min">
+            {AU.format(tiles.min)}
+          </span>
+          <span className="ft-band__end" data-at="max">
+            {AU.format(tiles.max)}
+          </span>
+        </>
+      ) : null}
+      {[...pins.entries()].map(([where, p]) => (
         <span
-          key={p.at}
+          key={where}
           className="ft-band__pin"
+          data-side={p.side === '' ? undefined : p.side}
           style={{
-            ['--ft-at' as string]: `${(p.at * 100).toFixed(2)}%`,
+            ['--ft-at' as string]: `${bandX(p.at).toFixed(2)}%`,
             ['--ft-n' as string]: String(p.stars.length),
           }}
         >
@@ -489,12 +682,77 @@ function Band({ tiles }: { tiles: MotorTiles }) {
   )
 }
 
+/** THE QUOTE THIS ANSWER STARTS (the fitment judge, blocker 3), at the plate's foot: the boat,
+ *  the motor and trailer chosen on their tiles, what the priced parts come to, and the press. */
+function StartLine({
+  fit,
+  motor,
+  trailer,
+  refused,
+  onStart,
+}: {
+  fit: BoatFit
+  motor: Rigged | null
+  trailer: TrailerMade | null
+  refused: string
+  onStart: () => void
+}) {
+  const named: string[] = [`this ${fit.name}`]
+  if (motor) named.push(`the ${motor.motor.name}${motor.kit ? ' and its rigging kit' : ''}`)
+  if (trailer) named.push(`the ${trailer.name}`)
+  const said =
+    named.length === 1
+      ? `${named[0]!.charAt(0).toUpperCase()}${named[0]!.slice(1)}, on its own.`
+      : `${named.slice(0, -1).join(', ').replace(/^t/, 'T')} and ${named.at(-1)}.`
+  /* only what is on the quote: a trailer not chosen is not a part with no price */
+  const figures = [
+    fit.price,
+    ...(motor ? [motor.motor.price] : []),
+    ...(trailer ? [trailer.price] : []),
+  ]
+  const priced = figures.filter((n): n is number => n !== null)
+  const together = priced.reduce((n, p) => n + p, 0)
+  const kitOut = motor?.kit && motor.kit.price === null
+  const kitIn = motor?.kit && motor.kit.price !== null ? motor.kit.price : 0
+  const missing = figures.length - priced.length
+  return (
+    <div className="ft-start" aria-labelledby="ft-start">
+      <div className="ft-start__say">
+        <h2 className="ft-start__word" id="ft-start">
+          A quote with
+        </h2>
+        <p className="ft-start__what">{said}</p>
+        {priced.length > 0 ? (
+          <p className="ft-start__sum">
+            <PriceFigure amount={together + kitIn} />
+            <span>
+              {fit.priceName === '' ? 'together' : `together, at ${fit.priceName}`}
+              {kitOut ? ', before the rigging kit, whose price is not chosen yet' : ''}
+              {missing > 0 ? `, and ${count(missing)} with no price on the price list` : ''}.
+            </span>
+          </p>
+        ) : null}
+      </div>
+      <span className="ft-start__act">
+        <Button intent="primary" icon={ReceiptIcon} onClick={onStart}>
+          Start the quote
+        </Button>
+        {refused === '' ? null : (
+          <span className="ft-start__why" role="alert">
+            {refused}
+          </span>
+        )}
+      </span>
+    </div>
+  )
+}
+
 /* ---------------------------------------------------------- */
-/* Under the Motor line                                         */
+/* The acts on a tile                                           */
 /* ---------------------------------------------------------- */
 
 interface Changing {
-  change: (target: Place, way: FitWay) => void
+  change: (target: Place, act: FitAct, place?: 'motor' | 'trailer') => void
   refusal: FitRefusal | null
 }
 
@@ -505,81 +763,191 @@ interface OpenProps extends Changing {
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
   openRules: () => void
+  openHref: (href: string) => void
+  /** the pairing chosen for the quote here; null for none */
+  chosen: string | null
+  onChoose: (key: string) => void
 }
+
+/** THE THREE PRESSES ON A TILE: for the quote started here, the recommended, and off the boat. */
+function TileActs({
+  name,
+  boatName,
+  place,
+  pairKey,
+  starred,
+  chosen,
+  onChoose,
+  where,
+  change,
+  refusal,
+  onAccent = false,
+}: Changing & {
+  name: string
+  boatName: string
+  place: Place
+  pairKey: string
+  starred: boolean
+  chosen: boolean
+  onChoose: (key: string) => void
+  where: 'motor' | 'trailer'
+  onAccent?: boolean
+}) {
+  return (
+    <span className="ft-acts">
+      <span className="ft-acts__row">
+        <Button
+          intent={onAccent ? 'veiled' : 'quiet'}
+          size="sm"
+          icon={chosen ? CheckCircleIcon : CircleIcon}
+          aria-pressed={chosen}
+          onClick={() => onChoose(chosen ? 'none' : pairKey)}
+          aria-label={
+            chosen
+              ? `The ${name} is on the quote started here; press to start it without a ${where}`
+              : `Put the ${name} on the quote started here`
+          }
+        >
+          {chosen ? 'On the quote' : 'Quote this one'}
+        </Button>
+        {starred ? null : (
+          <Button
+            intent={onAccent ? 'veiled' : 'quiet'}
+            size="sm"
+            icon={StarIcon}
+            onClick={() => change(place, 'star', where)}
+            aria-label={`Make the ${name} the recommended ${where} for the ${boatName}`}
+          >
+            Recommend it
+          </Button>
+        )}
+        <Button
+          intent={onAccent ? 'veiled' : 'quiet'}
+          size="sm"
+          icon={MinusCircleIcon}
+          onClick={() => change(place, 'off')}
+          aria-label={`Take the ${name} off what goes on the ${boatName}`}
+        >
+          Take it off
+        </Button>
+      </span>
+      {refusal?.rowId === place.rowId ? (
+        <span className="ft-off__why" role="alert">
+          {refusal.why}
+        </span>
+      ) : null}
+    </span>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* Under the Motor line                                         */
+/* ---------------------------------------------------------- */
 
 function MotorOpen({
   fit,
   ctx,
+  rigs,
+  across,
+  chosen,
+  onChoose,
+  compare,
+  onCompare,
   showAll,
   sheetHref,
   openSheet,
   openRules,
+  openHref,
   change,
   refusal,
-}: OpenProps) {
+}: OpenProps & {
+  rigs: Rigged[]
+  across: string
+  compare: boolean
+  onCompare: (on: boolean) => void
+}) {
   const motor = fit.motor
   const tiles = useMemo(() => motorTiles(ctx, fit), [ctx, fit])
   /* THE REASONS AND THEIR ONE HEAD FIGURE, read in src/domain off the plate line's own pair */
   const held = useMemo(() => heldBack(ctx, fit, 'motor'), [ctx, fit])
   if (!motor || !tiles) return null
+  const outside = new Map(tiles.tiles.map((t) => [t.made.key, t.outside]))
+  /* the kit list's price, said once over the tiles where Northside has not chosen it */
+  const unchosenKit = rigs.find((r) => r.kit?.unchosen)?.kit ?? null
+  const shared = sharedFacts(rigs)
   return (
     <section className="ft-place" aria-labelledby="ft-motor">
       <div className="ft-bar">
         <h2 className="ft-bar__title" id="ft-motor">
           Motor <span className="ft-bar__maker">{tiles.maker}</span>
         </h2>
-        <Button intent="quiet" size="sm" icon={ListBulletsIcon} onClick={() => showAll('motor')}>
-          {`Show all ${count(motor.counts.live)}, each with its reason`}
-        </Button>
+        <span className="ft-bar__acts">
+          {rigs.length > 1 ? (
+            <Button
+              intent="quiet"
+              size="sm"
+              icon={compare ? SquaresFourIcon : ColumnsIcon}
+              aria-pressed={compare}
+              onClick={() => onCompare(!compare)}
+            >
+              {compare ? 'Back to the tiles' : `Compare the ${count(rigs.length)} side by side`}
+            </Button>
+          ) : null}
+          <Button intent="quiet" size="sm" icon={ListBulletsIcon} onClick={() => showAll('motor')}>
+            {`Show all ${count(motor.counts.live)}, each with its reason`}
+          </Button>
+        </span>
       </div>
-      {tiles.tiles.length === 0 ? (
+      {across === '' ? null : <p className="ft-quiet ft-across">{across}</p>}
+      {unchosenKit ? (
+        <p className="ft-unchosen">
+          <span>
+            {`Northside has not chosen which of the rigging kits’ figures is their price, so no kit is added into a figure here.`}
+          </span>
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={ArrowUpRightIcon}
+            href={pricesOf(unchosenKit.place.tableId)}
+            onClick={() => openHref(pricesOf(unchosenKit.place.tableId))}
+          >
+            Choose it on Prices
+          </Button>
+        </p>
+      ) : null}
+      {shared.length > 0 && !compare ? (
+        <div className="ft-shared">
+          <p className="ft-shared__lead">{`Alike on all ${count(rigs.length)}`}</p>
+          <dl className="ft-shared__list" aria-label="What every one of them is rigged with">
+            {shared.map((f) => (
+              <div key={f.label} className="ft-shared__one">
+                <dt>{f.label}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : null}
+      {rigs.length === 0 ? (
         <p className="ft-none">No {tiles.maker} motor on the price list is made for this boat.</p>
+      ) : compare ? (
+        <CompareTable ctx={ctx} rigs={rigs} chosen={chosen} />
       ) : (
         <ul className="ft-tiles" aria-label="Made for it">
-          {tiles.tiles.map((t) => {
-            return (
-              <li
-                key={t.made.key}
-                className="ft-tile"
-                data-ground="plate"
-                data-star={t.made.starred ? '' : undefined}
-              >
-                <p className="ft-tile__name">
-                  {t.made.starred ? (
-                    <span className="ft-tile__star" aria-label="Recommended">
-                      <Icon glyph={StarIcon} weight="fill" size="sm" />
-                    </span>
-                  ) : null}
-                  <span className="ft-tile__model">{t.model}</span>
-                </p>
-                <p className="ft-tile__foot">
-                  <span>{t.hp === null ? '' : `${AU.format(t.hp)} hp`}</span>
-                  {t.made.price === null ? null : (
-                    <span className="ft-tile__price">
-                      <PriceFigure amount={t.made.price} />
-                    </span>
-                  )}
-                </p>
-                {t.outside === '' ? null : (
-                  <p className="ft-tile__warn">
-                    <Icon glyph={WarningIcon} size="sm" />
-                    {t.outside}
-                  </p>
-                )}
-                {t.made.rule && t.made.rule.because !== '' ? (
-                  <p className="ft-tile__rule">{t.made.rule.because}</p>
-                ) : null}
-                <TakeOff
-                  name={t.model}
-                  boatName={fit.name}
-                  onAccent={t.made.starred}
-                  place={t.made.place}
-                  change={change}
-                  refusal={refusal}
-                />
-              </li>
-            )
-          })}
+          {rigs.map((r) => (
+            <RigTile
+              key={r.key}
+              r={r}
+              shared={shared}
+              saidAbove={unchosenKit !== null}
+              outside={outside.get(r.key) ?? ''}
+              boatName={fit.name}
+              chosen={chosen === r.key}
+              onChoose={onChoose}
+              change={change}
+              refusal={refusal}
+            />
+          ))}
         </ul>
       )}
       <Reasons
@@ -595,6 +963,176 @@ function MotorOpen({
   )
 }
 
+/** ONE MOTOR ON THIS BOAT: its figure, the rigging kit, prop and engine hole its pairing names,
+ *  and the two together where both are priced (the fitment judge, blocker 2). */
+function RigTile({
+  r,
+  outside,
+  boatName,
+  chosen,
+  onChoose,
+  change,
+  refusal,
+  shared,
+  saidAbove,
+}: Changing & {
+  r: Rigged
+  /** what every tile shares, said once above them */
+  shared: readonly { label: string; value: string }[]
+  /** the kit's price not chosen is said once above the tiles */
+  saidAbove: boolean
+  outside: string
+  boatName: string
+  chosen: boolean
+  onChoose: (key: string) => void
+}) {
+  const star = r.motor.starred
+  return (
+    <li
+      className="ft-tile"
+      data-ground="plate"
+      data-star={star ? '' : undefined}
+      data-chosen={chosen ? '' : undefined}
+    >
+      <p className="ft-tile__name">
+        {star ? (
+          <span className="ft-tile__star" aria-label="Recommended">
+            <Icon glyph={StarIcon} weight="fill" size="sm" />
+          </span>
+        ) : null}
+        <span className="ft-tile__model">{r.model}</span>
+        {r.motor.price === null ? null : (
+          <span className="ft-tile__price">
+            <PriceFigure amount={r.motor.price} />
+          </span>
+        )}
+      </p>
+      {r.motor.facts === '' ? null : <p className="ft-tile__facts">{r.motor.facts}</p>}
+      {outside === '' ? null : (
+        <p className="ft-tile__warn">
+          <Icon glyph={WarningIcon} size="sm" />
+          {outside}
+        </p>
+      )}
+      {r.motor.rule && r.motor.rule.because !== '' ? (
+        <p className="ft-tile__rule">{r.motor.rule.because}</p>
+      ) : null}
+      <dl className="ft-rig">
+        {r.kit ? (
+          <div className="ft-rig__one">
+            <dt>Rigging kit</dt>
+            <dd>
+              <span className="ft-rig__kit">{r.kit.name}</span>
+              {r.kit.price === null ? (
+                <span className="ft-rig__note">
+                  {r.kit.unchosen ? 'Price not chosen' : 'No price'}
+                </span>
+              ) : (
+                <PriceFigure amount={r.kit.price} />
+              )}
+            </dd>
+          </div>
+        ) : null}
+        {r.with
+          .filter((w) => !shared.some((f) => f.label === w.label && f.value === w.value))
+          .map((w) => (
+            <div key={w.label} className="ft-rig__one">
+              <dt>{w.label}</dt>
+              <dd>{w.value}</dd>
+            </div>
+          ))}
+      </dl>
+      {r.total !== null && r.kit !== null ? (
+        <p className="ft-tile__total">
+          <span className="ft-tile__on">On this boat</span>
+          <PriceFigure amount={r.total} />
+        </p>
+      ) : saidAbove && r.kit?.unchosen ? null : (
+        <p className="ft-tile__total">
+          <span className="ft-rig__note">{rigSaid(r)}</span>
+        </p>
+      )}
+      <TileActs
+        name={r.motor.name}
+        boatName={boatName}
+        place={r.motor.place}
+        pairKey={r.key}
+        starred={star}
+        chosen={chosen}
+        onChoose={onChoose}
+        where="motor"
+        change={change}
+        refusal={refusal}
+        onAccent={star}
+      />
+    </li>
+  )
+}
+
+/** THE OFFERED MOTORS SIDE BY SIDE (the fitment judge, major 4): one column per motor, one row per
+ *  fact, the recommended first, the one chosen for the quote marked. Its own box scrolls sideways
+ *  on a phone; the page never does. */
+function CompareTable({
+  ctx,
+  rigs,
+  chosen,
+}: {
+  ctx: CatalogueCtx
+  rigs: Rigged[]
+  chosen: string | null
+}) {
+  const rows = useMemo(() => compareOf(ctx, rigs), [ctx, rigs])
+  return (
+    <section
+      className="ft-compare"
+      data-ground="plate"
+      aria-label="The motors made for it, side by side"
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+      tabIndex={0}
+    >
+      <table className="ft-compare__table">
+        <thead>
+          <tr>
+            <th scope="col" className="ft-compare__corner">
+              <span className="ft-sr">What</span>
+            </th>
+            {rigs.map((r) => (
+              <th
+                key={r.key}
+                scope="col"
+                data-star={r.motor.starred ? '' : undefined}
+                data-chosen={chosen === r.key ? '' : undefined}
+              >
+                <span className="ft-compare__head">
+                  {r.motor.starred ? (
+                    <span className="ft-tile__star" aria-label="Recommended">
+                      <Icon glyph={StarIcon} weight="fill" size="sm" />
+                    </span>
+                  ) : null}
+                  {r.model}
+                </span>
+                {chosen === r.key ? <span className="ft-compare__on">On the quote</span> : null}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label} data-money={row.money ? '' : undefined}>
+              <th scope="row">{row.label}</th>
+              {row.cells.map((c, i) => (
+                <td key={rigs[i]!.key} data-chosen={chosen === rigs[i]!.key ? '' : undefined}>
+                  {c}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  )
+}
+
 /* ---------------------------------------------------------- */
 /* Under the Trailer line: E's answer, on the true weight       */
 /* ---------------------------------------------------------- */
@@ -602,6 +1140,8 @@ function MotorOpen({
 function TrailerOpen({
   fit,
   ctx,
+  chosen,
+  onChoose,
   showAll,
   sheetHref,
   openSheet,
@@ -620,15 +1160,10 @@ function TrailerOpen({
   /* ONE SCALE FOR EVERY BAR, so two trailers' ATMs are read against each other */
   const scale =
     Math.max(0, ...[...tows.values()].flatMap((w) => [w.rated ?? 0, w.total ?? 0])) * 1.06
-  /* the one-trailer rule is said once, where the second trailer is offered */
   /* what is offered, and only that: a trailer a rule refuses is one of the reasons below */
   const shown = offeredIn(trailer.made)
-  const second = trailer.oneTrailer === '' ? null : (shown.find((t) => !t.crosses) ?? null)
-  /* NOTHING MADE FOR IT, NOTHING TO WEIGH OR TALLY. The Classic 340, an inflatable, was handed
-     "The other 434, and why" in three groups and a load sentence for a trailer it never goes
-     on (built-critique-m3.md, minor). Where the price list makes no trailer for a boat, its
-     line says so once, and every one on sale is still a press away, each with its reason, in
-     Show all. A trailer a rule refuses is made for the boat, so it still opens its reason. */
+  /* NOTHING MADE FOR IT, NOTHING TO WEIGH OR TALLY. Where the price list makes no trailer for a
+     boat, its line says so once, and every one on sale is still a press away in Show all. */
   const none = trailer.made.length === 0
   return (
     <section className="ft-place" aria-labelledby="ft-trailer">
@@ -649,23 +1184,30 @@ function TrailerOpen({
       {none ? (
         <p className="ft-none">{`No trailer on the price list is made for the ${fit.name}.`}</p>
       ) : shown.length === 0 ? null : (
-        <ul className="ft-trailers" aria-label="Made for it">
-          {shown.map((t) => (
-            <TrailerTile
-              key={t.key}
-              t={t}
-              tow={tows.get(t.key) ?? null}
-              scale={scale}
-              rule={second?.key === t.key ? trailer.oneTrailer : ''}
-              offeredInstead={shown.some((o) => o.crosses && o.key !== t.key)}
-              sheetHref={sheetHref}
-              openSheet={openSheet}
-              boatName={fit.name}
-              change={change}
-              refusal={refusal}
-            />
-          ))}
-        </ul>
+        <>
+          <ul className="ft-trailers" aria-label="Made for it">
+            {shown.map((t) => (
+              <TrailerTile
+                key={t.key}
+                t={t}
+                tow={tows.get(t.key) ?? null}
+                scale={scale}
+                offeredInstead={shown.some((o) => o.crosses && o.key !== t.key)}
+                sheetHref={sheetHref}
+                openSheet={openSheet}
+                boatName={fit.name}
+                chosen={chosen === t.key}
+                onChoose={onChoose}
+                change={change}
+                refusal={refusal}
+              />
+            ))}
+          </ul>
+          {/* the one-trailer rule, said once, under both, where a second trailer is offered */}
+          {trailer.oneTrailer === '' || shown.length < 2 ? null : (
+            <p className="ft-trl__rule">{trailer.oneTrailer}</p>
+          )}
+        </>
       )}
       {none ? null : (
         <>
@@ -689,11 +1231,12 @@ function TrailerTile({
   t,
   tow,
   scale,
-  rule,
   offeredInstead,
   sheetHref,
   openSheet,
   boatName,
+  chosen,
+  onChoose,
   change,
   refusal,
 }: Changing & {
@@ -701,18 +1244,23 @@ function TrailerTile({
   t: TrailerMade
   tow: Tow | null
   scale: number
-  /** the one-trailer rule, on the trailer offered in the place of the one on a new quote */
-  rule: string
   offeredInstead: boolean
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
+  chosen: boolean
+  onChoose: (key: string) => void
 }): ReactNode {
   const rated = tow?.rated != null && scale > 0 ? tow.rated / scale : null
   const total = tow?.total != null && scale > 0 ? tow.total / scale : null
   const over = tow?.standing === 'over'
   const opens: Opens = { tableId: t.place.tableId, at: t.place.rowId }
   return (
-    <li className="ft-trl" data-ground="plate" data-star={t.crosses ? '' : undefined}>
+    <li
+      className="ft-trl"
+      data-ground="plate"
+      data-star={t.crosses ? '' : undefined}
+      data-chosen={chosen ? '' : undefined}
+    >
       <p className="ft-trl__name">
         {t.starred ? (
           <span className="ft-tile__star" aria-label="Recommended">
@@ -747,28 +1295,34 @@ function TrailerTile({
         </p>
       ) : null}
       {t.rule && t.rule.because !== '' ? <p className="ft-tile__rule">{t.rule.because}</p> : null}
-      {over ? (
-        <span className="ft-trl__door">
-          <Button
-            intent="quiet"
-            size="sm"
-            icon={ArrowUpRightIcon}
-            href={sheetHref(opens)}
-            onClick={() => openSheet(opens)}
-            aria-label={`Open ${t.name} on the price list`}
-          >
-            Open its line
-          </Button>
-        </span>
-      ) : null}
-      {rule === '' ? null : <p className="ft-trl__rule">{rule}</p>}
-      <TakeOff
-        name={t.name}
-        boatName={boatName}
-        place={t.place}
-        change={change}
-        refusal={refusal}
-      />
+      <span className="ft-trl__foot">
+        {over ? (
+          <span className="ft-trl__door">
+            <Button
+              intent="quiet"
+              size="sm"
+              icon={ArrowUpRightIcon}
+              href={sheetHref(opens)}
+              onClick={() => openSheet(opens)}
+              aria-label={`Open ${t.name} on the price list`}
+            >
+              Open its line
+            </Button>
+          </span>
+        ) : null}
+        <TileActs
+          name={t.name}
+          boatName={boatName}
+          place={t.place}
+          pairKey={t.key}
+          starred={t.starred}
+          chosen={chosen}
+          onChoose={onChoose}
+          where="trailer"
+          change={change}
+          refusal={refusal}
+        />
+      </span>
     </li>
   )
 }
@@ -783,10 +1337,12 @@ function AlsoOpen({
   boatName,
   change,
   refusal,
+  openHref,
 }: Changing & {
   boatName: string
   lists: ListFit[]
   showAll: (slot: string, group?: string) => void
+  openHref: (href: string) => void
 }) {
   return (
     <section className="ft-place" aria-labelledby="ft-also">
@@ -799,6 +1355,10 @@ function AlsoOpen({
         {lists
           .filter((l) => l.live > 0)
           .map((l) => {
+            const held = listHeld(l)
+            /* THE PRICE NOT CHOSEN, SAID ONCE FOR THE LIST (the fitment judge, major 9): four
+               packages stood with no figure and no word; the build and Prices say why */
+            const unchosen = l.made.some((m) => m.price === null && m.unchosen !== null)
             return (
               <section
                 key={l.tableId}
@@ -808,16 +1368,26 @@ function AlsoOpen({
               >
                 <div className="ft-also__head">
                   <h3 className="ft-also__name">{l.name}</h3>
-                  <Button
-                    intent="quiet"
-                    size="sm"
-                    icon={ListBulletsIcon}
-                    onClick={() => showAll(l.tableId)}
-                    aria-label={`Show all ${count(l.live)} in ${l.name}`}
-                  >
-                    {`Show all ${count(l.live)}`}
-                  </Button>
+                  <span className="ft-also__n">
+                    {`${count(l.made.length - held.refused)} of ${count(l.live)} offered`}
+                  </span>
                 </div>
+                {unchosen ? (
+                  <p className="ft-unchosen" data-in="list">
+                    <span>
+                      {`Northside has not chosen which of ${l.name}’ figures is its price, so none is shown here.`}
+                    </span>
+                    <Button
+                      intent="quiet"
+                      size="sm"
+                      icon={ArrowUpRightIcon}
+                      href={pricesOf(l.tableId)}
+                      onClick={() => openHref(pricesOf(l.tableId))}
+                    >
+                      Choose it on Prices
+                    </Button>
+                  </p>
+                ) : null}
                 {l.made.length === 0 ? (
                   <p className="ft-none">Nothing in {l.name} is made for this boat.</p>
                 ) : (
@@ -844,6 +1414,22 @@ function AlsoOpen({
                     ))}
                   </ul>
                 )}
+                {held.others === 0 ? null : (
+                  <p className="ft-also__rest">
+                    <span>
+                      {`The other ${count(held.notMade)} ${held.notMade === 1 ? 'is' : 'are'} not made for this boat${held.refused > 0 ? `, and ${count(held.refused)} ${held.refused === 1 ? 'is' : 'are'} refused by your rules` : ''}.`}
+                    </span>
+                    <Button
+                      intent="quiet"
+                      size="sm"
+                      icon={ListBulletsIcon}
+                      onClick={() => showAll(l.tableId)}
+                      aria-label={`Show all ${count(l.live)} in ${l.name}`}
+                    >
+                      {`Show all ${count(l.live)}`}
+                    </Button>
+                  </p>
+                )}
               </section>
             )
           })}
@@ -852,23 +1438,19 @@ function AlsoOpen({
   )
 }
 
-/** THE PRESS THAT TAKES ONE THING OFF THIS BOAT, on the thing's own tile, and the sentence
- *  where a press was refused. Putting one on is in Show all, beside each thing not made for
- *  it, so the plate shows what goes on and the whole list what could. */
+/** THE PRESS THAT TAKES ONE THING OFF THIS BOAT, on the thing's own line, and the sentence where
+ *  a press was refused. */
 function TakeOff({
   name,
   boatName,
   place,
   change,
   refusal,
-  onAccent = false,
-}: Changing & { name: string; boatName: string; place: Place; onAccent?: boolean }) {
+}: Changing & { name: string; boatName: string; place: Place }) {
   return (
     <span className="ft-off">
       <Button
-        /* the recommended tile stands in the accent, where a quiet ink would not read: there the
-           press is the kit's white plate */
-        intent={onAccent ? 'veiled' : 'quiet'}
+        intent="quiet"
         size="sm"
         icon={MinusCircleIcon}
         onClick={() => change(place, 'off')}
@@ -894,8 +1476,8 @@ function doorSaid(door: Door, boatName: string, example: string): { word: string
   switch (door.kind) {
     case 'boat':
       return {
-        word: 'Open its horsepower',
-        aria: `Open the ${boatName}’s horsepower on the price list`,
+        word: 'Open the boat’s line',
+        aria: `Open the ${boatName}’s line on the price list, which carries its horsepower`,
       }
     case 'pairing':
       return {
@@ -906,12 +1488,20 @@ function doorSaid(door: Door, boatName: string, example: string): { word: string
       return { word: 'Open its line', aria: `Open ${example} on the price list` }
     case 'series':
       return {
-        word: 'Open its series',
+        word: 'Open its line',
         aria: `Open ${example} on the price list, where its series is written`,
       }
     case 'rules':
       return { word: 'Your rules', aria: 'Open your rules' }
   }
+}
+
+/** As many columns as n reasons share evenly, up to `most`: 4 at most 3 is two rows of 2, 6 at
+ *  most 5 is two rows of 3 — never one reason alone on a row. */
+function columnsFor(n: number, most: number): number {
+  if (n <= most) return Math.max(1, n)
+  const rows = Math.ceil(n / most)
+  return Math.ceil(n / rows)
 }
 
 function Reasons({
@@ -934,10 +1524,16 @@ function Reasons({
     <>
       <h3 className="ft-why">The other {count(held.others)}, and why</h3>
       {/* A ROW OF GAUGES ON THE ROOM, NOT A WHITE CARD OF ROWS: each reason stands in its own
-          column under a track filled to its share of the others, so the reasons read side by
-          side as the plate's own instruments — never as Rules' numbered clauses
-          (built-critique-m3.md, major 10). The share is drawn only; the count is said. */}
-      <ul className="ft-reasons">
+          column under a track filled to its share of the others. The share is drawn only; the
+          count is said. */}
+      <ul
+        className="ft-reasons"
+        data-n={held.groups.length}
+        style={{
+          ['--ft-desk' as string]: String(columnsFor(held.groups.length, 5)),
+          ['--ft-mid' as string]: String(columnsFor(held.groups.length, 3)),
+        }}
+      >
         {held.groups.map((h) => {
           const door = h.door ? doorSaid(h.door, boatName, h.example?.name ?? '') : null
           const opens = h.door && h.door.kind !== 'rules' ? h.door.opens : null

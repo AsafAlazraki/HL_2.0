@@ -35,6 +35,11 @@ import { sheetHref } from '@/screens/fitment/sheet'
    is one Back: the sheet writes its own position with `replace`, so the
    Back that leaves it lands here, on the same boat and the same line.
 
+   `motor` and `trailer` are what a quote started here begins with,
+   by their pairing ('none' for none, absent for the price list's
+   recommended), and `compare` sets the offered motors side by side
+   (the fitment judge, 2026-11-03: blockers 3 and major 4).
+
    A boat is a CHANGE OF SCREEN and is pushed; everything else is a
    position and is replaced, for the register's reason — a Back that
    walked back through every letter typed would be a Back that never
@@ -49,6 +54,12 @@ export interface FitmentSearch {
   all?: string
   only?: string
   find?: string
+  /** the motor and the trailer chosen for a quote started here, by their pairing; 'none' for
+   *  none; absent for the price list's recommended */
+  motor?: string
+  trailer?: string
+  /** the offered motors set side by side */
+  compare?: string
 }
 
 const word = (value: unknown, max = 200): string | undefined => {
@@ -66,6 +77,9 @@ export const Route = createFileRoute('/fitment')({
     const all = word(search.all)
     const only = word(search.only, 120)
     const find = word(search.find, 120)
+    const motor = word(search.motor, 200)
+    const trailer = word(search.trailer, 200)
+    const compare = search.compare === 'side' ? 'side' : undefined
     return {
       ...(maker ? { maker } : {}),
       ...(model ? { model } : {}),
@@ -74,6 +88,9 @@ export const Route = createFileRoute('/fitment')({
       ...(all ? { all } : {}),
       ...(only ? { only } : {}),
       ...(find ? { find } : {}),
+      ...(motor ? { motor } : {}),
+      ...(trailer ? { trailer } : {}),
+      ...(compare ? { compare } : {}),
     }
   },
   beforeLoad: () => {
@@ -108,6 +125,9 @@ function FitmentRoute() {
           if (merged.all) out.all = merged.all
           if (merged.only) out.only = merged.only
           if (merged.find) out.find = merged.find
+          if (merged.motor) out.motor = merged.motor
+          if (merged.trailer) out.trailer = merged.trailer
+          if (merged.compare) out.compare = merged.compare
           return out
         },
         replace: true,
@@ -126,11 +146,16 @@ function FitmentRoute() {
       all={search.all ?? ''}
       only={search.only ?? ''}
       find={search.find ?? ''}
+      motor={search.motor ?? ''}
+      trailer={search.trailer ?? ''}
+      compare={search.compare === 'side'}
       onPosition={onPosition}
       openBoat={(rowId) => void navigate({ to: '/fitment', search: { boat: rowId } })}
       sheetHref={sheetHref}
       openSheet={(opens) => void navigate({ href: sheetHref(opens) })}
       openRules={() => void navigate({ to: '/rules' })}
+      openHref={(href) => void navigate({ href })}
+      openQuote={(quoteId) => void navigate({ to: '/quote/$id', params: { id: quoteId } })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
     />
   )

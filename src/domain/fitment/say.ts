@@ -143,10 +143,29 @@ export function floorSaid(floor: FloorVerdict, boatWeighed: boolean): string {
  *  for the plate's reasons and for Show all's group heads alike, so the two never word one
  *  reason two ways. `takes` is the boat's own range ("150–200 hp"), '' where its line names
  *  none; `rigs` is the twin-and-triple sentence `boat.ts` already composes. */
-export type MotorHeldId = 'ruled' | 'under' | 'over' | 'inside' | 'unplaced' | 'rigs' | 'unrated'
+export type MotorHeldId =
+  'ruled' | 'under' | 'over' | 'shaft' | 'steering' | 'inside' | 'unplaced' | 'rigs' | 'unrated'
 
-export function motorHeldSaid(id: MotorHeldId, takes: string, rigs: string): string {
+/** The boat's own shaft and steering, as the trade says them (`pairSpecs.ts`): '' where unread. */
+export interface BoatRigging {
+  shaft: string
+  steering: string
+}
+
+export function motorHeldSaid(
+  id: MotorHeldId,
+  takes: string,
+  rigs: string,
+  boat: BoatRigging = { shaft: '', steering: '' },
+): string {
+  const inside = takes === '' ? '' : `Inside the ${takes} this boat takes, but `
   switch (id) {
+    case 'shaft':
+      return `${inside === '' ? 'Its' : `${inside}its`} shaft is not the ${boat.shaft} this boat’s transom takes.`
+    case 'steering':
+      return /tiller/i.test(boat.steering)
+        ? `${inside === '' ? 'A' : `${inside}a`} remote motor, and this boat is steered by its tiller.`
+        : `${inside === '' ? 'A' : `${inside}a`} tiller motor, and this boat is steered from its helm.`
     case 'ruled':
       return RULE_REFUSES
     case 'under':
@@ -164,6 +183,24 @@ export function motorHeldSaid(id: MotorHeldId, takes: string, rigs: string): str
     case 'unrated':
       return 'Its rating on the price list is not a horsepower, so it is not placed on this boat.'
   }
+}
+
+/* the makers' own capitals, kept: a brand writes itself this way */
+const KEPT_CAPS = new Set(['REDCO', 'TINKA', 'GFAB', 'TASC', 'BMT', 'MLKR', 'MLJ'])
+
+/**
+ * A SERIES BANNER AS A PERSON SAYS IT (the fitment judge, minor 18: "ALLOY CENTRE-LINE SERIES" on
+ * the surface). The price list's shouted words are said in their own case — "Alloy Centre-Line
+ * Series" — and a maker's own capitals (REDCO, GFAB, BMT) are kept. Nothing is reworded: every
+ * letter is the file's, in the order the file writes it.
+ */
+export function seriesSaid(banner: string): string {
+  return banner.replace(/[A-Z][A-Z-]{2,}/g, (word) => {
+    if (KEPT_CAPS.has(word) || !/[AEIOU]/.test(word)) return word
+    return word
+      .toLowerCase()
+      .replace(/(^|-)([a-z])/g, (_m, lead: string, c: string) => `${lead}${c.toUpperCase()}`)
+  })
 }
 
 /** The rules line at the foot of a place: '' where one of the dealer's rules refuses something

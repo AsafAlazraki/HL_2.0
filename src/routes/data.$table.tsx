@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { PACK_ORG_ID } from '@/data/pack/boot'
+import { loadTable } from '@/data/pack/load'
 import { repositories } from '@/data'
 import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
@@ -16,10 +17,13 @@ import { Sheet, type Door, type Reading, type SheetPosition } from '@/screens/sh
    rule is the shell's, and it is `beforeLoad` for the reason
    `src/routes/index.tsx` gives.
 
-   IT READS THIS BROWSER AND NEVER THE FILE. The only call below is
-   `catalogue.load(repository)`, which cannot fetch; a browser that
-   holds no copy of the file arrives on a sheet that says no file is
-   open and offers the door back.
+   IT READS THIS BROWSER, AND THE FILE ONLY TO COMPARE. The sheet is
+   loaded by `catalogue.load(repository)`, which cannot fetch; a browser
+   that holds no copy of the file arrives on a sheet that says no file
+   is open and offers the door back. The one list being read is also
+   fetched as the Master Price File carries it (`fileOf`, 2026-11-03),
+   only so the sheet can mark what this computer changed — nothing is
+   loaded from it, and where it cannot be fetched nothing is marked.
 
    THE POSITION IS THE SEARCH PARAMS. Which door (the price list, the
    pictures, every column), the row whose record is open (`at`), what
@@ -27,7 +31,8 @@ import { Sheet, type Door, type Reading, type SheetPosition } from '@/screens/sh
    series of Highfield), whether the models are shut (`read`) and which
    ones differ from that (`flip`), the columns pressed into the grid
    (`show`), the lit price rung (`rung`), and the sections folded behind
-   the Every column door (`fold`) — every one is in the address, so a
+   the Every column door (`fold`), and the questions asked of the list's
+   values (`only` — "No Trade", "Cash under its landed cost") — every one is in the address, so a
    link to one row of one table opens on that row, and a write, which
    rebuilds every row, cannot shut or open anything. The screen is
    handed them once and hands its position back; this route writes it
@@ -51,6 +56,7 @@ export interface SheetSearch {
   show?: string
   rung?: string
   fold?: string
+  only?: string
 }
 
 const word = (value: unknown, max = 200): string | undefined => {
@@ -79,6 +85,10 @@ export const Route = createFileRoute('/data/$table')({
     if (rung) out.rung = rung
     const fold = word(search.fold, 400)
     if (fold) out.fold = fold
+    /* each token is read again by the screen against the list's own columns
+       (`readOnly`), so a token naming no column of this list is simply absent */
+    const only = word(search.only, 1000)
+    if (only) out.only = only
     return out
   },
   beforeLoad: () => {
@@ -130,6 +140,8 @@ function SheetRoute() {
       show={search.show}
       rung={search.rung}
       fold={search.fold ?? ''}
+      only={search.only}
+      fileOf={loadTable}
       onPosition={onPosition}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
       goTo={(href) => void navigate({ href })}

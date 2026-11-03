@@ -104,25 +104,44 @@ describe('one boat, at rest', () => {
     expect(plate.textContent).not.toMatch(/Min HP|Max HP|Boat Module|Boat Weight|series/)
   })
 
-  it('opens the motor line: the seven made for it as priced tiles, the recommended starred', () => {
+  /* REWRITTEN 2026-11-03 (the fitment judge, blocker 2): a tile is the motor RIGGED — its figure,
+     the rigging kit, prop and engine hole its pairing names, and the kit's price said not chosen */
+  it('opens the motor line: the seven made for it rigged and priced, the recommended starred', () => {
     draw()
     const motor = screen.getByRole('region', { name: /^Motor/ })
     const tiles = within(within(motor).getByRole('list', { name: 'Made for it' })).getAllByRole(
       'listitem',
     )
     expect(tiles).toHaveLength(7)
-    expect(tiles[0]).toHaveTextContent('F175XC175 hp$25,355')
+    expect(tiles[0]).toHaveTextContent(/^F175XC\$25,355175 hp · 220 kg/)
+    expect(tiles[0]).toHaveTextContent('Rigging kitMech Rigging Kit · 703 Side Mount')
+    expect(tiles[0]).toHaveTextContent('Price not chosen')
+    /* what all seven pairings name alike is said once above them, never seven times */
+    expect(tiles[0]).not.toHaveTextContent('Engine hole')
+    const every = within(motor).getByLabelText('What every one of them is rigged with')
+    expect(every).toHaveTextContent('Engine holeNot yet known: the price list says TBA')
+    expect(every).toHaveTextContent('PropPropeller - Reliance SDS M Series (F150 to F300)')
+    expect(within(motor).getByRole('link', { name: 'Choose it on Prices' })).toHaveAttribute(
+      'href',
+      '/levels?list=rig_kits',
+    )
     expect(within(tiles[0]!).getByLabelText('Recommended')).toBeInTheDocument()
     expect(within(motor).getByRole('button', { name: 'Show all 209, each with its reason' }))
   })
 
-  it('gives the other 202 motors four counted reasons, each in the engine’s words', () => {
+  /* REWRITTEN 2026-11-03 (the fitment judge, major 6 and minor 15): the shaft is a reason of its
+     own, and the doors say what they open */
+  it('gives the other 202 motors five counted reasons, each in the engine’s words', () => {
     draw()
     expect(screen.getByRole('heading', { name: 'The other 202, and why' })).toBeInTheDocument()
     for (const [n, because] of [
       ['74', 'Under the 150–200 hp this boat takes.'],
       ['51', 'Over the 150–200 hp this boat takes.'],
-      ['30', 'Inside the 150–200 hp this boat takes, and not made for it.'],
+      [
+        '10',
+        'Inside the 150–200 hp this boat takes, but its shaft is not the extra-long (25″) this boat’s transom takes.',
+      ],
+      ['20', 'Inside the 150–200 hp this boat takes, and not made for it.'],
     ] as const) {
       expect(screen.getByText(because)).toBeInTheDocument()
       expect(
@@ -130,7 +149,7 @@ describe('one boat, at rest', () => {
       ).toBeInTheDocument()
     }
     /* the door to what decides it: the boat's own horsepower, and the list of what fits it */
-    const doors = screen.getAllByRole('link', { name: /Open the Highfield Sport 660’s horsepower/ })
+    const doors = screen.getAllByRole('link', { name: /Open the Highfield Sport 660’s line/ })
     expect(doors[0]!.getAttribute('href')).toBe('/data/boat_highfield?at=boat_highfield%3A513')
     expect(
       screen.getByRole('link', { name: /Open the list of what fits the Highfield Sport 660/ }),
@@ -263,7 +282,10 @@ describe('no boat chosen', () => {
 
   /* NOT ONE FIELD ON AN EMPTY PAGE (built-critique-m3.md): before a word is typed, every maker
      on the price list, counted, and a maker opens its models and a model its versions */
-  it('offers every maker before a word is typed, and walks maker, model, version to the boat', async () => {
+  /* REWRITTEN 2026-11-03 (the fitment judge, blocker 1 and major 12): two questions, not three —
+     the maker, then the model under its series with its own picture; a model opens on its first
+     version, and the plate offers the others */
+  it('offers every maker before a word is typed, and walks maker, then model under its series, to the boat', async () => {
     render(<Addressed />)
     /* one unit on one line (built-critique-m3.md, major 7): "289 models", never "289 boats"
        beside "67 models" */
@@ -284,9 +306,12 @@ describe('no boat chosen', () => {
       'aria-pressed',
       'true',
     )
-    await userEvent.click(screen.getByRole('button', { name: /^Classic 340\s*\d+ versions/ }))
-    expect(screen.getByRole('button', { name: /Every Highfield model/ })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('link', { name: /^PVC · White \/ White \/ Wood Dark/ }))
+    /* the models under the series the price list files them in */
+    expect(
+      screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent?.replace(/\d+$/, '')),
+    ).toEqual(['Roll-Up', 'Ultralite', 'Classic', 'Coaster', 'Patrol', 'Sport', 'Adventure'])
+    const classic = screen.getByRole('region', { name: 'Classic' })
+    await userEvent.click(within(classic).getByRole('link', { name: /^Classic 340\s*9 versions/ }))
     expect(boats).toHaveLength(1)
     const highfield = pack.byKey('boat_highfield')
     expect(
@@ -294,7 +319,7 @@ describe('no boat chosen', () => {
         highfield,
         pack.rowsByEntity[highfield.id]!.find((r) => r.id === boats[0])!,
       ),
-    ).toBe('Highfield - CL340 (PVC) W-W-WD')
+    ).toMatch(/^Highfield - CL340 /)
   })
 })
 

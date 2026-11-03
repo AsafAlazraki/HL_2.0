@@ -83,6 +83,33 @@
                                 (92 on a model of four), and the columns widen. The chapter bar
                                 runs the full width.
 
+   THE DATA ROUND'S REFLOW (2026-11-03, docs/directions/data-round/sheet/built.md), measured on
+   the built app at the same six sizes:
+
+     A LIST THAT IS NOT A BOAT LIST (Parts, Dealer Fit, Rigging Kits, the motors, the trailers,
+     Registration) has no spine column at a desk: each category is a band over its products —
+     the shut line's own columns, its name and count, its price range, what its lines share —
+     standing at the list's top while its products scroll, with air under its last product as
+     tall as the band so it is never pushed over one. The product's name takes the width the
+     spine took (up to four floors, then the rest of the row). In a hand it is the hand's head,
+     as a boat's model is. Boats and the pairing lists keep the spine beside their rows; a
+     pairing list's hulls are all one size.
+     The head grows rather than spills from the tablet down (the finder stood 9px over the
+     bar's sentence at 834), and its middle is hidden there even when it is empty, so the find
+     field keeps its column. "Show only" is its words beside the find field at 1440 and up and
+     from 640 to 1099; its glyph and count from 1100 to 1439 and in a hand.
+     A price head too long for its line takes two inside its own column, which is given half
+     its length, never more than half again its floor.
+     THE RECORD says its prices first. In a hand it is the screen, picture first; from 640 to
+     1099 the facts come first and the picture follows at most 160px tall; from 1100 the
+     picture stands at the right at 224px. Its name takes a second line rather than "…".
+     A SEARCH OR A QUESTION THAT FINDS NOTHING is a sentence where the list would be, the other
+     lists that carry the words as presses, and the way back, at most 600px wide; the bar says
+     "7 series, none with a match" once, not seven tabs counting 0.
+     THE QUESTIONS ASKED stand as chips in the notes row over the list, with how many lines
+     answer; the step line grows by its warning's lines and the list keeps that room at its
+     foot; the selection plate is 560px at most and 70 % of the list's height.
+
    A SHUT MODEL ("Only the models", or one model's ▾) IS ONE LINE OF A PRICE LIST at every desk
    width: the toggle, the name with its count, the figure per material, and what it shares — the
    name and figure columns as wide as the widest of them on the page, so the figures stand in
@@ -217,7 +244,9 @@
 .sh-mast {
   grid-row: 1;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(--spacing(56), --spacing(80));
+  /* the find field and its "Show only" share the last column: wide enough for the field to keep
+     its whole placeholder beside the act */
+  grid-template-columns: auto minmax(0, 1fr) minmax(--spacing(80), --spacing(110));
   align-items: center;
   column-gap: --spacing(8);
   block-size: --spacing(18);
@@ -569,7 +598,6 @@
 /* ---- the sentence a hand reads before its list ----------------------------------------- */
 
 .sh-hand {
-  grid-row: 3;
   margin: 0;
   padding-block: --spacing(2.5);
   font-size: var(--text-xs);
@@ -631,7 +659,7 @@
 }
 
 .sh-heads {
-  block-size: var(--head-h);
+  min-block-size: var(--head-h);
   border-block-end: 1px solid var(--color-neutral-300);
 }
 
@@ -656,6 +684,23 @@
 
 .sh-th[data-num] {
   justify-content: flex-end;
+}
+
+/* A PRICE HEAD TOO LONG FOR ITS LINE TAKES TWO, inside its own column (Sheet.tsx `priceWidth`):
+   "Sell inc Install (if appl.)" spilled left under the lit "Sell" beside it (the judge's G2) */
+.sh-th[data-job='price'] .sh-th__rung {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.sh-th[data-job='price'] .sh-th__name {
+  white-space: normal;
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+.sh-th[data-job='price'] .sh-th__rung {
+  border-radius: var(--radius-md);
 }
 
 .sh-th--spine {
@@ -999,19 +1044,38 @@
 }
 
 .sh-spine__name {
+  display: flex;
+  align-items: baseline;
+  min-inline-size: 0;
   font-size: var(--text-xl);
   line-height: --spacing(5.5);
   font-weight: 650;
   letter-spacing: var(--tracking-display);
   color: var(--ink);
   white-space: nowrap;
+}
+
+/* THE NAME GIVES WAY, NEVER ITS COUNT (the judge, Parts at 390: "PFD's … 30 pr…") */
+.sh-spine__called {
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.sh-spine[data-fit='name'] .sh-spine__name {
+.sh-spine__count {
+  flex: none;
+  white-space: pre;
+}
+
+.sh-spine[data-fit='name'] .sh-spine__name,
+.sh-spine[data-small] .sh-spine__name {
   font-size: var(--text-base);
   line-height: var(--row-h);
+}
+
+/* A PAIRING LIST'S HULLS ARE ALL ONE SIZE, one row or twelve under them (the judge's G7) */
+.sh-spine[data-small]:not([data-fit='name']) .sh-spine__name {
+  line-height: --spacing(5);
 }
 
 .sh-spine__count {
@@ -1200,12 +1264,12 @@
    per material, and what it shares — each in a column of its own, the same down every shut line
    (the template is written inline from `shutCols`), so "Only the models" reads as the maker's
    own list of boats and prices. The columns fall back to their content before they are measured. */
-.sh-spine[data-shut]:not([data-hand]) {
+.sh-spine:is([data-shut], [data-band]):not([data-hand]) {
   display: block;
   border-inline-end: 0;
 }
 
-.sh-spine[data-shut]:not([data-hand]) .sh-spine__in {
+.sh-spine:is([data-shut], [data-band]):not([data-hand]) .sh-spine__in {
   position: static;
   display: grid;
   grid-template-columns: var(--shut-toggle) auto auto minmax(0, 1fr);
@@ -1216,24 +1280,24 @@
   padding-block: 0;
 }
 
-.sh-spine[data-shut]:not([data-hand]) .sh-spine__words {
+.sh-spine:is([data-shut], [data-band]):not([data-hand]) .sh-spine__words {
   display: contents;
 }
 
-.sh-spine[data-shut]:not([data-hand]) .sh-spine__name {
+.sh-spine:is([data-shut], [data-band]):not([data-hand]) .sh-spine__name {
   grid-column: 2;
   font-size: var(--text-lg);
 }
 
-.sh-spine[data-shut]:not([data-hand]) .sh-spine__figures {
+.sh-spine:is([data-shut], [data-band]):not([data-hand]) .sh-spine__figures {
   grid-column: 3;
 }
 
-.sh-spine[data-shut]:not([data-hand]) .sh-spine__one {
+.sh-spine:is([data-shut], [data-band]):not([data-hand]) .sh-spine__one {
   grid-column: 4;
 }
 
-.sh-spine[data-shut]:not([data-hand]) .sh-spine__toggle {
+.sh-spine:is([data-shut], [data-band]):not([data-hand]) .sh-spine__toggle {
   position: static;
   grid-column: 1;
   align-self: center;
@@ -2607,9 +2671,15 @@
      and left the field 190px, which cut "Find a model, a code or a word" to "…or a"
      (built-critique-m2-close-2.md minor 15); the field has 256px at least now, and the
      count under the title takes a second line where it needs one */
+  /* THE HEAD GROWS RATHER THAN SPILLS: at 834 a count on two lines made the head taller than its
+     72px, the find field was centred past its foot, and on a list with no chapters it stood 9px
+     over the bar's own sentence (the judge's G2, Parts at 834) */
   .sh-mast {
-    grid-template-columns: minmax(0, 1fr) minmax(--spacing(64), --spacing(80));
+    grid-template-columns: minmax(0, 1fr) minmax(--spacing(88), --spacing(104));
     column-gap: --spacing(5);
+    block-size: auto;
+    min-block-size: --spacing(18);
+    padding-block: --spacing(2);
   }
 
   .sh-count {
@@ -2673,8 +2743,12 @@
 
 /* A SHORT WINDOW (844 × 390): the head gives its height back to the rows */
 @media (max-height: 520px) and (min-width: 640px) {
+  /* the head grows rather than spills here too: a touch screen's 44px field and its act stood
+     over the bar under a 52px head on Parts at 844 × 390 */
   .sh-mast {
-    block-size: --spacing(13);
+    block-size: auto;
+    min-block-size: --spacing(13);
+    padding-block: --spacing(1);
   }
 
   .sh-count {
@@ -2703,6 +2777,10 @@
 
   .sh-title {
     font-size: var(--text-2xl);
+    /* a list named after two makers ("Highfield × Yamaha — Motor Fitment") is said whole, on two
+       lines, never cut to "× Yamaha — …" (the judge, 390 × 844) */
+    white-space: normal;
+    text-wrap: balance;
   }
 
   .sh-count {
@@ -2807,7 +2885,29 @@
   }
 
   .sh-spine__press .sh-spine__name {
+    flex-wrap: wrap;
+    column-gap: --spacing(1);
     font-size: var(--text-lg);
+    white-space: normal;
+  }
+
+  /* in a hand a long name takes a second line rather than an ellipsis */
+  .sh-spine__press .sh-spine__called {
+    overflow: visible;
+  }
+
+  /* the find field keeps its placeholder whole: the act beside it is its glyph and its count */
+  .sh-ask__word {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sh-ask {
+    padding-inline: --spacing(3);
   }
 
   .sh-spine__press .sh-spine__picture img {
@@ -2941,4 +3041,638 @@
 .sh-record__own {
   min-inline-size: 0;
   max-inline-size: 28rem;
+}
+
+/* ============================================================
+   THE DATA ROUND'S DEEPENING (2026-11-03, docs/directions/data-round/sheet/judge.md). The
+   composition stays; what follows is what the judge found missing, each rule beside its job.
+   ============================================================ */
+
+/* ---- a list that is not a boat list: its spine is a band over its rows (G5) ------------ */
+
+/* ONE LINE OVER ITS ROWS, STANDING AT THE TOP WHILE THEY SCROLL: the category's name and count,
+   its price range, and what its lines share — the shut line's own columns (`shutCols`), so a
+   price range always sits in the same place down the list, open or shut. The names under it
+   take the width the spine column took. */
+.sh-spine[data-band] {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  border-block-end: 1px solid var(--rule);
+}
+
+.sh-spine[data-band] .sh-spine__in {
+  block-size: --spacing(9);
+}
+
+/* a band's press is always drawn: it is the one way to shut a category from its own line */
+.sh-spine[data-band] .sh-spine__toggle {
+  opacity: 1;
+}
+
+.sh-spine[data-band] .sh-spine__name {
+  font-size: var(--text-base);
+}
+
+/* the air under a band's last product is as tall as the band and its rule: 37px, which
+   `BAND_TAIL` in Grid.tsx repeats as the block's last track */
+
+/* ---- what Northside changed (G12) -------------------------------------------------------- */
+
+/* A CELL THIS COMPUTER CHANGED from the price file as it came: a small corner in the accent —
+   the mark a spreadsheet puts on a cell with a note — and the file's figure said in its name
+   and its title */
+.sh-cell[data-changed]::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 1;
+  border-block-start: --spacing(2) solid var(--color-accent);
+  border-inline-end: --spacing(2) solid transparent;
+  pointer-events: none;
+}
+
+.sh-fact__was {
+  display: block;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-blue-700);
+  white-space: normal;
+}
+
+.sh-fact[data-changed] .sh-fact__label::before {
+  content: '';
+  display: inline-block;
+  inline-size: --spacing(1.5);
+  block-size: --spacing(1.5);
+  margin-inline-end: --spacing(1.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  vertical-align: middle;
+}
+
+.sh-record__new {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-blue-700);
+}
+
+/* ---- the record: the facts first (G13) ---------------------------------------------------- */
+
+/* THE FACTS BEFORE THE PICTURE on a desk: the sections take the width and the picture stands
+   at the right at 224px, so at 1280 × 800 and 844 × 390 the first figures are in view when the
+   record opens (the picture came first at 446 × 335, and no fact was above the fold). In a hand
+   the record is the screen and keeps its one column, picture first. */
+/* A HAND'S RECORD IS THE SCREEN and keeps its one column, picture first. FROM A TURNED PHONE TO A
+   TABLET the facts come first and the picture follows them at most 160px tall; from the laptop up
+   the picture stands at the right at 224px beside them. The record's name takes a second line
+   rather than an ellipsis ("Roll Up 230 KAM · PVC …" at 844 × 390). */
+@media (min-width: 640px) {
+  .sh-record__body > .sh-record__sections {
+    order: -1;
+  }
+
+  .sh-record__picture {
+    max-block-size: --spacing(40);
+  }
+
+  .sh-record__name {
+    white-space: normal;
+    text-wrap: balance;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1099.98px) {
+  .sh-record > .sh-record__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sh-record__own {
+    max-inline-size: --spacing(72);
+  }
+}
+
+@media (min-width: 1100px) {
+  .sh-record > .sh-record__body:has(> :not(.sh-record__sections)) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, --spacing(56));
+  }
+
+  .sh-record__body > .sh-record__sections {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .sh-record__body > :not(.sh-record__sections) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+/* ---- the notes over the list: a hand's sentence, a list with no price, what is asked ------ */
+
+.sh-notes {
+  grid-row: 3;
+  display: grid;
+  gap: --spacing(1.5);
+  padding-block: --spacing(2);
+  min-inline-size: 0;
+}
+
+.sh-noprice {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
+}
+
+.sh-noprice__go {
+  font-weight: 600;
+  color: var(--color-blue-700);
+  text-decoration: underline;
+  text-underline-offset: --spacing(0.5);
+}
+
+/* THE QUESTIONS ASKED, each a chip that takes itself away, and how many lines answer (G9) */
+.sh-asked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+
+.sh-asked__lead {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--color-blue-700);
+}
+
+.sh-asked__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-block-size: --spacing(7);
+  padding-inline: --spacing(3) --spacing(2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-blue-700);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-asked__chip:hover {
+    background: var(--color-blue-800);
+  }
+}
+
+.sh-asked__chip:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.sh-asked__count {
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+}
+
+/* ---- show only the lines that… (G9) ------------------------------------------------------ */
+
+.sh-ask {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: --spacing(1.5);
+  block-size: --spacing(10);
+  margin-inline-start: --spacing(2);
+  padding-inline: --spacing(3);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-blue-800);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-ask:hover {
+    border-color: var(--color-blue-700);
+    background: var(--color-plate-tint);
+  }
+}
+
+.sh-ask:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.sh-ask__count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: --spacing(5);
+  block-size: --spacing(5);
+  padding-inline: --spacing(1);
+  border-radius: var(--radius-pill);
+  background: var(--color-blue-700);
+  font-size: var(--text-2xs);
+  color: var(--color-white);
+}
+
+/* the kit's popover is at most 360px (src/ui/popover.css), so the questions are laid into that */
+.sh-asks {
+  display: grid;
+  gap: --spacing(3);
+  min-inline-size: 0;
+}
+
+.sh-asks__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-asks__q {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: --spacing(3);
+  inline-size: 100%;
+  padding: --spacing(2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  text-align: start;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-asks__q:hover {
+    background: var(--color-plate-tint);
+  }
+}
+
+.sh-asks__q:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.sh-asks__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+}
+
+.sh-asks__rule {
+  grid-column: 1 / -1;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--ink-quiet);
+}
+
+.sh-compare {
+  display: grid;
+  gap: --spacing(2);
+  padding-block-start: --spacing(3);
+  border-block-start: 1px solid var(--rule);
+}
+
+.sh-compare__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--color-blue-700);
+}
+
+/* the column on its own line, then how, the figure and the act */
+.sh-compare__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) auto;
+  align-items: center;
+  gap: --spacing(2);
+}
+
+.sh-compare__row > :first-child {
+  grid-column: 1 / -1;
+}
+
+/* ---- nothing found (G8) ------------------------------------------------------------------ */
+
+/* A SENTENCE WHERE THE LIST WOULD BE, the other lists that do carry the words, and the way back */
+.sh-nothing {
+  align-self: start;
+  display: grid;
+  gap: --spacing(3);
+  max-inline-size: --spacing(150);
+  padding-block: --spacing(8);
+}
+
+.sh-nothing__say {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.sh-nothing__why {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.sh-nothing__lists {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block-start: 1px solid var(--rule);
+}
+
+.sh-nothing__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: --spacing(3);
+  min-block-size: --spacing(11);
+  padding-inline: --spacing(1);
+  border-block-end: 1px solid var(--rule);
+  font-size: var(--text-sm);
+  color: var(--color-blue-800);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-nothing__list:hover {
+    background: var(--color-plate-tint);
+  }
+}
+
+.sh-nothing__list:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.sh-nothing__name {
+  min-inline-size: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sh-nothing__count {
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+}
+
+.sh-nothing__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+
+/* ---- a warning beside its Undo (G11) ------------------------------------------------------ */
+
+.sh-foot:has(.sh-warn) {
+  flex-direction: column;
+  align-items: stretch;
+  gap: --spacing(2);
+  padding-block: --spacing(2);
+}
+
+.sh-warn {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: --spacing(2.5);
+  padding-block-start: --spacing(2);
+  border-block-start: 1px solid var(--rule);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink);
+}
+
+.sh-warn__glyph {
+  display: inline-flex;
+  color: var(--color-act-ink);
+}
+
+.sh-warn__words {
+  display: grid;
+  gap: --spacing(1);
+}
+
+/* ---- a move on many figures (G10), and the plate kept off the rows (G16) ------------------ */
+
+.sh-selection {
+  inline-size: min(--spacing(140), calc(100% - --spacing(8)));
+  max-block-size: 70%;
+}
+
+.sh-move {
+  display: grid;
+  gap: --spacing(2);
+  padding-block-start: --spacing(3);
+  border-block-start: 1px solid var(--rule);
+}
+
+.sh-move__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--color-blue-700);
+}
+
+.sh-move__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+}
+
+.sh-move__row > :nth-child(2) {
+  flex: 1 1 --spacing(28);
+  min-inline-size: 0;
+}
+
+.sh-move__kinds {
+  display: inline-flex;
+  min-inline-size: 0;
+  margin: 0;
+  border: 0;
+  padding: --spacing(0.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-100);
+}
+
+.sh-move__kind {
+  block-size: --spacing(7);
+  padding-inline: --spacing(2.5);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.sh-move__kind[aria-pressed='true'] {
+  background: var(--color-white);
+  color: var(--color-blue-800);
+  box-shadow: var(--shadow-ink);
+}
+
+.sh-move__kind:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.sh-move__plan {
+  display: grid;
+  gap: --spacing(1);
+}
+
+.sh-move__lines {
+  display: grid;
+  gap: --spacing(0.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-move__line {
+  display: flex;
+  gap: --spacing(2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+.sh-move__after {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sh-move__more {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+}
+
+.sh-move__warn {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink);
+}
+
+.sh-move__warn > :first-child {
+  flex: none;
+  color: var(--color-act-ink);
+}
+
+/* ---- a colourway as paint, not as a control (G15) ---------------------------------------- */
+
+/* ONE UPRIGHT STRIPE PER PART of the colourway, side by side, each its own token: a narrow
+   paint sample beside the dealer's own code. A part named as two colours is split top and
+   bottom. A hairline in the swatch edge keeps a white stripe on white paper. */
+.sh-cell__paint {
+  display: inline-flex;
+  flex: none;
+  gap: --spacing(0.25);
+  min-inline-size: --spacing(3.5);
+  block-size: --spacing(4);
+}
+
+.sh-cell__stripe {
+  display: inline-flex;
+  flex-direction: column;
+  inline-size: --spacing(1);
+  block-size: 100%;
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  outline: 1px solid var(--swatch-edge);
+  outline-offset: -1px;
+}
+
+.sh-cell__stripe > * {
+  flex: 1 1 0;
+}
+
+.sh-cell__stripe > [data-swatch='white'] {
+  background: var(--swatch-white);
+}
+.sh-cell__stripe > [data-swatch='black'] {
+  background: var(--swatch-black);
+}
+.sh-cell__stripe > [data-swatch='grey'] {
+  background: var(--swatch-grey);
+}
+.sh-cell__stripe > [data-swatch='dark-grey'] {
+  background: var(--swatch-dark-grey);
+}
+.sh-cell__stripe > [data-swatch='light-grey'] {
+  background: var(--swatch-light-grey);
+}
+.sh-cell__stripe > [data-swatch='blue'] {
+  background: var(--swatch-blue);
+}
+.sh-cell__stripe > [data-swatch='light-blue'] {
+  background: var(--swatch-light-blue);
+}
+.sh-cell__stripe > [data-swatch='dark-blue'] {
+  background: var(--swatch-dark-blue);
+}
+.sh-cell__stripe > [data-swatch='wood'] {
+  background: var(--swatch-wood);
+}
+.sh-cell__stripe > [data-swatch='wood-dark'] {
+  background: var(--swatch-wood-dark);
+}
+.sh-cell__stripe > [data-swatch='military-black'] {
+  background: var(--swatch-military-black);
+}
+.sh-cell__stripe > [data-swatch='carbon'] {
+  background: var(--swatch-carbon);
+}
+
+/* ---- the head between the laptop and the desk ---------------------------------------------- */
+
+/* FROM 1100 TO 1439 the head's middle says what the table says once, and the find field keeps its
+   whole placeholder: "Show only" is its glyph and its count here, its words its name to a reader
+   (at 1280 the words took the room the said-once figures needed, and "$0" went missing) */
+@media (min-width: 1100px) and (max-width: 1439.98px) {
+  .sh-mast {
+    grid-template-columns: auto minmax(0, 1fr) minmax(--spacing(72), --spacing(84));
+  }
+
+  .sh-ask__word {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }

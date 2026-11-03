@@ -24,7 +24,14 @@
    sections say the same word the column heads say.
    ============================================================ */
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { ArrowLeftIcon, ArrowRightIcon, PlusIcon, TrashIcon, XIcon } from '@phosphor-icons/react'
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CopyIcon,
+  PlusIcon,
+  TrashIcon,
+  XIcon,
+} from '@phosphor-icons/react'
 import { Button, Input, Kbd, Refusal } from '@/ui'
 import { isImageValue, primaryImage, type EntityDef, type FieldDef } from '@/domain/model'
 import type { ViewRow } from '@/domain/catalogue/table/core'
@@ -62,6 +69,17 @@ export interface RecordProps {
   /** a new row filed under this row's model — "Add a variant to Roll Up 230 KAM" —
    *  where every level of its path has a value; undefined where one does not */
   onAdd?: { label: string; press: () => void }
+  /** this line copied as a new one, its prices and shared facts with it (the judge's G14) */
+  onCopy?: { label: string; press: () => void }
+  /** the heading where the line has no name of its own yet: "A new variant of Roll Up 230 KAM" */
+  unnamed?: string
+  /** what the price file held in a field this computer changed, and who and when where the
+   *  session kept it — or undefined (the judge's G12) */
+  wasOf?: (fieldId: string) => string | undefined
+  /** the line is not in the price file: it was added here */
+  added?: boolean
+  /** the section the line's price is filed in, said first: the prices before the specification */
+  leadSectionId?: string
   /** A BOAT'S WAY TO WHAT GOES ON IT: "What goes on this boat", opening Fitment already on this
    *  line (exposure.md: the details showed Min HP and Max HP and led nowhere). Boats only. */
   fits?: { href: string; go: () => void }
@@ -91,6 +109,11 @@ export function Record({
   data,
   onDelete,
   onAdd,
+  onCopy,
+  unnamed = '(no name)',
+  wasOf,
+  added = false,
+  leadSectionId,
   fits,
   option,
   onClose,
@@ -106,7 +129,15 @@ export function Record({
   const drawers = pathSaid(table.id, path).filter((d) => d !== '' && !name.startsWith(d))
   const image = table.fields.find((f) => f.type === 'image')
   const held = image ? heldOf(row, image, heldCopy) : null
-  const sections = table.sections ?? []
+  /* THE PRICES FIRST (the judge's G13): the section the line's price is filed in leads, then the
+     rest in the file's own order — a record is opened to change a figure */
+  const filed = table.sections ?? []
+  const sections = leadSectionId
+    ? [
+        ...filed.filter((x) => x.id === leadSectionId),
+        ...filed.filter((x) => x.id !== leadSectionId),
+      ]
+    : filed
   const unbanded = table.fields.filter(
     (f) => listed(f) && (f.sectionId === undefined || !sections.some((s) => s.id === f.sectionId)),
   )
@@ -119,7 +150,7 @@ export function Record({
       data-testid="sheet-record"
       data-ground="plate"
       data-hand={hand ? '' : undefined}
-      aria-label={`Details: ${name || 'this variant'}`}
+      aria-label={`Details: ${name || unnamed}`}
     >
       <div className="sh-record__top">
         {hand ? (
@@ -134,7 +165,9 @@ export function Record({
           </Button>
         ) : null}
         <p className="sh-record__path">{drawers.length > 0 ? drawers.join(' ▸ ') : table.name}</p>
-        <h2 className="sh-record__name">{name || '(no name)'}</h2>
+        <h2 className="sh-record__name" title={name || unnamed}>
+          {name || unnamed}
+        </h2>
         {hand ? null : (
           <Button
             intent="quiet"
@@ -147,6 +180,12 @@ export function Record({
           </Button>
         )}
       </div>
+
+      {added ? (
+        <p className="sh-record__new">
+          This line is not in the Master Price File: it was added on this computer.
+        </p>
+      ) : null}
 
       <div className="sh-record__body">
         {option ? (
@@ -203,6 +242,7 @@ export function Record({
                         field={f}
                         heldCopy={heldCopy}
                         commit={commit}
+                        was={wasOf?.(f.id)}
                       />
                     ))}
                   </dl>
@@ -223,6 +263,7 @@ export function Record({
                     field={f}
                     heldCopy={heldCopy}
                     commit={commit}
+                    was={wasOf?.(f.id)}
                   />
                 ))}
               </dl>
@@ -278,6 +319,11 @@ export function Record({
               {/* ADDING A ROW IS THE RECORD'S ACT (2026-09-25): on the spine it was
                   painted over the model's facts on a tablet and out of the
                   keyboard's reach (built-critique-m2-close-2.md major 8) */}
+              {onCopy ? (
+                <Button intent="quiet" size="sm" icon={CopyIcon} onClick={onCopy.press}>
+                  {onCopy.label}
+                </Button>
+              ) : null}
               {onAdd ? (
                 <Button intent="quiet" size="sm" icon={PlusIcon} onClick={onAdd.press}>
                   {onAdd.label}
@@ -328,12 +374,15 @@ function Fact({
   field,
   heldCopy,
   commit,
+  was,
 }: {
   table: EntityDef
   row: ViewRow
   field: FieldDef
   heldCopy: (address: string | undefined, rowId?: string) => Held | null
   commit: (rowId: string, fieldId: string, text: string) => Written
+  /** "The price file had $2,770 · Asaf, 3 Nov" where this computer changed it */
+  was?: string
 }) {
   const [draft, setDraft] = useState<string | null>(null)
   const [pill, setPill] = useState<string | null>(null)
@@ -392,7 +441,11 @@ function Fact({
     field.type === 'image' ? pictureWords(row, field, heldCopy) : paintOf(table, field, row)
   const num = field.type === 'number'
   return (
-    <div className="sh-fact" data-cost={isCost(table, field) ? '' : undefined}>
+    <div
+      className="sh-fact"
+      data-cost={isCost(table, field) ? '' : undefined}
+      data-changed={was !== undefined ? '' : undefined}
+    >
       <dt className="sh-fact__label">
         {field.name}
         {isCost(table, field) ? <span className="sh-fact__cost"> {COST_WORD}</span> : null}
@@ -419,10 +472,12 @@ function Fact({
             data-num={num ? '' : undefined}
             onClick={open}
             aria-label={`${field.name}: ${value === '' ? 'empty' : value}. Press to change it.`}
+            title={was}
           >
             {value === '' ? <span className="sh-fact__empty">—</span> : value}
           </button>
         )}
+        {was !== undefined ? <span className="sh-fact__was">{was}</span> : null}
         {pill ? (
           <span className="sh-pill sh-pill--fact" role="alert">
             <Refusal>{pill}</Refusal>

@@ -1,15 +1,18 @@
 import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { ArrowLeftIcon, BoatIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
-import { Button, Input, Popover, Row, Tile } from '@/ui'
+import { Button, Input, KindMark, Picture, Popover, Row, Tile } from '@/ui'
 import {
   boatMakers,
   boatsOnTheList,
-  findBoats,
+  imageAddressOf,
   type BoatFound,
   type BoatMaker,
   type BoatModel,
 } from '@/domain/fitment/boat'
+import { bySeries, findModels } from '@/domain/fitment/versions'
+import { seriesSaid } from '@/domain/fitment/say'
 import type { EntityDef, RowData } from '@/domain/model'
+import { itemOf, pictureOf, srcSetOf } from '@/data/pictures'
 import { markFor } from '@/screens/home/ledgers'
 
 /* ============================================================
@@ -19,42 +22,40 @@ import { markFor } from '@/screens/home/ledgers'
 
    Two shapes, one finder (`useFinder`): on a screen with no boat chosen
    the question stands ON THE PLATE (`ChooseABoat`), and on a boat it
-   stands behind "Another boat" in the head, in the kit's popover. Every
-   boat still sold is reachable; the list draws the first twelve a few
-   words find and says how many more they found (`findBoats`), so nothing
-   is hidden without a count.
+   stands behind "Another boat" in the head, in the kit's popover.
 
-   THE COLD PAGE KEEPS THE SCREEN'S IDEA (built-critique-m3.md, major 7).
-   It was one field and seven makers with one generic glyph each, and a
-   stakeholder pressing Fitment saw nothing of the plate. Now the plate
-   itself stands with "Which boat?" where a boat's name goes: the field on
-   it, every maker as its OWN MARK on the kit's card (the ledger's mark,
-   through Home's and Data's reader, `markFor`), and the three lines a
-   chosen boat answers, said in words
-   and counting nothing, because nothing is counted until there is a boat.
-   A maker opens its models under the plate; a model with one version is
-   that boat, and one with several opens its versions — three presses at
-   most, each step said, and one way back. The makers are the file's
-   makers, A to Z, every one counted.
+   A MODEL IS THE ANSWER, NEVER A COLOURWAY (the fitment judge,
+   2026-11-03, blocker 1 and major 12). What goes on a boat is the same
+   on every version of 66 of Highfield's 67 models, so the chooser asks
+   two questions, not three: the maker, then the model, under the series
+   the price list files it in, each with its own picture where the image
+   ledger holds one — never a stand-in. A model opens on its first
+   version, and the plate offers the others. A search answers in models
+   too, every one drawn, each with how many of its versions carry the
+   words ("660" was 36 colourways, the first 12 drawn).
 
-   ONE PRICE LIST, ONE SIZE (built-critique-m3-2.md, major 4, and
-   built-critique-m3.md, major 7). A maker counts its MODELS as Home's
-   door, Data and the picker count them — Highfield 67, every maker 289 —
-   and the total says the same unit: "289 models", never "289 boats"
-   beside "67 models".
+   THE COLD PAGE KEEPS THE SCREEN'S IDEA. The plate itself stands with
+   "Which boat?" where a boat's name goes: the field on it and every
+   maker as its own mark. What a boat's lines answer is said in words
+   until a maker is pressed; then the plate steps aside for its models.
+
+   ONE PRICE LIST, ONE SIZE. A maker counts its MODELS as Home's door,
+   Data and the picker count them — Highfield 67, every maker 289.
    ============================================================ */
 
 const AU = new Intl.NumberFormat('en-AU')
 const plural = (n: number, one: string, many: string): string =>
   `${AU.format(n)} ${n === 1 ? one : many}`
 
+type World = { entities: Record<string, EntityDef>; rowsByEntity: Record<string, RowData[]> }
+
 export interface ChooserProps {
-  world: { entities: Record<string, EntityDef>; rowsByEntity: Record<string, RowData[]> }
+  world: World
   onChoose: (rowId: string) => void
   /** boats already on quotes here, most recent first — offered before anything is typed */
   recent: BoatFound[]
-  /** THE MAKER AND MODEL OPEN, as the address holds them (`?maker=&model=`), so a Back or a
-   *  reload keeps the place (walk.md, major). Absent: the finder keeps its own, for a popover. */
+  /** THE MAKER OPEN, as the address holds it (`?maker=`), so a Back or a reload keeps the place.
+   *  Absent: the finder keeps its own, for a popover. */
   at?: ChooserAt
   onAt?: (next: ChooserAt) => void
 }
@@ -71,15 +72,75 @@ const noteOf = (b: BoatFound): string =>
 /** A model as its line says it: the name, and what a one-line model adds ("GRT 455 · Side Console"). */
 const modelSaid = (m: BoatModel): string => (m.trim === '' ? m.name : `${m.name} · ${m.trim}`)
 
-/** One version under its model, said by what the model's name does not already say — "540 ST ·
- *  Hypalon" under Highfield Coaster, "Hypalon · Black / Grey" under Highfield Classic 340. */
-function versionSaid(model: BoatModel, b: BoatFound): string {
-  const extra = b.name.toLowerCase().startsWith(`${model.name.toLowerCase()} `)
-    ? b.name.slice(model.name.length + 1)
-    : b.name === model.name
-      ? ''
-      : b.name
-  return [extra, b.detail].filter((said) => said !== '').join(' · ') || b.name
+/** The maker said once, above its models, not again on each of them. */
+const bare = (maker: string, name: string): string =>
+  name.toLowerCase().startsWith(`${maker.toLowerCase()} `) ? name.slice(maker.length + 1) : name
+
+/** A model's own picture: the first of its versions the image ledger holds one for. Never a
+ *  stand-in: a model with none is drawn with the kit's boat mark. */
+function modelPicture(world: World, model: BoatModel) {
+  for (const v of model.versions) {
+    const entity = world.entities[v.place.tableId]
+    const row = (world.rowsByEntity[v.place.tableId] ?? []).find((r) => r.id === v.place.rowId)
+    if (!entity || !row) continue
+    const held = pictureOf(itemOf(entity.id, row.id, imageAddressOf(entity, row)))
+    if (held) return held
+  }
+  return null
+}
+
+/** ONE MODEL, AS A CARD WITH ITS OWN PICTURE: pressed, it opens on its first version. */
+function ModelCard({
+  world,
+  model,
+  maker,
+  note,
+  onChoose,
+}: {
+  world: World
+  model: BoatModel
+  maker: string
+  note: string
+  onChoose: (rowId: string) => void
+}) {
+  const first = model.versions[0]
+  const held = useMemo(() => modelPicture(world, model), [world, model])
+  if (!first) return null
+  const name = bare(maker, modelSaid(model))
+  return (
+    <li className="ft-md">
+      <a
+        className="ft-md__card"
+        href={hrefOf(first)}
+        onClick={(event) => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
+          event.preventDefault()
+          onChoose(first.place.rowId)
+        }}
+      >
+        <span className="ft-md__pic" data-held={held ? '' : undefined}>
+          {held ? (
+            <Picture
+              src={held.src}
+              srcSet={srcSetOf(held)}
+              sizes="7rem"
+              alt=""
+              width={held.width}
+              height={held.height}
+              fit="contain"
+              lazy
+            />
+          ) : (
+            <KindMark kind="boat" size="sm" />
+          )}
+        </span>
+        <span className="ft-md__say">
+          <span className="ft-md__name">{name}</span>
+          <span className="ft-md__note">{note}</span>
+        </span>
+      </a>
+    </li>
+  )
 }
 
 /* ---------------------------------------------------------- */
@@ -88,11 +149,12 @@ function versionSaid(model: BoatModel, b: BoatFound): string {
 
 interface Finder {
   field: ReactNode
-  /** what stands under the field: the boats found, or the boats on quotes and a maker's models;
+  /** what stands under the field: the models found, or the boats on quotes and a maker's models;
    *  on the cold page the makers themselves are the plate's marks, so they are not here again */
   below: ReactNode
   makers: BoatMaker[]
   maker: BoatMaker | null
+  typed: boolean
   /** a maker pressed, or pressed again to close it */
   pick: (maker: string) => void
 }
@@ -103,72 +165,30 @@ function useFinder(
 ): Finder {
   const [words, setWords] = useState('')
   const [ownMaker, setOwnMaker] = useState('')
-  const [ownModel, setOwnModel] = useState('')
   const makerName = at && onAt ? at.maker : ownMaker
-  const modelKey = at && onAt ? at.model : ownModel
-  const setMaker = (next: string | ((was: string) => string)): void => {
-    const value = typeof next === 'function' ? next(makerName) : next
+  const setMaker = (value: string): void => {
     if (at && onAt) onAt({ maker: value, model: '' })
     else setOwnMaker(value)
   }
-  const setModel = (value: string): void => {
-    if (at && onAt) onAt({ maker: makerName, model: value })
-    else setOwnModel(value)
-  }
-  const answer = useMemo(() => findBoats(world, words), [world, words])
   const makers = useMemo(() => boatMakers(world), [world])
+  const answer = useMemo(() => findModels(world, makers, words), [world, makers, words])
   const typed = words.trim() !== ''
   const maker: BoatMaker | null = makers.find((m) => m.maker === makerName) ?? null
-  const model = maker?.models.find((m) => m.key === modelKey) ?? null
+  const series = useMemo(() => (maker ? bySeries(world, maker) : []), [world, maker])
 
-  const shown = typed ? answer.found : recent
   const onKey = (event: KeyboardEvent<HTMLElement>): void => {
-    if (event.key === 'Enter' && typed && shown[0]) {
+    const first = typed ? answer.models[0]?.found[0] : undefined
+    if (event.key === 'Enter' && first) {
       event.preventDefault()
-      onChoose(shown[0].place.rowId)
+      onChoose(first.place.rowId)
     }
   }
   const list = big ? 'plate' : undefined
-  const pick = (name: string): void => {
-    if (!(at && onAt)) setOwnModel('')
-    setMaker((was) => (was === name ? '' : name))
-  }
+  const pick = (name: string): void => setMaker(makerName === name ? '' : name)
 
-  /* WHAT STANDS UNDER THE FIELD, untyped: a model's versions, a maker's models, or the makers */
+  /* WHAT STANDS UNDER THE FIELD, untyped: a maker's models under their series, or the makers */
   const browse = (() => {
-    if (maker && model) {
-      return (
-        <>
-          <div className="ft-choose__step">
-            <p className="ft-choose__found">
-              {modelSaid(model)} · {plural(model.versions.length, 'version', 'versions')}
-            </p>
-            <Button intent="quiet" size="sm" icon={ArrowLeftIcon} onClick={() => setModel('')}>
-              {`Every ${maker.maker} model`}
-            </Button>
-          </div>
-          <ul className="ft-choose__list" data-ground={list} data-many="">
-            {model.versions.map((b) => (
-              <li key={b.place.rowId}>
-                <Row
-                  kind="boat"
-                  title={versionSaid(model, b)}
-                  note={b.code}
-                  href={hrefOf(b)}
-                  onPress={() => onChoose(b.place.rowId)}
-                />
-              </li>
-            ))}
-          </ul>
-        </>
-      )
-    }
     if (maker) {
-      /* the maker is said once, above its models, not again on each of them */
-      const bare = (name: string): string =>
-        name.toLowerCase().startsWith(`${maker.maker.toLowerCase()} `)
-          ? name.slice(maker.maker.length + 1)
-          : name
       return (
         <>
           <div className="ft-choose__step">
@@ -182,31 +202,38 @@ function useFinder(
               </Button>
             )}
           </div>
-          <ul className="ft-choose__list" data-ground={list} data-many="">
-            {maker.models.map((m) => {
-              const only = m.versions.length === 1 ? m.versions[0]! : null
-              return (
-                <li key={m.key}>
-                  {only ? (
-                    <Row
-                      kind="boat"
-                      title={bare(modelSaid(m))}
-                      note={m.trim === '' ? noteOf(only) : only.code}
-                      href={hrefOf(only)}
-                      onPress={() => onChoose(only.place.rowId)}
-                    />
-                  ) : (
-                    <Row
-                      kind="boat"
-                      title={bare(modelSaid(m))}
-                      note={plural(m.versions.length, 'version', 'versions')}
-                      onPress={() => setModel(m.key)}
-                    />
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+          {series.map((s) => (
+            <section
+              key={s.series || 'all'}
+              className="ft-series"
+              aria-label={s.series === '' ? `${maker.maker} models` : seriesSaid(s.series)}
+            >
+              {s.series === '' || series.length === 1 ? null : (
+                <h3 className="ft-series__head">
+                  {seriesSaid(s.series)}
+                  <span className="ft-series__n">{AU.format(s.models.length)}</span>
+                </h3>
+              )}
+              <ul className="ft-choose__list ft-models" data-ground={list} data-many="">
+                {s.models.map((m) => (
+                  <ModelCard
+                    key={m.key}
+                    world={world}
+                    model={m}
+                    maker={maker.maker}
+                    note={
+                      m.versions.length === 1
+                        ? m.trim === ''
+                          ? noteOf(m.versions[0]!)
+                          : m.versions[0]!.code
+                        : plural(m.versions.length, 'version', 'versions')
+                    }
+                    onChoose={onChoose}
+                  />
+                ))}
+              </ul>
+            </section>
+          ))}
         </>
       )
     }
@@ -216,7 +243,7 @@ function useFinder(
         <p className="ft-choose__found">
           {`Every boat on the price list, by maker · ${plural(boatsOnTheList(makers), 'model', 'models')}`}
         </p>
-        <ul className="ft-choose__list" data-ground={list} data-many="">
+        <ul className="ft-choose__list" data-ground={list}>
           {makers.map((m) => (
             <li key={m.maker}>
               <Row
@@ -249,28 +276,36 @@ function useFinder(
     </div>
   )
 
+  const found = answer.models
   const below = typed ? (
     <>
       <output className="ft-choose__found">
-        {answer.matched === 0
+        {found.length === 0
           ? 'No boat on the price list is called that.'
-          : answer.matched > answer.found.length
-            ? `${AU.format(answer.matched)} boats carry those words; the first ${AU.format(answer.found.length)} are here.`
-            : `${AU.format(answer.matched)} ${answer.matched === 1 ? 'boat carries' : 'boats carry'} those words.`}
+          : `${plural(found.length, 'model carries', 'models carry')} those words, in ${plural(answer.versions, 'version', 'versions')}.`}
       </output>
-      {shown.length > 0 ? (
+      {found.length > 0 ? (
         <ul className="ft-choose__list" data-ground={list}>
-          {shown.map((b) => (
-            <li key={b.place.rowId}>
-              <Row
-                kind="boat"
-                title={b.name}
-                note={noteOf(b)}
-                href={hrefOf(b)}
-                onPress={() => onChoose(b.place.rowId)}
-              />
-            </li>
-          ))}
+          {found.map((f) => {
+            const first = f.found[0]!
+            const note =
+              f.model.versions.length === 1
+                ? first.code
+                : f.found.length === f.model.versions.length
+                  ? plural(f.model.versions.length, 'version', 'versions')
+                  : `${AU.format(f.found.length)} of its ${plural(f.model.versions.length, 'version', 'versions')}`
+            return (
+              <li key={f.model.key}>
+                <Row
+                  kind="boat"
+                  title={modelSaid(f.model)}
+                  note={note}
+                  href={hrefOf(first)}
+                  onPress={() => onChoose(first.place.rowId)}
+                />
+              </li>
+            )
+          })}
         </ul>
       ) : null}
     </>
@@ -298,7 +333,7 @@ function useFinder(
     </>
   )
 
-  return { field, below, makers, maker, pick }
+  return { field, below, makers, maker, typed, pick }
 }
 
 /* ---------------------------------------------------------- */
@@ -307,7 +342,10 @@ function useFinder(
 
 /** What each of the plate's lines answers once a boat is chosen — said, never counted. */
 const LINES: ReadonlyArray<{ word: string; says: string }> = [
-  { word: 'Motor', says: 'The horsepower it takes, and every motor made for it pinned on it.' },
+  {
+    word: 'Motor',
+    says: 'The horsepower it takes, and every motor made for it, rigged and priced.',
+  },
   { word: 'Trailer', says: 'The trailers built for it, each weighed against the boat.' },
   { word: 'Also made for it', says: 'The packages and parts made for it.' },
 ]
@@ -322,7 +360,7 @@ function MakerMark({ maker, on, onPress }: { maker: BoatMaker; on: boolean; onPr
     <li className="ft-mk">
       <Tile
         shape="card"
-        tick="foot"
+        tick="none"
         selected={on}
         onSelect={onPress}
         label={`${maker.maker} ${models}`}
@@ -352,9 +390,17 @@ function MakerMark({ maker, on, onPress }: { maker: BoatMaker; on: boolean; onPr
 /** The question on the plate, for a visit with no boat chosen yet. */
 export function ChooseABoat({ missing, ...props }: ChooserProps & { missing: boolean }) {
   const finder = useFinder(props, { big: true, marks: true })
+  /* once a maker is pressed or a word typed, the plate's explainer steps aside for the answer */
+  const asking = !finder.maker && !finder.typed
   return (
     <>
-      <section className="ft-plate" data-ground="night" data-cold="" aria-labelledby="ft-which">
+      <section
+        className="ft-plate"
+        data-ground="night"
+        data-cold=""
+        data-asking={asking ? '' : undefined}
+        aria-labelledby="ft-which"
+      >
         <span className="ft-rivet" data-at="ts" aria-hidden="true" />
         <span className="ft-rivet" data-at="te" aria-hidden="true" />
         <span className="ft-rivet" data-at="bs" aria-hidden="true" />
@@ -385,18 +431,22 @@ export function ChooseABoat({ missing, ...props }: ChooserProps & { missing: boo
             ))}
           </ul>
         </div>
-        <dl className="ft-cold__lines" aria-label="What a boat’s plate answers">
-          {LINES.map((l) => (
-            <div key={l.word} className="ft-cold__line">
-              <dt className="ft-cold__word">{l.word}</dt>
-              <dd className="ft-cold__says">{l.says}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="ft-cold__foot">
-          Choose a boat, and each line counts what is offered on it and says why every other one is
-          not.
-        </p>
+        {asking ? (
+          <>
+            <dl className="ft-cold__lines" aria-label="What a boat’s plate answers">
+              {LINES.map((l) => (
+                <div key={l.word} className="ft-cold__line">
+                  <dt className="ft-cold__word">{l.word}</dt>
+                  <dd className="ft-cold__says">{l.says}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="ft-cold__foot">
+              Choose a boat, and each line counts what is offered on it and says why every other one
+              is not.
+            </p>
+          </>
+        ) : null}
       </section>
       <div className="ft-choose ft-under" data-big="">
         {finder.below}

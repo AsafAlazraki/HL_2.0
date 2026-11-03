@@ -17,6 +17,7 @@ import {
   floorSaid,
   rigSaid,
   sayVerdict,
+  seriesSaid,
 } from './say'
 
 const EVERY: Verdict[] = [
@@ -90,5 +91,16 @@ describe('the ATM floor, as one line', () => {
   it('says a rig as the trade does', () => {
     expect(rigSaid({ count: 1, each: 2.5 })).toBe('2.5 hp')
     expect(rigSaid({ count: 2, each: 225 })).toBe('2 × 225 hp')
+  })
+})
+
+describe('a series banner as a person says it', () => {
+  it('calms the price list’s shouting and keeps a maker’s own capitals', () => {
+    expect(seriesSaid('ALLOY CENTRE-LINE SERIES')).toBe('Alloy Centre-Line Series')
+    expect(seriesSaid('DUNBIER / HAINES BMT - Bow Rider Series')).toBe(
+      'Dunbier / Haines BMT - Bow Rider Series',
+    )
+    expect(seriesSaid('REDCO - Highfield')).toBe('REDCO - Highfield')
+    expect(seriesSaid('GFAB - Highfield Series')).toBe('GFAB - Highfield Series')
   })
 })

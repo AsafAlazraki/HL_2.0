@@ -98,14 +98,20 @@ describe('the motors made for it, on the boat’s range', () => {
 })
 
 describe('what is held back, by why', () => {
-  it('groups the other 202 motors by four reasons that add up to every one on sale', () => {
+  /* REWRITTEN 2026-11-03 (the fitment judge, major 6): ten of the thirty inside the range are a
+     20″ leg against the SP660's 25″ transom, and are said as that */
+  it('groups the other 202 motors by five reasons that add up to every one on sale', () => {
     const held = motorHeld(ctx, fit)
     expect(held.map((h) => [h.id, h.count])).toEqual([
       ['under', 74],
       ['over', 51],
-      ['inside', 30],
+      ['shaft', 10],
+      ['inside', 20],
       ['rigs', 47],
     ])
+    expect(held.find((h) => h.id === 'shaft')!.because).toBe(
+      'Inside the 150–200 hp this boat takes, but its shaft is not the extra-long (25″) this boat’s transom takes.',
+    )
     expect(fit.motor!.counts.made + held.reduce((n, h) => n + h.count, 0)).toBe(209)
   })
 
