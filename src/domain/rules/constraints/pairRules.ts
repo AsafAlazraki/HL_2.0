@@ -77,6 +77,7 @@ import type {
 import { newId } from '@/domain/id'
 import { lineSaid, spokenBoat } from '@/domain/quote/spoken'
 import { modelKeyOf } from '@/domain/quote/boats'
+import { makerOfTable } from '@/domain/catalogue/makers'
 import { rowLabel } from '@/domain/model'
 import {
   PAIR_SPECS,
@@ -192,6 +193,8 @@ export interface PairValue {
   /** what carries it on sale: boats counted as models (`modelKeyOf`), motors and trailers
    *  as lines */
   count: number
+  /** a model's maker, so a long list of models is read maker by maker: "Highfield" */
+  group?: string
 }
 
 /** One spec as this sheet carries it — "steering", on every boat list that writes one. */
@@ -258,11 +261,16 @@ export function pairColumns(world: PairWorld, kind: 'boat' | PartnerKind): PairC
       out.push({ ...columnOf(spec), values: [], spread: { lo, hi, count: carried.size } })
       continue
     }
-    const values = [...counts.entries()].map(([value, holders]) => ({
-      value,
-      said: valueSaid(spec, value),
-      count: holders.size,
-    }))
+    const named = spec.id === 'model' ? modelsNamed(world, kind) : null
+    const values = [...counts.entries()].map(([value, holders]) => {
+      const model = named?.get(value)
+      return {
+        value,
+        said: model?.said ?? valueSaid(spec, value),
+        count: holders.size,
+        ...(model ? { group: model.maker } : {}),
+      }
+    })
     values.sort((a, b) =>
       values.length > LONG_LIST || spec.id === 'shaft'
         ? a.value.localeCompare(b.value, 'en-AU', { numeric: true })
@@ -319,9 +327,24 @@ export function typedFigure(value: string): number | null {
 /** A rule in the one shape this file reads. */
 export interface PairShape {
   boat: PairSide
+  /**
+   * MORE OF THE BOAT, every one of which must hold too (judge.md, data round, missing item 5:
+   * "a Stacer over 6 m", "except the Classic 340"). "and its length is over 6 m" is one; an
+   * exception is the boat's model and `is not`, said "except the Classic 340". At most two, so
+   * it stays a sentence and never becomes LATER's canvas. Absent on every rule filed before.
+   */
+  also?: PairSide[]
   partnerKind: PartnerKind
   partner: PairSide
 }
+
+/** At most this many more conditions on the boat: a sentence, not a canvas. */
+export const MAX_ALSO = 2
+
+/** An exception: the boat's model, and `is not` — said "except the Classic 340". */
+export const isExcept = (side: PairSide): boolean => side.key === 'boat::model' && side.op === 'neq'
+
+const alsoOf = (s: PairShape): readonly PairSide[] => s.also ?? []
 
 /** Where a field id lives: its table's kind and its column's normalised name. */
 interface Home {
@@ -370,6 +393,49 @@ function sideOf(clause: Clause | undefined, at: Map<string, Home>): PairSide | n
   return sideFor(spec, clause.op, value)
 }
 
+/** A side whose value is a model, said the way a person says that model on this sheet. */
+function modelSaidIn(world: PairWorld, side: PairSide): PairSide {
+  if (!side.key.endsWith('::model') || side.value === '') return side
+  const kind = side.key.split('::')[0] as 'boat' | PartnerKind
+  const named = modelsNamed(world, kind).get(side.value)
+  return named ? { ...side, said: named.said } : side
+}
+
+type Named = Map<string, { said: string; maker: string }>
+
+const NAMED = new WeakMap<PairWorld['rowsByEntity'], Map<string, Named>>()
+
+/**
+ * EVERY MODEL VALUE THIS SHEET WRITES, said as a person says that model and with its maker
+ * (judge.md, data round, B4: the list printed "495 - Pro Fisher." and the sentence "Stabicraft -
+ * 2350 Ultra Centrecab (Adventure)" while the count called it "the 2350 Ultra Centrecab"). A boat
+ * is said as `boatSaid` says it everywhere; a motor or a trailer by its maker and the file's own
+ * model word. Read once per sheet.
+ */
+export function modelsNamed(world: PairWorld, kind: 'boat' | PartnerKind): Named {
+  let byKind = NAMED.get(world.rowsByEntity)
+  if (!byKind) {
+    byKind = new Map()
+    NAMED.set(world.rowsByEntity, byKind)
+  }
+  const hit = byKind.get(kind)
+  if (hit) return hit
+  const out: Named = new Map()
+  const spec = specByKey(`${kind}::model`)
+  if (spec)
+    for (const table of tablesOf(world, kind)) {
+      const maker = makerOfTable(table)
+      for (const row of sellable(world, table)) {
+        const v = specValue(spec, table, row)
+        if (typeof v !== 'string' || out.has(v)) continue
+        const said = kind === 'boat' ? boatSaid(table, row) : thingSaid(table, row)
+        out.set(v, { said, maker })
+      }
+    }
+  byKind.set(kind, out)
+  return out
+}
+
 /**
  * THE RULE AS A PAIR, or null when it is not one: kind `implies`, one clause on a boat column,
  * one on a motor or trailer column, each `is` or `is not` a value. Anything else — a single-kind
@@ -381,17 +447,29 @@ export function pairShapeOf(
   at = homes(world),
 ): PairShape | null {
   if (c.kind !== 'implies') return null
-  if (c.if.clauses.length !== 1 || c.then?.clauses.length !== 1) return null
-  const boat = sideOf(c.if.clauses[0], at)
+  const conditions = c.if.clauses.length
+  if (conditions < 1 || conditions > 1 + MAX_ALSO || c.then?.clauses.length !== 1) return null
+  if (c.if.combinator === 'OR' && conditions > 1) return null
+  const sides = c.if.clauses.map((clause) => sideOf(clause, at))
   const partner = sideOf(c.then.clauses[0], at)
-  if (!boat || !partner) return null
-  if (boat.key !== '' && !boat.key.startsWith('boat::')) return null
-  /* A FILED RULE NAMES BOTH COLUMNS: a sentence still being written lives on the screen that is
-     writing it, and the store is never handed half of one */
-  if (boat.key === '' || partner.key === '') return null
+  if (!partner) return null
+  const conditionSides: PairSide[] = []
+  for (const side of sides) {
+    /* A FILED RULE NAMES EVERY COLUMN: a sentence still being written lives on the screen that
+       is writing it, and the store is never handed half of one */
+    if (!side || side.key === '' || !side.key.startsWith('boat::')) return null
+    conditionSides.push(modelSaidIn(world, side))
+  }
+  if (partner.key === '') return null
   const kind = partner.key.split('::')[0]
   if (kind !== 'motor' && kind !== 'trailer') return null
-  return { boat, partnerKind: kind, partner }
+  const [boat, ...also] = conditionSides
+  return {
+    boat: boat!,
+    ...(also.length > 0 ? { also } : {}),
+    partnerKind: kind,
+    partner: modelSaidIn(world, partner),
+  }
 }
 
 /** A side is answered: a spec, and a value it can compare — a figure only once it is a number. */
@@ -401,7 +479,12 @@ const sideReady = (side: PairSide): boolean =>
   (side.measure !== 'figure' || typedFigure(side.value) !== null)
 
 /** Every choice the sentence asks for has been made. */
-export const pairReady = (s: PairShape): boolean => sideReady(s.boat) && sideReady(s.partner)
+export const pairReady = (s: PairShape): boolean =>
+  sideReady(s.boat) && alsoOf(s).every(sideReady) && sideReady(s.partner)
+
+/** The condition on the boat is whole: every one of its specs chosen and answered. */
+const conditionAnswered = (s: PairShape): boolean =>
+  [s.boat, ...alsoOf(s)].every((side) => side.key !== '' && side.value !== '')
 
 /** What one side still asks for, or null. */
 function sideMissing(side: PairSide, noun: string): string | null {
@@ -419,6 +502,12 @@ export function pairMissing(s: PairShape, because: string): string | null {
   if (s.boat.key === '') return 'Choose which of the boat’s specs this rule looks at.'
   const boat = sideMissing(s.boat, 'boat')
   if (boat) return boat
+  for (const side of alsoOf(s)) {
+    if (side.key === '') return 'Choose which of the boat’s specs the “and” looks at.'
+    if (isExcept(side) && side.value === '') return 'Choose the model it makes an exception of.'
+    const more = sideMissing(side, 'boat')
+    if (more) return more
+  }
   const noun = KIND_NOUN[s.partnerKind].one
   if (s.partner.key === '') return `Choose which of the ${noun}’s specs this rule decides.`
   const partner = sideMissing(s.partner, noun)
@@ -434,6 +523,8 @@ export function pairMissing(s: PairShape, because: string): string | null {
 export interface PairDraftArgs {
   orgId: string
   boat: { column: PairColumn | null; op: PairOp; value: string }
+  /** more of the boat, each of which must hold too */
+  also?: { column: PairColumn | null; op: PairOp; value: string }[]
   partnerKind: PartnerKind
   partner: { column: PairColumn | null; op: PairOp; value: string }
   because: string
@@ -466,7 +557,10 @@ export function pairRule(a: PairDraftArgs): ConstraintDef {
     id,
     orgId: a.orgId,
     kind: 'implies',
-    if: { combinator: 'AND', clauses: [clauseFor(`${id}#if0`, a.boat)] },
+    if: {
+      combinator: 'AND',
+      clauses: [a.boat, ...(a.also ?? [])].map((side, i) => clauseFor(`${id}#if${i}`, side)),
+    },
     then: { combinator: 'AND', clauses: [clauseFor(`${id}#then0`, a.partner)] },
     because: a.because.trim(),
     severity: a.severity,
@@ -489,6 +583,9 @@ export interface PairWord {
     | 'boat-column'
     | 'boat-op'
     | 'boat-value'
+    | 'also-column'
+    | 'also-op'
+    | 'also-value'
     | 'partner-kind'
     | 'partner-column'
     | 'partner-op'
@@ -500,6 +597,8 @@ export interface PairWord {
   tight?: boolean
   /** its place in the sentence, as a name a list can be keyed by */
   key: string
+  /** which of the boat's further conditions an `also-` word belongs to */
+  at?: number
 }
 
 /** THE SENTENCE, as words. The screen draws it, the build quotes it, and a reader hears it. */
@@ -514,6 +613,26 @@ export function pairWords(s: PairShape): PairWord[] {
     s.boat.value === ''
       ? { role: 'boat-value', text: '…', unchosen: true }
       : { role: 'boat-value', text: s.boat.said || s.boat.value },
+    ...alsoOf(s).flatMap((side, at): Omit<PairWord, 'key'>[] =>
+      isExcept(side)
+        ? [
+            { role: 'word', text: ',', tight: true },
+            { role: 'word', text: 'except the' },
+            side.value === ''
+              ? { role: 'also-value', text: 'model', unchosen: true, at }
+              : { role: 'also-value', text: side.said || side.value, at },
+          ]
+        : [
+            { role: 'word', text: 'and its' },
+            side.key === ''
+              ? { role: 'also-column', text: 'spec', unchosen: true, at }
+              : { role: 'also-column', text: side.name, at },
+            { role: 'also-op', text: CONDITION_WORD[side.op], at },
+            side.value === ''
+              ? { role: 'also-value', text: '…', unchosen: true, at }
+              : { role: 'also-value', text: side.said || side.value, at },
+          ],
+    ),
     { role: 'word', text: ',', tight: true },
     { role: 'word', text: 'the' },
     { role: 'partner-kind', text: `${partner}’s` },
@@ -568,6 +687,24 @@ function holds(op: PairOp, cell: string | number, value: string): boolean | null
   return cell <= want
 }
 
+/** Whether one boat row keeps every condition the sentence puts on the boat. An exception reads a
+ *  boat whose model is not written as kept — "except the Classic 340" is about the Classic 340. */
+function boatKeeps(s: PairShape, table: EntityDef, row: RowData): boolean {
+  for (const side of [s.boat, ...alsoOf(s)]) {
+    const v = readSide(side, table, row)
+    if (v === null) {
+      if (isExcept(side)) continue
+      return false
+    }
+    if (holds(side.op, v, side.value) !== true) return false
+  }
+  return true
+}
+
+/** Whether the sentence speaks of this boat at all: every condition it puts on the boat holds. */
+export const pairAbout = (s: PairShape, boat: { table: EntityDef; row: RowData }): boolean =>
+  conditionAnswered(s) && boat.table.kind === 'boat' && boatKeeps(s, boat.table, boat.row)
+
 /**
  * WHAT ONE RULE SAYS ABOUT ONE PICK — this boat, that motor. `not-about` where the rule does not
  * speak: the partner is another kind, the boat's condition does not hold, or either cell is
@@ -580,8 +717,7 @@ export function judgePair(
 ): PairVerdict {
   if (!pairReady(s)) return 'not-about'
   if (partner.table.kind !== s.partnerKind || boat.table.kind !== 'boat') return 'not-about'
-  const b = readSide(s.boat, boat.table, boat.row)
-  if (b === null || holds(s.boat.op, b, s.boat.value) !== true) return 'not-about'
+  if (!boatKeeps(s, boat.table, boat.row)) return 'not-about'
   const p = readSide(s.partner, partner.table, partner.row)
   if (p === null) return 'not-about'
   const kept = holds(s.partner.op, p, s.partner.value)
@@ -694,7 +830,7 @@ export interface PairReach {
 }
 
 /** Every pairing the price list writes between a boat and one kind, on sale on both sides. */
-function pairingsOf(
+export function pairingsOf(
   world: PairWorld,
   kind: PartnerKind,
 ): { boat: { table: EntityDef; row: RowData }; partner: { table: EntityDef; row: RowData } }[] {
@@ -734,7 +870,7 @@ export function pairReach(s: PairShape, world: PairWorld): PairReach {
   const partners = tablesOf(world, kind).flatMap((table) =>
     sellable(world, table).map((row) => ({ table, row })),
   )
-  const conditionReady = s.boat.key !== '' && s.boat.value !== ''
+  const conditionReady = conditionAnswered(s)
   const ready = pairReady(s)
   const models = (list: readonly { table: EntityDef; row: RowData }[]): number =>
     new Set(list.map((b) => modelKeyOf(b.table, b.row))).size
@@ -754,10 +890,7 @@ export function pairReach(s: PairShape, world: PairWorld): PairReach {
   }
   if (!conditionReady) return blank
 
-  const boatHolds = (b: { table: EntityDef; row: RowData }): boolean => {
-    const v = readSide(s.boat, b.table, b.row)
-    return v !== null && holds(s.boat.op, v, s.boat.value) === true
-  }
+  const boatHolds = (b: { table: EntityDef; row: RowData }): boolean => boatKeeps(s, b.table, b.row)
   const aboutBoats = boats.filter(boatHolds)
   const about = models(aboutBoats)
   if (!ready) return { ...blank, about }
@@ -888,13 +1021,10 @@ export interface PairField {
  * the figure beside it can never disagree. Half answered, it lights what it can.
  */
 export function pairField(s: PairShape, world: PairWorld): PairField {
-  const conditionReady = s.boat.key !== '' && s.boat.value !== ''
+  const conditionReady = conditionAnswered(s)
   const ready = pairReady(s)
-  const boatHolds = (table: EntityDef, row: RowData): boolean => {
-    if (!conditionReady) return false
-    const v = readSide(s.boat, table, row)
-    return v !== null && holds(s.boat.op, v, s.boat.value) === true
-  }
+  const boatHolds = (table: EntityDef, row: RowData): boolean =>
+    conditionReady && boatKeeps(s, table, row)
   const breaks = (table: EntityDef, row: RowData): boolean => {
     const v = readSide(s.partner, table, row)
     return v !== null && holds(s.partner.op, v, s.partner.value) === false

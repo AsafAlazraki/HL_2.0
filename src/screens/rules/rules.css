@@ -3,13 +3,14 @@
 
 /* ============================================================
    RULES — direction A, "The house rules", with board B's reach grafted into its margin
-   (docs/directions/rules-boards/, judged 2026-10-28). This screen's own styles; nothing here is
-   shared with another screen, and nothing is stamped from one. Every colour, size, radius,
-   tracking and duration is a token from src/styles/tokens.css, so Northside's own accent, act
-   and ground reach this screen through the cascade with no rebuild (docs/CUSTOMISATION.md).
-   What Northside changes HERE: the words a person can choose are `--color-ink-file`, the one
-   act is `--color-act`, the sheet is `--color-plate` on `--color-ground`; there is no
-   photograph and no mark to replace, because a rule is a sentence.
+   (docs/directions/rules-boards/, judged 2026-10-28), deepened in the data round (2026-11-03,
+   docs/directions/data-round/rules/judge.md). This screen's own styles; nothing here is shared
+   with another screen, and nothing is stamped from one. Every colour, size, radius, tracking and
+   duration is a token from src/styles/tokens.css, so Northside's own accent, act and ground
+   reach this screen through the cascade with no rebuild (docs/CUSTOMISATION.md). What Northside
+   changes HERE: the words a person can choose are `--color-ink-file`, the one act is
+   `--color-act`, the sheet is `--color-plate` on `--color-ground`; there is no photograph and no
+   mark to replace, because a rule is a sentence.
 
    THE COMPOSITION, AND WHAT IT COULD BE MISTAKEN FOR. One sheet of numbered clauses in three
    parts, each part's name hanging in a left column, each clause's figure flush right, and an
@@ -28,34 +29,46 @@
      warns about                `--color-act-ink`, with a warning glyph — the build's own
      is off                     full ink, with a pause glyph: kept, not enforced, never greyed
 
+   WHAT THE BUILD DOES WITH THE PRICE LIST'S OWN CLAUSE (since the data round) is a line under
+   it in the second ink, its glyph saying which of three: kept by the lists, said and never
+   refused, not enforced. A clause measured on the sheet opens in place on the offers that break
+   it, each with a door to its line.
+
    THE MARGIN'S MARKS (the graft from board B): one line per boat maker, one mark a model at
    10px — legible, unlike board C's 4px strip. A mark the rule is about is solid boat cobalt; a
    model that loses a sale is ringed in the ink of what it loses (a motor carmine, a trailer
-   ochre), and named under its maker's line.
+   ochre), and named under its maker's line. The maker's line is a press that names every model
+   it is about; each mark names its model on hover.
 
    ------------------------------------------------------------------------------------
    THE REFLOW, at the six sizes the rulers walk:
 
      390 × 844    one column with a 16px gutter. Each part's name stands over its clauses; a
-                  clause's figure goes under its sentence. The noticed box follows the price
-                  list's clauses. The clause being written keeps its act DIRECTLY UNDER ITS
-                  BECAUSE, and its count follows the act, so the writer sees the input, the
-                  act and the first figures on one screen (built-critique-m3.md, major 8: the
-                  act stood about 700px under the because, below every maker's marks). The
-                  act is in the flow, never a bar pinned to the foot. The pill is
-                  the tab bar at the foot, so the page keeps `--shell-foot` at its end.
+                  clause's figure goes under its sentence, and what the build does under that.
+                  The noticed boxes follow the clauses. The clause being written keeps its act
+                  DIRECTLY UNDER ITS BECAUSE (and the heads-up, when there is one, between them),
+                  and its count follows the act — the figures in two columns, the note on what
+                  it cannot read under them, the marks, the offers taken by name, one boat tried,
+                  the quotes. Choosing a word never moves the page: a list opens over the
+                  sentence and closes back to the word it came from. The pill is the tab bar at
+                  the foot, so the page keeps `--shell-foot` at its end.
      844 × 390    the same column with the desk's 32px gutter; the pill stands at the top. The
                   page scrolls; nothing is pinned, so nothing can cover a word at any scroll.
-     834 × 1112   the part's name hangs in a 112px column to the left of its clauses; the
-                  margin still flows under them, because 834 cannot spare 300px beside a
-                  sentence — and so, as at 390, the act stands under the because and the count
-                  under the act.
-     1280 × 800   the sheet's three columns: the part's name, the clauses, and the 288px margin
-                  beside them, the noticed box and the count standing next to what they are
-                  about.
+     834 × 1112   the part's name hangs in a 112px column to the left of its clauses, and a
+                  hyphenated word in it never breaks ("pre-delivery" holds). The margin still
+                  flows under the clauses, because 834 cannot spare 300px beside a sentence — so,
+                  as at 390, the act stands under the because and the count under the act.
+     1280 × 800   the sheet's three columns: the part's name, the clauses, and the 288px margin.
+                  The clauses and the noticed boxes are TWO STACKS side by side, so a tall box
+                  never sets a clause's row (judge.md, data round, B6). The clause being written
+                  spans both: its sentence and act in the clauses' column, sticky under the pill,
+                  and its count in the margin.
      1440 × 900   the same, with a 304px margin and more air.
      1920 × 1080  the sheet holds at 1,280px, centred on the ground, so a clause is never one
                   1,800px line.
+
+   PRINTED, it is the one page Northside signs: the ground and every press go, the clauses and
+   what the build does with each stay, and a line for a signature and a date closes it.
 
    NOT A COCKPIT REGISTER. The clauses are the handful of rules Northside writes and the seven
    its price list keeps; they are read, not worked down eighteen at a time, so `e2e/routes.ts`
@@ -94,6 +107,10 @@
   }
 }
 
+.hr-nowrap {
+  white-space: nowrap;
+}
+
 /* ---- the head: what this page is, said once ---- */
 
 .hr-head {
@@ -102,8 +119,8 @@
 }
 .hr-eyebrow {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -128,6 +145,11 @@
   line-height: var(--text-base--line-height);
   color: var(--color-ink-2);
   text-wrap: pretty;
+}
+.hr-head__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
 }
 
 /* ---- the sheet: the kit's white plate on the room's blue ---- */
@@ -163,6 +185,21 @@
   .hr-sheet {
     padding: --spacing(3) --spacing(8) --spacing(6);
   }
+}
+
+/* A STALE ADDRESS, said where the clause would have opened */
+.hr-stale {
+  display: flex;
+  font: inherit;
+  align-items: start;
+  gap: --spacing(2);
+  margin: --spacing(4) 0 0;
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-field);
+  background: var(--color-ask-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
 }
 
 /* ---- a part: its name, its clauses, and (wide) its margin ---- */
@@ -232,18 +269,25 @@
   color: var(--color-ink-2);
 }
 
-/* THE CLAUSES. Narrow, one column in reading order. Wide, they are a subgrid of the part's
-   main and margin columns: a clause sits in main, the noticed box in the margin beside the
-   price list's clauses, and the clause being written spans both, its count in the margin. */
+/* THE CLAUSES. Narrow, one column in reading order: the clauses, the noticed boxes, the clause
+   being written, what follows it. Wide, the clauses and the noticed boxes are two stacks side by
+   side in the part's main and margin columns — never one grid of shared rows, which let a tall
+   box set a clause's height — and the clause being written spans both, its count in the margin. */
 .hr-clauses {
-  /* how many rows the noticed box stands beside; the screen sets it per part */
-  --beside: 1;
-
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
   row-gap: --spacing(5);
   min-inline-size: 0;
+}
+.hr-clauses__main {
+  display: grid;
+  align-content: start;
+  row-gap: --spacing(5);
+  min-inline-size: 0;
+}
+.hr-clauses__after:empty {
+  display: none;
 }
 @media (min-width: 720px) {
   .hr-clauses {
@@ -254,15 +298,13 @@
   .hr-clauses {
     grid-column: main / span 2;
     grid-template-columns: subgrid;
-    grid-auto-flow: row dense;
   }
-  .hr-clauses > * {
+  .hr-clauses > .hr-clauses__main {
     grid-column: 1;
   }
-  /* beside the price list's clauses, as many rows as there are of them, which the screen sets as --beside */
   .hr-clauses > .hr-noticed-stack {
     grid-column: 2;
-    grid-row: 1 / span var(--beside, 1);
+    grid-row: 1;
   }
   .hr-clauses > .hr-open {
     grid-column: 1 / -1;
@@ -336,6 +378,37 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
+.hr-clause__where {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.hr-clause__look {
+  margin-inline-start: calc(-1 * --spacing(2));
+}
+
+/* WHAT THE BUILD DOES WITH IT: its glyph, the verdict in weight, then the sentence */
+.hr-build {
+  display: flex;
+  align-items: start;
+  gap: --spacing(1.5);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.hr-build > :first-child {
+  flex: none;
+  margin-block-start: --spacing(0.5);
+  color: var(--owner-list);
+}
+.hr-build strong {
+  font-weight: 650;
+  color: var(--color-ink);
+}
 
 /* THE FIGURE: the numerator at weight, "of" and the denominator lighter, what was counted under */
 .hr-clause__measure {
@@ -348,7 +421,8 @@
 @media (min-width: 640px) {
   .hr-clause__measure {
     grid-column: 3;
-    grid-row: 1 / span 2;
+    grid-row: 1;
+    align-self: start;
     justify-items: end;
     text-align: end;
     /* wide enough that what was counted reads in two lines, not four (it names the cut now) */
@@ -373,6 +447,55 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
   text-wrap: balance;
+}
+
+/* ---- the offers that break a clause, opened in place ---- */
+
+.hr-ex {
+  display: grid;
+  gap: --spacing(3);
+  padding: --spacing(3) 0 --spacing(1);
+  border-block-start: var(--hair) solid var(--color-rule);
+}
+.hr-ex__head {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.hr-ex__list {
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hr-ex__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 --spacing(3);
+  padding-block: --spacing(1.5);
+  border-block-end: var(--hair) solid var(--color-rule);
+}
+.hr-ex__item > :last-child {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.hr-ex__what {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  overflow-wrap: anywhere;
+}
+.hr-ex__boat {
+  font-weight: 650;
+}
+.hr-ex__why {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
 }
 
 /* ---- what a clause does: its verb, in the ink of its state, with its glyph ---- */
@@ -403,10 +526,12 @@
   display: grid;
   align-content: start;
   gap: --spacing(3);
+  min-inline-size: 0;
 }
 .hr-noticed {
   display: grid;
   gap: --spacing(2);
+  min-inline-size: 0;
   padding: --spacing(3) --spacing(4);
   border-radius: var(--radius-field);
   background: var(--color-ask-wash);
@@ -417,8 +542,8 @@
   align-items: center;
   gap: --spacing(1.5);
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -442,9 +567,11 @@
   gap: --spacing(1);
 }
 .hr-noticed__then {
+  margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+  text-wrap: pretty;
 }
 .hr-noticed__yours {
   display: inline-flex;
@@ -455,6 +582,15 @@
   line-height: var(--text-sm--line-height);
   font-weight: 600;
   color: var(--color-ink);
+}
+/* in the margin's narrow box an exception's door goes under its words */
+.hr-noticed .hr-ex__item {
+  grid-template-columns: minmax(0, 1fr);
+}
+.hr-noticed .hr-ex__item > :last-child {
+  grid-column: 1;
+  grid-row: auto;
+  justify-self: start;
 }
 
 /* ---- where a new rule is written ---- */
@@ -468,6 +604,7 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+  text-wrap: pretty;
 }
 
 /* ---- the clause being written: its sentence, its verb, its act, and its count ---- */
@@ -527,8 +664,8 @@
   align-items: baseline;
   gap: --spacing(1) --spacing(2);
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -565,6 +702,14 @@
   color: var(--color-ink-3);
 }
 
+/* "and another of the boat's specs", "except one model", and taking either away again */
+.hr-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(2);
+  margin-inline-start: calc(-1 * --spacing(2));
+}
+
 /* the verb flows as text; the because is typed on the line under it, the clause's full width,
    so it never breaks the sentence before it into a column of fragments at 390 */
 .hr-verbline--open {
@@ -576,7 +721,37 @@
   min-inline-size: 0;
 }
 
+/* SAID BEFORE IT IS ADDED: a boat left with nothing, a rule it fights, a rule that says it */
+.hr-heads {
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: --spacing(3) --spacing(4);
+  list-style: none;
+  border-radius: var(--radius-field);
+  background: var(--color-ask-wash);
+}
+.hr-heads__item {
+  display: flex;
+  align-items: start;
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+.hr-heads__item > :first-child {
+  flex: none;
+  margin-block-start: --spacing(0.5);
+  color: var(--does-warns);
+}
+
 .hr-open__act {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -610,14 +785,16 @@
 }
 @media (min-width: 1200px) {
   .hr-count {
-    padding-block-start: 0;
+    /* the head stands level with the sentence's own eyebrow, clear of the pill by the same
+       clearance the sticky side keeps */
+    padding-block-start: --spacing(4);
     border-block-start: 0;
   }
 }
 .hr-count__head {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -666,6 +843,13 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
+.hr-count__note {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
 
 /* THE FIELD: one line of marks per boat maker, a mark a model */
 .hr-field {
@@ -676,14 +860,42 @@
   display: grid;
   gap: --spacing(1);
 }
+/* the maker's line is a press that names its models: the full width, a fingertip tall */
 .hr-field__name {
+  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: --spacing(2);
+  inline-size: 100%;
+  min-block-size: --spacing(6);
   margin: 0;
+  padding: 0 --spacing(1);
+  border: 0;
+  border-radius: var(--radius-key);
+  background: transparent;
+  font: inherit;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   font-weight: 600;
+  color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
+}
+.hr-field__name:disabled {
+  cursor: default;
+}
+.hr-field__name[aria-expanded='true'] {
+  background: var(--color-chosen-wash);
+}
+.hr-field__name:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .hr-field__name:not(:disabled):not([aria-expanded='true']):hover {
+    background: var(--color-wash);
+  }
 }
 .hr-field__of {
   font-family: var(--font-mono);
@@ -695,6 +907,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: --spacing(1);
+  padding-inline: --spacing(1);
 }
 .hr-mark {
   box-sizing: border-box;
@@ -713,8 +926,20 @@
     0 0 0 1.5px var(--color-plate),
     0 0 0 3px var(--lose-ink);
 }
+.hr-field__named {
+  margin: 0;
+  padding-inline: --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.hr-field__named [data-loses] {
+  font-weight: 700;
+  color: var(--color-ink);
+}
 .hr-field__loses {
   margin: 0;
+  padding-inline: --spacing(1);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   font-weight: 600;
@@ -731,4 +956,270 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+}
+
+/* WHAT IT TAKES, BY NAME; ONE BOAT TRIED; THE QUOTES IT SPEAKS OF — three short lists under the
+   marks, each with its head in the count's own small capitals */
+.hr-taken,
+.hr-boat,
+.hr-quotes {
+  display: grid;
+  gap: --spacing(2);
+  padding-block-start: --spacing(3);
+  border-block-start: var(--hair) solid var(--color-rule);
+}
+.hr-taken__head {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+  color: var(--color-ink);
+}
+.hr-taken__list,
+.hr-boat__list {
+  display: grid;
+  gap: --spacing(1.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hr-taken__item {
+  display: grid;
+  gap: --spacing(0.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+.hr-taken__boat {
+  font-weight: 650;
+  color: var(--color-ink);
+}
+.hr-taken__what {
+  color: var(--color-ink-2);
+  overflow-wrap: anywhere;
+}
+.hr-boat__said {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.hr-boat__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0 --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink);
+}
+.hr-boat__item > :first-child {
+  grid-row: 1 / span 2;
+  margin-block-start: 1px;
+  color: var(--color-ink-2);
+}
+.hr-boat__item[data-verdict='taken'] > :first-child {
+  color: var(--lose-ink);
+}
+.hr-boat__item[data-verdict='taken'] > :nth-child(2) {
+  text-decoration: line-through;
+  text-decoration-color: var(--lose-ink);
+}
+.hr-boat__verdict {
+  grid-column: 2;
+  color: var(--color-ink-2);
+}
+
+/* ---- a long list, found by typing (WordFinder) ---- */
+
+.hr-finder {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  inline-size: min(--spacing(90), var(--available-width));
+  max-block-size: min(--spacing(110), var(--available-height));
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+  overflow: hidden;
+  font-size: var(--text-base);
+  font-weight: 400;
+  letter-spacing: normal;
+  transform-origin: var(--transform-origin);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hr-finder {
+    transition:
+      opacity var(--duration-enter) var(--ease-out),
+      transform var(--duration-enter) var(--ease-out);
+  }
+}
+.hr-finder[data-starting-style],
+.hr-finder[data-ending-style] {
+  opacity: 0;
+}
+.hr-finder__field {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding: --spacing(2) --spacing(3);
+  border-block-end: var(--hair) solid var(--color-rule);
+  color: var(--color-ink-2);
+}
+.hr-finder__input {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: --spacing(9);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  /* sixteen pixels, so a phone never zooms into the field */
+  font-size: max(16px, var(--text-base));
+  color: var(--color-ink);
+  outline: none;
+}
+.hr-finder__input::placeholder {
+  color: var(--color-ink-3);
+}
+.hr-finder__empty:not(:empty) {
+  padding: --spacing(3) --spacing(4);
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.hr-finder__list {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: --spacing(1);
+}
+.hr-finder__group + .hr-finder__group {
+  margin-block-start: --spacing(1);
+}
+.hr-finder__maker {
+  position: sticky;
+  inset-block-start: calc(-1 * --spacing(1));
+  z-index: 1;
+  padding: --spacing(2) --spacing(3) --spacing(1);
+  background: var(--color-plate);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.hr-finder__item {
+  display: grid;
+  grid-template-columns: --spacing(5) minmax(0, 1fr);
+  align-items: center;
+  gap: --spacing(1);
+  min-block-size: --spacing(10);
+  padding: 0 --spacing(3) 0 --spacing(1);
+  border-radius: var(--radius-key);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  cursor: default;
+  user-select: none;
+  outline: none;
+}
+.hr-finder__item[data-highlighted] {
+  background: var(--color-wash);
+}
+.hr-finder__item[data-selected] {
+  font-weight: 650;
+}
+.hr-finder__tick {
+  grid-column: 1;
+  display: inline-flex;
+  color: var(--color-ink-file);
+}
+.hr-finder__item > :last-child {
+  grid-column: 2;
+}
+
+/* ---- looked for and not true, at the foot ---- */
+
+.hr-refuted {
+  padding: --spacing(3) --spacing(2);
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow: 0 0 0 1px var(--color-rule);
+}
+.hr-refuted__head {
+  margin: 0 0 --spacing(1);
+  padding-inline: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.hr-refuted__list {
+  display: grid;
+  gap: --spacing(3);
+  margin: --spacing(3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hr-refuted__item {
+  display: grid;
+  gap: --spacing(0.5);
+}
+.hr-refuted__said {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.hr-refuted__why {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* the signature line is the printed page's only */
+.hr-sign {
+  display: none;
+}
+
+/* ---- printed: the one page Northside signs ---- */
+
+@media print {
+  .hr {
+    min-height: 0;
+    padding: 0;
+    background: var(--color-white);
+  }
+  .hr-sheet {
+    padding: 0;
+    box-shadow: none;
+  }
+  .hr-head__acts,
+  .hr-write,
+  .hr-clause__look,
+  .hr-clause__by > :not(:first-child),
+  .hr-noticed__act,
+  .hr-noticed__look,
+  .hr-open,
+  .hr-stale,
+  .hr-refuted {
+    display: none;
+  }
+  .hr-part {
+    break-inside: avoid;
+  }
+  .hr-sign {
+    display: flex;
+    gap: --spacing(24);
+    margin: --spacing(8) 0 0;
+    padding-block-start: --spacing(10);
+    font-size: var(--text-sm);
+    color: var(--color-ink);
+  }
+  .hr-sign > span {
+    flex: 1;
+    padding-block-start: --spacing(1);
+    border-block-start: var(--hair) solid var(--color-ink);
+  }
 }

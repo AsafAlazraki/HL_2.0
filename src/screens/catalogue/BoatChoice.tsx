@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BoatIcon, MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 import { findBoats } from '@/domain/fitment/boat'
 import type { CatalogueCtx } from '@/domain/model'
@@ -33,6 +33,15 @@ export function BoatChoice({
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  /* FITTING NO BOAT KEEPS THE CARET HERE: the press that did it is gone, so the one that chooses
+     a boat again takes it (the verifier, round 2: the caret fell to the page) */
+  const trigger = useRef<HTMLButtonElement>(null)
+  const letGo = useRef(false)
+  useEffect(() => {
+    if (boat || !letGo.current) return
+    letGo.current = false
+    trigger.current?.focus()
+  }, [boat])
   const found = useMemo(
     () => (query.trim().length < 2 ? null : findBoats(ctx, query, 8)),
     [ctx, query],
@@ -56,7 +65,10 @@ export function BoatChoice({
           type="button"
           className="chd-boat__off"
           aria-label={`Fit no boat: stop putting the ${boat.name}’s parts first`}
-          onClick={() => onBoat('')}
+          onClick={() => {
+            letGo.current = true
+            onBoat('')
+          }}
         >
           <Icon glyph={XIcon} size="sm" />
         </button>
@@ -75,7 +87,7 @@ export function BoatChoice({
       align="end"
       title="The customer’s boat"
       trigger={
-        <button type="button" className="chd-boat" data-ground="plate">
+        <button ref={trigger} type="button" className="chd-boat" data-ground="plate">
           <span className="chd-boat__glyph" aria-hidden="true">
             <Icon glyph={BoatIcon} size="sm" />
           </span>

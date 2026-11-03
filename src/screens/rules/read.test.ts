@@ -94,8 +94,9 @@ describe('the price list’s rules', () => {
 describe('what the census says', () => {
   it('where the price list loses nothing, says so once and names no boat beside a list of motors', () => {
     const reach = pairReach(shapeOfDraft(draftFromPriceList('F7', cols)!, cols), world)
+    /* "No sale." read as "you cannot sell" (judge.md, data round, B7): it costs NO sale */
     expect(costSaid(reach, 'refuses')).toBe(
-      'No sale. Nothing the price list makes for these boats breaks it; a search past the list finds 38 fewer motors.',
+      'It costs no sale: nothing your price list makes for these boats breaks it. It refuses 38 motors only when one is searched for past the list.',
     )
   })
 
@@ -113,7 +114,7 @@ describe('what the census says', () => {
       'Nothing today: it is off. Switched on, the Highfield Classic 340 would lose the Yamaha F25SWTC, and 4 more models would lose one too.',
     )
     expect(off).not.toMatch(/ loses /)
-    expect(costSaid(reach, 'warns')).toMatch(/^No sale: the Highfield Classic 340 keeps/)
+    expect(costSaid(reach, 'warns')).toMatch(/^It costs no sale: the Highfield Classic 340 keeps/)
   })
 
   it('says nothing until every word is chosen, and the act says what is missing', () => {
@@ -144,13 +145,15 @@ describe('the house rules, by part', () => {
   /* built-critique-m3-2.md, blocker 1: the lede's three figures were summed in the component */
   it('counts the lede off the parts it numbers: seven kept, and Northside’s own with how many are off', () => {
     const rule = ruleOfDraft(tillerDraft(), cols, 'northside', '2026-10-28T09:00:00.000Z')
-    const none = houseOf(partsOf(statedRules(cols), []))
-    expect(none).toEqual({ kept: 7, written: 0, off: 0 })
+    /* MEASURED HERE since 2026-11-03: six of the seven on the sheet, A3 on the workbook only, and
+       "these" has a noun before it (judge.md, data round, B7) */
+    const none = houseOf(partsOf(statedRules(cols, world), []))
+    expect(none).toEqual({ kept: 7, written: 0, off: 0, measured: 6 })
     expect(houseSaid(none)).toBe(
-      'Your price list keeps 7 of these on its own, each measured on it. Northside has written none yet.',
+      'Your price list keeps 7 rules of its own about what may be sold with what, 6 of them measured on it here. Northside has written none yet.',
     )
-    const one = houseOf(partsOf(statedRules(cols), yourRules([rule], world)))
-    expect(one).toEqual({ kept: 7, written: 1, off: 0 })
+    const one = houseOf(partsOf(statedRules(cols, world), yourRules([rule], world)))
+    expect(one).toEqual({ kept: 7, written: 1, off: 0, measured: 6 })
     expect(houseSaid(one)).toMatch(/Northside has written 1.$/)
     const off = houseOf(partsOf(statedRules(cols), yourRules([{ ...rule, enabled: false }], world)))
     expect(off.off).toBe(1)

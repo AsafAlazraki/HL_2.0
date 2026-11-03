@@ -498,6 +498,10 @@
   color: var(--color-ink-2);
   text-wrap: pretty;
 }
+/* a figure and its noun stay on one line */
+.chd-head__fig {
+  white-space: nowrap;
+}
 
 /* ITS HEADINGS, folded under the counts: each a way straight to its section */
 .chd-heads {
@@ -554,7 +558,12 @@
 /* the mark the dock is watched by: one pixel that takes no gap of its own */
 .chd-sentinel {
   block-size: 1px;
-  margin-block: calc(-1 * var(--page-gap)) calc(-1 * var(--page-gap));
+}
+/* a grid track is never less than nothing, so the mark's own negative margins left the page's gap
+   twice over the dock (32 px; the verifier, b01 at 390: 45 px between the boat and find). The
+   dock takes the second back, and stands one pixel under its mark */
+.chd-sentinel + .chd-dock {
+  margin-block-start: calc(-1 * var(--page-gap));
 }
 .chd-dock {
   position: sticky;
@@ -798,6 +807,19 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 700;
+}
+/* given the caret when its boat is chosen (Aisle.tsx, useMadeInSight): a heading, not a control */
+.chd-made__title:focus {
+  outline: none;
+}
+.chd-made__title:focus-visible {
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+/* where it lands with no dock above it (the front), and what a phone's bar at its foot covers */
+.chd-made {
+  scroll-margin-block: calc(var(--shell-inset) + --spacing(3))
+    calc(var(--shell-foot) + --spacing(2));
 }
 .chd-made__count {
   margin: 0;
@@ -1151,6 +1173,17 @@
   .chd-cols__fig {
     text-align: end;
   }
+  /* under the heads SUPPLY and FITTED a row says its two figures alone; the words stay for a
+     reader (the verifier, round 2, b03: every row repeated its column) */
+  .chd-cols ~ .chd-lines .chd-fig__w[data-col] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   .chd-line__head {
     grid-template-columns: minmax(0, 1fr) --spacing(84) --spacing(60) --spacing(9);
     grid-template-areas: 'name meta prices caret';
@@ -1219,6 +1252,52 @@
   line-height: var(--text-sm--line-height);
   color: var(--color-ink);
   overflow-wrap: anywhere;
+}
+/* every boat it is made for, opened: the whole width of the part, by maker, in columns, the
+   customer's boat marked (the verifier, round 2: 73 names as one paragraph in a 280 px column) */
+.chd-facts > [data-wide] {
+  grid-column: 1 / -1;
+}
+.chd-boatsof__head {
+  display: block;
+  margin-block-end: --spacing(2);
+}
+.chd-boatsof + .chd-boatsof {
+  margin-block-start: --spacing(3);
+}
+.chd-boatsof__maker {
+  margin: 0 0 --spacing(1);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.chd-boatsof__n {
+  font-weight: 400;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.chd-boatsof__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: --spacing(40) auto;
+  column-gap: --spacing(5);
+}
+.chd-boatsof__list li {
+  break-inside: avoid;
+  padding-block: --spacing(0.5);
+}
+.chd-boatsof__list li[data-chosen],
+.chd-boatsof__yours {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.chd-boatsof__list li[data-chosen] {
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
+  padding-inline-start: --spacing(2);
+}
+.chd-boatsof__said {
+  font-weight: 400;
+  color: var(--color-ink-2);
 }
 /* the boats past the first three, a press away and every one named */
 .chd-boatsmore {
@@ -1425,6 +1504,12 @@
 }
 .chd-sup__code {
   font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.chd-sup__as {
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   font-weight: 700;

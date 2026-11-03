@@ -53,6 +53,9 @@ export function Pictures({
           <b>{list.without.toLocaleString('en-AU')}</b> of {list.total.toLocaleString('en-AU')}{' '}
           parts on sale have no picture of their own. The ones the quotes on this computer carry
           come first; every aisle’s are a press away below.
+          {list.untaken > 0
+            ? ` The ${list.untaken.toLocaleString('en-AU')} labour lines and notes of the price list take no picture, so they are not counted.`
+            : ''}
         </p>
       </header>
 
@@ -95,15 +98,18 @@ export function Pictures({
         </h2>
         <ul className="chd-pics__aisles">
           {fronts.map(({ count }) => {
-            const without = count.parts - count.pictured
+            /* the aisle's parts that take a picture; labour and notes are left out */
+            const takes = list.byAisle.get(count.aisle.id)?.takes ?? 0
+            const without = list.byAisle.get(count.aisle.id)?.without ?? 0
+            if (takes === 0) return null
             const href = hrefOf({ aisle: count.aisle.id, show: 'without', boat })
             return (
               <li key={count.aisle.id} className="chd-pics__aisle">
                 <span className="chd-pics__name">{count.aisle.name}</span>
                 <span className="chd-pics__count">
                   {without === 0
-                    ? `Every one of its ${count.parts.toLocaleString('en-AU')} is pictured`
-                    : `${without.toLocaleString('en-AU')} of ${count.parts.toLocaleString('en-AU')} with no picture`}
+                    ? `Every one of its ${takes.toLocaleString('en-AU')} is pictured`
+                    : `${without.toLocaleString('en-AU')} of ${takes.toLocaleString('en-AU')} with no picture`}
                 </span>
                 {without === 0 ? null : (
                   <a

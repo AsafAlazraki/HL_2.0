@@ -168,8 +168,11 @@
   display: inline-block;
   max-inline-size: 100%;
   vertical-align: baseline;
-  min-height: 0;
-  min-width: 0;
+  /* A FINGERTIP'S TARGET, even for "is" (Rules, data round 2026-11-03, judge B8: the verb word
+     stood 44 by 22 and the word "is" 18 by 39): 24px each way, the short word centred in it */
+  min-height: --spacing(6);
+  min-width: --spacing(6);
+  text-align: center;
   padding: 0;
   border-radius: var(--radius-key);
   font: inherit;

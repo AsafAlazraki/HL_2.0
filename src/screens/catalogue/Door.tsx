@@ -8,7 +8,7 @@ import { hrefOf, type CatalogueAt } from './at'
 import { BoatChoice } from './BoatChoice'
 import { ByCode } from './ByCode'
 import { drawnOf } from './drawn'
-import { Wares, MadeForBox, type Shelved } from './Aisle'
+import { Wares, MadeForBox, useMadeInSight, type Shelved } from './Aisle'
 import type { BoatSaid } from './read'
 import type { ShelfPart } from './shelf'
 import { follow, type Around } from './Wares'
@@ -62,8 +62,10 @@ export function Door({
   nameOf,
   around,
   suppliers,
+  readSuppliers,
   namedSuppliers,
   without,
+  takes,
   goPictures,
 }: {
   ctx: CatalogueCtx
@@ -84,14 +86,19 @@ export function Door({
   shelf: readonly ShelfPart[]
   nameOf: (p: ShelfPart) => string
   around: Around
-  /** the supplier codes on the list, and how many Northside has named */
+  /** the supplier codes on the list, how many the price list names itself, and how many
+   *  Northside has named */
   suppliers: number
+  readSuppliers: number
   namedSuppliers: number
-  /** the parts on sale with no picture of their own, and the way to their worklist */
+  /** the parts on sale with no picture of their own, of those that take one, and the way to
+   *  their worklist */
   without: number
+  takes: number
   goPictures: () => void
 }) {
   const [typed, setTyped] = useState(at.find)
+  const madeInSight = useMadeInSight(at.boat, null)
   const aisles = fronts.length
   const sorted = fronts.filter((f) => f.count.aisle.id !== 'unsorted').length
   const keep = (next: Partial<CatalogueAt>): Partial<CatalogueAt> => ({
@@ -136,7 +143,10 @@ export function Door({
           ctx={ctx}
           boat={boat}
           made={madeFor.length}
-          onBoat={(id) => go({ boat: id, open: '' })}
+          onBoat={(id) => {
+            madeInSight()
+            go({ boat: id, open: '' })
+          }}
         />
       </div>
 
@@ -260,7 +270,7 @@ export function Door({
             <span className="chd-keep__words">
               <span className="chd-keep__title">The parts with no picture yet</span>
               <span className="chd-said">
-                {`${without.toLocaleString('en-AU')} of ${onSale.toLocaleString('en-AU')} have none of their own: the ones on quotes here first, then aisle by aisle.`}
+                {`${without.toLocaleString('en-AU')} of ${takes.toLocaleString('en-AU')} parts have none of their own: the ones on quotes here first, then aisle by aisle.`}
               </span>
             </span>
             <Icon glyph={ArrowRightIcon} />
@@ -278,7 +288,7 @@ export function Door({
           <span className="chd-keep__words">
             <span className="chd-keep__title">The suppliers, in Northside’s words</span>
             <span className="chd-said">
-              {`The price list writes its ${suppliers.toLocaleString('en-AU')} suppliers as codes, and Northside has named ${namedSuppliers.toLocaleString('en-AU')}. Name each maker once, and every aisle says it.`}
+              {`The price list writes its ${suppliers.toLocaleString('en-AU')} suppliers as codes, and names ${readSuppliers.toLocaleString('en-AU')} of them in words itself. Northside has named ${namedSuppliers.toLocaleString('en-AU')}. Name each maker once, and every aisle says it.`}
             </span>
           </span>
           <Icon glyph={ArrowRightIcon} />

@@ -341,7 +341,104 @@ test('“See the rule” opens it to be read, Close first and Delete last', asyn
   const open = page.getByTestId('open-rule')
   await expect(open).toContainText('Northside’s, written')
   await expect(open).not.toContainText('being rewritten')
-  const acts = await open.getByRole('button').allInnerTexts()
+  const acts = await open
+    .getByRole('group', { name: 'What to do with it' })
+    .getByRole('button')
+    .allInnerTexts()
   expect(acts.map((a) => a.trim()).at(-1)).toBe('Delete 2.4')
   expect(acts.findIndex((a) => a.trim() === 'Close')).toBeLessThan(acts.length - 1)
+})
+
+/** A press where the word is drawn, as a finger or a mouse presses it — never a driver's
+ *  scroll-into-view, which moved the page on its own and was measured as the page moving
+ *  (judge.md, data round, B1). */
+async function pressAt(page: Page, target: ReturnType<Page['getByRole']>): Promise<void> {
+  const box = (await target.boundingBox())!
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+}
+
+async function chooseAt(page: Page, word: string, choice: RegExp): Promise<void> {
+  await pressAt(page, page.getByRole('combobox', { name: word }))
+  const option = page.getByRole('option', { name: choice }).first()
+  await expect(option).toBeVisible()
+  await pressAt(page, option)
+  await expect(page.getByRole('listbox')).toBeHidden()
+}
+
+test('choosing the four words never moves the page, and the act stays clear of the pill', async ({
+  page,
+}) => {
+  /* judge.md, data round, B1 and B2: measured at every size, after the fourth word */
+  await throughTheDoor(page)
+  await toRules(page)
+  await page.getByRole('button', { name: 'Write a rule about motors' }).click()
+  await expect(page.getByTestId('open-rule')).toBeVisible()
+  await page.waitForTimeout(800)
+  const before = await page.evaluate(() => window.scrollY)
+  await chooseAt(page, 'Which of the boat’s specs', /^steering$/)
+  await chooseAt(page, 'The boat’s steering', /^tiller\b/)
+  await chooseAt(page, 'Which of the motor’s specs', /^controls$/)
+  await chooseAt(page, 'The motor’s controls', /^Tiller handle\b/)
+  expect(await page.evaluate(() => window.scrollY)).toBe(before)
+  const act = page.getByRole('button', { name: 'Add it as 2.4' })
+  await expect(act).toBeInViewport()
+  const pill = (await page.getByTestId('shell-pill').boundingBox())!
+  const box = (await act.boundingBox())!
+  const width = page.viewportSize()!.width
+  /* the pill is at the top on every size but the phone, where it is the tab bar at the foot */
+  if (pill.y < 100) expect(box.y).toBeGreaterThanOrEqual(pill.y + pill.height)
+  else expect(box.y + box.height).toBeLessThanOrEqual(pill.y)
+  if (width >= 1200) {
+    const head = (await page
+      .getByRole('heading', { name: 'Counted now, before it is added' })
+      .boundingBox())!
+    expect(head.y).toBeGreaterThanOrEqual(pill.y + pill.height)
+    await expect(page.locator('[data-testid="census"] .hr-fig').first()).toBeInViewport()
+  }
+})
+
+test('a measure opens on the offers that break it, each with a door to its line', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await toRules(page)
+  const shaft = page.locator('[data-testid="stated-rule"][data-ref="F6"]')
+  await expect(shaft).toContainText('3,289 of 3,292')
+  await shaft.getByRole('button', { name: 'The 3 that break it' }).click()
+  await expect(page).toHaveURL(/look=F6/)
+  const list = page.getByTestId('exceptions')
+  await expect(list.getByRole('listitem')).toHaveCount(3)
+  await expect(list).toContainText('Stacer 589 Sea Ranger SDF')
+  await list.getByRole('link').first().click()
+  await expect(page).toHaveURL(/\/data\/join_stacer_yam\?at=/)
+})
+
+test('a stale link says the rule is gone, and lets the address go', async ({ page }) => {
+  await throughTheDoor(page)
+  await page.goto('/rules?open=zzz-not-a-rule')
+  await expect(page.getByTestId('rules-stale')).toContainText(
+    'That rule is not on the list any more',
+  )
+  await expect(page).not.toHaveURL(/open=/)
+  await expect(page.getByTestId('open-rule')).toHaveCount(0)
+})
+
+test('an exception is found by typing, and the boat it names keeps its motor', async ({ page }) => {
+  await throughTheDoor(page)
+  await toRules(page, 'new:motor')
+  await choose(page, 'Which of the boat’s specs', /^steering$/)
+  await choose(page, 'The boat’s steering', /^tiller\b/)
+  await choose(page, 'Which of the motor’s specs', /^controls$/)
+  await choose(page, 'The motor’s controls', /^Tiller handle\b/)
+  await expect(page.getByTestId('census').locator('.hr-fig[data-n="45 of 540"]')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Except one model' }).click()
+  await page.getByRole('combobox', { name: 'The model it makes an exception of' }).click()
+  await page.getByRole('combobox', { name: 'Find a boat model' }).fill('classic 340')
+  await page.getByRole('option', { name: 'Highfield Classic 340', exact: true }).click()
+  await expect(page.getByTestId('rule-sentence')).toHaveText(
+    'When the boat’s steering is tiller, except the Highfield Classic 340, the motor’s controls must be Tiller handle.',
+  )
+  /* the Classic 340's nine lines no longer lose the F25SWTC */
+  await expect(page.getByTestId('census').locator('.hr-fig[data-n^="36 of "]')).toHaveCount(1)
+  await expect(page.getByTestId('taken')).not.toContainText(/Highfield Classic 340$/m)
 })

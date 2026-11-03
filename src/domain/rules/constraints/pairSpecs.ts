@@ -213,6 +213,16 @@ const figure = (
 
 const maker = (kind: PairKind): PairSpec => word(kind, 'maker', 'maker', [])
 
+/** A word the file writes in capitals, said as a name is written: "ALLOY CENTRE-LINE SERIES" is
+ *  the Alloy Centre-Line Series (judge.md, data round, B4). A word with any lower case is the
+ *  file's own and kept. */
+export const capsSay = (value: string): string =>
+  /[a-z]/.test(value)
+    ? value
+    : value
+        .toLowerCase()
+        .replace(/(^|[\s/(-])([a-z])/g, (_, a: string, b: string) => a + b.toUpperCase())
+
 /** Steering as a word in a sentence: "tiller", "remote". */
 const steeringSay = (value: string): string => value.toLowerCase()
 
@@ -222,7 +232,7 @@ const steeringSay = (value: string): string => value.toLowerCase()
  */
 export const PAIR_SPECS: readonly PairSpec[] = [
   maker('boat'),
-  word('boat', 'series', 'series', ['series']),
+  word('boat', 'series', 'series', ['series'], asWritten, capsSay),
   word('boat', 'model', 'model', ['model']),
   word(
     'boat',
@@ -245,6 +255,7 @@ export const PAIR_SPECS: readonly PairSpec[] = [
   maker('motor'),
   figure('motor', 'hp', 'horsepower', 'hp', 'as a figure', ['hp rating'], motorHp),
   word('motor', 'shaft', 'shaft', ['shaft length', 'shaft length in'], shaftRead, shaftSay),
+  word('motor', 'model', 'model', ['motor']),
   word('motor', 'controls', 'controls', ['control']),
   word('motor', 'starting', 'starting', ['starting']),
   word('motor', 'tilt', 'tilt and trim', ['tilt & trim']),
@@ -252,7 +263,8 @@ export const PAIR_SPECS: readonly PairSpec[] = [
   figure('motor', 'weight', 'weight', 'kg', 'in kg', ['weight kg']),
 
   maker('trailer'),
-  word('trailer', 'series', 'series', ['series']),
+  word('trailer', 'series', 'series', ['series'], asWritten, capsSay),
+  word('trailer', 'model', 'model', ['trailer']),
   figure('trailer', 'atm', 'ATM', 'kg', 'in kg', ['atm (kg)']),
   word('trailer', 'winch', 'winch', ['winch']),
 ]

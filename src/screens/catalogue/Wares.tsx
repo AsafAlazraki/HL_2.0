@@ -13,6 +13,7 @@ import { headingSaid } from '@/domain/chandlery/headings'
 import { isSupplyOnly, noteSaid, type TwoPrices } from '@/domain/chandlery/prices'
 import { placeKeyOf } from '@/domain/chandlery/placing'
 import { boatsNamed } from '@/domain/chandlery/boatsNamed'
+import { boatsByMaker } from '@/domain/chandlery/boatsGrouped'
 import type { ReviewStanding } from '@/domain/chandlery/reviewCase'
 import { AISLES } from '@/domain/catalogue/aisles'
 import { useGallery, useOptionPicture } from '@/app/optionPicture'
@@ -51,7 +52,9 @@ export function follow(go: (href: string) => void, href: string) {
   }
 }
 
-/** THE TWO PRICES, each with its word under it. */
+/** THE TWO PRICES, each with its word under it. Under a ledger's own SUPPLY and FITTED heads the
+ *  two words are said to a reader only, so a row does not repeat its column (the verifier, round 2,
+ *  b03); a word the heads do not say ("only", "on the price list") is always drawn. */
 export function Prices({ prices }: { prices: TwoPrices }) {
   switch (prices.kind) {
     case 'both':
@@ -106,7 +109,9 @@ function Fig({ n, word }: { n: number; word: string }) {
   return (
     <span className="chd-fig">
       <span className="chd-fig__n">{money(n)}</span>
-      <span className="chd-fig__w">{word}</span>
+      <span className="chd-fig__w" data-col="">
+        {word}
+      </span>
     </span>
   )
 }
@@ -128,6 +133,8 @@ export interface Around {
   reviewOf?: ((id: string) => ReviewStanding | undefined) | undefined
   open: string
   onOpen: (id: string) => void
+  /** the customer's boat, by its name, marked among a part's boats */
+  boatName?: string | undefined
 }
 
 /** ONE PART AS A RULED LINE, opening in place. */
@@ -136,6 +143,7 @@ export function Line({
   around,
   openKey = w.id,
   note,
+  under,
 }: {
   w: Ware
   around: Around
@@ -143,6 +151,8 @@ export function Line({
   openKey?: string
   /** a word the page adds after code · supplier: "on 3 quotes" */
   note?: string
+  /** the heading the section it stands in already says, so the opened line does not say it again */
+  under?: string
 }) {
   const panel = useId()
   const head = useRef<HTMLButtonElement>(null)
@@ -186,7 +196,7 @@ export function Line({
         </span>
       </button>
       <div id={panel} className="chd-line__panel" hidden={!opened}>
-        {opened ? <Details w={w} around={around} /> : null}
+        {opened ? <Details w={w} around={around} under={under} /> : null}
       </div>
     </li>
   )
@@ -235,7 +245,7 @@ function useEscapeShuts(
 
 /** ONE PICTURED PART AS A CARD: its photograph contained, its name, its two prices. Opened, it
  *  spans the row and says what a line opened says. */
-export function Card({ w, around }: { w: Ware; around: Around }) {
+export function Card({ w, around, under }: { w: Ware; around: Around; under?: string }) {
   const panel = useId()
   const head = useRef<HTMLButtonElement>(null)
   const item = useRef<HTMLLIElement>(null)
@@ -301,7 +311,7 @@ export function Card({ w, around }: { w: Ware; around: Around }) {
         </span>
         <Prices prices={w.prices} />
         <div id={panel} className="chd-card__panel" hidden={!opened}>
-          {opened ? <Details w={w} around={around} pictured /> : null}
+          {opened ? <Details w={w} around={around} under={under} pictured /> : null}
         </div>
       </div>
     </li>
@@ -309,44 +319,132 @@ export function Card({ w, around }: { w: Ware; around: Around }) {
 }
 
 /** THE BOATS A PART IS MADE FOR, counted by their names and naming exactly as many as it counts:
- *  the first three, then every other one a press away. */
-function MadeForSaid({ ids, boats }: { ids: readonly string[]; boats: Around['boats'] }) {
-  const said = boatsNamed(ids, (id) => boats.get(id)?.name)
+ *  the customer's boat first where it is one of them, then the first others, and every other one a
+ *  press away — opened, by maker, across the whole part, the customer's boat marked (the verifier,
+ *  round 2: 73 names in one run-on paragraph in a 280 px column). */
+function MadeForFact({
+  ids,
+  boats,
+  boatName,
+}: {
+  ids: readonly string[]
+  boats: Around['boats']
+  boatName: string | undefined
+}) {
+  const nameOf = (id: string): string | undefined => boats.get(id)?.name
+  /* the customer's boat leads where the part is made for it */
+  const order =
+    boatName && boatName !== ''
+      ? [
+          ...ids.filter((id) => nameOf(id) === boatName),
+          ...ids.filter((id) => nameOf(id) !== boatName),
+        ]
+      : ids
+  const said = boatsNamed(order, nameOf)
   /* every name, once asked: a reading aid inside an opened part, not a position worth an address */
   const [all, setAll] = useState(false)
-  if (said.count === 0) return <>No boat in particular</>
-  const head = `${said.count.toLocaleString('en-AU')} boat${said.count === 1 ? '' : 's'}: `
-  if (said.rest.length === 0)
-    return (
+  const more = useRef<HTMLButtonElement>(null)
+  const fewer = useRef<HTMLButtonElement>(null)
+  const pressed = useRef(false)
+  useEffect(() => {
+    if (!pressed.current) return
+    pressed.current = false
+    ;(all ? fewer : more).current?.focus()
+  }, [all])
+  const toggle = (next: boolean): void => {
+    pressed.current = true
+    setAll(next)
+  }
+  const makers = new Map<string, string>()
+  for (const id of ids) {
+    const b = boats.get(id)
+    if (b) makers.set(b.name, b.maker)
+  }
+  const mark = (name: string, at: number): ReactNode =>
+    name === boatName ? (
+      <b key={name} className="chd-boatsof__yours">
+        {name}
+      </b>
+    ) : (
+      <span key={`${name}:${at}`}>{name}</span>
+    )
+  const head = `${said.count.toLocaleString('en-AU')} boat${said.count === 1 ? '' : 's'}`
+  let dd: ReactNode
+  if (said.count === 0) dd = 'No boat in particular'
+  else if (said.rest.length === 0)
+    dd = (
       <>
-        {head}
-        {andOf(said.shown)}
+        {`${head}: `}
+        {joined(said.shown.map(mark))}
       </>
     )
-  if (all)
-    return (
+  else if (!all)
+    dd = (
       <>
-        {head}
-        {andOf([...said.shown, ...said.rest])}
+        {`${head}: `}
+        {joined(said.shown.map(mark), ', ', ', ')}{' '}
+        <button ref={more} type="button" className="chd-boatsmore" onClick={() => toggle(true)}>
+          {`and ${said.rest.length.toLocaleString('en-AU')} more`}
+        </button>
       </>
     )
+  else {
+    const groups = boatsByMaker([...said.shown, ...said.rest], (n) => makers.get(n) ?? '', boatName)
+    dd = (
+      <>
+        <span className="chd-boatsof__head">
+          {head}{' '}
+          <button ref={fewer} type="button" className="chd-boatsmore" onClick={() => toggle(false)}>
+            Show fewer
+          </button>
+        </span>
+        {groups.map((g) => (
+          <div key={g.maker} className="chd-boatsof">
+            <p className="chd-boatsof__maker">
+              {g.maker === '' ? 'No maker said' : g.maker}{' '}
+              <span className="chd-boatsof__n">{g.models.length.toLocaleString('en-AU')}</span>
+            </p>
+            <ul
+              className="chd-boatsof__list"
+              aria-label={`The ${g.maker === '' ? '' : `${g.maker} `}boats it is made for`}
+            >
+              {g.models.map((m) => (
+                <li key={m.name} data-chosen={m.chosen ? '' : undefined}>
+                  {m.model}
+                  {m.chosen ? <span className="chd-boatsof__said"> · the customer’s</span> : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </>
+    )
+  }
   return (
-    <>
-      {head}
-      {said.shown.join(', ')}{' '}
-      <button type="button" className="chd-boatsmore" onClick={() => setAll(true)}>
-        {`and ${said.rest.length.toLocaleString('en-AU')} more`}
-      </button>
-    </>
+    <div data-wide={all && said.rest.length > 0 ? '' : undefined}>
+      <dt>Made for</dt>
+      <dd>{dd}</dd>
+    </div>
   )
 }
 
-/** "A", "A and B", "A, B and C" */
-const andOf = (names: readonly string[]): string =>
-  names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
+/** "A", "A and B", "A, B and C", with each name its own node */
+function joined(nodes: readonly ReactNode[], comma = ', ', last = ' and '): ReactNode[] {
+  return nodes.flatMap((n, i) => (i === 0 ? [n] : [i === nodes.length - 1 ? last : comma, n]))
+}
 
 /** WHAT THE OPENED PART SAYS, and its ways on. */
-function Details({ w, around, pictured = false }: { w: Ware; around: Around; pictured?: boolean }) {
+function Details({
+  w,
+  around,
+  under,
+  pictured = false,
+}: {
+  w: Ware
+  around: Around
+  under?: string | undefined
+  pictured?: boolean
+}) {
   const boats = around.boatsOf(w.id)
   const lineHref = `/data/${PARTS_TABLE}?at=${encodeURIComponent(w.id)}`
   const place = around.place
@@ -365,20 +463,18 @@ function Details({ w, around, pictured = false }: { w: Ware; around: Around; pic
   return (
     <div className="chd-details">
       <dl className="chd-facts">
-        <div>
-          <dt>Under the heading</dt>
-          <dd>{headingSaid(w.heading)}</dd>
-        </div>
+        {/* the section it is opened in already says its heading */}
+        {under === w.heading ? null : (
+          <div>
+            <dt>Under the heading</dt>
+            <dd>{headingSaid(w.heading)}</dd>
+          </div>
+        )}
         <div>
           <dt>How it is fitted</dt>
           <dd>{fitted}</dd>
         </div>
-        <div>
-          <dt>Made for</dt>
-          <dd>
-            <MadeForSaid ids={boats} boats={around.boats} />
-          </dd>
-        </div>
+        <MadeForFact ids={boats} boats={around.boats} boatName={around.boatName} />
       </dl>
       {standing ? (
         <p className="chd-said">

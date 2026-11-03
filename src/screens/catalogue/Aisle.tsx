@@ -77,7 +77,7 @@ export function Wares({
       {cards.length > 0 ? (
         <ul className="chd-cards" aria-label={`${title}, pictured`}>
           {cards.map((w) => (
-            <Card key={w.id} w={w} around={around} />
+            <Card key={w.id} w={w} around={around} under={section.heading} />
           ))}
         </ul>
       ) : null}
@@ -92,7 +92,7 @@ export function Wares({
           </p>
           <ul className="chd-lines" aria-label={title}>
             {lines.map((w) => (
-              <Line key={w.id} w={w} around={around} />
+              <Line key={w.id} w={w} around={around} under={section.heading} />
             ))}
           </ul>
         </div>
@@ -124,7 +124,7 @@ export function MadeForBox({
   return (
     <section className="chd-made" data-ground="plate" aria-labelledby={id}>
       <header className="chd-made__head">
-        <h2 id={id} className="chd-made__title">{`Made for the ${boat.full}`}</h2>
+        <h2 id={id} className="chd-made__title" tabIndex={-1}>{`Made for the ${boat.full}`}</h2>
         <p className="chd-made__count">
           {total === 0
             ? 'The price list makes no part for this boat in particular. Every part it sells is in the aisles.'
@@ -173,7 +173,11 @@ export function AislePage({
   sections,
   total,
   pictured,
+  without,
+  showCounts,
   suppliers,
+  supplierCount,
+  shownAll,
   wrongSupplier,
   boat,
   madeHere,
@@ -195,7 +199,15 @@ export function AislePage({
   /** the aisle's parts, before any narrowing */
   total: number
   pictured: number
+  /** its parts that could take a picture and have none */
+  without: number
+  /** Pictured · All · No picture, each counted under the supplier and the find chosen */
+  showCounts: Record<Show, number>
+  /** the suppliers, counted under which parts are shown and the find */
   suppliers: readonly SupplierCount[]
+  /** how many suppliers the whole aisle has, so the chips stand whatever is shown */
+  supplierCount: number
+  shownAll: number
   wrongSupplier: boolean
   boat: BoatSaid | null
   madeHere: readonly Shelved[]
@@ -236,6 +248,7 @@ export function AislePage({
      scrolls (the verifier, g02–g05). */
   const dock = useRef<HTMLDivElement>(null)
   const land = useCallback((heading: string) => landOn(heading, dock.current), [])
+  const madeInSight = useMadeInSight(at.boat, dock)
   useEffect(() => (at.heading === '' ? undefined : land(at.heading)), [at.heading, land])
 
   /* WHICH HEADING IS UNDER THE DOCK, so the dock can say it inside a 260-line section */
@@ -276,16 +289,24 @@ export function AislePage({
   const suppliersHref = hrefOf({ view: 'suppliers' })
   /* WHICH PARTS: offered only where there is a choice. An aisle with no picture has no
      "Pictured" to press, so none is drawn, and its counts already say 0 pictured */
+  /* EACH LABEL COUNTS WHAT ITS PRESS WOULD DRAW under the supplier and find chosen. "No picture"
+     is the parts that could take one; an aisle with none pictured offers it only when the
+     worklist sent you to it (Workshop: All 157 · No picture 124, its labour under All alone) */
   const showOptions: { value: Show; label: string }[] = [
     ...(pictured > 0
-      ? [{ value: 'pictured' as const, label: `Pictured ${pictured.toLocaleString('en-AU')}` }]
+      ? [
+          {
+            value: 'pictured' as const,
+            label: `Pictured ${showCounts.pictured.toLocaleString('en-AU')}`,
+          },
+        ]
       : []),
-    { value: 'all', label: `All ${total.toLocaleString('en-AU')}` },
-    ...(pictured < total && pictured > 0
+    { value: 'all', label: `All ${showCounts.all.toLocaleString('en-AU')}` },
+    ...(without > 0 && (pictured > 0 || at.show === 'without')
       ? [
           {
             value: 'without' as const,
-            label: `No picture ${(total - pictured).toLocaleString('en-AU')}`,
+            label: `No picture ${showCounts.without.toLocaleString('en-AU')}`,
           },
         ]
       : []),
@@ -321,10 +342,20 @@ export function AislePage({
         <div className="chd-head__words">
           <h1 className="chd-head__title">{aisle.name}</h1>
           <p className="chd-head__count">
-            <b>{total.toLocaleString('en-AU')}</b> part{total === 1 ? '' : 's'} under{' '}
-            <b>{headCount.toLocaleString('en-AU')}</b> heading{headCount === 1 ? '' : 's'} of the
-            price list · <b>{pictured.toLocaleString('en-AU')}</b> of{' '}
-            {total.toLocaleString('en-AU')} pictured
+            {/* a figure and its noun are never parted by a line's end (the verifier, b01 at 390:
+                "0 of / 66 pictured") */}
+            <span className="chd-head__fig">
+              <b>{total.toLocaleString('en-AU')}</b> part{total === 1 ? '' : 's'}
+            </span>{' '}
+            under{' '}
+            <span className="chd-head__fig">
+              <b>{headCount.toLocaleString('en-AU')}</b> heading{headCount === 1 ? '' : 's'}
+            </span>{' '}
+            {/* the separator ends its line, never starts the next */}
+            of the <span className="chd-head__fig">price list ·</span>{' '}
+            <span className="chd-head__fig">
+              <b>{pictured.toLocaleString('en-AU')}</b> of {total.toLocaleString('en-AU')} pictured
+            </span>
           </p>
           {front && front.heads.length > 1 ? (
             <details
@@ -374,7 +405,10 @@ export function AislePage({
             ctx={ctx}
             boat={boat}
             made={madeTotal}
-            onBoat={(id) => go({ boat: id, open: '' })}
+            onBoat={(id) => {
+              madeInSight()
+              go({ boat: id, open: '' })
+            }}
           />
         </div>
       </header>
@@ -410,13 +444,13 @@ export function AislePage({
         {/* THE SUPPLIER, FOLDED TO ONE MENU where the chips have no room, AND THE ORDER: in the
             dock, so neither stands between two rows of chips (the verifier, b02 at 834) */}
         <div className="chd-dock__tools">
-          {suppliers.length > 1 ? (
+          {supplierCount > 1 ? (
             <div className="chd-suppliers-folded">
               <Select
                 aria-label={`${aisle.name} by supplier`}
                 value={at.supplier === '' ? BACK : at.supplier}
                 options={[
-                  { value: BACK, label: 'Every supplier', trail: total.toLocaleString('en-AU') },
+                  { value: BACK, label: 'Every supplier', trail: shownAll.toLocaleString('en-AU') },
                   ...suppliers.map((s) => ({
                     value: s.said,
                     label: s.said,
@@ -438,10 +472,10 @@ export function AislePage({
         </div>
       </div>
 
-      {suppliers.length > 1 ? (
+      {supplierCount > 1 ? (
         <fieldset className="chd-suppliers" aria-label={`${aisle.name} by supplier`}>
           <Chip
-            count={total}
+            count={shownAll}
             selected={at.supplier === ''}
             onSelect={() => go({ supplier: '', open: '' })}
           >
@@ -559,9 +593,23 @@ function landOn(heading: string, dock: HTMLElement | null): () => void {
     window.scrollTo({ top: 0, behavior: 'instant' })
     return () => undefined
   }
+  return landUnder(el, dock)
+}
+
+/** Land one box just under the dock, and keep it there while the dock settles (`landOn`). */
+function landUnder(el: HTMLElement, dock: HTMLElement | null): () => void {
   const align = (): void => {
     const edge = dock?.getBoundingClientRect().bottom ?? 0
-    const off = el.getBoundingClientRect().top - edge - LANDING_GAP
+    let off = el.getBoundingClientRect().top - edge - LANDING_GAP
+    /* NEVER SHORT OF THE DOCK'S STICKING: a box just under the dock at rest would otherwise land
+       with the aisle's head half under the bar and the dock not yet stuck (measured at 844 × 390:
+       the dock 16 px short of its place, "Its 6 headings" cut by the bar). Its mark is the pixel
+       above it, and its place is its sticky top, resolved by the browser */
+    const mark = dock?.previousElementSibling
+    if (dock && mark instanceof HTMLElement) {
+      const top = parseFloat(getComputedStyle(dock).top) || 0
+      off = Math.max(off, Math.ceil(mark.getBoundingClientRect().bottom - top) + 1)
+    }
     if (Math.abs(off) >= 1) window.scrollBy({ top: off, behavior: 'instant' })
   }
   /* first past the dock, so it is stuck and its foot is where it will stay; then under it */
@@ -582,6 +630,51 @@ function landOn(heading: string, dock: HTMLElement | null): () => void {
   for (const e of ends) window.addEventListener(e, stop, { passive: true })
   return stop
 }
+
+/**
+ * WHAT IS MADE FOR THE BOAT JUST CHOSEN, BROUGHT INTO SIGHT AND GIVEN THE CARET (the verifier of
+ * the chandlery, round 2, J6: on a phone the find inside the popover had scrolled the page, so the
+ * answer stood under the dock, and the caret fell to the page when the press that chose it went).
+ * Where the box's head and its first part are already in sight between the dock (or the bar) and
+ * the window's foot, nothing moves; else it lands just under the dock, or under the bar where
+ * there is none (its scroll margin, catalogue.css). Returns the call a choice makes first.
+ */
+export function useMadeInSight(
+  boatId: string,
+  dock: { current: HTMLElement | null } | null,
+): () => void {
+  const asked = useRef(false)
+  useEffect(() => {
+    if (!asked.current || boatId === '') return
+    asked.current = false
+    let stop: () => void = () => undefined
+    const frame = requestAnimationFrame(() => {
+      const box = document.querySelector<HTMLElement>('.chd-made')
+      if (!box) return
+      const r = box.getBoundingClientRect()
+      const edge = dock?.current?.getBoundingClientRect().bottom ?? 0
+      /* the bar at a phone's foot, resolved by the browser: the box's own scroll margin */
+      const foot =
+        window.innerHeight - (parseFloat(getComputedStyle(box).scrollMarginBlockEnd) || 0)
+      const seen = r.top >= edge && r.top + Math.min(r.height, MADE_SEEN) <= foot
+      if (!seen) {
+        if (dock?.current) stop = landUnder(box, dock.current)
+        else box.scrollIntoView({ block: 'start', behavior: 'instant' })
+      }
+      box.querySelector<HTMLElement>('.chd-made__title')?.focus({ preventScroll: true })
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      stop()
+    }
+  }, [boatId, dock])
+  return useCallback(() => {
+    asked.current = true
+  }, [])
+}
+
+/** How much of the box must be in sight to count as seen: its head and its first part. */
+const MADE_SEEN = 180
 
 /** A HEADING NO AISLE NAMES, PUT IN ONE BY NORTHSIDE — or taken back to where the list puts it. */
 function PlaceHeading({

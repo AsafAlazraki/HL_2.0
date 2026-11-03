@@ -83,6 +83,8 @@ export interface BoatSaid {
   id: string
   tableId: string
   name: string
+  /** the maker as the price list writes it, '' where it says none */
+  maker: string
   detail: string
   /** the name and what the price list adds after it: "Stacer 529 Assault Pro · Tournament" */
   full: string
@@ -102,6 +104,7 @@ export function boatsById(ctx: CatalogueCtx): ReadonlyMap<string, BoatSaid> {
         id: row.id,
         tableId: entity.id,
         name: spoken.name,
+        maker: spoken.maker,
         detail,
         full: detail === '' ? spoken.name : `${spoken.name} · ${detail}`,
       })

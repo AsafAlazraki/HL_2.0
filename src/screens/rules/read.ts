@@ -61,6 +61,7 @@ import {
   type PairOp,
   type PairReach,
   type PairShape,
+  type PairSide,
   type PairWorld,
   type PartnerKind,
 } from '@/domain/rules/constraints/pairRules'
@@ -74,6 +75,12 @@ import {
   type RuleMeasure,
 } from '@/domain/rules/constraints/ruleLedger'
 import { WORKBOOK_RULES, type WorkbookRuleRef } from '@/domain/rules/constraints/workbookRules'
+import {
+  BUILD_DOES,
+  measureClause,
+  type BuildDoes,
+  type HouseMeasure,
+} from '@/domain/rules/constraints/houseMeasures'
 
 /* ---------------------------------------------------------- */
 /* The draft                                                   */
@@ -84,11 +91,20 @@ export type Verb = RuleDoes
 
 export const VERBS: readonly Verb[] = ['refuses', 'warns', 'off']
 
+/** One more condition on the boat: "and its length is over 6 m", or an exception. */
+export interface AlsoDraft {
+  key: string
+  op: PairOp
+  value: string
+}
+
 /** The sentence on the plate, as it is being written. */
 export interface Draft {
   boatKey: string
   boatOp: PairOp
   boatValue: string
+  /** more of the boat, each of which must hold too — "and its …", "except the …" */
+  also: AlsoDraft[]
   partnerKind: PartnerKind
   partnerKey: string
   partnerOp: PairOp
@@ -105,6 +121,7 @@ export const blankDraft = (): Draft => ({
   boatKey: '',
   boatOp: 'eq',
   boatValue: '',
+  also: [],
   partnerKind: 'motor',
   partnerKey: '',
   partnerOp: 'eq',
@@ -133,18 +150,30 @@ export function readColumns(world: PairWorld): Columns {
 export const columnAt = (cols: readonly PairColumn[], key: string): PairColumn | null =>
   cols.find((c) => c.key === key) ?? null
 
-/** One side, read only where its spec is on THIS sheet. */
-const sideOf = (column: PairColumn | null, op: PairOp, value: string) =>
-  sideFor(column ? specByKey(column.key) : null, op, column ? value : '')
+/** One side, read only where its spec is on THIS sheet, and said as the sheet names its value —
+ *  a model as a person says that model, never the file's raw cell. */
+function sideOf(column: PairColumn | null, op: PairOp, value: string): PairSide {
+  const side = sideFor(column ? specByKey(column.key) : null, op, column ? value : '')
+  const named = column?.values.find((v) => v.value === side.value)
+  return named ? { ...side, said: named.said } : side
+}
 
 /** The draft as the domain's own shape, so the words and the reach are the domain's. */
 export function shapeOfDraft(d: Draft, cols: Columns): PairShape {
+  const also = d.also.map((a) => sideOf(columnAt(cols.boat, a.key), a.op, a.value))
   return {
     boat: sideOf(columnAt(cols.boat, d.boatKey), d.boatOp, d.boatValue),
+    ...(also.length > 0 ? { also } : {}),
     partnerKind: d.partnerKind,
     partner: sideOf(columnAt(cols[d.partnerKind], d.partnerKey), d.partnerOp, d.partnerValue),
   }
 }
+
+/** A new "and" on the boat: no spec chosen yet. */
+export const blankAnd = (): AlsoDraft => ({ key: '', op: 'eq', value: '' })
+
+/** A new exception: the boat's model, and `is not`, said "except the …". */
+export const blankExcept = (): AlsoDraft => ({ key: 'boat::model', op: 'neq', value: '' })
 
 /** A side moved to another spec: its word kept where the new spec can say it, its value kept
  *  where the new spec carries it — a figure is retyped, a word chosen again. */
@@ -168,6 +197,7 @@ export function draftOf(rule: ConstraintDef, world: PairWorld): Draft | null {
     boatKey: shape.boat.key,
     boatOp: shape.boat.op,
     boatValue: shape.boat.value,
+    also: (shape.also ?? []).map((a) => ({ key: a.key, op: a.op, value: a.value })),
     partnerKind: shape.partnerKind,
     partnerKey: shape.partner.key,
     partnerOp: shape.partner.op,
@@ -194,6 +224,7 @@ export function ruleOfDraft(
   return pairRule({
     orgId,
     boat: { column: columnAt(cols.boat, d.boatKey), op: d.boatOp, value: d.boatValue },
+    also: d.also.map((a) => ({ column: columnAt(cols.boat, a.key), op: a.op, value: a.value })),
     partnerKind: d.partnerKind,
     partner: {
       column: columnAt(cols[d.partnerKind], d.partnerKey),
@@ -220,6 +251,8 @@ export function draftChanged(d: Draft, rule: ConstraintDef, world: PairWorld): b
     was.boatKey !== d.boatKey ||
     was.boatOp !== d.boatOp ||
     was.boatValue.trim() !== d.boatValue.trim() ||
+    JSON.stringify(was.also) !==
+      JSON.stringify(d.also.map((a) => ({ key: a.key, op: a.op, value: a.value.trim() }))) ||
     was.partnerKind !== d.partnerKind ||
     was.partnerKey !== d.partnerKey ||
     was.partnerOp !== d.partnerOp ||
@@ -276,6 +309,11 @@ export interface StatedRule {
   shown: number
   /** the clause is never refused, so `shown` counts what sits under it and `counted` says so */
   under: boolean
+  /** MEASURED ON THE SHEET LOADED HERE, with its exceptions by name — null where this sheet
+   *  cannot test it, and the figure drawn is the workbook's, said as the workbook's */
+  live: HouseMeasure | null
+  /** what the build does with it */
+  does: { does: BuildDoes; said: string } | null
   /** `held / tested`, derived */
   rate: string
   /** nobody wrote it down: it is a pattern in the values, and would only ever warn */
@@ -284,23 +322,54 @@ export interface StatedRule {
   sayable: boolean
 }
 
-export function statedRules(cols: Columns): StatedRule[] {
+/**
+ * THE PRICE LIST'S OWN CLAUSES, each measured on the sheet loaded here where the sheet can test it
+ * (`houseMeasures.ts`; judge.md, data round, missing item 1: "581 of 581, each measured on it"
+ * would still print after a new price list came in). Where it cannot, the workbook's figure is
+ * drawn and said to be the workbook's. The words are the ledger's, never reworded here.
+ */
+export function statedRules(cols: Columns, world?: PairWorld): StatedRule[] {
   return PAIRING_RULES.map((entry) => {
     const seed = WORKBOOK_RULES.find((s) => s.ref === entry.ref)
     const measure = entry.measure ?? null
+    const live = world ? measureClause(entry.ref, world) : null
     return {
       ref: entry.ref,
       group: entry.group,
       said: entry.said,
-      counted: entry.counted,
+      counted: live ? live.counted : entry.counted,
       measure,
-      shown: measure ? shownOf(entry, measure) : 0,
+      shown: live
+        ? live.under
+          ? live.tested - live.held
+          : live.held
+        : measure
+          ? shownOf(entry, measure)
+          : 0,
       under: entry.counts === 'under',
       rate: measure ? holdRate(measure) : '',
       noticed: seed?.evidence === 'observed',
       sayable: draftFromPriceList(entry.ref, cols) !== null,
+      live,
+      does: BUILD_DOES[entry.ref] ?? null,
     }
   })
+}
+
+/** The figure a stated clause draws: off the sheet where it was measured here, else the
+ *  workbook's. */
+export function figureOf(s: StatedRule): { shown: number; of: number } | null {
+  if (s.live) return { shown: s.shown, of: s.live.tested }
+  return s.measure ? { shown: s.shown, of: s.measure.tested } : null
+}
+
+/** "The 3 that break it", "The 72 under it" — or '' where none does. */
+export function exceptionsSaid(s: StatedRule): string {
+  const n = s.live?.exceptions.length ?? 0
+  if (n === 0) return ''
+  return s.under
+    ? `The ${count(n)} under it`
+    : `The ${count(n)} that ${n === 1 ? 'breaks' : 'break'} it`
 }
 
 /* ---------------------------------------------------------- */
@@ -378,12 +447,13 @@ export function costSaid(reach: PairReach, verb: Verb): string {
   const ex = reach.example
   if (!ex) return `Nothing. No ${noun.one} on the price list breaks it today.`
   if (!ex.made) {
-    const fewer = `${count(reach.refused)} fewer ${reach.refused === 1 ? noun.one : noun.many}`
+    /* "No sale." read as "you cannot sell" (judge.md, data round, B7): it costs NO sale, said so */
+    const them = `${count(reach.refused)} ${reach.refused === 1 ? noun.one : noun.many}`
     if (verb === 'off')
-      return `Nothing today: it is off. Switched on it would cost no sale either — only a search past the price list would find ${fewer} for these boats.`
+      return `Nothing today: it is off. Switched on, it would cost no sale either: it would refuse ${them} only when one is searched for past the price list.`
     if (verb === 'warns')
-      return `No sale. Nothing the price list makes for these boats breaks it; a search past the list warns about ${count(reach.refused)} ${reach.refused === 1 ? noun.one : noun.many}.`
-    return `No sale. Nothing the price list makes for these boats breaks it; a search past the list finds ${fewer}.`
+      return `It costs no sale: nothing your price list makes for these boats breaks it. It warns about ${them} only when one is searched for past the list.`
+    return `It costs no sale: nothing your price list makes for these boats breaks it. It refuses ${them} only when one is searched for past the list.`
   }
   const others = reach.modelsLosing - 1
   const lost = namesSaid(ex.names, ex.more)
@@ -392,7 +462,7 @@ export function costSaid(reach: PairReach, verb: Verb): string {
       others > 0 ? `, and ${plural(others, 'more model', 'more models')} would lose one too` : ''
     }.`
   if (verb === 'warns')
-    return `No sale: the ${ex.boat} keeps ${lost}, with your because beside it${
+    return `It costs no sale: the ${ex.boat} keeps ${lost}, with your because beside it${
       others > 0
         ? `, and so ${others === 1 ? 'does' : 'do'} ${plural(others, 'more model', 'more models')}`
         : ''
@@ -501,6 +571,8 @@ export interface House {
   kept: number
   written: number
   off: number
+  /** of the kept, how many are measured on the sheet loaded here */
+  measured?: number
 }
 
 /**
@@ -512,18 +584,27 @@ export function houseOf(book: readonly Part[]): House {
   let kept = 0
   let written = 0
   let off = 0
+  let measured = 0
   for (const part of book) {
     kept += part.stated.length
+    measured += part.stated.filter((s) => s.item.live !== null).length
     written += part.yours.length
     off += part.yours.filter((y) => y.item.verb === 'off').length
   }
-  return { kept, written, off }
+  return { kept, written, off, measured }
 }
 
-/** The lede's two sentences of fact: "Your price list keeps 7 of these on its own, each measured
- *  on it. Northside has written 2, 1 of them off." */
-export function houseSaid({ kept, written, off }: House): string {
-  const keeps = `Your price list keeps ${count(kept)} of these on its own, each measured on it.`
+/** The lede's two sentences of fact: "Your price list keeps 7 rules of its own about what may be
+ *  sold with what, 6 of them measured on it here. Northside has written 2, 1 of them off." The
+ *  noun is said before "these" ever could be (judge.md, data round, B7). */
+export function houseSaid({ kept, written, off, measured = kept }: House): string {
+  const where =
+    measured === kept
+      ? 'each measured on it here'
+      : measured === 0
+        ? 'each measured on the workbook it came from'
+        : `${count(measured)} of them measured on it here`
+  const keeps = `Your price list keeps ${count(kept)} rules of its own about what may be sold with what, ${where}.`
   if (written === 0) return `${keeps} Northside has written none yet.`
   const offSaid =
     off === 0

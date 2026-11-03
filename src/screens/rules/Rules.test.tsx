@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { engineWordsIn } from '@/screens/configurator/say'
-import { Rules } from './Rules'
+import { Rules, type RulesAt } from './Rules'
 
 let pack: PackFixture
 
@@ -32,13 +32,21 @@ const TILLER_SAID =
   'When the boat’s steering is tiller, the motor’s controls must be Tiller handle.'
 const BECAUSE = 'a tiller boat has no helm to steer a remote motor from'
 
-function draw(open = '') {
+/* THE PAGE'S POSITIONS ARE THREE SEARCH PARAMS since 2026-11-03 (`open`, `look`, `on`): `onOpen`
+   is the `open` the page asked for, as before */
+function draw(open = '', look = '') {
   const onOpen = vi.fn<(open: string) => void>()
+  const go = vi.fn<(next: Partial<RulesAt>) => void>((next) => {
+    if ('open' in next) onOpen(next.open ?? '')
+  })
   const openTheFile = vi.fn<() => void>()
-  const view = render(<Rules open={open} onOpen={onOpen} openTheFile={openTheFile} />)
-  const again = (next: string) =>
-    view.rerender(<Rules open={next} onOpen={onOpen} openTheFile={openTheFile} />)
-  return { onOpen, openTheFile, again, ...view }
+  const props = { go, openTheFile, listHref: (t: string, l: string) => `/data/${t}?at=${l}` }
+  const view = render(<Rules at={{ open, look, on: '' }} follow={() => {}} {...props} />)
+  const again = (next: string, nextLook = look) =>
+    view.rerender(
+      <Rules at={{ open: next, look: nextLook, on: '' }} follow={() => {}} {...props} />,
+    )
+  return { onOpen, go, openTheFile, again, ...view }
 }
 
 const part = (name: RegExp) => within(screen.getByRole('region', { name }))
@@ -72,29 +80,33 @@ describe('the first day', () => {
     expect(catalogue.getState().constraintDefs).toHaveLength(0)
   })
 
-  it('numbers the price list’s seven clauses, each with its measure off the file', () => {
+  /* MEASURED ON THE SHEET LOADED HERE since 2026-11-03 (`houseMeasures.ts`): the workbook's 581,
+     530, 757 were constants; the sheet's own counts are 626, 351 and 778 */
+  it('numbers the price list’s seven clauses, each measured on the sheet loaded here', () => {
     draw()
     expect(screen.getAllByTestId('stated-rule')).toHaveLength(7)
     const trailers = part(/Trailers/)
     expect(trailers.getByText('1.1')).toBeTruthy()
     expect(
       trailers.getByLabelText(
-        'Holds on 581 of 581 trailer offers on today’s boats whose series names a boat maker',
+        'Holds on 626 of 626 trailer offers on today’s boats whose series names a boat maker',
       ),
     ).toBeTruthy()
     /* A CLAUSE THAT IS NEVER REFUSED IS MEASURED ON WHAT IT SAYS: how many sit under it, never
        how many hold, which read as the rest refused (built-critique-m3.md, major 4) */
     expect(
       trailers.getByLabelText(
-        '0 of 530 trailer offers on today’s boats that state both weights are rated under the boat',
+        '0 of 351 trailer offers on today’s boats that state both weights are rated under the boat',
       ),
     ).toBeTruthy()
     expect(
       part(/Motors/).getByLabelText(
-        '72 of 757 standard motor offers on today’s boats sit under it, on purpose',
+        '72 of 778 standard motor offers on today’s boats sit under it, on purpose',
       ),
     ).toBeTruthy()
-    expect(screen.queryByLabelText(/685 of 757/)).toBeNull()
+    expect(screen.queryByLabelText(/706 of 778/)).toBeNull()
+    /* each says what the build does with it */
+    expect(trailers.getAllByText(/^In the build:/)).toHaveLength(2)
     /* the parts count what is on sale, as every screen counts it */
     expect(trailers.getByText('434 on sale')).toBeTruthy()
     expect(part(/Motors/).getByText('241 on sale')).toBeTruthy()
@@ -109,7 +121,7 @@ describe('the first day', () => {
     expect(f7.getByText('A boat steered from a remote helm is never given a tiller motor.'))
     expect(
       f7.getByText(
-        'It holds on 7,830 of 7,830 motor offers on a remote boat, discontinued boats included. Nobody wrote it down, so the build does nothing with it.',
+        'It holds on 3,144 of 3,144 motor offers on today’s remote boats. Nobody wrote it down, so the build does nothing with it.',
       ),
     ).toBeTruthy()
     expect(f7.getByRole('button', { name: 'Say it as Northside’s' })).toBeTruthy()
@@ -123,7 +135,7 @@ describe('the first day', () => {
     expect(part(/Rigging/).queryByRole('button', { name: /Write a rule/ })).toBeNull()
     expect(
       part(/Rigging/).getByText(
-        'A rule here is written about a motor or a trailer, so this part is your price list’s alone.',
+        'A rule here decides a motor or a trailer, so this part is your price list’s alone.',
       ),
     ).toBeTruthy()
     screen.getByRole('button', { name: 'Write a rule about motors' }).click()
@@ -158,11 +170,14 @@ describe('writing one', () => {
     const census = within(screen.getByRole('region', { name: 'Counted now, before it is added' }))
     expect(census.getByText('models it is about')).toBeTruthy()
     expect(census.getByText('offers your price list makes for them, taken away')).toBeTruthy()
+    expect(census.getByText('motors it refuses on them')).toBeTruthy()
+    /* the motors it cannot read are said under the figures, never inside the third one, which ran
+       to four lines in a 147px cell at 390 (judge.md, data round, B11) */
     expect(
-      census.getByText(
-        'motors it refuses on them; the 32 ePropulsion carry no controls, so it says nothing of them',
-      ),
+      census.getByText('The 32 ePropulsion carry no controls, so it says nothing of them.'),
     ).toBeTruthy()
+    /* the offers it takes, by name */
+    expect(within(screen.getByTestId('taken')).getByText('Highfield Classic 340')).toBeTruthy()
     /* one line of marks a maker, every model the picker counts */
     expect(census.getAllByTestId('field-maker')).toHaveLength(7)
     expect(census.getByText('29 of 67')).toBeTruthy()
@@ -252,7 +267,9 @@ describe('writing one', () => {
     expect(open.getByText(/^Northside’s, written /)).toBeTruthy()
     expect(open.queryByText(/being rewritten/)).toBeNull()
     expect(open.queryByRole('button', { name: 'Keep the change' })).toBeNull()
-    const acts = open.getAllByRole('button').map((b) => b.textContent)
+    const acts = within(open.getByRole('group', { name: 'What to do with it' }))
+      .getAllByRole('button')
+      .map((b) => b.textContent)
     expect(acts.indexOf('Close')).toBeLessThan(acts.indexOf('Delete 2.4'))
     expect(acts.at(-1)).toBe('Delete 2.4')
 
@@ -260,7 +277,10 @@ describe('writing one', () => {
     const because = open.getByRole('textbox', { name: 'Because' })
     await user.type(because, ' at all')
     expect(open.getByText(/· being rewritten$/)).toBeTruthy()
-    expect(open.getAllByRole('button')[0]!.textContent).toBe('Keep the change')
+    expect(
+      within(open.getByRole('group', { name: 'What to do with it' })).getAllByRole('button')[0]!
+        .textContent,
+    ).toBe('Keep the change')
   }, 60_000)
 
   it('words rewritten and not kept are still there after leaving and coming back', async () => {

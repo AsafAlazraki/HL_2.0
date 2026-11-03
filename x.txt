@@ -1,0 +1,7 @@
+tiller reach taken 45 of 540
+  Highfield 45: Highfield Classic 340 -> Yamaha F25SWTC (3); Highfield Classic 360 -> Yamaha F25SWTC (2); Highfield Classic 360 LS -> Yamaha F25SWTC (2); Highfield Classic 380 -> Yamaha F25SWTC (2); Highfield Classic 380 LS -> Yamaha F25SWTC (2)
+empties: []
+uc Stabicraft - 2350 Ultra Centrecab (Adventure) ; series ALLOY CENTRE-LINE SERIES,ALLOY LOADER PRO SERIES (Suits - Alloy Boats),ALLOY LOADER PRO SERIES (Suits - Fibreglass Boats)
+uc trailer taken 3 of 3; empties [{"said":"Stabicraft 2350 Ultra Centrecab","made":3,"with":[]}]
+on CL340: {"said":"Highfield Classic 340","about":true,"items":[{"what":"Yamaha F20SMHB","verdict":"keeps"},{"what":"Yamaha F25SMHC","verdict":"keeps"},{"what":"Yamaha F25SWTC","verdict":"taken"}]}
+except CL340 taken 36; models [{"value":"CL340","said":"Highfield Classic 340","count":1,"group":"Highfield"},{"value":"CL340FT","said":"Highfield Classic 340 FT","count":1,"group":"Highfield"},{"value":"CL340LS","said":"Highfield Classic 340 LS","count":1,"group":"Highfield"}]

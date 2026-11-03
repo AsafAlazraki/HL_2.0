@@ -11,6 +11,9 @@ import { sortFigure } from '@/domain/chandlery/prices'
 import { supplierSaid, suppliersIn } from '@/domain/chandlery/suppliers'
 import { noPriceStandings } from '@/domain/chandlery/reviewCase'
 import { unpicturedByUse } from '@/domain/chandlery/worklist'
+import { inShow, showCounts, suppliersShown, type ShowReaders } from '@/domain/chandlery/facets'
+import { saidNames, supplierReadings, suppliersElsewhere } from '@/domain/chandlery/readings'
+import { lineKindOf } from '@/domain/chandlery/prices'
 import { MEANT_PREF, meantOf } from '@/screens/review/read'
 import { copyOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
 import { letterheadNow } from '@/app/northside'
@@ -82,9 +85,19 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
   )
 
   const table = ready ? partsTable(ctx) : undefined
-  const named = ctx.org?.suppliers
   const placed = ctx.org?.aisles
   const shelf = useMemo(() => (table ? shelfOf(ctx) : []), [ctx, table])
+  /* HOW EVERY SUPPLIER CODE IS SAID: what the price list says of it itself, and Northside's own
+     name over that (src/domain/chandlery/readings.ts) */
+  const readings = useMemo(
+    () =>
+      table
+        ? supplierReadings(shelf, suppliersElsewhere(ctx.entities, ctx.rowsByEntity, table.id))
+        : [],
+    [ctx.entities, ctx.rowsByEntity, table, shelf],
+  )
+  const own = ctx.org?.suppliers
+  const named = useMemo(() => saidNames(readings, own), [readings, own])
   const byId = useMemo(() => new Map(shelf.map((p) => [p.id, p])), [shelf])
   const pricers = useMemo(() => pricersOf(ctx), [ctx])
   /* A PART IS PRICED WHEN A PAGE SHOWS IT, once per sheet (`pricedOnce`) */
@@ -142,8 +155,9 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
         : new Map(),
     [table, ctx, meantPref],
   )
+  /* only a part takes a picture: labour and the workbook's notes are never drawn with one */
   const worklist = useMemo(
-    () => unpicturedByUse(shelf, hasPicture, timesQuoted),
+    () => unpicturedByUse(shelf, hasPicture, timesQuoted, takesPicture),
     [shelf, timesQuoted],
   )
   const mark = useMemo(
@@ -195,6 +209,7 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
     reviewOf: (id) => standings.get(id),
     open: at.open,
     onOpen: (id) => go({ open: id }),
+    boatName: boat?.name,
   }
 
   let body
@@ -217,7 +232,15 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
   } else if (!table) {
     body = <p className="chd-none">The price list carries no parts and accessories.</p>
   } else if (at.view === 'suppliers') {
-    body = <Suppliers shelf={shelf} named={named} back={hrefOf({ boat: at.boat })} go={goHref} />
+    body = (
+      <Suppliers
+        shelf={shelf}
+        own={own}
+        readings={readings}
+        back={hrefOf({ boat: at.boat })}
+        go={goHref}
+      />
+    )
   } else if (at.view === 'pictures') {
     body = (
       <Pictures
@@ -290,8 +313,10 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
         nameOf={(p) => ware(p).name}
         around={around}
         suppliers={new Set(shelf.map((p) => p.maker.trim()).filter((m) => m !== '')).size}
-        namedSuppliers={Object.keys(named ?? {}).length}
+        readSuppliers={readings.length}
+        namedSuppliers={Object.values(own ?? {}).filter((n) => n.trim() !== '').length}
         without={worklist.without}
+        takes={worklist.total}
         goPictures={() => go({ view: 'pictures' }, true)}
       />
     )
@@ -321,7 +346,16 @@ interface AisleFigures {
   sections: Section<Shelved>[]
   total: number
   pictured: number
+  /** the aisle's parts that could take a picture and have none (labour and notes take none) */
+  without: number
+  /** Pictured · All · No picture, counted under the supplier and the find chosen */
+  showCounts: Record<CatalogueAt['show'], number>
+  /** the suppliers, counted under which parts are shown and the find; the one chosen is kept
+   *  at 0 where none of its parts are shown, so it can be let go */
   suppliers: ReturnType<typeof suppliersIn>
+  supplierCount: number
+  /** the parts shown under which parts and the find, before a supplier narrows them */
+  shownAll: number
   wrongSupplier: boolean
   madeHere: Shelved[]
   madeElsewhere: { name: string; parts: number }[]
@@ -350,18 +384,22 @@ function aisleFigures({
 }): AisleFigures {
   const inAisle = shelf.filter((p) => p.aisle === aisleId)
   const wares = inAisle.map(ware)
-  const suppliers = suppliersIn(inAisle, named)
-  const wrongSupplier = at.supplier !== '' && !suppliers.some((s) => s.said === at.supplier)
-  const pictured = wares.filter((w) => w.tile?.picture).length
-  let list = wares
-  if (at.supplier !== '' && !wrongSupplier) list = list.filter((w) => w.supplier === at.supplier)
-  if (at.find.trim().length >= 2)
-    list = findLines(
-      list.map((w) => ({ ...w, makerSaid: w.supplier })),
-      at.find,
-    ).found
-  if (at.show === 'pictured') list = list.filter((w) => w.tile?.picture)
-  if (at.show === 'without') list = list.filter((w) => !w.tile?.picture)
+  const every = suppliersIn(inAisle, named)
+  const wrongSupplier = at.supplier !== '' && !every.some((s) => s.said === at.supplier)
+  const whole = showCounts(wares, SHOWN)
+  /* EACH CHOICE COUNTED UNDER THE OTHER TWO (src/domain/chandlery/facets.ts): find first, then
+     which parts for the suppliers' counts, and the supplier for which parts' counts */
+  const found =
+    at.find.trim().length >= 2
+      ? findLines(
+          wares.map((w) => ({ ...w, makerSaid: w.supplier })),
+          at.find,
+        ).found
+      : wares
+  const bySupplier =
+    at.supplier !== '' && !wrongSupplier ? found.filter((w) => w.supplier === at.supplier) : found
+  const inShown = found.filter((w) => inShow(w, at.show, SHOWN))
+  const list = bySupplier.filter((w) => inShow(w, at.show, SHOWN))
   /* the headings that hold a photograph first, so a pictured aisle opens on its pictures */
   const sections = picturedFirst(sectionsOf(list), (w) => Boolean(w.tile?.picture)).map((s) => ({
     ...s,
@@ -378,13 +416,26 @@ function aisleFigures({
     front: fronts.find((f) => f.count.aisle.id === aisleId),
     sections,
     total: wares.length,
-    pictured,
-    suppliers,
+    pictured: whole.pictured,
+    without: whole.without,
+    showCounts: showCounts(bySupplier, SHOWN),
+    suppliers: suppliersShown(suppliersIn(inShown, named), every, at.supplier),
+    supplierCount: every.length,
+    shownAll: inShown.length,
     wrongSupplier,
     madeHere,
     madeElsewhere: [...elsewhere].map(([name, parts]) => ({ name, parts })),
     madeTotal: madeParts.length,
   }
+}
+
+/** A LINE TAKES A PICTURE where it is a part: labour and the workbook's notes never do. */
+const takesPicture = (p: { product: string }): boolean => lineKindOf(p.product) === 'part'
+
+/** Which parts an aisle shows, read off a priced part. */
+const SHOWN: ShowReaders<Ware> = {
+  pictured: (w) => Boolean(w.tile?.picture),
+  takes: (w) => w.kind === 'part',
 }
 
 /** EVERY PART PRICED ONCE PER SHEET: the pricers are made once per sheet, so they key the
