@@ -1085,6 +1085,70 @@
   color: var(--color-ink-on-act);
 }
 
+/* ---- a boat: name · fact · price · its two doors ------------------------------------ */
+
+/* A BOAT FOUND CARRIES ITS OWN TWO DOORS (fit-flow, direction A, 2026-11-05), What fits and
+   Quote it, the words and the order of a boat's card on Home. The row is the group's subgrid
+   like any other line; the doors stand in the verb's column. The doors are the options, so the
+   cursor's wash is on the door Enter would open, and the row itself is never washed. */
+.way-boat {
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
+  margin-inline: --spacing(2);
+  padding: --spacing(1.5) --spacing(2);
+  border-radius: var(--radius-glyph);
+}
+.way-boat__doors {
+  display: inline-flex;
+  justify-self: end;
+  gap: --spacing(1.5);
+}
+.way-boat__door {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: --spacing(8);
+  padding-inline: --spacing(3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+.way-boat__door[data-door='quote'] {
+  color: var(--color-ink-on-act);
+  background: var(--color-act);
+  box-shadow: none;
+}
+/* THE DOOR UNDER THE CURSOR is the kit's chosen ring, outside the pill, so it reads on the
+   tint and on the amber alike */
+@media (hover: hover) and (pointer: fine) {
+  .way-boat__door[data-door='fits']:hover {
+    box-shadow: inset 0 0 0 1px var(--color-blue-400);
+  }
+  .way-boat__door[data-door='quote']:hover {
+    box-shadow: var(--shadow-act);
+  }
+}
+.way-boat__door[data-selected='true'] {
+  box-shadow: var(--ring-chosen);
+}
+
+/* A NARROW WINDOW IS A HAND (fit-flow, 2026-11-05: the walk's phone showed "Enter opens it."
+   and an Esc key on a touch screen). Under 760px neither is drawn, whatever pointer the
+   browser reports: the keys still work the moment a keyboard is there. */
+@media (max-width: 759.98px) {
+  .way-say__keys,
+  .way-finder__esc {
+    display: none;
+  }
+}
+
 /* ---- the ? sheet ------------------------------------------------------------------- */
 
 /* UNDER `pointer: fine` ONLY. A phone has none of these keys, and the sheet is opened by a
@@ -1289,6 +1353,32 @@
   .way-row__verb {
     grid-area: 2 / 2;
     justify-self: end;
+  }
+  /* A BOAT IN A HAND: its name and price, what is counted, then its two doors across the row,
+     each half of it, so a thumb has a whole door to press */
+  .way-boat {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: --spacing(1);
+    column-gap: --spacing(3);
+  }
+  .way-boat .way-row__name {
+    grid-area: 1 / 1;
+  }
+  .way-boat .way-row__figure {
+    grid-area: 1 / 2;
+  }
+  .way-boat .way-row__fact {
+    grid-area: 2 / 1 / 3 / 3;
+  }
+  .way-boat__doors {
+    grid-area: 3 / 1 / 4 / 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-self: stretch;
+    margin-block-start: --spacing(1);
+  }
+  .way-boat__door {
+    min-block-size: --spacing(10);
   }
   /* ONE "OPEN IT ON THE SHEET", NOT EIGHT. At 390 the phrase is 150px, and printed on every
      motor it took the right-hand column from the names, so "Yamaha - F90LB2 (White)" broke in

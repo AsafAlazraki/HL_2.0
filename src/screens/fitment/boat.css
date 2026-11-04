@@ -1,0 +1,891 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN — the reason is at the head of src/screens/history/
+   history.css: `@reference` loads the theme for `--spacing(n)` and adds no byte. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   WHAT FITS ONE BOAT — direction A of the fit flow, "Two doors, one
+   page" (docs/directions/fit-flow/boards/a-two-doors-one-page.html).
+   This page's own rules; nothing is shared with another screen.
+
+   ONE COLUMN, READ TOP TO BOTTOM: the crumb, the head (the model, its
+   version, its price, its photograph), what the boat takes in one row,
+   the three places' jump links, then Motor, Trailer and Fit-out, each a
+   title column beside its body on a desk. Choices are lines on white
+   plates, the name over its facts and the price at the end. Nothing on
+   the page opens or closes.
+
+   THE QUOTE THIS STARTS is a dark plate fixed at the window's foot at
+   every size, above the phone's tab bar; the page keeps room under its
+   last line so nothing stays under it. Change mode is the same page
+   under an ochre band, and its bar keeps the changes made here.
+
+   WHAT NORTHSIDE CHANGES HERE, without a rebuild (docs/CUSTOMISATION.md):
+   the accent (the chosen ring, the marks, the links), the act's amber
+   (Start the quote), the ochre of change mode, and the photographs.
+
+   ------------------------------------------------------------------------------------
+   HOW IT REFLOWS — the six windows the rulers measure:
+
+     1920 × 1080  the 1200px column centred; the photograph 420px beside the
+     1440 × 900   head's words; what it takes in one row; each place's title
+     1280 × 800   in a 220px column beside its lines; the reasons three across.
+     834 × 1112   the photograph 300px; what it takes four across; a place's
+                  title over its lines; the reasons two across.
+     844 × 390    the photograph 240px beside the title; the quote bar one
+                  line, the names left to the page.
+     390 × 844    the photograph first, the width of the window; the title
+                  at 30px; what it takes three across; each line its name
+                  over its facts, the price and its state under them; one
+                  reason to a row; the quote bar two lines above the tab bar.
+   ============================================================ */
+
+.ft[data-mode='page'],
+.ft[data-mode='change'] {
+  /* THE ROOM UNDER THE LAST LINE, before it is measured: the quote bar's height and its air, so
+     the page's end scrolls clear of it at every size */
+  --fp-room: --spacing(30);
+  padding-block-end: 0;
+}
+/* the room under the last line: the bar's own height as the page measures it (`useRoomUnder`),
+   and this until it has */
+.fp-room {
+  block-size: calc(var(--shell-foot) + var(--fp-room));
+}
+
+.fp {
+  --gutter: --spacing(10);
+  /* THE COLUMNS EACH ROW IS SET ON, and each thing's span of them, written on the element by the
+     page (`gridOf`); these are what a row reads with nothing written */
+  --fp-c-desk: 1;
+  --fp-c-mid: 1;
+  --fp-c-phone: 1;
+  --fp-shape: 4 / 3;
+  box-sizing: border-box;
+  display: grid;
+  gap: --spacing(8);
+  inline-size: 100%;
+  max-inline-size: calc(1200px + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+/* ---- the crumb, and Another boat ---- */
+
+.fp-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3);
+}
+.fp-crumb__trail {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.fp-crumb__link,
+.fp-note__link {
+  color: var(--color-ink-file);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: --spacing(0.75);
+  border-radius: var(--radius-xs);
+}
+.fp-crumb__link:focus-visible,
+.fp-note__link:focus-visible,
+.fp-jump__to:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.fp-crumb__sep {
+  color: var(--color-ink-3);
+}
+
+/* ---- the head ---- */
+
+.fp-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: --spacing(10);
+}
+.fp-head[data-picture] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+}
+.fp-head__words {
+  display: grid;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+.fp-kicker {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink-file);
+}
+.fp-title {
+  margin: 0;
+  font-size: var(--text-6xl);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-display);
+  font-weight: 300;
+}
+.fp-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+}
+.fp-version__pick {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.fp-version__of,
+.fp-version__one {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.fp-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.fp-price__fig {
+  color: var(--color-ink);
+}
+.fp-price__code {
+  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.fp-retired {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-act-ink);
+}
+
+.fp-photo {
+  position: relative;
+  margin: 0;
+  aspect-ratio: var(--fp-shape);
+  max-block-size: 320px;
+  justify-self: end;
+  inline-size: 100%;
+  border-radius: var(--radius-plate);
+  overflow: hidden;
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+}
+.fp-photo__acts {
+  position: absolute;
+  inset-inline-end: --spacing(2);
+  inset-block-end: --spacing(2);
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+.fp-photo__many {
+  padding: --spacing(1) --spacing(2.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* ---- what the boat takes ---- */
+
+.fp-takes {
+  display: grid;
+  grid-template-columns: repeat(var(--fp-c-desk), minmax(0, 1fr));
+  gap: --spacing(4);
+  margin: 0;
+  padding-block: --spacing(4);
+  border-block: 1px solid var(--color-rule);
+}
+.fp-takes__one,
+.fp-reason {
+  --fp-s-desk: 1;
+  --fp-s-mid: 1;
+  --fp-s-phone: 1;
+}
+.fp-takes__one {
+  grid-column: span var(--fp-s-desk);
+  min-inline-size: 0;
+}
+.fp-takes__label {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink-3);
+}
+.fp-takes__value {
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.fp-takes__sub {
+  display: block;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+
+/* ---- the jump links ---- */
+
+.fp-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+.fp-jump__to {
+  display: inline-flex;
+  align-items: baseline;
+  gap: --spacing(2);
+  min-block-size: --spacing(10);
+  box-sizing: border-box;
+  padding: --spacing(2.5) --spacing(4);
+  border-radius: var(--radius-pill);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-ink);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.fp-jump__word {
+  font-weight: 600;
+}
+.fp-jump__n {
+  color: var(--color-ink-2);
+}
+@media (hover: hover) {
+  .fp-jump__to:hover {
+    box-shadow: var(--ring-chosen);
+  }
+}
+
+/* ---- a place ---- */
+
+.fp-place {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: --spacing(10);
+  padding-block-start: --spacing(8);
+  border-block-start: 1px solid var(--color-rule);
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(2));
+}
+.fp-place__head {
+  min-inline-size: 0;
+}
+.fp-place__title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+  font-weight: 600;
+}
+.fp-place__lead {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+}
+.fp-place__body {
+  display: grid;
+  gap: --spacing(4);
+  min-inline-size: 0;
+}
+
+/* ---- one choice ---- */
+
+.fp-lines {
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fp-line {
+  border-radius: var(--radius-tile);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-sm);
+}
+.fp-line[data-chosen] {
+  box-shadow: var(--ring-chosen);
+}
+.fp-line__press {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(1) --spacing(4);
+  padding: --spacing(3.5) --spacing(4);
+  border-radius: inherit;
+}
+.fp-lines[data-change] .fp-line__press {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+label.fp-line__press {
+  cursor: pointer;
+}
+@media (hover: hover) {
+  label.fp-line__press:hover {
+    background: var(--color-chosen-wash);
+  }
+}
+/* the native control keeps the keyboard (arrows in a radio group, Space on a tick); its mark is
+   drawn beside it, and its focus is the line's */
+.fp-line__input {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: --spacing(5);
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  opacity: 0;
+}
+.fp-line__press:has(.fp-line__input:focus-visible) {
+  box-shadow: var(--shadow-focus);
+}
+.fp-line__mark {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(5.5);
+  block-size: --spacing(5.5);
+  box-sizing: border-box;
+  border: --spacing(0.5) solid var(--color-control-edge);
+  border-radius: 50%;
+  color: var(--color-ink-on-accent);
+}
+.fp-line__press:has(input[type='checkbox']) .fp-line__mark {
+  border-radius: var(--radius-xs);
+}
+.fp-line[data-chosen] .fp-line__mark {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+.fp-line[data-refused] .fp-line__mark {
+  border: none;
+  color: var(--color-act-ink);
+}
+.fp-line__words {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.fp-line__name {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.fp-line__facts {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.fp-line__rule {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-act-ink);
+  font-weight: 600;
+}
+.fp-line__end {
+  display: grid;
+  justify-items: end;
+  gap: --spacing(1);
+  text-align: end;
+}
+.fp-line__price {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fp-line__state {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+.fp-line[data-chosen] .fp-line__state {
+  color: var(--color-ink-file);
+}
+.fp-line__acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: --spacing(1);
+}
+.fp-none {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+
+.fp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  margin-inline-start: --spacing(2);
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-chosen-wash);
+  color: var(--color-ink-file);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.fp-tag[data-tone='off'] {
+  background: var(--color-ask-wash);
+  color: var(--color-ink);
+}
+
+/* ---- notes, the named, the rest ---- */
+
+.fp-note,
+.fp-rest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  max-inline-size: 80ch;
+}
+
+.fp-named,
+.fp-taken {
+  display: grid;
+  gap: --spacing(2);
+  padding: --spacing(4) --spacing(5);
+  border-radius: var(--radius-tile);
+  border-inline-start: --spacing(1) solid var(--accent-ochre);
+  background: var(--color-ask-wash);
+}
+.fp-named__head,
+.fp-taken__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.fp-named__count,
+.fp-named__say,
+.fp-taken__names {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  max-inline-size: 80ch;
+}
+.fp-named__list {
+  display: grid;
+  gap: --spacing(1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fp-named__one {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: --spacing(4);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+}
+.fp-named__name {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.fp-named__price {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.fp-refused {
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fp-refused__one {
+  display: grid;
+  gap: --spacing(1);
+}
+
+/* ---- why the rest do not go on it ---- */
+
+.fp-why {
+  display: grid;
+  gap: --spacing(3);
+  margin-block-start: --spacing(2);
+}
+.fp-why__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 600;
+}
+.fp-why__list {
+  display: grid;
+  grid-template-columns: repeat(var(--fp-c-desk), minmax(0, 1fr));
+  gap: --spacing(3) --spacing(6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fp-reason {
+  grid-column: span var(--fp-s-desk);
+  display: grid;
+  grid-template-columns: --spacing(14) minmax(0, 1fr);
+  align-items: start;
+  gap: --spacing(3);
+  padding-block-start: --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
+}
+.fp-reason__n {
+  font-size: var(--text-3xl);
+  line-height: 1;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.fp-reason[data-taken] .fp-reason__n {
+  color: var(--color-act-ink);
+  font-weight: 600;
+}
+.fp-reason__say {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.fp-reason__because {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.fp-reason__eg {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  overflow-wrap: anywhere;
+}
+.fp-reason__lead {
+  color: var(--color-ink-3);
+}
+
+/* ---- what decides the page ---- */
+
+.fp-decides {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(4);
+  padding-block-start: --spacing(6);
+  border-block-start: 1px solid var(--color-rule);
+}
+.fp-decides__say {
+  margin: 0;
+  max-inline-size: 70ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+/* ---- change mode's band ---- */
+
+.fp-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3) --spacing(4);
+  padding: --spacing(3) --spacing(3) --spacing(3) --spacing(5);
+  border-radius: var(--radius-tile);
+  border-inline-start: --spacing(1) solid var(--accent-ochre);
+  background: var(--color-ask-wash);
+}
+.fp-band__say {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+
+/* ---- the quote this starts, at the window's foot ---- */
+
+.fp-bar {
+  position: fixed;
+  z-index: 5;
+  inset-inline: 0;
+  inset-block-end: calc(var(--shell-foot) + --spacing(3));
+  box-sizing: border-box;
+  inline-size: calc(100% - 2 * var(--gutter));
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding: --spacing(3) --spacing(3) --spacing(3) --spacing(6);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-lg);
+}
+.fp-bar[data-tone='change'] {
+  box-shadow:
+    inset 0 3px 0 var(--accent-ochre),
+    var(--shadow-lg);
+}
+.fp-bar__in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: --spacing(6);
+}
+.fp-bar[data-tone='change'] .fp-bar__in {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.fp-bar__what {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.fp-bar__kicker {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.fp-bar__names {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.fp-bar__sum {
+  display: grid;
+  justify-items: end;
+  text-align: end;
+}
+.fp-bar__said {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.fp-bar__go {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: --spacing(2);
+}
+.fp-bar__why {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-act-ink);
+}
+
+/* ============================================================
+   A TABLET, AND A LAPTOP NARROWER THAN THE COLUMN
+   ============================================================ */
+@media (max-width: 1099px) {
+  .fp {
+    gap: --spacing(6);
+  }
+  .fp-head[data-picture] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+    gap: --spacing(6);
+  }
+  .fp-title {
+    font-size: var(--text-5xl);
+  }
+  .fp-takes {
+    grid-template-columns: repeat(var(--fp-c-mid), minmax(0, 1fr));
+  }
+  .fp-takes__one {
+    grid-column: span var(--fp-s-mid);
+  }
+  .fp-place {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(4);
+    padding-block-start: --spacing(6);
+  }
+  .fp-why__list {
+    grid-template-columns: repeat(var(--fp-c-mid), minmax(0, 1fr));
+  }
+  .fp-reason {
+    grid-column: span var(--fp-s-mid);
+  }
+  .fp-bar__in {
+    gap: --spacing(4);
+  }
+}
+
+/* A PHONE TURNED OVER, OR A LOW WINDOW: the photograph beside the title, the bar one line */
+@media (min-width: 600px) and (max-height: 520px) {
+  .ft[data-mode='page'],
+  .ft[data-mode='change'] {
+    --fp-room: --spacing(22);
+  }
+  .fp-head[data-picture] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 240px);
+  }
+  .fp-photo {
+    max-block-size: 180px;
+  }
+  .fp-bar {
+    inset-block-end: calc(var(--shell-foot) + --spacing(2));
+    padding-block: --spacing(2);
+  }
+  .fp-bar__names {
+    display: none;
+  }
+}
+
+/* ============================================================
+   A PHONE
+   ============================================================ */
+@media (max-width: 599px) {
+  .ft[data-mode='page'],
+  .ft[data-mode='change'] {
+    --fp-room: --spacing(40);
+  }
+  .fp {
+    --gutter: --spacing(4);
+    gap: --spacing(5);
+  }
+  .fp-head,
+  .fp-head[data-picture] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(4);
+  }
+  .fp-photo {
+    order: -1;
+    justify-self: stretch;
+    inline-size: auto;
+    max-block-size: 260px;
+    margin-inline: calc(-1 * var(--gutter));
+    border-radius: 0;
+  }
+  .fp-title {
+    font-size: var(--text-4xl);
+  }
+  .fp-takes {
+    grid-template-columns: repeat(var(--fp-c-phone), minmax(0, 1fr));
+    gap: --spacing(3);
+  }
+  .fp-takes__one {
+    grid-column: span var(--fp-s-phone);
+  }
+  .fp-takes__value {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .fp-place__title {
+    font-size: var(--text-2xl);
+  }
+  .fp-line__press {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: --spacing(3) --spacing(3.5);
+    column-gap: --spacing(3);
+  }
+  .fp-lines[data-change] .fp-line__press {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fp-line__end {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: --spacing(1) --spacing(3);
+    text-align: start;
+  }
+  .fp-lines[data-change] .fp-line__end {
+    grid-column: 1;
+  }
+  .fp-line__name {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .fp-line__price {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .fp-why__list {
+    grid-template-columns: repeat(var(--fp-c-phone), minmax(0, 1fr));
+  }
+  .fp-reason {
+    grid-column: span var(--fp-s-phone);
+  }
+  .fp-named,
+  .fp-taken {
+    padding: --spacing(3) --spacing(4);
+  }
+  .fp-bar {
+    inset-block-end: calc(var(--shell-foot) + --spacing(1.5));
+    inline-size: calc(100% - 2 * --spacing(2));
+    padding: --spacing(3) --spacing(3.5);
+  }
+  .fp-bar__in,
+  .fp-bar[data-tone='change'] .fp-bar__in {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: --spacing(2);
+    column-gap: --spacing(3);
+  }
+  /* the kicker across the top; the figure under it at the start, the press at the end */
+  .fp-bar__what {
+    grid-column: 1 / -1;
+  }
+  .fp-bar__names {
+    display: none;
+  }
+  .fp-bar[data-tone='change'] .fp-bar__names {
+    display: block;
+  }
+  .fp-bar__sum {
+    justify-items: start;
+    text-align: start;
+  }
+  .fp-bar[data-tone='change'] .fp-bar__go {
+    grid-column: 1 / -1;
+  }
+}

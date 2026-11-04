@@ -72,6 +72,14 @@ export const Route = createRootRoute({
 function Root() {
   const navigate = useNavigate()
   const at = useRouterState({ select: (s) => s.location.pathname })
+  /* THE DOOR A ROOM WAS REACHED FROM, where its address says (`?from=home`, fit-flow
+     2026-11-05): the shell lights that door rather than the one the room is behind */
+  const from = useRouterState({
+    select: (s) => {
+      const said = (s.location.search as Record<string, unknown>).from
+      return typeof said === 'string' ? said : null
+    },
+  })
   const go = useCallback((href: string) => void navigate({ href }), [navigate])
   return (
     /* THE KIT'S THREE ROOTS, 2026-09-28, each mounted once above every screen and never per
@@ -81,7 +89,7 @@ function Root() {
        today it was wrapped and mounted nowhere, so no toast could ever be seen. */
     <MotionRoot>
       <TooltipProvider>
-        <ShellAround at={at} go={go} org={PACK_ORG_ID}>
+        <ShellAround at={at} go={go} org={PACK_ORG_ID} from={from}>
           <Outlet />
         </ShellAround>
         <Toaster />

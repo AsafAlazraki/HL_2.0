@@ -211,8 +211,9 @@ test('Fitment: the boat’s window opens its gallery on the picture it draws', a
   await expect(press).toBeVisible()
   const n = Number(/’s (\d+) pictures/.exec((await press.getAttribute('aria-label')) ?? '')?.[1])
   expect(n).toBeGreaterThan(1)
-  await expect(page.locator('.ft-window__many')).toHaveText(String(n))
-  await shot(page, 'fitment-window', info.project.name, page.locator('.ft-plate'))
+  /* the count says what it counts (the fit-flow walk: an unlabelled 2 on the picture) */
+  await expect(page.locator('.fp-photo__many')).toHaveText(`${n} pictures`)
+  await shot(page, 'fitment-window', info.project.name, page.locator('.fp-photo'))
   await press.click()
   /* the picture large, by its own name: in a hand the line's details are a dialog too */
   const large = page.getByRole('dialog').and(page.locator('.ui-lightbox'))

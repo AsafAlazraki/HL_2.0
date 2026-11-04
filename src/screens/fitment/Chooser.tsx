@@ -320,7 +320,7 @@ function useFinder(
     <>
       {recent.length > 0 && !maker ? (
         <>
-          <p className="ft-choose__found">On quotes here</p>
+          <p className="ft-choose__found">Boats already on a quote</p>
           <ul className="ft-choose__list" data-ground={list}>
             {recent.map((b) => (
               <li key={b.place.rowId}>
@@ -351,10 +351,13 @@ function useFinder(
 const LINES: ReadonlyArray<{ word: string; says: string }> = [
   {
     word: 'Motor',
-    says: 'The horsepower it takes, and every motor made for it, rigged and priced.',
+    says: 'The horsepower it takes, every motor that goes on it, and why the rest do not.',
   },
   { word: 'Trailer', says: 'The trailers built for it, each weighed against the boat.' },
-  { word: 'Also made for it', says: 'The packages and parts made for it.' },
+  {
+    word: 'Fit-out',
+    says: 'The dealer-fit packages and parts that go on it, to tick for the quote.',
+  },
 ]
 
 /** One maker, as its own mark on the kit's white card — the ledger's dark-ink mark, through

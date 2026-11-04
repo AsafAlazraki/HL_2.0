@@ -50,6 +50,7 @@ import { PACK_ORG_ID } from '@/data/pack/boot'
 import { money } from '@/domain/money'
 import { wrongOnPick } from '@/domain/rules/review/onPick'
 import {
+  elsewhere,
   featuredOf,
   flagshipOf,
   fleetOf,
@@ -347,13 +348,13 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
     [goTo],
   )
 
-  /* BACK TO THE DOORS, from anywhere: the maker, the model and anything
-     typed all let go at once, because the doors are the screen with
-     nothing asked. */
+  /* BACK TO EVERY MAKER, from anywhere: the maker and the model let go, and WHAT WAS TYPED IS
+     KEPT (fit-flow, 2026-11-05: "When I pressed All makers, what I had typed was wiped"). With
+     words in the field the answer is every maker's models those words find; with none, the
+     doors. The field's own clear is how the words go. */
   const toMakers = useCallback(() => {
     /* the maker's mark goes back to its own door */
     carry({ mark: at.brand ?? model?.tableId ?? null })
-    setQuery('')
     move({})
   }, [move, carry, at.brand, model])
 
@@ -409,6 +410,11 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
   const shown = useMemo(
     () => matchModels(modelsOf(searched, brand?.id ?? null), query),
     [searched, brand, query],
+  )
+  /* THE NEAR MISS: a maker chosen and nothing of it called that, but another maker's are */
+  const near = useMemo(
+    () => (brand && typed && shown.length === 0 ? elsewhere(fleet, brand.id, query) : []),
+    [brand, typed, shown, fleet, query],
   )
   /* A LIST NOBODY CAN SCROLL TO THE END OF IS A LIST NOBODY READS: Parts & Accessories holds
      2,238 products. The first CARD_CAP are drawn in the list's own order and the rest are
@@ -481,7 +487,7 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                 ''
               ) : shown.length === 0 ? (
                 brand ? (
-                  `No model from ${brand.name} is called that.`
+                  `No model from ${brand.name} is called that.${nearSaid(near)}`
                 ) : (
                   'Nothing on the price list is called that.'
                 )
@@ -527,6 +533,8 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                 typed={typed}
                 toBoat={toBoat}
                 toMakers={toMakers}
+                toMaker={toMaker}
+                near={near}
                 allWord={allWord}
                 capped={shown.length - drawn.length}
                 total={shown.length}
@@ -1128,6 +1136,17 @@ function Rail({
 /* The gallery: one maker's boats, as photographs              */
 /* ---------------------------------------------------------- */
 
+/** " Highfield Inflatables has 3 that are." — where the words the chosen maker does not carry
+ *  are another maker's, said after the refusal under the field; '' where nobody's are. */
+function nearSaid(near: readonly { name: string; models: number }[]): string {
+  const first = near[0]
+  if (!first) return ''
+  if (near.length > 1) return ` ${near.length.toLocaleString('en-AU')} other makers have one.`
+  return first.models === 1
+    ? ` ${first.name} has one that is.`
+    : ` ${first.name} has ${first.models.toLocaleString('en-AU')} that are.`
+}
+
 function Gallery({
   brand,
   nouns,
@@ -1136,6 +1155,8 @@ function Gallery({
   typed,
   toBoat,
   toMakers,
+  toMaker,
+  near,
   allWord,
   capped,
   total,
@@ -1148,6 +1169,10 @@ function Gallery({
   typed: boolean
   toBoat: (model: Model) => void
   toMakers: () => void
+  /** another maker, with the words kept */
+  toMaker: (id: string) => void
+  /** the makers whose models the words find, where the chosen maker's do not */
+  near: readonly { id: string; name: string; models: number }[]
   allWord: string
   /** how many the search matched that are not drawn */
   capped: number
@@ -1213,10 +1238,33 @@ function Gallery({
            blank column. That nothing is called that is said once, under the
            field it was typed in (`picker-find__said`), and not again here. */
         <div className="picker-nothing">
-          <p className="picker-nothing__how">
-            Try the model&rsquo;s number alone, or choose{' '}
-            {brand ? 'another maker beside this list' : 'a maker'}.
-          </p>
+          {near.length > 0 ? (
+            /* THE NEAR MISS, ONE PRESS AWAY, with the words kept (fit-flow, 2026-11-05) */
+            <div className="picker-nothing__near">
+              {near.slice(0, 4).map((maker) => (
+                <Button
+                  key={maker.id}
+                  intent="secondary"
+                  size="sm"
+                  onClick={() => toMaker(maker.id)}
+                >
+                  {maker.models === 1
+                    ? `Show the one from ${maker.name}`
+                    : `Show the ${maker.models.toLocaleString('en-AU')} from ${maker.name}`}
+                </Button>
+              ))}
+              {near.length > 4 ? (
+                <Button intent="quiet" size="sm" onClick={toMakers}>
+                  {allWord}
+                </Button>
+              ) : null}
+            </div>
+          ) : (
+            <p className="picker-nothing__how">
+              Try the model&rsquo;s number alone, or choose{' '}
+              {brand ? 'another maker beside this list' : 'a maker'}.
+            </p>
+          )}
         </div>
       ) : null}
 

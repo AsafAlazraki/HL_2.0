@@ -227,7 +227,10 @@ export const PRICE_LIST_ROOMS: readonly Room[] = DOORS.find((d) => d.href === '/
  * maker opens Fitment on one of its boats (the critique of Milestone 3, blocker 1).
  */
 export const pricesOf = (list: string): string => `/levels?list=${encodeURIComponent(list)}`
-export const fitmentOf = (boat: string): string => `/fitment?boat=${encodeURIComponent(boat)}`
+/** …and the door it was opened from, where that is not Data (`from`, which `doorAt` reads): what
+ *  fits a boat opened from Home's boats or from Find on Home lights Home (fit-flow, 2026-11-05). */
+export const fitmentOf = (boat: string, from: string | null = null): string =>
+  `/fitment?boat=${encodeURIComponent(boat)}${from && from !== 'data' ? `&from=${encodeURIComponent(from)}` : ''}`
 /** FITMENT'S CHOOSER OPEN AT ONE MAKER (its route's `maker`, the word Home's door carries), so a
  *  maker's spread on Data offers its models to choose from rather than one boat it picked
  *  (2026-11-03, the judge of Data, L15). */
@@ -276,8 +279,14 @@ export const FRONT_DOORS: readonly Way[] = [doorFor('/'), doorFor('/quotes'), ST
  * document carries its own way back, which knows more than an address can (the cascade's
  * returns to the chapter it was raised from).
  */
-export function doorAt(pathname: string): Door | null {
+export function doorAt(pathname: string, from: string | null = null): Door | null {
   const path = normalise(pathname)
+  /* A ROOM REACHED FROM ANOTHER DOOR LIGHTS THAT DOOR (fit-flow, 2026-11-05). What fits a boat is
+     behind Data and opened from Home's boats; the walk came from Home and read "Data" lit, and
+     did not know where it was. `from` is the door's own word (`?from=home`), and it is read only
+     on a room's address — a door's own screen is always its own door. */
+  const reached = from ? DOORS.find((d) => d.word.toLowerCase() === from.toLowerCase()) : undefined
+  if (reached && isRoom(path)) return reached
   let best: Door | null = null
   let longest = -1
   for (const door of DOORS) {
@@ -290,6 +299,16 @@ export function doorAt(pathname: string): Door | null {
     }
   }
   return best
+}
+
+/** Whether an address is one of the rooms behind a door, or a place inside one. */
+function isRoom(path: string): boolean {
+  return DOORS.some((d) =>
+    (d.rooms ?? []).some((r) => {
+      const href = normalise(r.href)
+      return path === href || path.startsWith(href + '/')
+    }),
+  )
 }
 
 /** A trailing slash is the same address; a query and a hash are not part of the question. */

@@ -22,8 +22,10 @@ import { boatsForHome, heldPictures, rowPictured, saidOfPicture } from './ledger
 import { heroOfQuote } from '@/data/pictures'
 import {
   Home,
+  NO_BOAT_DOORS,
   NO_FINDER,
   NO_WAY_IN,
+  NO_WAY_TO_QUOTE_IT,
   NO_WAY_TO_A_FILED_QUOTE,
   NO_WAY_TO_THE_PICKER,
   arrivalLanded,
@@ -288,25 +290,61 @@ describe('day one, with the Master Price File open', () => {
     expect(act).toHaveAccessibleDescription(NO_WAY_TO_THE_PICKER)
   })
 
-  it('draws every boat the ledger photographs, and opens the picker at that boat', async () => {
+  /* REWRITTEN 2026-11-05 (fit-flow, direction A; the owner, 2026-11-04: "we should be able to
+     do the what fits from the home boats thing not just open quote"): every card has two
+     doors, What fits and Quote it, each one press */
+  it('draws every boat the ledger photographs, each with What fits and Quote it', async () => {
     const openBoat = vi.fn<(table: string, row: string) => void>()
+    const openFits = vi.fn<(row: string) => void>()
     const boats = photographed()
     expect(boats.length).toBeGreaterThan(0)
-    render(<Home business="Northside Marine" openBoat={openBoat} />)
+    render(<Home business="Northside Marine" openBoat={openBoat} openFits={openFits} />)
     /* THE HEAD SAYS WHAT THE ROW IS FOR AT THE DESK, not where its pictures came from */
     const region = screen.getByRole('region', { name: 'Start from the boat' })
     expect(region).not.toHaveTextContent(/photograph|ledger|file holds/)
+    expect(region).toHaveTextContent('See what goes on it, or quote it.')
     expect(within(region).getAllByRole('listitem')).toHaveLength(boats.length)
     for (const boat of boats) {
-      const tile = within(region).getByRole('button', {
-        name: `${boat.said.model}, ${boat.said.maker} — quote it`,
-      })
-      expect(within(tile).getByAltText(boat.picture.subject)).toBeInTheDocument()
-      await userEvent.click(tile)
+      const said = `${boat.said.model}, ${boat.said.maker}`
+      const card = within(region)
+        .getAllByRole('listitem')
+        .find((li) => within(li).queryByAltText(boat.picture.subject))!
+      /* two doors on the card and no third: the card itself is not a button */
+      expect(
+        within(card)
+          .getAllByRole('button')
+          .map((b) => b.textContent),
+      ).toEqual(['What fits', 'Quote it'])
+      await userEvent.click(within(card).getByRole('button', { name: `What fits: ${said}` }))
+      expect(openFits).toHaveBeenLastCalledWith(boat.row)
+      await userEvent.click(within(card).getByRole('button', { name: `Quote it: ${said}` }))
       expect(openBoat).toHaveBeenLastCalledWith(boat.picture.table, boat.row)
     }
+    expect(openFits).toHaveBeenCalledTimes(boats.length)
+    expect(openBoat).toHaveBeenCalledTimes(boats.length)
     /* no word stands on a photograph: the caption is the card's, under it */
     expect(region).not.toHaveTextContent(/versions? of this boat/)
+  })
+
+  it('refuses a boat’s door in a sentence where it was handed no way for it', async () => {
+    const openFits = vi.fn<(row: string) => void>()
+    render(<Home business="Northside Marine" openFits={openFits} />)
+    const region = screen.getByRole('region', { name: 'Start from the boat' })
+    const [fits] = within(region).getAllByRole('button', { name: /^What fits: / })
+    const [quote] = within(region).getAllByRole('button', { name: /^Quote it: / })
+    expect(fits).not.toHaveAttribute('aria-disabled')
+    expect(quote).toHaveAttribute('aria-disabled', 'true')
+    expect(quote).toHaveAccessibleDescription(NO_WAY_TO_QUOTE_IT)
+    await userEvent.click(quote!)
+    expect(openFits).not.toHaveBeenCalled()
+  })
+
+  it('refuses both doors in one sentence where it was handed neither way', () => {
+    render(<Home business="Northside Marine" />)
+    const region = screen.getByRole('region', { name: 'Start from the boat' })
+    expect(within(region).getByText(NO_BOAT_DOORS)).toBeInTheDocument()
+    for (const door of within(region).getAllByRole('button', { name: /^(What fits|Quote it): / }))
+      expect(door).toHaveAccessibleDescription(NO_BOAT_DOORS)
   })
 
   /* THE SECOND CRITIQUE, MAJORS 3 AND 4: the boat makers are the doors, each opening its

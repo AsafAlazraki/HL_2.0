@@ -505,18 +505,103 @@
   /* 8 between two cards across and 12 down: the 4px each gap gives back is a boat name's */
   gap: --spacing(3) --spacing(2);
 }
+/* A BOAT'S CARD WITH ITS TWO DOORS (fit-flow, direction A, 2026-11-05): the photograph, the
+   name and the maker on the card's paper, and at its foot the two doors side by side, What
+   fits and Quote it, each half the card. The card is a plate and not a button: the doors are
+   what is pressed. The face sits at the card's head and the doors at its foot, so a row a
+   wrapped name made taller keeps every card's doors on one line. */
 .home-boat {
+  --boat-doors: --spacing(9);
+
+  position: relative;
   display: grid;
-  min-width: 0;
-}
-/* THE CARD'S FACE AT ITS HEAD in a row a wrapped name made taller: a button centres what it
-   holds, which set every one-line card's photograph 10px under its plate's edge at 1280 */
-.home-boat-in {
-  display: grid;
-  align-content: start;
+  grid-template-rows: auto auto auto 1fr;
   gap: --spacing(0.5);
   min-width: 0;
-  block-size: 100%;
+  padding: --spacing(4) --spacing(4) 0;
+  overflow: hidden;
+  border-radius: var(--radius-plate);
+  color: var(--color-neutral-950);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+  transition: box-shadow var(--duration-hover) var(--ease-out);
+}
+/* THE CARD ANSWERS THE POINTER THAT IS ON ITS FACE OR ITS WHAT FITS, the way a tile does */
+@media (hover: hover) and (pointer: fine) {
+  .home-boat:has(.home-boat-door[data-door='fits']:not([aria-disabled='true']):hover) {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+  }
+}
+.home-boat-doors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-self: end;
+  margin: --spacing(2) --spacing(-4) 0;
+  border-block-start: 1px solid var(--color-rule);
+}
+.home-boat-door {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 0;
+  block-size: var(--boat-doors);
+  padding: 0 --spacing(1);
+  border: 0;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+  white-space: nowrap;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-hover) var(--ease-out);
+}
+.home-boat-door[data-door='quote'] {
+  color: var(--color-ink-on-act);
+  background: var(--color-act);
+}
+/* THE PHOTOGRAPH AND THE NAME ARE WHAT FITS FOR A POINTER: the door's own hit area, stretched
+   over the card's face above the doors, so nothing on the card is a press that does nothing
+   and the keyboard still meets two doors and no third */
+.home-boat-door[data-door='fits']::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 var(--boat-doors) 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-boat-door[data-door='fits']:not([aria-disabled='true']):hover {
+    background: var(--color-blue-100);
+  }
+  .home-boat-door[data-door='quote']:not([aria-disabled='true']):hover {
+    background: var(--color-amber-500);
+  }
+}
+/* the kit's focus ring, drawn inside the door so the card's edge never cuts it */
+.home-boat-door:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-inset);
+}
+/* A PRESS DEEPENS THE DOOR'S OWN FILL. Never a filter or a transform: either makes the door the
+   box its stretched hit area is measured from, and the photograph's press, begun on What fits,
+   ended on the picture and opened nothing (measured 2026-11-05, mouseup on the IMG) */
+.home-boat-door[data-door='fits']:not([aria-disabled='true']):active {
+  background: var(--color-blue-200);
+}
+.home-boat-door[data-door='quote']:not([aria-disabled='true']):active {
+  background: var(--color-amber-500);
+}
+/* A DOOR WITH NO WAY HANDED IN: dimmed and still focusable, described by the sentence above
+   the row (Home.tsx, `BoatDoor`) */
+.home-boat-door[aria-disabled='true'] {
+  color: var(--color-ink-3);
+  background: var(--color-plate-tint);
+  cursor: not-allowed;
 }
 /* THE PHOTOGRAPH RUNS TO THE CARD'S EDGES, its caption under it on the card's paper */
 .home-boat-shot {

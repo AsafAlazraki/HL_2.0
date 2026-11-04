@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
-import { say, undo, unsay } from '@/ui'
+import { useCallback, useState } from 'react'
 import { catalogue } from '@/state/catalogue'
 import { isDone } from '@/domain/catalogue/commands'
 import type { CatalogueCtx } from '@/domain/model'
@@ -7,21 +6,18 @@ import type { BoatFit, Place } from '@/domain/fitment/boat'
 import { changeFit, starFit, type FitChange, type FitWay } from '@/domain/fitment/change'
 
 /* ============================================================
-   ONE PRESS PUTS A THING ON A BOAT, TAKES IT OFF, OR MAKES IT THE
-   RECOMMENDED — said with its Undo; the plate's tiles and the whole
-   list's lines share it.
+   CHANGING WHAT NORTHSIDE OFFERS ON A BOAT, ONLY IN CHANGE MODE
+   (the fit flow, direction A, 2026-11-05).
 
-   ON EVERY VERSION OF THE MODEL (the fitment judge, 2026-11-03,
-   blocker 1): the screen hands in the model's versions, so the step is
-   made on each and its sentence counts them.
+   One press puts a thing on the boat, takes it off, or makes it the
+   recommended, on every version of the model, as one catalogue step.
 
-   A refusal is kept against the thing it refused, so the screen says
-   it where the press was made (rule: a refusal is a sentence with its
-   reason, where it is refused), and it goes the moment another press
-   is made.
+   NO TOAST (the walk, majors 12 and the toast over the last rows): the
+   step is kept in the page's own list of changes, said once in the
+   past tense, with Undo it beside it. A refusal is kept against the
+   line it refused, so the page says it where the press was made, and
+   it goes the moment another press is made.
    ============================================================ */
-
-const STEP = 'fitment-step'
 
 export interface FitRefusal {
   rowId: string
@@ -33,21 +29,38 @@ interface Held extends FitRefusal {
   boat: string
 }
 
+/** One change made here, and the step that undoes it. */
+export interface Made {
+  said: string
+  eventId: string
+}
+
 export type FitAct = FitWay | 'star'
 
-export function useFitChange(ctx: CatalogueCtx, fit: BoatFit | null, versions: readonly Place[]) {
+/** `name` is the model as the page's title says it ("Highfield Patrol 600"): a change is made on
+ *  every version, so its sentence names the model, never the version's own name ("… 600 Open"). */
+export function useFitChange(
+  ctx: CatalogueCtx,
+  fit: BoatFit | null,
+  versions: readonly Place[],
+  name = '',
+) {
   const [held, setRefusal] = useState<Held | null>(null)
-  useEffect(() => () => unsay(STEP), [])
+  const [ledger, setLedger] = useState<Made[]>([])
+  /* what the last Undo said, until the next press */
+  const [undone, setUndone] = useState('')
   const boat = fit?.place.rowId ?? ''
   const refusal: FitRefusal | null = held && held.boat === boat ? held : null
 
   const change = useCallback(
     (target: Place, act: FitAct, place: 'motor' | 'trailer' = 'motor'): void => {
       if (!fit) return
+      setUndone('')
+      const model = name === '' ? fit : { ...fit, name }
       const asked: FitChange =
         act === 'star'
-          ? starFit(ctx, fit, target, place, versions)
-          : changeFit(ctx, fit, target, act, versions)
+          ? starFit(ctx, model, target, place, versions)
+          : changeFit(ctx, model, target, act, versions)
       if ('refused' in asked) {
         setRefusal(asked.refused === '' ? null : { boat, rowId: target.rowId, why: asked.refused })
         return
@@ -60,25 +73,30 @@ export function useFitChange(ctx: CatalogueCtx, fit: BoatFit | null, versions: r
         return
       }
       setRefusal(null)
-      const eventId = outcome.event.id
-      undo(
-        asked.said,
-        () => {
-          const back = catalogue.getState().undo(eventId)
-          say(isDone(back) ? back.said : back.refused || 'Nothing to change.', { id: STEP })
-        },
-        { id: STEP },
-      )
+      setLedger((was) => [...was, { said: asked.said, eventId: outcome.event.id }])
     },
-    [ctx, fit, boat, versions],
+    [ctx, fit, boat, versions, name],
   )
 
-  /** A press the screen itself refuses (a trailer over its ATM, for the quote), said where it
-   *  was pressed like any other refusal; '' clears it. */
+  /** Undo the last change made here; its own sentence says what it gave back. */
+  const undoLast = useCallback((): void => {
+    const last = ledger.at(-1)
+    if (!last) return
+    const back = catalogue.getState().undo(last.eventId)
+    setRefusal(null)
+    if (isDone(back)) {
+      setLedger((was) => was.slice(0, -1))
+      setUndone(back.said)
+    } else {
+      setUndone(back.refused || 'That change could not be undone.')
+    }
+  }, [ledger])
+
+  /** A press the screen itself refuses (a trailer over its ATM), said where it was pressed. */
   const refuse = useCallback(
     (rowId: string, why: string): void => setRefusal(why === '' ? null : { boat, rowId, why }),
     [boat],
   )
 
-  return { change, refusal, refuse }
+  return { change, refusal, refuse, ledger, undoLast, undone }
 }

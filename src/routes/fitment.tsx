@@ -5,7 +5,6 @@ import { repositories } from '@/data'
 import { catalogue } from '@/state/catalogue'
 import { session } from '@/state/session'
 import { Fitment, type FitmentPosition } from '@/screens/fitment/Fitment'
-import { sheetHref } from '@/screens/fitment/sheet'
 
 /* ============================================================
    /fitment — one boat at a time, and what can be fitted to it.
@@ -25,20 +24,16 @@ import { sheetHref } from '@/screens/fitment/sheet'
    Back or a reload keeps them (walk.md, 2026-10-30). A boat chosen
    leaves them behind: `openBoat` pushes `?boat=` alone.
 
-   THE FIVE SEARCH PARAMS ARE THE POSITION. `boat` is the boat, by its
-   line on the price list; `line` the plate's pressed line (`motor`,
-   `trailer` or `also`); `all` the place whose whole list is open —
-   `motor`, `trailer`, or a list's own id — `only` one reason's group
-   of it, from that reason's "Show these", and `find` what is typed into
-   its find field. So a link to "the SP660's trailers, every one, with
-   REDCO typed" opens exactly that, and the way back from the price list
-   is one Back: the sheet writes its own position with `replace`, so the
-   Back that leaves it lands here, on the same boat and the same line.
-
-   `motor` and `trailer` are what a quote started here begins with,
-   by their pairing ('none' for none, absent for the price list's
-   recommended), and `compare` sets the offered motors side by side
-   (the fitment judge, 2026-11-03: blockers 3 and major 4).
+   THE SEARCH PARAMS ARE THE POSITION (the fit flow, direction A,
+   2026-11-05). `boat` is the boat, by its line on the price list;
+   `from` the door it was opened from ('home', which the shell lights;
+   absent for Data's room); `motor` and `trailer` what the quote it
+   starts carries, by their pairing ('none' for none, absent for the
+   recommended); `fit` the fit-out lines ticked for it, comma-separated;
+   `at` the place asked for (`motor`, `trailer` or `fitout`), scrolled to
+   on arrival, as the build's "What fits" asks; and `change` the mode that
+   changes what Northside offers. So a link to "the Sport 560 with its
+   trailer and the batteries ticked" opens exactly that.
 
    A boat is a CHANGE OF SCREEN and is pushed; everything else is a
    position and is replaced, for the register's reason — a Back that
@@ -50,17 +45,18 @@ export interface FitmentSearch {
   maker?: string
   model?: string
   boat?: string
-  line?: string
-  all?: string
-  only?: string
-  find?: string
-  /** the motor and the trailer chosen for a quote started here, by their pairing; 'none' for
-   *  none; absent for the price list's recommended */
+  from?: string
   motor?: string
   trailer?: string
-  /** the offered motors set side by side */
-  compare?: string
+  fit?: string
+  at?: string
+  /** 1 while changing what Northside offers; a number, so the address reads `change=1` */
+  change?: number
 }
+
+const KEYS = ['maker', 'model', 'boat', 'from', 'motor', 'trailer', 'fit', 'at', 'change'] as const
+
+const AT = new Set(['motor', 'trailer', 'fitout'])
 
 const word = (value: unknown, max = 200): string | undefined => {
   if (typeof value !== 'string') return undefined
@@ -70,28 +66,26 @@ const word = (value: unknown, max = 200): string | undefined => {
 
 export const Route = createFileRoute('/fitment')({
   validateSearch: (search: Record<string, unknown>): FitmentSearch => {
-    const boat = word(search.boat)
+    const out: FitmentSearch = {}
     const maker = word(search.maker, 120)
     const model = word(search.model, 200)
-    const line = word(search.line, 40)
-    const all = word(search.all)
-    const only = word(search.only, 120)
-    const find = word(search.find, 120)
+    const boat = word(search.boat)
+    const from = search.from === 'home' ? 'home' : undefined
     const motor = word(search.motor, 200)
     const trailer = word(search.trailer, 200)
-    const compare = search.compare === 'side' ? 'side' : undefined
-    return {
-      ...(maker ? { maker } : {}),
-      ...(model ? { model } : {}),
-      ...(boat ? { boat } : {}),
-      ...(line ? { line } : {}),
-      ...(all ? { all } : {}),
-      ...(only ? { only } : {}),
-      ...(find ? { find } : {}),
-      ...(motor ? { motor } : {}),
-      ...(trailer ? { trailer } : {}),
-      ...(compare ? { compare } : {}),
-    }
+    const fit = word(search.fit, 4000)
+    const at = typeof search.at === 'string' && AT.has(search.at) ? search.at : undefined
+    const change = search.change === 1 || search.change === '1' ? 1 : undefined
+    if (maker) out.maker = maker
+    if (model) out.model = model
+    if (boat) out.boat = boat
+    if (from) out.from = from
+    if (motor) out.motor = motor
+    if (trailer) out.trailer = trailer
+    if (fit) out.fit = fit
+    if (at) out.at = at
+    if (change) out.change = change
+    return out
   },
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
@@ -116,18 +110,12 @@ function FitmentRoute() {
       void navigate({
         to: '/fitment',
         search: (was: FitmentSearch) => {
-          const merged = { ...was, ...next }
+          const merged: FitmentSearch = { ...was, ...next }
           const out: FitmentSearch = {}
-          if (merged.maker) out.maker = merged.maker
-          if (merged.model) out.model = merged.model
-          if (merged.boat) out.boat = merged.boat
-          if (merged.line) out.line = merged.line
-          if (merged.all) out.all = merged.all
-          if (merged.only) out.only = merged.only
-          if (merged.find) out.find = merged.find
-          if (merged.motor) out.motor = merged.motor
-          if (merged.trailer) out.trailer = merged.trailer
-          if (merged.compare) out.compare = merged.compare
+          for (const key of KEYS) {
+            const v = merged[key]
+            if (v) (out as Record<string, string | number>)[key] = v
+          }
           return out
         },
         replace: true,
@@ -142,18 +130,21 @@ function FitmentRoute() {
       boat={search.boat ?? ''}
       maker={search.maker ?? ''}
       model={search.model ?? ''}
-      line={search.line ?? ''}
-      all={search.all ?? ''}
-      only={search.only ?? ''}
-      find={search.find ?? ''}
+      from={search.from === 'home' ? 'home' : ''}
       motor={search.motor ?? ''}
       trailer={search.trailer ?? ''}
-      compare={search.compare === 'side'}
+      fit={search.fit ? search.fit.split(',').filter((k) => k !== '') : []}
+      at={
+        search.at === 'motor' || search.at === 'trailer' || search.at === 'fitout' ? search.at : ''
+      }
+      changing={search.change === 1}
       onPosition={onPosition}
-      openBoat={(rowId) => void navigate({ to: '/fitment', search: { boat: rowId } })}
-      sheetHref={sheetHref}
-      openSheet={(opens) => void navigate({ href: sheetHref(opens) })}
-      openRules={() => void navigate({ to: '/rules' })}
+      openBoat={(rowId) =>
+        void navigate({
+          to: '/fitment',
+          search: search.from === 'home' ? { boat: rowId, from: 'home' } : { boat: rowId },
+        })
+      }
       openHref={(href) => void navigate({ href })}
       openQuote={(quoteId) => void navigate({ to: '/quote/$id', params: { id: quoteId } })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}

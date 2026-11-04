@@ -175,7 +175,7 @@ export function motorHeldSaid(
     case 'inside':
       return takes === ''
         ? NOT_MADE_FOR_IT
-        : `Inside the ${takes} this boat takes, and not made for it.`
+        : `Inside the ${takes} this boat takes, but the price list does not list it for this boat.`
     case 'unplaced':
       return 'This boat’s own figures name no single motor.'
     case 'rigs':

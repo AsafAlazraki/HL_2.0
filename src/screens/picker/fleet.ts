@@ -618,6 +618,26 @@ export function matchModels(models: readonly Model[], query: string): Model[] {
   })
 }
 
+/**
+ * THE NEAR MISS, COUNTED (fit-flow, 2026-11-05). The walk's customer said "Stabicraft PA 600";
+ * the picker, filtered to Stabicraft, said "No model from Stabicraft is called that" and left
+ * it there, while Highfield carries three Patrol 600s. This counts, maker by maker, the models
+ * the same words find under every maker but the one chosen, most first, so the picker can name
+ * where they are and go there with the words kept.
+ */
+export function elsewhere(
+  fleet: Fleet,
+  chosenId: string,
+  query: string,
+): { id: string; name: string; models: number }[] {
+  if (query.trim() === '') return []
+  return fleet.brands
+    .filter((b) => b.id !== chosenId)
+    .map((b) => ({ id: b.id, name: b.name, models: matchModels(b.models, query).length }))
+    .filter((b) => b.models > 0)
+    .toSorted((a, b) => b.models - a.models)
+}
+
 /** The models cut into their series, in the file's order, keeping only
  *  the series that still have a model in them. */
 export function seriesOf(brand: Brand, keep: ReadonlySet<string>): Series[] {

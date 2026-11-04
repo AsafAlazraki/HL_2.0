@@ -18,6 +18,7 @@ import { localDayOf } from '@/domain/quote/day'
 import { dayWritten } from '@/domain/quote/diary/days'
 import { indexQuotes } from '@/domain/quote/diary/history'
 import type { RegisterStateId } from '@/domain/quote/register'
+import { QUOTE_IT, WHAT_FITS } from '@/domain/shell/finder'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { Button, Icon, Input, Picture, StatusDot, Tile, Water, isField, useStill } from '@/ui'
 import { boatTravel } from '@/screens/picker/travel'
@@ -104,8 +105,11 @@ export interface HomeProps {
   openQuote?: (id: string, state: RegisterStateId) => void
   /** the picker, opened at one maker's boats */
   openBoatRegister?: (tableId: string) => void
-  /** the picker, opened at the boat a photograph depicts */
+  /** the picker, opened at the boat a photograph depicts: a boat card's Quote it */
   openBoat?: (tableId: string, rowId: string) => void
+  /** WHAT GOES ON THE BOAT a photograph depicts, by its line on the price list: a boat card's
+   *  What fits (fit-flow, 2026-11-05) */
+  openFits?: (rowId: string) => void
   /** one person's page in Customers, by the book's own key */
   openCustomer?: (key: string) => void
   /** every quote, in Quotes: where the desk's folded cards are */
@@ -137,6 +141,15 @@ export const NO_WAY_TO_A_FILED_QUOTE =
 
 /** Said once above the boats and the doors, in the same render. */
 export const NO_WAY_IN = 'This screen was handed no way to the picker, so these open nothing here.'
+
+/** Said once above the boats, in the same render, where it was handed no way for both doors. */
+export const NO_BOAT_DOORS =
+  'This screen was handed no way to what fits a boat or to the picker, so What fits and Quote it open nothing here.'
+/** …or a way for one door and not the other: the refused door is described by this */
+export const NO_WAY_TO_WHAT_FITS =
+  'This screen was handed no way to what fits a boat, so What fits opens nothing here.'
+export const NO_WAY_TO_QUOTE_IT =
+  'This screen was handed no way to the picker, so Quote it opens nothing here.'
 
 /** Said under the field, in a render with no finder above it. */
 export const NO_FINDER =
@@ -267,6 +280,7 @@ export function Home({
   openQuote,
   openBoatRegister,
   openBoat,
+  openFits,
   openCustomer,
   openQuotes,
   openCustomers,
@@ -489,6 +503,7 @@ export function Home({
                 boats={boats}
                 taken={taken}
                 openBoat={openBoat}
+                {...(openFits ? { openFits } : {})}
                 arrange={arrange}
               />
             ) : section === 'makers' ? (
@@ -1096,25 +1111,32 @@ const srcSetOf = (picture: HeldPicture): string =>
 const BOAT_FRAME = '(max-width: 639.98px) 50vw, (max-width: 1199.98px) 25vw, 14vw'
 
 /**
- * START FROM THE BOAT — the boats whose own photographs the ledger
- * holds, each a door to quoting it: the picker opens at that boat, under
- * the same photograph, by the view-transition name the sale already
- * uses. Any other boat is one word away in the field, which is why the
- * sentence beside the head says so. The head says what the row is for
- * at the desk, not where its pictures came from (the critique, major 6).
+ * START FROM THE BOAT — the boats whose own photographs the ledger holds, each with TWO DOORS
+ * (fit-flow, direction A, 2026-11-05): What fits, the boat's own page of what goes on it and
+ * why the rest do not, and Quote it, the picker opened at that boat under the same photograph,
+ * by the view-transition name the sale already uses. The owner, 2026-11-04: "we should be able
+ * to do the what fits from the home boats thing not just open quote". Each door is one press,
+ * and Find's boat rows carry the same two words in the same order.
+ *
+ * THE CARD ITSELF IS NOT A THIRD DOOR. The photograph and the name are What fits for a pointer
+ * (the door's own hit area is stretched over them in `home.css`), so nothing on the card is a
+ * press that does nothing, and a keyboard meets exactly the two doors.
  */
 function Boats({
   boats,
   taken,
   openBoat,
+  openFits,
   arrange,
 }: {
   boats: readonly Photographed[]
   taken: ReadonlySet<string>
   openBoat?: (tableId: string, rowId: string) => void
+  openFits?: (rowId: string) => void
   arrange?: () => void
 }) {
   if (boats.length === 0) return null
+  const anyWay = openBoat !== undefined || openFits !== undefined
   return (
     <section className="home-boats" aria-labelledby="home-boats-title">
       <div className="home-row-head">
@@ -1122,7 +1144,7 @@ function Boats({
           Start from the boat
         </h2>
         <p className="home-row-say" id="home-boats-say">
-          {openBoat ? 'Press one to quote it, or find any other by name.' : NO_WAY_IN}
+          {anyWay ? 'See what goes on it, or quote it. Find any other by name.' : NO_BOAT_DOORS}
         </p>
         {/* ARRANGE, WHERE A PERSON LOOKING AT HOME'S BOATS WOULD LOOK FOR IT (Milestone 4): it
             opens Settings at Home, drawn live beside its controls */}
@@ -1134,38 +1156,87 @@ function Boats({
           </span>
         ) : null}
       </div>
+      {anyWay && (!openBoat || !openFits) ? (
+        <p className="home-row-say" id="home-boats-half">
+          {openFits ? NO_WAY_TO_QUOTE_IT : NO_WAY_TO_WHAT_FITS}
+        </p>
+      ) : null}
       <ul className="home-boat-list">
         {boats.map((boat) => {
           const travel = boatTravel(boat.table, boat.row)
+          const said = `${boat.model}, ${boat.maker}`
           return (
             <li className="home-boat" key={boat.picture.id}>
-              <Tile
-                onSelect={() => openBoat?.(boat.table, boat.row)}
-                refusedBy={openBoat ? undefined : 'home-boats-say'}
-                label={`${boat.model}, ${boat.maker} — quote it`}
-              >
-                <span className="home-boat-in">
-                  <span className="home-boat-shot">
-                    <Picture
-                      src={boat.picture.src}
-                      srcSet={srcSetOf(boat.picture)}
-                      sizes={BOAT_FRAME}
-                      alt={boat.picture.subject}
-                      width={boat.picture.width}
-                      height={boat.picture.height}
-                      shared={taken.has(travel) ? undefined : travel}
-                      priority
-                    />
-                  </span>
-                  <span className="home-boat-model">{boat.model}</span>
-                  <span className="home-boat-maker">{boat.maker}</span>
-                </span>
-              </Tile>
+              <span className="home-boat-shot">
+                <Picture
+                  src={boat.picture.src}
+                  srcSet={srcSetOf(boat.picture)}
+                  sizes={BOAT_FRAME}
+                  alt={boat.picture.subject}
+                  width={boat.picture.width}
+                  height={boat.picture.height}
+                  shared={taken.has(travel) ? undefined : travel}
+                  priority
+                />
+              </span>
+              <span className="home-boat-model">{boat.model}</span>
+              <span className="home-boat-maker">{boat.maker}</span>
+              <span className="home-boat-doors">
+                <BoatDoor
+                  door="fits"
+                  label={`${WHAT_FITS}: ${said}`}
+                  press={openFits ? () => openFits(boat.row) : undefined}
+                  refusedBy={anyWay ? 'home-boats-half' : 'home-boats-say'}
+                >
+                  {WHAT_FITS}
+                </BoatDoor>
+                <BoatDoor
+                  door="quote"
+                  label={`${QUOTE_IT}: ${said}`}
+                  press={openBoat ? () => openBoat(boat.table, boat.row) : undefined}
+                  refusedBy={anyWay ? 'home-boats-half' : 'home-boats-say'}
+                >
+                  {QUOTE_IT}
+                </BoatDoor>
+              </span>
             </li>
           )
         })}
       </ul>
     </section>
+  )
+}
+
+/**
+ * ONE OF A BOAT'S TWO DOORS: half the card's foot, its word on it. A door with no way handed in
+ * is refused with the sentence above the row (`refusedBy`): dimmed, still in the tab order,
+ * described by its reason, and the press swallowed — never a silently disabled control.
+ */
+function BoatDoor({
+  door,
+  label,
+  press,
+  refusedBy,
+  children,
+}: {
+  door: 'fits' | 'quote'
+  label: string
+  press: (() => void) | undefined
+  refusedBy: string
+  children: string
+}) {
+  return (
+    <button
+      type="button"
+      className="home-boat-door"
+      data-door={door}
+      aria-label={label}
+      {...(press
+        ? { onClick: press }
+        : { 'aria-disabled': true, 'aria-describedby': refusedBy, onClick: () => {} })}
+    >
+      {children}
+    </button>
   )
 }
 

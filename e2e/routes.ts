@@ -509,42 +509,35 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
-    /* FITMENT AT REST (Milestone 3, rebuilt 2026-10-28 as direction F, "The plate"): one boat —
-       the SP660 the board was drawn on, by its line on the price list — on its own riveted plate,
-       the Motor line pressed open under it: seven priced tiles and four reasons. `foundation`:
-       a plate, tiles and a handful of reasons, not a register, so it owes contrast, cut, overlap
-       and focus at six sizes and no row count; Show all below carries the register. THROUGH THE
-       DOOR, because it reads the price list this browser keeps, and `data-boat` is set only once
-       the boat has really been read, so no ruler measures "Looking for the price list…" or the
-       boat chooser. */
-    path: '/fitment?boat=boat_highfield%3A513',
+    /* WHAT FITS ONE BOAT (the fit flow, direction A, rebuilt 2026-11-05): the Patrol 600 the boards
+       were drawn on, by its line on the price list, reached from Home — one page read top to bottom,
+       its motors, the trailer named for it and not listed for it, its fit-out to tick, every
+       reason counted, and the quote it starts in a bar fixed at the window's foot. `foundation`:
+       lines on plates and a handful of reasons, not a register. THROUGH THE DOOR, because it reads
+       the price list this browser keeps; `data-boat` is set only once the boat is read. */
+    path: '/fitment?boat=boat_highfield%3A298&from=home',
     name: 'fitment',
     register: 'foundation',
-    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="plate"]',
+    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="page"]',
     arrive: 'through-the-door',
   },
   {
-    /* FITMENT'S TRAILER LINE: E's answer under F's plate — two trailers, each an ATM bar with
-       what really goes on the road ticked on it (the boat, its motor and the trailer itself), the
-       one-trailer rule where the second is offered, and three reasons. Measured on its own
-       because the ticks, the warning and the rule are where an overlap or a cut would be. */
-    path: '/fitment?boat=boat_highfield%3A513&line=trailer',
+    /* THE SPORT 560, WITH ITS TRAILER CHOSEN AND TWO LINES TICKED: the bar carries six lines, so
+       its names are the longest it says; measured on its own because that is where a cut would be */
+    path: '/fitment?boat=boat_highfield%3A483&fit=join_hf_pd%3A1284%2Cjoin_hf_df%3A919',
     name: 'fitment-trailer',
     register: 'foundation',
-    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="plate"] .ft-trailers',
+    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="page"] #fp-trailer',
     arrive: 'through-the-door',
   },
   {
-    /* FITMENT'S SHOW ALL, THE COCKPIT REGISTER: every trailer on sale for the SP660, grouped by
-       the reason each is or is not offered — 2 made for it, then 10, 131 in six makers and 291
-       — on one tab stop. `.ft-list` is the grid; its group heads are the first row of each
-       rowgroup and come off the room. The address names the list, as a position does. */
-    path: '/fitment?boat=boat_highfield%3A513&all=trailer',
-    name: 'fitment-all',
-    register: 'cockpit',
-    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="all"]',
+    /* CHANGE MODE: the same page under its ochre band, every motor the boat takes by its own
+       figures in one list with its press, and the bar that keeps the changes made here */
+    path: '/fitment?boat=boat_highfield%3A298&change=1',
+    name: 'fitment-change',
+    register: 'foundation',
+    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="change"]',
     arrive: 'through-the-door',
-    density: { list: '.ft-list' },
   },
   {
     /* FITMENT WITH NO BOAT CHOSEN, THE PLATE ASKING (built-critique-m3.md, major 7): the same

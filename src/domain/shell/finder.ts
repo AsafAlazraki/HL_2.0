@@ -17,8 +17,9 @@
      · a person           `src/domain/people/customers.ts`
                           `matchCustomers`, which is what the build's
                           "Who it is for" uses
-     · what fits a boat   `src/domain/shell/fits.ts`, which asks the
-                          quote engine's own `relatedRows`
+     · "motors for a      `src/domain/shell/fits.ts` reads the boat half
+       boat"              of the question; the boats answer it, each
+                          with its own What fits (fit-flow, 2026-11-05)
 
    A finder that decided for itself what "sp560" hits would be a
    SECOND opinion about the same question, and the day the two
@@ -72,7 +73,7 @@ import { money } from '@/domain/money'
 import type { AccentKey } from '@/domain/model'
 import { markBest, spaced, type RowHit, type SearchResult } from '@/domain/catalogue/search'
 import { codeBeside, factoryPackage, lineSaid, spokenBoat } from '@/domain/quote/spoken'
-import type { FitsAnswer, FitsQuestion } from './fits'
+import { askedWhatFits, type FitsQuestion } from './fits'
 
 /* ------------------------------------------------------------ */
 /* What a press lands on                                         */
@@ -132,7 +133,19 @@ export interface FinderRow {
    *  and draws no mark, which is `search.ts`'s own rule. */
   at?: number
   length?: number
+  /**
+   * A BOAT'S TWO DOORS (fit-flow, direction A, 2026-11-05: "every Home card and every Find row
+   * has a What fits door beside Quote it"). Present on a row that is a boat to sell: the row
+   * itself is its Quote it, and this is its What fits, which opens the boat's own page. The
+   * walk found Find's one "What fits" row following only the first boat ("What fits the
+   * Highfield Patrol 600 EW" under "Patrol 600"), so every boat carries its own.
+   */
+  fits?: { id: string; rowId: string; name: string }
 }
+
+/** THE WORDS ON A BOAT'S TWO DOORS, the same on Home's cards and Find's rows. */
+export const WHAT_FITS = 'What fits'
+export const QUOTE_IT = 'Quote it'
 
 export interface FinderGroup {
   id: string
@@ -271,12 +284,17 @@ export interface FinderInput {
   /** what the caller can say about a line; absent, lines carry no
    *  figure and a boat is answered as a line of the file */
   lines?: FinderLines
-  /** "trailer for sp560", read and answered — `fits.ts` — when the
-   *  line was that question and a boat matched it */
-  fits?: { question: FitsQuestion; answer: FitsAnswer } | null
+  /** "trailer for sp560", read by `fits.ts`, when the line was that question: the boat half was
+   *  searched, and the boats answer it, each with its own What fits. It is never answered with
+   *  one merged list of motors (fit-flow, 2026-11-05: "motors for PA 600" said "fits all 30"
+   *  of the plain Patrol 600, the EW and the ST together). */
+  fits?: { question: FitsQuestion } | null
   /** "what fits ADV9", "fits the ADV9": the line asked what goes on a boat, so the boats are
-   *  searched for what followed and "What fits the …" leads them (`askedWhatFits`) */
+   *  searched for what followed and lead the answer (`askedWhatFits`) */
   whatFits?: boolean
+  /** A MAKER SAID AHEAD OF A NAME IT DOES NOT CARRY ("Stabicraft PA 600"): `result` is then the
+   *  search for `rest` across every maker, and the answer says the near miss first (`makerAhead`) */
+  aside?: { maker: string; rest: string } | null
 }
 
 export interface FinderReading {
@@ -346,8 +364,65 @@ const priceOf = (lines: FinderLines | undefined, tableId: string, rowId: string)
 export const NOTHING_MATCHED = (query: string): string =>
   `Nothing matches “${query.trim()}”. Type a boat’s name or the code it is ordered by, a quote’s number or a customer’s name — or ask for a trailer or a motor “for” a boat.`
 
-/** "Trailers", "Motors" — the kind as a group heading names it. */
-const KIND_TITLE = { trailer: 'Trailers', motor: 'Motors' } as const
+/** "Trailers", "Motors" — the kind as a sentence names it. */
+const KIND_SAID = { trailer: 'trailers', motor: 'motors' } as const
+
+/** "Highfield’s", "Haines Signature’s" — a maker's name as the owner of what follows. */
+const owns = (maker: string): string => `${maker}’${maker.endsWith('s') ? '' : 's'}`
+
+/**
+ * A MAKER SAID AHEAD OF THE NAME (fit-flow, 2026-11-05). The walk's customer said "Stabicraft
+ * PA 600"; no Stabicraft is called that, and the PA600 on the price list is Highfield's Patrol
+ * 600. Find answered "Nothing matches", a dead end. This reads the maker off the front of what
+ * was typed, longest name first, so the rest can be searched across every maker and the near
+ * miss named. Null where no maker leads, or where too little follows it to ask about.
+ */
+export function makerAhead(
+  query: string,
+  makers: readonly string[],
+): { maker: string; rest: string } | null {
+  const said = query.trim().replace(/\s+/g, ' ')
+  const folded = said.toLowerCase()
+  const byLength = [...new Set(makers.map((m) => m.trim()).filter((m) => m !== ''))].toSorted(
+    (a, b) => b.length - a.length,
+  )
+  for (const maker of byLength) {
+    const head = `${maker.toLowerCase()} `
+    if (!folded.startsWith(head)) continue
+    const rest = said.slice(head.length).trim()
+    return rest.length >= MIN_ASK ? { maker, rest } : null
+  }
+  return null
+}
+
+/**
+ * HOW EXACTLY A MODEL IS WHAT WAS TYPED, so the boat a person named leads its longer siblings
+ * (fit-flow, 2026-11-05: "Patrol 600" and "PA 600" both led with the Patrol 600 EW, and the
+ * plain Patrol 600 stood third). 2 is the model's own name, with or without its maker ahead of
+ * it; 1 is the code it is ordered by as a whole word of the file's line ("PA600" in "PA600
+ * Open", never inside "PA600EW"); 0 is every other match, which keeps the matcher's order.
+ */
+export function exactness(
+  query: string,
+  boat: { modelName: string; maker: string },
+  label: string,
+): number {
+  const q = fold(query)
+  const name = fold(boat.modelName)
+  const makerWords = fold(boat.maker).split(' ')
+  let bare = q
+  for (const word of makerWords) {
+    if (bare.startsWith(`${word} `)) bare = bare.slice(word.length + 1)
+  }
+  if (bare === name) return 2
+  const tight = bare.replace(/[\s-]+/g, '')
+  if (tight.length < 2) return 0
+  const tokens = label
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t !== '')
+  return tokens.includes(tight) ? 1 : 0
+}
 
 /**
  * THE WHOLE ANSWER, in the order it is painted.
@@ -435,54 +510,34 @@ export function readFinder(input: FinderInput): FinderReading {
   const rest = rowGroups.filter((g) => !input.boatTables.has(g.table.id))
   let note: string | null = null
 
-  /* -- what fits a boat, when that was the question -------------- */
+  /* -- a question about a boat, or a maker said ahead of its name ---
+     THE BOATS ANSWER IT, each with its own two doors (fit-flow, direction A, 2026-11-05). "Motors
+     for PA 600" was one list of motors merged over the plain Patrol 600, the EW and the ST, "fits
+     all 30", which answered for no boat anybody meant; a boat's motors, trailer and fit-out are
+     read on its own page, one press away on its What fits. A maker said ahead of a name it does
+     not carry is named as the near miss, and the boats that ARE called that follow. */
   const fits = input.fits ?? null
-  if (fits && boats.length > 0) {
-    const { question, answer } = fits
-    const title = `${KIND_TITLE[question.kind]} for ${question.boat}`
-    /* IN THE DEALER'S WORDS (docs/WORDS.md, 2026-10-21): what fits a boat, never what "the
-       price file pairs" with it, and the price list's own choice is "recommended" */
-    const theBoats =
-      answer.boats === 1 ? 'the boat' : `the ${answer.boats.toLocaleString('en-AU')} boats`
-    if (answer.fits.length === 0) {
-      note = `No ${question.kind} on the price list fits ${theBoats} matching “${question.boat}”.${
-        answer.held === 0
-          ? ''
-          : answer.held === 1
-            ? ' One that fits is no longer sold.'
-            : ` ${answer.held.toLocaleString('en-AU')} that fit are no longer sold.`
-      }`
-    } else {
-      const shown = answer.fits.slice(0, SHOWN)
-      groups.push({
-        id: 'fits',
-        title,
-        say: `Made for ${theBoats} matching “${question.boat}”, the recommended one first.`,
-        ink: lines?.ink(shown[0]!.tableId) ?? (question.kind === 'trailer' ? 'ochre' : 'carmine'),
-        rows: shown.map((fit) => {
-          const reach =
-            answer.boats === 1
-              ? 'fits it'
-              : fit.fits === answer.boats
-                ? `fits all ${answer.boats.toLocaleString('en-AU')}`
-                : `fits ${fit.fits.toLocaleString('en-AU')} of ${answer.boats.toLocaleString('en-AU')}`
-          const figure = priceOf(lines, fit.tableId, fit.rowId)
-          return {
-            id: `row:${fit.tableId}:${fit.rowId}`,
-            /* as the build names it, never the file's key ("Yamaha - F90LB") */
-            name: lineSaid(fit.label, lines?.register?.(fit.tableId) ?? ''),
-            fact: fit.picks > 0 ? `${reach} · recommended` : reach,
-            verb: 'Open it in the price list',
-            target: { at: 'row', tableId: fit.tableId, rowId: fit.rowId } as const,
-            ...(figure === '' ? {} : { figure }),
-            at: -1,
-            length: 0,
-          }
+  const aside = input.aside ?? null
+  if (aside && boats.length > 0) {
+    const makers = [
+      ...new Set(
+        boats.map((g) => {
+          const first = g.hits[0]
+          const spoken = first ? spokenBoat(g.table.id, first.label).maker : ''
+          return spoken || g.table.name
         }),
-        ...(answer.fits.length > SHOWN ? { more: answer.fits.length - SHOWN } : {}),
-      })
-    }
-    groups.push(boatGroup(boats, question.boat, lines))
+      ),
+    ]
+    note = `No ${aside.maker} is called “${aside.rest}”. ${
+      makers.length === 1
+        ? `The “${aside.rest}” on the price list is ${owns(makers[0]!)}:`
+        : 'These from other makers are:'
+    }`
+  }
+  if (fits && boats.length > 0) {
+    const said = `The ${KIND_SAID[fits.question.kind]} that go on a boat are read on its own page. Press What fits beside the one you mean.`
+    note = note === null ? said : `${note} ${said}`
+    groups.push(boatGroup(boats, fits.question.boat, lines))
     return finish(groups, input.query, note)
   }
 
@@ -537,7 +592,15 @@ export function readFinder(input: FinderInput): FinderReading {
   }
 
   /* -- boats: something to sell ---------------------------------- */
-  if (boats.length > 0) groups.push(boatGroup(boats, input.query, lines, input.whatFits === true))
+  /* the words that named the boat: what followed "what fits", or the name after the maker */
+  const boatWords =
+    aside?.rest ?? (input.whatFits ? (askedWhatFits(input.query) ?? input.query) : input.query)
+  if (boats.length > 0) {
+    /* ASKED WHAT FITS A BOAT, THE BOATS LEAD: nothing above them but the doors it named */
+    const group = boatGroup(boats, boatWords, lines)
+    if (input.whatFits) groups.unshift(group)
+    else groups.push(group)
+  }
 
   /* -- the lists themselves --------------------------------------
      ONLY A LIST WHOSE OWN NAME WAS TYPED (built-m3.md, the shell's minor). A list reached through
@@ -622,9 +685,11 @@ function lineRow(
  *
  * Every matched line is read through `lines.boat` to the model the
  * picker files it under. A model with several versions matched is one
- * line — "Choose the version", onto the picker's plate; a model with
- * one is that version — "Start a quote". A line the picker does not
- * offer (no longer sold) is answered as a line of the file, and says so.
+ * line, and its Quote it opens the picker's plate on it; a model with
+ * one is that version, and its Quote it writes the draft. Every boat
+ * line carries its own What fits beside its Quote it (fit-flow,
+ * 2026-11-05). A line the picker does not offer (no longer sold) is
+ * answered as a line of the file, and says so.
  *
  * And where exactly ONE line of a list matched — the dealer typed a
  * code, or a name down to its colourway — the file's own line for it
@@ -639,7 +704,6 @@ function boatGroup(
   groups: SearchResult['groups'],
   query: string,
   lines: FinderLines | undefined,
-  whatFits = false,
 ): FinderGroup {
   interface Seen {
     tableId: string
@@ -658,12 +722,46 @@ function boatGroup(
     }
   }
 
+  /* THE BOAT A PERSON NAMED LEADS ITS LONGER SIBLINGS (`exactness`): a stable sort, so every
+     boat equally exact keeps the matcher's own order */
+  const ordered = [...seen.values()]
+    .map((s, i) => ({
+      s,
+      i,
+      exact: s.boat ? exactness(query, s.boat, s.hits[0]!.label) : 0,
+    }))
+    .toSorted((a, b) => b.exact - a.exact || a.i - b.i)
+    .map((o) => o.s)
+
+  /* WHAT FITS IT, the boat's own second door: its page, opened on the line the row found, and
+     named with its maker so the door says which boat it is ("What fits the Highfield Patrol
+     600"), never only the first boat's */
+  const fitsOf = (tableId: string, boat: FinderBoat, said: string, rowId: string) => {
+    const maker = spokenBoat(tableId, '').maker || boat.maker
+    return {
+      id: `fits:${rowId}`,
+      rowId,
+      name: said.toLowerCase().startsWith(maker.toLowerCase()) ? said : `${maker} ${said}`,
+    }
+  }
+
   const all: FinderRow[] = []
-  for (const { tableId, maker, boat, hits } of seen.values()) {
+  for (const { tableId, maker, boat, hits } of ordered) {
     const first = hits[0]!
     if (boat && hits.length > 1) {
       const amounts = hits.map((h) => lines?.boat(tableId, h.rowId)?.amount ?? null)
       const figure = span(amounts)
+      /* WHAT FITS OPENS ON THE VERSION THE "FROM" FIGURE PRICES, the first of the lowest, so the
+         page a person lands on carries the price the row says first */
+      let opening = first.rowId
+      let least = Number.POSITIVE_INFINITY
+      hits.forEach((h, i) => {
+        const amount = amounts[i] ?? null
+        if (amount !== null && amount < least) {
+          least = amount
+          opening = h.rowId
+        }
+      })
       all.push({
         id: `model:${boat.model}`,
         name: boat.modelName,
@@ -672,10 +770,12 @@ function boatGroup(
             ? counted(boat.versions, 'version', 'versions')
             : `${hits.length.toLocaleString('en-AU')} of its ${boat.versions.toLocaleString('en-AU')} versions`
         }`,
-        verb: 'Choose the version',
+        /* QUOTE IT: the picker's plate on the model, where its version is chosen */
+        verb: QUOTE_IT,
         target: { at: 'model', model: boat.model },
         ...(figure === '' ? {} : { figure }),
         ...markBest(boat.modelName, query),
+        fits: fitsOf(tableId, boat, boat.modelName, opening),
       })
       continue
     }
@@ -687,7 +787,8 @@ function boatGroup(
           boat.versions > 1
             ? `${boat.maker} · one of ${boat.versions.toLocaleString('en-AU')} versions`
             : boat.maker,
-        verb: 'Start a quote',
+        /* QUOTE IT: one version found, so the press writes the draft (`start`) */
+        verb: QUOTE_IT,
         target: { at: 'start', tableId, rowId: first.rowId },
         ...(boat.amount === null ? {} : { figure: money(boat.amount) }),
         /* A CODE THE NAME ALREADY SAYS IS NOT SAID TWICE. Haines files
@@ -697,6 +798,7 @@ function boatGroup(
            rule for it. The name carries the mark either way */
         ...(first.code && !saidAlready(boat.name, first.code.text) ? typedCode(first.code) : {}),
         ...markBest(boat.name, query),
+        fits: fitsOf(tableId, boat, boat.modelName, first.rowId),
       })
       continue
     }
@@ -709,26 +811,6 @@ function boatGroup(
   }
 
   const shown = all.slice(0, SHOWN)
-  /* WHAT FITS THE BOAT FOUND FIRST, one press away (exposure.md: a boat's name sent you to the
-     picker, and "fits ADV9" found nothing). The first boat the finder answers carries a second
-     line that opens Fitment already on it; asked what fits, that line leads. */
-  const top = [...seen.values()].find((s) => s.boat !== null)
-  if (top?.boat) {
-    const said = top.boat.modelName.toLowerCase().startsWith(top.boat.maker.toLowerCase())
-      ? top.boat.modelName
-      : `${spokenBoat(top.tableId, '').maker || top.boat.maker} ${top.boat.modelName}`
-    const row: FinderRow = {
-      id: `fits:${top.hits[0]!.rowId}`,
-      name: `What fits the ${said}`,
-      fact: 'Motors, trailers and parts made for it',
-      verb: 'Open Fitment',
-      target: { at: 'fits', rowId: top.hits[0]!.rowId },
-      at: -1,
-      length: 0,
-    }
-    if (whatFits) shown.unshift(row)
-    else shown.splice(1, 0, row)
-  }
   /* ITS LINE IN THE PRICE LIST, where the answer is one line of one list: the price list one
      press away, under the sale. It printed the line as the file spells it — "Signature Fisher -
      525F  Fisher 525F  as Haines Signature lists it" — the boat above it said a second time in the

@@ -20,13 +20,14 @@ import {
   type QuoteFacts,
   type SearchLimits,
 } from '@/domain/catalogue/search'
-import { askedForFits, askedWhatFits, fitsFor } from '@/domain/shell/fits'
+import { askedForFits, askedWhatFits } from '@/domain/shell/fits'
 import { CUSTOMER_TABLE_ID, customerRegister, matchCustomers } from '@/domain/people/customers'
 import { readEveryone } from '@/domain/people/book'
 import { indexQuotes } from '@/domain/quote/diary/history'
 import { readRegister } from '@/domain/quote/register'
 import {
   MIN_ASK,
+  makerAhead,
   readFinder,
   type FinderAct,
   type FinderRow,
@@ -34,6 +35,7 @@ import {
 } from '@/domain/shell/finder'
 import { crestOf } from '@/domain/shell/crest'
 import { crestMarkOf, ownBusiness } from '@/data/crest'
+import { spokenBoat } from '@/domain/quote/spoken'
 import { useTabIcon, useTabTitle } from './tab'
 import { quoteFactsOf } from '@/domain/shell/documents'
 import { readDoorCounts, type DoorCount, type DoorCounts } from '@/domain/shell/doors'
@@ -117,6 +119,13 @@ const EVERY_MATCH: SearchLimits = {
 export interface ShellProps {
   /** the address, as the router knows it */
   at: string
+  /**
+   * WHICH DOOR THE SCREEN WAS REACHED FROM, where the address says (`?from=home`). A screen
+   * behind more than one door — what fits a boat is behind Data and opened from Home's boats —
+   * lights the door it was reached from, so a person who came from Home is not told they are in
+   * Data (fit-flow, 2026-11-05, the walk's "I came from Home but the top bar has Data lit up").
+   */
+  from?: string | null
   /** a plain press on a link, handled by the router */
   go: (href: string) => void
   /**
@@ -129,7 +138,7 @@ export interface ShellProps {
   org?: string
 }
 
-export function Shell({ at, go, org }: ShellProps) {
+export function Shell({ at, go, org, from = null }: ShellProps) {
   /* ENTRY HAS NO SHELL, AND PAYS FOR NONE OF IT. The decision is made
      before a store is read, a listener is bound or an index is built:
      a pill offering five screens to somebody who has not said who
@@ -152,7 +161,7 @@ export function Shell({ at, go, org }: ShellProps) {
     unsayElsewhere(at)
   }, [at])
   if (!hasShell(at)) return null
-  return <Standing at={at} go={go} {...(org === undefined ? {} : { org })} />
+  return <Standing at={at} go={go} from={from} {...(org === undefined ? {} : { org })} />
 }
 
 /** THE BUSINESS THE CREST NAMES: the one the file names, and before a file has said, the
@@ -162,7 +171,7 @@ function whoseCrest(business: string | null): string | null {
   return business !== null && business.trim() !== '' ? business : ownBusiness()
 }
 
-function Standing({ at, go, org }: ShellProps) {
+function Standing({ at, go, org, from = null }: ShellProps) {
   const business = whoseCrest(useCatalogue((s) => s.business))
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
@@ -245,7 +254,7 @@ function Standing({ at, go, org }: ShellProps) {
   if (!moved && at !== firstAt) setMoved(true)
   const arriving = !moved && at === firstAt
 
-  const standing = doorAt(at)
+  const standing = doorAt(at, from)
   const doors: PillDoor[] = DOORS.map((door) => ({
     door,
     here: standing?.href === door.href,
@@ -323,23 +332,38 @@ function Standing({ at, go, org }: ShellProps) {
     () => (asking && !question ? askedWhatFits(query) : null),
     [asking, question, query],
   )
-  const result = useMemo(() => {
+  const asked = useMemo(() => {
     if (!index || !asking) return null
     return search(index, question ? question.boat : (whatFits ?? query), EVERY_MATCH)
   }, [index, asking, question, whatFits, query])
 
-  const views = useCatalogue((s) => s.views)
-  const fits = useMemo(() => {
-    if (!question || !result) return null
-    const boats = result.groups
-      .filter((g) => g.table.kind === 'boat')
-      .flatMap((g) => g.hits.map((h) => ({ tableId: g.table.id, rowId: h.rowId })))
-    if (boats.length === 0) return null
-    return {
-      question,
-      answer: fitsFor({ entities: tables, rowsByEntity: rows, views }, boats, question.kind),
-    }
-  }, [question, result, tables, rows, views])
+  /* A MAKER SAID AHEAD OF A NAME IT DOES NOT CARRY — "Stabicraft PA 600" (fit-flow, 2026-11-05).
+     Where the words found no boat and begin with a boat maker's name, what followed the maker is
+     searched across every maker, and the finder names the near miss above the boats that ARE
+     called that (`makerAhead`, in the grammar). */
+  const makers = useMemo(
+    () =>
+      Object.values(tables).flatMap((t) =>
+        t.kind === 'boat' ? [t.name, spokenBoat(t.id, '').maker] : [],
+      ),
+    [tables],
+  )
+  const aside = useMemo(() => {
+    if (!index || !asked || question || whatFits) return null
+    if (asked.groups.some((g) => g.table.kind === 'boat' && g.hits.length > 0)) return null
+    const ahead = makerAhead(query, makers)
+    if (!ahead) return null
+    const elsewhere = search(index, ahead.rest, EVERY_MATCH)
+    return elsewhere.groups.some((g) => g.table.kind === 'boat' && g.hits.length > 0)
+      ? { ahead, elsewhere }
+      : null
+  }, [index, asked, question, whatFits, query, makers])
+  const result = aside ? aside.elsewhere : asked
+
+  /* "MOTORS FOR PA 600" IS ANSWERED WITH THE BOATS, each with its own What fits: a boat's motors
+     are read on its own page, never merged over every boat the words found (fit-flow,
+     2026-11-05, "motors for PA 600" said "fits all 30" of three boats) */
+  const fits = useMemo(() => (question ? { question } : null), [question])
 
   /* THE BOAT A LINE IS A VERSION OF, its price and its kind's ink — read
      off the picker's own fleet (`lines.ts` says why it is the picker's),
@@ -425,6 +449,7 @@ function Standing({ at, go, org }: ShellProps) {
         ...(lines ? { lines } : {}),
         fits,
         whatFits: whatFits !== null,
+        aside: aside?.ahead ?? null,
         scope: scope
           ? {
               word: scope.word,
@@ -447,6 +472,7 @@ function Standing({ at, go, org }: ShellProps) {
       lines,
       fits,
       whatFits,
+      aside,
     ],
   )
 
@@ -511,7 +537,9 @@ function Standing({ at, go, org }: ShellProps) {
         return
       }
       setFinding(false)
-      const href = addressOf(row.target)
+      /* WHAT FITS, OPENED FROM HERE, LIGHTS THE DOOR IT WAS OPENED FROM (`from`): the page
+         is behind Data and was reached from wherever the person stood */
+      const href = addressOf(row.target, standing?.word.toLowerCase() ?? null)
       if (href !== null) {
         go(href)
         return
@@ -520,7 +548,7 @@ function Standing({ at, go, org }: ShellProps) {
          the screen's to act on, and the screen published the way. */
       if (row.target.at === 'here') scope?.go?.(row.target.id)
     },
-    [go, scope, org],
+    [go, scope, org, standing],
   )
 
   /* ── THE KEYBOARD, BOUND TO THE WINDOW BECAUSE IT IS THE SHELL'S ──
@@ -599,10 +627,16 @@ function Standing({ at, go, org }: ShellProps) {
 
 /** The shell, with the seat a screen publishes its own rows into.
  *  One mount, one seat, around the outlet. */
-export function ShellAround({ at, go, org, children }: ShellProps & { children: ReactNode }) {
+export function ShellAround({
+  at,
+  go,
+  org,
+  from = null,
+  children,
+}: ShellProps & { children: ReactNode }) {
   return (
     <ScopeSeat>
-      <Shell at={at} go={go} {...(org === undefined ? {} : { org })} />
+      <Shell at={at} go={go} from={from} {...(org === undefined ? {} : { org })} />
       {children}
     </ScopeSeat>
   )
@@ -647,7 +681,7 @@ function coarse(): boolean {
  * a fact about the app's shape, and the domain is arithmetic over the
  * file.
  */
-export function addressOf(target: FinderTarget): string | null {
+export function addressOf(target: FinderTarget, from: string | null = null): string | null {
   switch (target.at) {
     case 'door':
       return target.href
@@ -673,7 +707,7 @@ export function addressOf(target: FinderTarget): string | null {
          that hull") */
       return `${START_A_QUOTE.href}?model=${encodeURIComponent(target.model)}`
     case 'fits':
-      return fitmentOf(target.rowId)
+      return fitmentOf(target.rowId, from)
     case 'start':
       /* an act that WRITES, and so not an address: `choose` writes the
          draft and then goes to the build it opened */

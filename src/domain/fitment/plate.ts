@@ -300,15 +300,26 @@ const ORDER: MotorHeldId[] = [
   'unrated',
 ]
 
+/** Nothing set apart: every line not offered is counted under its reason. */
+const NONE_APART: ReadonlySet<string> = new Set()
+
 /** Every Yamaha on sale that is not offered on this boat, by why. With the motors offered, the
- *  counts add up to every one on sale. */
-export function motorHeld(ctx: CatalogueCtx, fit: BoatFit): Held[] {
+ *  counts add up to every one on sale.
+ *
+ *  `apart` is the lines the boat's page says on their own and never under a reason: a motor
+ *  Northside took off this boat stays in its own place, tagged, and is never filed as "not made
+ *  for it" (the fit-flow walk, 2026-11-05, major 8). They are left out of every group here. */
+export function motorHeld(
+  ctx: CatalogueCtx,
+  fit: BoatFit,
+  apart: ReadonlySet<string> = NONE_APART,
+): Held[] {
   const motor = fit.motor
   const table = motor ? ctx.entities[motor.tableId] : undefined
   if (!motor || !table) return []
   const live = isRetired(table)
     ? []
-    : (ctx.rowsByEntity[table.id] ?? []).filter((r) => !isDiscontinued(r))
+    : (ctx.rowsByEntity[table.id] ?? []).filter((r) => !isDiscontinued(r) && !apart.has(r.id))
   const rows = new Map(live.map((r) => [r.id, r]))
   const boatAt: Door = {
     kind: 'boat',
@@ -325,7 +336,8 @@ export function motorHeld(ctx: CatalogueCtx, fit: BoatFit): Held[] {
   const ofRow = (r: RowData): HeldExample =>
     exampleOf({ tableId: table.id, rowId: r.id }, lineSaid(rowLabel(table, r), table.name))
 
-  const dots = (standing: string) => motor.dots.filter((d) => d.standing === standing)
+  const dots = (standing: string) =>
+    motor.dots.filter((d) => d.standing === standing && !apart.has(d.place.rowId))
   const refused = refusedIn(motor.made)
   const under = dots('under')
   const over = dots('over')
@@ -412,7 +424,7 @@ export function motorHeld(ctx: CatalogueCtx, fit: BoatFit): Held[] {
 
 /** Every trailer on sale that is not offered on this boat, by why. With the trailers offered, the
  *  counts add up to every one on sale; what is no longer sold is never in them. */
-export function trailerHeld(fit: BoatFit): Held[] {
+export function trailerHeld(fit: BoatFit, apart: ReadonlySet<string> = NONE_APART): Held[] {
   const trailer = fit.trailer
   if (!trailer) return []
   const out: Held[] = []
@@ -433,7 +445,18 @@ export function trailerHeld(fit: BoatFit): Held[] {
       struck: true,
     })
   }
-  for (const g of trailer.groups) {
+  for (const whole of trailer.groups) {
+    /* a trailer the page says on its own (taken off, or named for this boat) is left out here */
+    const members = whole.members.filter((m) => !apart.has(m.place.rowId))
+    const count = whole.count - (whole.members.length - members.length)
+    if (count <= 0) continue
+    const makers = whole.makers
+      .map((m) => {
+        const left = members.filter((x) => x.maker === m.maker)
+        return { ...m, count: left.length, example: left[0] ?? m.example }
+      })
+      .filter((m) => whole.id !== 'another' || m.count > 0)
+    const g = { ...whole, members, count, makers }
     const first = g.id === 'another' ? g.makers[0]?.example : g.members[0]
     out.push({
       id: g.id,
@@ -486,10 +509,22 @@ export interface HeldBack {
 }
 
 /** The reasons under a pressed plate line, and the one figure that heads them. */
-export function heldBack(ctx: CatalogueCtx, fit: BoatFit, place: HeldPlace): HeldBack {
+export function heldBack(
+  ctx: CatalogueCtx,
+  fit: BoatFit,
+  place: HeldPlace,
+  apart: ReadonlySet<string> = NONE_APART,
+): HeldBack {
   const figures = figuresOf(fit, place)
-  const held = place === 'motor' ? motorHeld(ctx, fit) : trailerHeld(fit)
-  const others = figures ? Math.max(0, figures.of - figures.offered) : 0
+  const held = place === 'motor' ? motorHeld(ctx, fit, apart) : trailerHeld(fit, apart)
+  /* with nothing set apart, one subtraction off the plate line's own pair; with lines set apart,
+     what the groups still count, since the page says the rest on their own */
+  const others =
+    apart.size === 0
+      ? figures
+        ? Math.max(0, figures.of - figures.offered)
+        : 0
+      : held.reduce((n, h) => n + h.count, 0)
   return {
     others,
     groups: held.map((h) => ({ ...h, share: others > 0 ? h.count / others : 0 })),

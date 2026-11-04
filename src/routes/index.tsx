@@ -120,6 +120,9 @@ function HomeRoute() {
       openBoat={(tableId, rowId) =>
         void navigate({ to: '/quote/new', search: { brand: tableId, model: rowId } })
       }
+      /* WHAT GOES ON THE BOAT, its own page, opened from Home and lighting Home (fit-flow,
+         2026-11-05: "we should be able to do the what fits from the home boats thing") */
+      openFits={(rowId) => void navigate({ to: '/fitment', search: { boat: rowId, from: 'home' } })}
       /* A PERSON OPENS ON THEIR OWN PAGE in Customers, by the book's own key */
       openCustomer={(who) => void navigate({ to: '/customers', search: { who } })}
       /* THE DESK'S FOLDED CARD opens where the work it folds is kept: every quote in Quotes,

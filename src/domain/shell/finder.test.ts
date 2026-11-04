@@ -15,7 +15,15 @@ import { loadPack } from '@/test/fixtures/pack'
 import { buildSearchIndex, search, type SearchIndex } from '@/domain/catalogue/search'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { DOORS } from '@/app/ways'
-import { MIN_ASK, NOTHING_MATCHED, readFinder, type FinderInput } from './finder'
+import {
+  MIN_ASK,
+  NOTHING_MATCHED,
+  QUOTE_IT,
+  exactness,
+  makerAhead,
+  readFinder,
+  type FinderInput,
+} from './finder'
 
 let index: SearchIndex
 let boatTables: Set<string>
@@ -354,31 +362,27 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
       lines,
     })
 
-  it('collapses the versions of one model into one line, onto the picker', () => {
+  /* REWRITTEN 2026-11-05 (fit-flow, direction A): one "What fits the …" row followed only the
+     first boat found; now every boat line carries its own What fits beside its Quote it */
+  it('collapses the versions of one model into one line, with its two doors', () => {
     const boats = answer([hit('r1', 'Maker - Q100 (A)'), hit('r2', 'Maker - Q100 (B)')]).groups[0]!
-    /* the model, then what fits it (the flow round, 2026-10-30) */
-    expect(boats.rows).toHaveLength(2)
-    expect(boats.rows[1]).toMatchObject({
-      verb: 'Open Fitment',
-      target: { at: 'fits', rowId: 'r1' },
-    })
-    expect(boats.rows[1]!.name).toMatch(/^What fits the .*Q100$/)
+    expect(boats.rows).toHaveLength(1)
     expect(boats.rows[0]).toMatchObject({
       name: 'Q100',
       fact: 'Maker Boats · 2 versions',
       figure: '$100 – $200',
-      verb: 'Choose the version',
+      verb: QUOTE_IT,
       target: { at: 'model', model: 'r1' },
+      fits: { id: 'fits:r1', rowId: 'r1' },
     })
+    expect(boats.rows[0]!.fits!.name).toMatch(/Q100$/)
     expect(boats.ink).toBe('blue')
   })
 
   it('answers one version as a quote to start, and its line on the sheet below it', () => {
     const boats = answer([hit('r1', 'Maker - Q100 (A)', 'MB1')], 'mb1').groups[0]!
     expect(boats.rows.map((r) => [r.verb, r.target.at])).toEqual([
-      ['Start a quote', 'start'],
-      /* WHAT FITS IT, one press from its name (the flow round, 2026-10-30) */
-      ['Open Fitment', 'fits'],
+      [QUOTE_IT, 'start'],
       ['Open it', 'row'],
     ])
     expect(boats.rows[0]).toMatchObject({
@@ -386,10 +390,12 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
       fact: 'Maker Boats · one of 2 versions',
       figure: '$100',
       code: { text: 'MB1', at: 0, length: 3 },
+      fits: { id: 'fits:r1', rowId: 'r1' },
     })
     /* its line in the price list, not the boat again in the file's words (2026-10-21) */
-    expect(boats.rows[2]!.name).toBe('Its line in the price list')
-    expect(boats.rows[2]!.code).toBeUndefined()
+    expect(boats.rows[1]!.name).toBe('Its line in the price list')
+    expect(boats.rows[1]!.code).toBeUndefined()
+    expect(boats.rows[1]!.fits).toBeUndefined()
   })
 
   /* the refine round, 2026-10-21: every line printed its code in a box, typed or not */
@@ -397,13 +403,14 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
     const named = { ...hit('r1', 'Maker - Q100 (A)', 'MB1'), at: 0, length: 4 }
     named.code = { text: 'MB1', at: -1, length: 0 }
     const boats = answer([named], 'q100').groups[0]!
-    expect(boats.rows[0]!.verb).toBe('Start a quote')
+    expect(boats.rows[0]!.verb).toBe(QUOTE_IT)
     expect(boats.rows[0]!.code).toBeUndefined()
   })
 
-  it('puts "What fits the …" first when that is what was asked', () => {
-    const boats = answer([hit('r1', 'Maker - Q100 (A)', 'MB1')], 'mb1', true).groups[0]!
-    expect(boats.rows[0]!.target).toEqual({ at: 'fits', rowId: 'r1' })
+  it('puts the boats first when what fits is what was asked', () => {
+    const reading = answer([hit('r1', 'Maker - Q100 (A)', 'MB1')], 'what fits mb1', true)
+    expect(reading.groups[0]!.id).toBe('boats')
+    expect(reading.groups[0]!.rows[0]!.fits?.rowId).toBe('r1')
   })
 
   it('says a line the picker does not offer is no longer sold, and sends it to the sheet', () => {
@@ -412,5 +419,47 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
       fact: 'no longer sold',
       verb: 'Open it in the price list',
     })
+  })
+})
+
+/* ============================================================
+   THE BOAT A PERSON NAMED, AND THE MAKER THEY MISREMEMBERED
+   (fit-flow, 2026-11-05). On the real file in `lines.test.ts`;
+   here the two pure readings, on words alone.
+   ============================================================ */
+
+describe('makerAhead — a maker said ahead of the name', () => {
+  const makers = ['Stabicraft', 'Highfield Inflatables', 'Highfield', 'Haines Signature']
+
+  it('reads the maker off the front, the longest name first, and keeps the rest as typed', () => {
+    expect(makerAhead('Stabicraft PA 600', makers)).toEqual({ maker: 'Stabicraft', rest: 'PA 600' })
+    expect(makerAhead('  haines   signature 525F ', makers)).toEqual({
+      maker: 'Haines Signature',
+      rest: '525F',
+    })
+    expect(makerAhead('Highfield Inflatables SP560', makers)?.maker).toBe('Highfield Inflatables')
+  })
+
+  it('reads nothing where no maker leads, or too little follows it', () => {
+    expect(makerAhead('PA 600', makers)).toBeNull()
+    expect(makerAhead('Stabicraft', makers)).toBeNull()
+    expect(makerAhead('Stabicraft 6', makers)).toBeNull()
+    expect(makerAhead('Stabicrafty 600', makers)).toBeNull()
+  })
+})
+
+describe('exactness — the boat named leads its longer siblings', () => {
+  const plain = { modelName: 'Patrol 600', maker: 'Highfield Inflatables' }
+  const ew = { modelName: 'Patrol 600 EW', maker: 'Highfield Inflatables' }
+
+  it('is 2 for the model’s own name, with or without its maker ahead', () => {
+    expect(exactness('Patrol 600', plain, 'Highfield - PA600 Open (HYP) B-B-B')).toBe(2)
+    expect(exactness('highfield patrol 600', plain, 'Highfield - PA600 Open (HYP) B-B-B')).toBe(2)
+    expect(exactness('Patrol 600', ew, 'Highfield - PA600EW (HYP) B-B-B')).toBe(0)
+  })
+
+  it('is 1 for the code as a whole word of the line, never inside a longer one', () => {
+    expect(exactness('PA 600', plain, 'Highfield - PA600 Open (HYP) B-B-B')).toBe(1)
+    expect(exactness('PA 600', ew, 'Highfield - PA600EW (HYP) B-B-B')).toBe(0)
   })
 })

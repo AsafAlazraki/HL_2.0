@@ -859,7 +859,8 @@ function readTrailers(
   const unnamed = inOrder((fitment?.unnamed ?? []).filter((v) => !madeRows.has(v.rowId)))
   const another = inOrder((fitment?.rejected ?? []).filter((v) => !madeRows.has(v.rowId)))
 
-  const notMade = `Built for ${marque ?? 'this maker'}, but not made for the ${boat.model || boat.name}.`
+  /* not "not made for it": the walk read that beside a trailer whose own name is for this boat */
+  const notMade = `Built for ${marque ?? 'this maker'} boats, and the price list does not list them for the ${boat.model || boat.name}.`
   const groups: TrailerGroup[] = []
   if (forThis.length > 0) {
     groups.push({
@@ -927,7 +928,7 @@ function readTrailers(
     groups.push({
       id: 'unnamed',
       count: unnamed.length,
-      head: `${NAMES_NO_MAKER.replace(/\.$/, '')}: not ruled out, and not made for this boat.`,
+      head: `${NAMES_NO_MAKER.replace(/\.$/, '')}: not ruled out, and the price list does not list it for this boat.`,
       members: unnamed.map((v) => member(v, NAMES_NO_MAKER)),
       makers: [],
     })
@@ -1302,7 +1303,7 @@ function wholeMotor(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
  * build would put on the quote. Null where the line has none (a list whose price Northside has not
  * chosen). Show all priced only the offered seven (the fitment judge, major 11).
  */
-function pricer(
+export function pricer(
   ctx: CatalogueCtx,
   fit: BoatFit,
 ): (entity: EntityDef, row: RowData) => number | null {

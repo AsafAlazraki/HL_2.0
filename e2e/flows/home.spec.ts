@@ -105,7 +105,16 @@ const makerSaid = (tableId: string): string =>
   names.makers.find((m) => m.table === tableId)?.maker ??
   tables.find((t) => t.id === tableId)?.name ??
   ''
-const boatTile = (hero: Hero): string => `${modelSaid(hero)}, ${makerSaid(hero.table)} — quote it`
+/* A BOAT'S TWO DOORS (fit-flow, direction A, 2026-11-05): each card carries What fits and Quote it.
+   Until then the card was one door, "— quote it", and the walk could not reach what fits a boat
+   from Home at all. */
+const escaped = (said: string): string => said.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+/* the card says the model as Home does, which may hold the ledger's code after more words
+   ("Signature Fisher 525F" for the code "525F"), so the door's name ends with the code said */
+const doorOf = (word: string, hero: Hero): RegExp =>
+  new RegExp(`^${word}: (.* )?${escaped(modelSaid(hero))}, ${escaped(makerSaid(hero.table))}$`)
+const boatTile = (hero: Hero): RegExp => doorOf('Quote it', hero)
+const boatFits = (hero: Hero): RegExp => doorOf('What fits', hero)
 
 const boats = tables.filter((t) => t.kind === 'boat' && t.role !== 'join' && !t.retired)
 const motors = tables.filter((t) => t.kind === 'motor' && t.role !== 'join' && !t.retired)
@@ -350,6 +359,23 @@ test('every act on day one reaches the screen it names', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/quote/new\\?brand=${adv9.table}&model=`))
   const plate = page.getByRole('complementary', { name: 'What is chosen' })
   await expect(plate.getByRole('heading', { level: 2 })).toHaveText(modelSaid(adv9))
+  await back()
+
+  /* the same card's other door: what fits the boat, its own page, opened from Home and lighting
+     Home rather than Data (fit-flow, 2026-11-05: "I came from Home but the top bar has Data lit up") */
+  await boatsRegion(page)
+    .getByRole('button', { name: boatFits(adv9) })
+    .click()
+  await expect(page).toHaveURL(/\/fitment\?boat=[^&]+&from=home$/)
+  const pill = page.getByTestId('shell-pill')
+  await expect(pill.getByRole('link', { name: /^Home/ }).first()).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  await expect(pill.getByRole('link', { name: /^Data/ }).first()).not.toHaveAttribute(
+    'aria-current',
+    'page',
+  )
   await back()
 
   /* a boat maker's door: its boats in the picker */

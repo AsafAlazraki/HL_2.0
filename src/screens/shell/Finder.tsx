@@ -30,7 +30,13 @@ import {
 import { START_A_QUOTE } from '@/app/ways'
 import { TABLE_KINDS, type AccentKey, type TableKind } from '@/domain/model'
 import { Button, Icon, Kbd, KindMark, type Glyph } from '@/ui'
-import type { FinderGroup, FinderReading, FinderRow } from '@/domain/shell/finder'
+import {
+  QUOTE_IT,
+  WHAT_FITS,
+  type FinderGroup,
+  type FinderReading,
+  type FinderRow,
+} from '@/domain/shell/finder'
 import { glyphOfWay } from './glyphs'
 
 /* ============================================================
@@ -172,6 +178,68 @@ function Marked({ name, at, length }: { name: string; at?: number; length?: numb
   )
 }
 
+/**
+ * A BOAT FOUND, WITH ITS TWO DOORS (fit-flow, direction A, 2026-11-05): the boat's name, what is
+ * counted about it and its price, then What fits and Quote it — the same two words, in the same
+ * order, as a boat's card on Home. The walk found one "What fits" row in Find, following only
+ * the first boat ("What fits the Highfield Patrol 600 EW" under "Patrol 600"); now every boat
+ * carries its own.
+ *
+ * THE TWO DOORS ARE THE OPTIONS, and the name is not one: the arrow keys walk What fits, then
+ * Quote it, then the next boat's What fits, and each door's own name says which boat it is for,
+ * because a reader moving through the options never hears the name drawn beside them.
+ */
+function BoatDoors({ row, choose }: { row: FinderRow; choose: (row: FinderRow) => void }) {
+  const fits = row.fits!
+  const said = fits.name
+  return (
+    <div className="way-boat" data-boat={row.id}>
+      <span className="way-row__name">
+        <span>
+          <Marked name={row.name} at={row.at} length={row.length} />
+        </span>
+      </span>
+      <span className="way-row__fact">
+        {row.code ? (
+          <span className="way-row__code">
+            <Marked name={row.code.text} at={row.code.at} length={row.code.length} />
+          </span>
+        ) : null}
+        {row.fact === '' ? null : <span>{row.fact}</span>}
+      </span>
+      <span className="way-row__figure">{row.figure ?? ''}</span>
+      <span className="way-boat__doors">
+        <Command.Item
+          value={fits.id}
+          className="way-boat__door"
+          data-door="fits"
+          aria-label={`${WHAT_FITS} the ${said}`}
+          onSelect={() =>
+            choose({
+              id: fits.id,
+              name: `${WHAT_FITS} the ${said}`,
+              fact: '',
+              verb: WHAT_FITS,
+              target: { at: 'fits', rowId: fits.rowId },
+            })
+          }
+        >
+          {WHAT_FITS}
+        </Command.Item>
+        <Command.Item
+          value={row.id}
+          className="way-boat__door"
+          data-door="quote"
+          aria-label={`${QUOTE_IT}: the ${said}`}
+          onSelect={() => choose(row)}
+        >
+          {QUOTE_IT}
+        </Command.Item>
+      </span>
+    </div>
+  )
+}
+
 export function Finder({
   open,
   close,
@@ -299,7 +367,10 @@ export function Finder({
                 beside its word, and the chord after it where there is a keyboard to press */}
             <Button intent="quiet" size="sm" icon={XIcon} onClick={close}>
               Close
-              <Kbd tone="quiet">Esc</Kbd>
+              {/* no key on a narrow window, where a person is holding the screen (shell.css) */}
+              <span className="way-finder__esc">
+                <Kbd tone="quiet">Esc</Kbd>
+              </span>
             </Button>
           </div>
 
@@ -347,6 +418,7 @@ export function Finder({
               >
                 {group.say ? <p className="way-group__say">{group.say}</p> : null}
                 {group.rows.map((row) => {
+                  if (row.fits) return <BoatDoors key={row.id} row={row} choose={choose} />
                   const glyph = rowGlyph(row)
                   return (
                     <Command.Item

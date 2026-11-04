@@ -1,489 +1,261 @@
+import { mkdirSync } from 'node:fs'
+import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { openChapter, pickAndStart, written } from '../mint'
 
 /* ============================================================
-   FITMENT, IN A REAL BROWSER, AT EVERY SIZE — what the five rulers
-   cannot see.
+   WHAT FITS ONE BOAT, IN A REAL BROWSER, AT EVERY SIZE — direction A
+   of the fit flow, "Two doors, one page" (docs/directions/fit-flow/).
 
-   The rulers read contrast, cut, overlap, focus and the line count.
-   What they cannot read is whether the figures are the price list's own
-   and add up, whether a reason says the engine's words, whether a press
-   on a reason's door really lands on the line of the price list that
-   decides it and comes back, whether the trailer's ATM is set against
-   what really goes on the road, and whether the screen can be found by
-   typing. That is what is below.
+   Rewritten 2026-11-05 for the owner's new journey: the plate whose
+   lines opened one place at a time, its Show all register and its
+   toasts are gone, so the old journey's assertions went with them.
+   What is asserted now is the walk's own confusions, closed: a page
+   that reads top to bottom with nothing to open, a trailer named for
+   the boat said as named for it and never as "not made for it", no
+   "On the quote" before a quote exists, Take it off only in change
+   mode, a line taken off kept in its place, every ticked line on the
+   quote Start the quote makes, and the quote bar in the window at
+   every size.
 
-   NOTHING IS PLANTED. The boat is the SP660 the board was drawn on, by
-   its own line on the price list; every count is the one the domain's
-   own tests assert on the same file (`src/domain/fitment/plate.test.ts`).
+   NOTHING IS PLANTED. The boats are the Highfield Patrol 600 and Sport
+   560 the boards were drawn on, by their own lines on the price list;
+   every figure is the one `src/domain/fitment/page.test.ts` counts.
    ============================================================ */
 
-const SP660 = 'boat_highfield:513'
-const AT_REST = `/fitment?boat=${encodeURIComponent(SP660)}`
+const PA600 = 'boat_highfield:298'
+const SP560 = 'boat_highfield:483'
+const OUT = path.join('docs', 'directions', 'fit-flow', 'build-fitment')
+mkdirSync(OUT, { recursive: true })
 
-async function onTheBoat(page: Page, tail = ''): Promise<void> {
+async function onTheBoat(page: Page, boat: string, tail = ''): Promise<void> {
   await throughTheDoor(page)
-  await page.goto(`${AT_REST}${tail}`)
+  await page.goto(`/fitment?boat=${encodeURIComponent(boat)}${tail}`)
   await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
     timeout: 15_000,
   })
 }
 
-const numbers = async (page: Page, where: string): Promise<number[]> =>
-  (await page.locator(`${where} .ft-reason__n`).allTextContents()).map((t) =>
-    Number(t.replace(/,/g, '')),
+/** Every transition at rest, then the window or the whole page. */
+async function shot(page: Page, name: string, project: string, full = false): Promise<void> {
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+      new Promise((done) => setTimeout(done, 1000)),
+    ]),
   )
+  await page.screenshot({ path: path.join(OUT, `${name}-${project}.png`), fullPage: full })
+}
 
-test('the boat on its plate, its motor line open, every figure counted off the price list', async ({
-  page,
-}) => {
-  const errors: string[] = []
-  page.on('pageerror', (e) => errors.push(e.message))
-  await onTheBoat(page)
+/** Where an element stands on the page, not in the window: a click scrolls. */
+const onPage = (el: Element): number => el.getBoundingClientRect().top + window.scrollY
 
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Highfield Sport 660')
-  const lines = page.getByRole('list', { name: 'What the Highfield Sport 660 takes' })
-  const motorLine = lines.getByRole('button', { name: /^Motor 150–200 hp one motor/ })
-  await expect(motorLine).toHaveAttribute('aria-pressed', 'true')
-  await expect(motorLine).toContainText('7 of 209 offered')
-  await expect(lines.getByRole('button', { name: /^Trailer built for Highfield/ })).toContainText(
-    '2 of 434 offered · one on a new quote',
-  )
-  /* the verdict's must-change: no column or cell of the price list is lettered on the plate */
-  const plate = page.getByRole('region', { name: 'Highfield Sport 660' })
-  await expect(plate).not.toContainText(/Min HP|Max HP|Boat Module|Boat Weight/)
+/** The page never scrolls sideways. */
+async function noSideways(page: Page): Promise<void> {
+  const { scroll, width } = await page.evaluate(() => ({
+    scroll: document.documentElement.scrollWidth,
+    width: window.innerWidth,
+  }))
+  expect(scroll, 'the page scrolls sideways').toBeLessThanOrEqual(width)
+}
 
-  /* the answer: seven priced tiles, the recommended starred; then the other 202 by reason */
-  const motor = page.getByRole('region', { name: /^Motor/ })
-  const tiles = motor.getByRole('list', { name: 'Made for it' }).getByRole('listitem')
-  await expect(tiles).toHaveCount(7)
-  await expect(tiles.first()).toContainText('F175XC')
-  await expect(tiles.first()).toContainText('$25,355')
-  await expect(tiles.first().getByLabel('Recommended')).toBeVisible()
-  /* REWRITTEN 2026-11-03 (the fitment judge, major 6): ten of the thirty inside the range are a
-     20″ leg on the 25″ transom, said as that */
-  const counts = await numbers(page, '.ft-open')
-  expect(counts).toEqual([74, 51, 10, 20, 47])
-  expect(7 + counts.reduce((a, b) => a + b, 0)).toBe(209)
+/** The quote bar stands inside the window, over its foot. */
+async function barInTheWindow(page: Page): Promise<void> {
+  const bar = page.getByRole('region', { name: 'The quote this starts' })
+  await expect(bar).toBeVisible()
+  const box = (await bar.boundingBox())!
+  const height = page.viewportSize()!.height
+  expect(box.y + box.height).toBeLessThanOrEqual(height)
+  expect(box.y).toBeGreaterThan(height / 2)
+}
 
-  /* nothing here is laid wider than the window */
-  const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
-  expect(wide, 'no sideways scroll').toBeLessThanOrEqual(0)
-  expect(errors, 'no page error').toEqual([])
-})
-
-test('a reason opens the line of the price list that decides it, and one Back comes home', async ({
-  page,
-}) => {
-  await onTheBoat(page)
-  const over = page
-    .locator('.ft-reason')
-    .filter({ hasText: 'Over the 150–200 hp this boat takes.' })
-  /* the engine's own sentence, and the nearest motor it rules out, struck */
-  await expect(over).toContainText('Yamaha F225UCB')
-  /* REWRITTEN 2026-11-03 (minor 15): the door says it opens the boat's line */
-  await over
-    .getByRole('link', { name: /line on the price list, which carries its horsepower/ })
-    .click()
-  await expect(page).toHaveURL(/\/data\/boat_highfield\?at=boat_highfield%3A513/)
-  await expect(page.getByTestId('sheet')).toBeVisible({ timeout: 15_000 })
-
-  await page.goBack()
-  await expect(page).toHaveURL(/\/fitment\?boat=boat_highfield%3A513$/)
-  await expect(page.locator('[data-testid="fitment"][data-mode="plate"]')).toBeVisible()
-
-  /* "Show these" opens exactly that reason's motors, named and counted, with Show all past it */
-  await page.getByRole('button', { name: /^Show these 51:/ }).click()
-  await expect(page).toHaveURL(/all=motor/)
-  await expect(page).toHaveURL(/only=over/)
-  await expect(page.getByText('51 of 209', { exact: true })).toBeVisible()
-  const grid = page.getByRole('grid', { name: /every one, grouped by why/ })
-  await expect(grid.getByRole('columnheader')).toHaveCount(1)
-  await expect(grid.getByRole('columnheader')).toContainText('Over the 150–200 hp this boat takes.')
-  /* A LIST TO READ, NOT A DELETED ONE (built-critique-m3.md, major 6): under a head that says
-     why, no name is struck, and the lit line — the one carrying "On the price list" — sets its
-     facts and its price at the same x as every line under it */
-  const lines = grid.locator('.ft-line')
-  const struck = await lines.evaluateAll((all) =>
-    all.filter((l) =>
-      [...l.querySelectorAll('*')].some((e) =>
-        getComputedStyle(e).textDecorationLine.includes('line-through'),
-      ),
-    ),
-  )
-  expect(struck).toHaveLength(0)
-  await expect(lines.first().getByRole('link', { name: /on the price list/ })).toBeVisible()
-  const xs = await lines.evaluateAll((all) =>
-    all
-      .slice(0, 4)
-      .map((l) => [
-        Math.round(l.querySelector('.ft-line__facts')!.getBoundingClientRect().x),
-        Math.round(l.querySelector('.ft-line__price')!.getBoundingClientRect().right),
-      ]),
-  )
-  expect(new Set(xs.map(([facts]) => facts)).size).toBe(1)
-  expect(new Set(xs.map(([, price]) => price)).size).toBe(1)
-  await page.getByRole('button', { name: 'Show all 209' }).click()
-  await expect(page).not.toHaveURL(/only=/)
-  await expect(grid.getByRole('columnheader').first()).toContainText('Offered on this boat.')
-})
-
-test('the trailer line: what goes on the road against each ATM, and one trailer to a boat', async ({
-  page,
-}) => {
-  await onTheBoat(page)
-  await page.getByRole('button', { name: /^Trailer built for Highfield/ }).click()
-  await expect(page).toHaveURL(/line=trailer/)
-  const trailer = page.getByRole('region', { name: 'Trailer' })
-  /* the laden figure the price list supports, never the bare hull (the verdict's correction) */
-  await expect(trailer).toContainText(
-    'The Highfield Sport 660, 740 kg, and its F175XC, 220 kg: 960 kg on the trailer, before fuel and gear.',
-  )
-  await expect(trailer).toContainText('1,340 kg on the road: 650 kg to spare.')
-  await expect(trailer).not.toContainText('clears it by')
-  await expect(
-    trailer.getByText('One trailer to a boat, because a boat sits on one trailer.'),
-  ).toHaveCount(1)
-  await expect(trailer.getByText('On a new quote')).toBeVisible()
-
-  /* the other 432 in three reasons that add up, the ten no longer sold said beside them */
-  const counts = await numbers(page, '.ft-open')
-  expect(counts).toEqual([10, 131, 291])
-  expect(2 + counts.reduce((a, b) => a + b, 0)).toBe(434)
-  await expect(trailer.getByText(/^10 more are no longer sold/)).toBeVisible()
-
-  /* the tick of the trailer that clears it stands before the end of the bar it clears */
-  const bar = trailer.locator('.ft-trl[data-star] .ft-atm')
-  const rated = await bar.locator('.ft-atm__rated').boundingBox()
-  const tick = await bar.locator('.ft-atm__load').boundingBox()
-  expect(tick!.x).toBeLessThan(rated!.x + rated!.width)
-})
-
-test('show all draws every trailer grouped by why, finds past the narrowing, and opens the deciding line', async ({
-  page,
-}) => {
-  await onTheBoat(page, '&line=trailer')
-  await page.getByRole('button', { name: 'Show all 434, each with its reason' }).click()
-  await expect(page).toHaveURL(/all=trailer/)
-  const grid = page.getByRole('grid', { name: /every one, grouped by why/ })
-  await expect(grid).toBeVisible()
-  await expect(grid.getByRole('columnheader').first()).toContainText('Offered on this boat.')
-  await expect(
-    grid.getByRole('columnheader', { name: /Built for Stacer, not Highfield/ }),
-  ).toBeVisible()
-
-  /* a trailer not made for the boat is still found by its words: the search is the whole list's */
-  await page.getByRole('searchbox', { name: 'Find in Trailers' }).fill('TALS650S13')
-  await expect(page.getByRole('status')).toContainText('1 of 434 carries those words.')
-  await expect(page).toHaveURL(/find=TALS650S13/)
-
-  /* the grid's own line opens where it is decided: the trailer's own line, whose series is the cell */
-  await grid.focus()
-  await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/\/data\/trl_[a-z]+\?at=/)
-  await page.goBack()
-  await expect(page).toHaveURL(/all=trailer/)
-
-  await page.getByRole('button', { name: 'Back to the boat' }).click()
-  await expect(page.locator('[data-testid="fitment"][data-mode="plate"]')).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Trailer' })).toBeVisible()
-})
-
-test('the screen is found by typing its name in the finder, and Data stands lit', async ({
+test('the Patrol 600 reads top to bottom: what goes on it, what is named for it, and why the rest do not', async ({
   page,
 }, info) => {
-  test.skip(
-    info.project.name.startsWith('phone') || info.project.name === 'tablet',
-    'the chord is the fine pointer’s',
-  )
-  await throughTheDoor(page)
-  await page.keyboard.press('Control+k')
-  const finder = page.getByTestId('shell-finder')
-  await expect(finder).toBeVisible()
-  await page.keyboard.type('fitment')
-  await finder
-    .getByRole('option', { name: /^Fitment/ })
-    .first()
-    .click()
-  await expect(page).toHaveURL(/\/fitment$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Which boat?')
-  await page.getByRole('searchbox', { name: 'Find a boat' }).fill('HBS145')
-  await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/boat=boat_highfield%3A513/)
-  await expect(page.locator('[data-testid="fitment"][data-boat]')).toBeVisible()
-})
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await onTheBoat(page, PA600, '&from=home')
 
-/* ONE NUMBER ON BOTH SCREENS (built-critique-m3.md, blocker 4). With "a tiller boat must take a
-   tiller motor" written on /rules — the walk `rules.spec.ts` makes, by a person's presses — the
-   Classic 340's F25SWTC is said once on Fitment, as the rule's reason with the rule's because,
-   and the motor line counts the 2 the build offers, where it once said "3 of 209" while the
-   build's "Back to the 3 made for this boat" opened on 2. Both screens are read. */
-const CL340 = 'boat_highfield:124'
-const BECAUSE = 'a tiller boat has no helm to steer a remote motor from'
+  /* the title is the model; the version is under it, counted */
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Highfield Patrol 600')
+  await expect(page.getByText(/^version \d+ of 10$/)).toBeVisible()
+  /* reached from Home, the crumb says Home */
+  await expect(page.getByRole('link', { name: 'Home', exact: true }).first()).toBeVisible()
+  await barInTheWindow(page)
+  await noSideways(page)
+  await shot(page, 'pa600-top', info.project.name)
 
-test('a motor the dealer’s rule refuses is said with the rule’s because, and counted as the build counts it', async ({
-  page,
-}) => {
-  test.setTimeout(180_000)
-  await throughTheDoor(page)
-
-  /* the rule, written as a dealer writes it */
-  await page.goto('/rules')
-  await expect(page.locator('[data-testid="rules"][data-read]')).toBeVisible({ timeout: 30_000 })
-  /* the rule goes where what the customer is buying is: under Motors (`rules.spec.ts`'s walk) */
-  await page.getByRole('button', { name: 'Write a rule about motors' }).click()
-  /* A list opened from a word: every listbox but the field's strips of marks, which stand on
-     the page. CHANGED 2026-11-05 with the Data round: Rules draws each maker's models as a
-     strip of marks (role listbox, `.hr-field__marks`), so "every listbox is hidden" could no
-     longer hold; the opened list closing is what this ever asserted (`rules.spec.ts` reads
-     it the same way). */
-  const openList = page.locator('[role="listbox"]:not(.hr-field__marks)')
-  const choose = async (word: string, choice: RegExp): Promise<void> => {
-    await page.getByRole('combobox', { name: word }).click()
-    await openList.getByRole('option', { name: choice }).click()
-    await expect(page.getByRole('listbox').and(openList)).toBeHidden()
-  }
-  await choose('Which of the boat’s specs', /^steering$/)
-  await choose('The boat’s steering', /^tiller\b/)
-  await choose('Which of the motor’s specs', /^controls$/)
-  await choose('The motor’s controls', /^Tiller handle\b/)
-  await page.getByRole('textbox', { name: 'Because' }).fill(BECAUSE)
-  await page.getByRole('button', { name: /^Add it as / }).click()
+  /* MOTOR: five, the recommended chosen for the quote, and no "On the quote" anywhere */
+  const motors = page.getByRole('radiogroup', { name: 'The motor for the quote' })
+  await expect(motors.getByRole('radio')).toHaveCount(6)
+  await expect(motors.getByRole('radio', { name: /Yamaha F115XB\b(?! ?2)/ })).toBeChecked()
+  await expect(motors.getByText('Chosen for the quote')).toHaveCount(1)
+  await expect(page.locator('main')).not.toContainText('On the quote')
+  await expect(page.locator('main')).not.toContainText('Take it off')
   await expect(
-    page.getByText('Your rule is on. The build refuses from the next pick.'),
+    page.getByRole('heading', { name: 'Why the other 204 Yamahas do not go on it' }),
   ).toBeVisible()
-  await written(page)
 
-  /* Fitment: the F25SWTC said once, as the rule's reason with its own because, and the motor
-     line counts the 2 the build offers */
-  await page.goto(`/fitment?boat=${encodeURIComponent(CL340)}`)
-  await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
-    timeout: 15_000,
-  })
-  await expect(page.getByRole('button', { name: /^Motor/ })).toContainText('2 of 209 offered')
-  const motor = page.getByRole('region', { name: /^Motor/ })
-  const ruled = motor.locator('.ft-reason[data-ruled]')
-  await expect(ruled).toContainText(
-    'Not offered on this boat, because one of your rules refuses it.',
-  )
-  await expect(ruled).toContainText('Yamaha F25SWTC')
-  await expect(ruled).toContainText(BECAUSE)
-  await expect(motor.getByRole('list', { name: 'Made for it' }).getByRole('listitem')).toHaveCount(
-    2,
-  )
-
-  /* the build on the same boat says the same refusal with the same because. REWRITTEN
-     2026-11-03: the build's "Back to the 2 made for this boat" went when its Show all became a
-     sheet (2026-10-31), so the build is read where it says the refusal now */
-  await pickAndStart(page, 'boat_highfield', 'CL340')
-  await openChapter(page, /^02 Motor/)
-  const motors = page.locator('[data-chapter="motor"]')
-  await expect(motors.getByText(/^Not offered on this boat: .*F25SWTC/)).toBeVisible()
-  await expect(motors.getByText(new RegExp(BECAUSE))).toBeVisible()
-})
-
-/* A BOAT WITH NO PICTURE HAS NO WINDOW (built-critique-m3.md saw four discs round an empty box on
-   the old ring). The Classic 340 has no picture this browser can draw: its plate has no window,
-   and the motor's answer still stands under the plate. Never a stand-in boat. */
-test('a boat with no picture has no window on its plate, at a desk and on a phone', async ({
-  page,
-}) => {
-  await throughTheDoor(page)
-  for (const size of [
-    { width: 1440, height: 900 },
-    { width: 390, height: 844 },
-  ]) {
-    await page.setViewportSize(size)
-    await page.goto(`/fitment?boat=${encodeURIComponent(CL340)}`)
-    await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
-      timeout: 15_000,
-    })
-    await expect(page.locator('.ft-window')).toHaveCount(0)
-    await expect(page.getByText(/No photograph/)).toHaveCount(0)
-    const plate = await page.getByRole('region', { name: 'Highfield Classic 340' }).boundingBox()
-    const motor = await page.getByRole('region', { name: /^Motor/ }).boundingBox()
-    expect(motor!.y).toBeGreaterThan(plate!.y + plate!.height)
-  }
-})
-
-/* REWRITTEN 2026-11-03 (the fitment judge, blocker 1 and major 12): two questions, not three —
-   the maker, then the model under its series; the model opens on its first version */
-test('the cold chooser offers every maker and walks maker, then model under its series, to the boat', async ({
-  page,
-}) => {
-  await throughTheDoor(page)
-  await page.setViewportSize({ width: 1280, height: 800 })
-  await page.goto('/fitment')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Which boat?', {
-    timeout: 15_000,
-  })
-  const plate = page.getByRole('region', { name: 'Which boat?' })
-  await expect(plate.getByRole('searchbox', { name: 'Find a boat' })).toBeVisible()
-  await expect(plate.getByText('Or by maker · 289 models')).toBeVisible()
-  const marks = plate.locator('.ft-mk__img')
-  await expect(marks).toHaveCount(6)
-  await expect
-    .poll(() =>
-      marks.evaluateAll((all) =>
-        all.every(
-          (m) => (m as HTMLImageElement).complete && (m as HTMLImageElement).naturalWidth > 0,
-        ),
-      ),
-    )
-    .toBe(true)
-  await expect(plate.getByText('Also made for it')).toBeVisible()
-  await expect(page.getByRole('button', { name: /^Stacer\s*91 models$/ })).toBeVisible()
-  await page.getByRole('button', { name: /^Highfield\s*67 models$/ }).click()
-  await expect(page.getByText('Highfield · 67 models')).toBeVisible()
-  /* the plate's explainer steps aside once a maker is pressed */
-  await expect(plate.getByText('Also made for it')).toHaveCount(0)
-  const classic = page.getByRole('region', { name: 'Classic' })
-  await classic.getByRole('link', { name: /^Classic 340\s*9 versions/ }).click()
-  await expect(page).toHaveURL(/boat=boat_highfield%3A\d+/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Highfield Classic 340')
-  await expect(page.getByText('Version, of 9')).toBeVisible()
-})
-
-/* THE MODEL IS THE UNIT (blocker 1): a motor taken off the Sport 660 is off every one of its
-   sixteen versions, counted in the sentence, and Undo gives all sixteen back */
-test('a motor taken off is taken off every version of the model, and Undo gives it back', async ({
-  page,
-}) => {
-  await onTheBoat(page)
-  await page.getByRole('button', { name: /^Take the Yamaha F200XCC off/ }).click()
-  await expect(
-    page.getByText(
-      'The Yamaha F200XCC is taken off the Highfield Sport 660, on all 16 of its versions.',
-    ),
-  ).toBeVisible()
-  await expect(page.getByRole('button', { name: /^Motor/ })).toContainText('6 of 209 offered')
-  /* another version of the same model: the F200XCC is off it too */
-  await page
-    .getByRole('combobox', { name: /Which of the Highfield Sport 660’s 16 versions/ })
-    .click()
-  await page.getByRole('option').nth(4).click()
-  await expect(page).not.toHaveURL(/boat=boat_highfield%3A513/)
-  await expect(page.getByRole('button', { name: /^Motor/ })).toContainText('6 of 209 offered')
-  await expect(
-    page.getByRole('list', { name: 'Made for it' }).getByText('F200XCC', { exact: true }),
-  ).toHaveCount(0)
-})
-
-/* THE RECOMMENDED, SET HERE (major 10), and a 2.5 hp refused under the range (major 8) */
-test('the recommended is set on a tile, and a motor under the range is refused with its reason', async ({
-  page,
-}) => {
-  await onTheBoat(page)
-  await page.getByRole('button', { name: /^Make the Yamaha F200XC the recommended motor/ }).click()
-  await expect(
-    page.getByText(
-      /^The Yamaha F200XC is now the recommended motor for the Highfield Sport 660, on all 16/,
-    ),
-  ).toBeVisible()
-  /* THE TILE STAYS WHERE IT WAS PRESSED, starred there (the fitment verifier, 2026-11-03: moved to
-     the front, it put another tile's Recommend it under the pointer) */
-  const tiles = page.getByRole('list', { name: 'Made for it' }).getByRole('listitem')
-  await expect(tiles.first()).toContainText('F175XC')
-  await expect(tiles.nth(2)).toContainText('F200XC')
-  await expect(tiles.nth(2).getByLabel('Recommended', { exact: true })).toBeVisible()
-  await expect(tiles.first().getByLabel('Recommended', { exact: true })).toHaveCount(0)
-
-  await page.goto(`${AT_REST}&all=motor&only=under`)
-  await page.getByRole('button', { name: /^Put the Yamaha F2.5SMHB on/ }).click()
-  await expect(page.getByRole('alert')).toHaveText(
-    'The Yamaha F2.5SMHB is under the 150–200 hp the Highfield Sport 660 takes, so it is not put on. The boat’s own horsepower decides that.',
-  )
-})
-
-/* THE RIG, SIDE BY SIDE, AND THE QUOTE STARTED FROM THE ANSWER (blockers 2 and 3, major 4) */
-test('the motors side by side, then a quote started with the one chosen and the trailer', async ({
-  page,
-}) => {
-  await onTheBoat(page)
-  await page.getByRole('button', { name: 'Compare the 7 side by side' }).click()
-  await expect(page).toHaveURL(/compare=side/)
-  const table = page.getByRole('region', { name: 'The motors made for it, side by side' })
-  await expect(table.getByRole('columnheader')).toHaveCount(8)
-  await expect(table.getByRole('row', { name: /^Motor / })).toContainText('$27,565')
-  await expect(table.getByRole('row', { name: /^Rigging kit price/ })).toContainText('Not chosen')
-  await page.getByRole('button', { name: 'Back to the tiles' }).click()
-
-  await page
-    .getByRole('button', { name: /^Put the Yamaha F200XC on the quote started here/ })
-    .click()
-  await expect(page).toHaveURL(/motor=join_hf_yam/)
-  const start = page.getByRole('heading', { name: 'A quote with' }).locator('..').locator('..')
-  await expect(start).toContainText('the Yamaha F200XC and its rigging kit')
-  await start.getByRole('button', { name: 'Start the quote' }).click()
-  await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
-  await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByTestId('configurator')).toContainText('F200XC')
-  await expect(page.getByTestId('configurator')).toContainText('TA600T-MOB')
-})
-
-/* THE FITMENT VERIFIER, 2026-11-03: a 20″ F150LC went onto the 25″ SP660 with no word, and the
-   GFAB, 750 kg over its ATM, could be quoted and recommended. Each is refused where it is pressed. */
-test('a wrong-shaft motor and a trailer over its ATM are refused where they are pressed', async ({
-  page,
-}) => {
-  await onTheBoat(page, '&all=motor&only=shaft')
-  await page.getByRole('button', { name: /^Put the Yamaha F150LC on/ }).click()
-  await expect(page.getByRole('alert')).toHaveText(
-    'The Yamaha F150LC’s shaft is not the extra-long (25″) the Highfield Sport 660’s transom takes, so it is not put on. The boat’s own shaft decides that.',
-  )
-
-  await page.goto(`${AT_REST}&line=trailer`)
+  /* TRAILER: none listed, and the GFAB named for it said as exactly that */
   const trailer = page.getByRole('region', { name: 'Trailer' })
-  await expect(trailer.getByText('Over its ATM, so not for a quote')).toBeVisible()
-  await trailer.getByRole('button', { name: /^Put the GFAB .* on the quote/ }).click()
-  await expect(page).not.toHaveURL(/trailer=/)
-  /* said under the weighing that holds its figures, never the figures again */
-  await expect(trailer.getByRole('alert')).toHaveText(
-    'Not put on the quote: its ATM, weighed above, decides that.',
+  await expect(trailer).toContainText('No trailer on the price list is listed for the Patrol 600.')
+  const named = trailer.getByRole('complementary', { name: 'Named for it, not listed for it' })
+  await expect(named).toContainText('GFAB Tandem Axel Trailer t/s Highfield Patrol 600')
+  await expect(named).toContainText('$23,063')
+  await expect(
+    trailer.getByRole('heading', { name: 'Why the other 433 trailers do not go on it' }),
+  ).toBeVisible()
+  await expect(trailer).not.toContainText(/not made for the Patrol 600/)
+
+  /* FIT-OUT: every line can be added here, and the 41 named for it are counted apart */
+  const fitOut = page.getByRole('region', { name: 'Fit-out' })
+  await expect(fitOut).toContainText(
+    '4 from Dealer Fit Packages and 3 from Parts & Accessories go on it.',
   )
-  await trailer.getByRole('button', { name: /^Make the GFAB .* the recommended/ }).click()
-  await expect(trailer.getByRole('alert')).toHaveText(
-    'Not made the recommended trailer: its ATM, weighed above, decides that.',
+  await expect(fitOut.getByRole('checkbox')).toHaveCount(7)
+  await expect(
+    fitOut.getByRole('complementary', { name: 'Named for it, not listed for it' }),
+  ).toContainText(
+    '40 in Dealer Fit Packages and 1 in Parts & Accessories carry PA600 in their name',
   )
-  /* the quote the plate starts still carries the REDCO, which clears it */
-  const start = page.getByRole('heading', { name: 'A quote with' }).locator('..').locator('..')
-  await expect(start).toContainText('REDCO')
-  await expect(start).not.toContainText('GFAB')
+  await expect(fitOut).toContainText(
+    'The other 1,532 in Dealer Fit Packages and 2,234 in Parts & Accessories are listed for other boats, or for none.',
+  )
+
+  /* THE QUOTE THIS STARTS, before the rigging kit whose price is not set */
+  const bar = page.getByRole('region', { name: 'The quote this starts' })
+  await expect(bar).toContainText('$47,059')
+  await expect(bar).toContainText('at Cash, before the rigging kit')
+  await expect(bar.getByRole('button', { name: 'Start the quote' })).toBeVisible()
+
+  await shot(page, 'pa600-page', info.project.name, true)
+  for (const place of ['motor', 'trailer', 'fitout']) {
+    await page.locator(`#fp-${place}`).scrollIntoViewIfNeeded()
+    await page.evaluate((p) => document.getElementById(`fp-${p}`)?.scrollIntoView(), place)
+    await shot(page, `pa600-${place}`, info.project.name)
+  }
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await shot(page, 'pa600-end', info.project.name)
+  await noSideways(page)
+  expect(errors).toEqual([])
 })
 
-/* THE FITMENT VERIFIER, 2026-11-03, round 2: on the quote started here, one press of the build's
-   Add put the GFAB on at $111,778 with no word. The build refuses it with Fitment's own sentence. */
-test('the build refuses a trailer over its ATM on a quote started here, with its figures', async ({
+test('a part ticked on the Sport 560 is on the quote Start the quote makes, beside the motor and the trailer', async ({
   page,
-}) => {
-  await onTheBoat(page)
-  await page.getByRole('button', { name: 'Start the quote' }).click()
-  await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 15_000 })
-  const gfab = page.getByRole('button', {
-    name: /GFAB Tandem Axel Trailer t\/s Highfield Sport 660/,
+}, info) => {
+  await onTheBoat(page, SP560)
+  /* reached from Data's room, the crumb says Data */
+  await expect(page.getByRole('link', { name: 'Data', exact: true }).first()).toBeVisible()
+  const trailer = page.getByRole('radiogroup', { name: 'The trailer for the quote' })
+  await expect(
+    trailer.getByRole('radio', {
+      name: /REDCO Custom \/ Highfield Sport 560 Aluminium · TA600-MOB/,
+    }),
+  ).toBeChecked()
+  const fitOut = page.getByRole('region', { name: 'Fit-out' })
+  await fitOut.getByText('2 x MFM50 Batteries').click()
+  await expect(fitOut.getByRole('checkbox', { name: /2 x MFM50 Batteries/ })).toBeChecked()
+  await expect(page).toHaveURL(/[?&]fit=/)
+  const bar = page.getByRole('region', { name: 'The quote this starts' })
+  await expect(bar).toContainText('$66,982')
+  await expect(bar).toContainText('5 lines')
+  await barInTheWindow(page)
+  await shot(page, 'sp560-ticked', info.project.name)
+
+  await bar.getByRole('button', { name: 'Start the quote' }).click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+/, { timeout: 15_000 })
+  await expect(page.getByText('2 x MFM50 Batteries').first()).toBeVisible({ timeout: 15_000 })
+})
+
+test('change mode: Take it off keeps the motor in its place, tagged, with Put it back and Undo it', async ({
+  page,
+}, info) => {
+  test.setTimeout(120_000)
+  await onTheBoat(page, PA600)
+  await page.getByRole('button', { name: 'Change what Northside offers' }).click()
+  await expect(page).toHaveURL(/[?&]change=1/)
+  const band = page.getByRole('region', { name: 'Changing what Northside offers' })
+  await expect(band).toContainText('on the Highfield Patrol 600, on all 10 of its versions')
+  await expect(page.getByRole('region', { name: 'The quote this starts' })).toHaveCount(0)
+  const ledger = page.getByRole('region', { name: 'The changes made here' })
+  await expect(ledger).toContainText('No change made here yet')
+  await shot(page, 'pa600-change', info.project.name)
+
+  const motor = page.getByRole('region', { name: 'Motor' })
+  await expect(motor).toContainText('5 go on it, 14 are not listed for it')
+  const takeOff = motor.getByRole('button', { name: 'Take the Yamaha F150XC off the Patrol 600' })
+  const before = await takeOff.evaluate(onPage)
+  await takeOff.click()
+  const putBack = motor.getByRole('button', {
+    name: 'Put the Yamaha F150XC back on the Patrol 600',
   })
-  await gfab.first().scrollIntoViewIfNeeded()
-  await gfab.first().click()
-  await expect(page.getByRole('alert').filter({ hasText: 'ATM' })).toHaveText(
-    'The GFAB Tandem Axel Trailer t/s Highfield Sport 660 is rated 2,200 kg and would carry 2,950 kg, 750 kg over, so it is not put on the quote. Its ATM decides that.',
+  await expect(putBack).toBeVisible()
+  /* the line stays where it was: its press is where the last one was */
+  const after = await putBack.evaluate(onPage)
+  expect(Math.abs(after - before)).toBeLessThan(4)
+  await expect(motor.getByText('Taken off today')).toBeVisible()
+  await expect(ledger).toContainText('1 change made here')
+  await expect(ledger).toContainText(
+    'The Yamaha F150XC is taken off the Highfield Patrol 600, on all 10 of its versions.',
   )
-  await expect(page.getByTestId('configurator')).not.toContainText('$111,778')
+  await shot(page, 'pa600-change-taken', info.project.name)
+
+  /* back on the selling page, it is said as taken off by Northside, never "not made for it" */
+  await ledger.getByRole('button', { name: 'Done' }).click()
+  await expect(page).not.toHaveURL(/change=1/)
+  const selling = page.getByRole('region', { name: 'Motor' })
+  await expect(selling.getByRole('radio')).toHaveCount(5)
+  await expect(selling).toContainText('Northside took it off this boat.')
+  await expect(page.getByText(/Northside has taken 1 off it\./)).toBeVisible()
+  await shot(page, 'pa600-after-taken', info.project.name)
+
+  /* and back again: Put it back, then Undo it gives the take-off back once more */
+  await page.getByRole('button', { name: 'Change what Northside offers' }).click()
+  await page
+    .getByRole('region', { name: 'Motor' })
+    .getByRole('button', { name: 'Put the Yamaha F150XC back on the Patrol 600' })
+    .click()
+  await expect(
+    page.getByRole('button', { name: 'Take the Yamaha F150XC off the Patrol 600' }),
+  ).toBeVisible()
+  await page
+    .getByRole('region', { name: 'The changes made here' })
+    .getByRole('button', { name: 'Undo it' })
+    .click()
+  await expect(
+    page.getByRole('button', { name: 'Put the Yamaha F150XC back on the Patrol 600' }),
+  ).toBeVisible()
+  await page.getByRole('button', { name: 'Put the Yamaha F150XC back on the Patrol 600' }).click()
+  await noSideways(page)
 })
 
-/* AND A KIT THE PRICE LIST NO LONGER SELLS IS NAMED AS THAT, never "no rigging kit" (round 2) */
-test('a rigging kit no longer sold is named, counted once and never priced in', async ({
+test('a named trailer is offered on the boat only in change mode, and then it is one to choose', async ({
   page,
-}) => {
+}, info) => {
+  await onTheBoat(page, PA600, '&change=1&at=trailer')
+  const trailer = page.getByRole('region', { name: 'Trailer' })
+  await expect(trailer).toBeInViewport()
+  const offer = trailer.getByRole('button', {
+    name: 'Offer the GFAB Tandem Axel Trailer t/s Highfield Patrol 600 on the Patrol 600',
+  })
+  await offer.click()
+  await expect(trailer.getByRole('button', { name: /^Take the GFAB/ })).toBeVisible()
+  await shot(page, 'pa600-change-trailer', info.project.name)
+  await page
+    .getByRole('region', { name: 'The changes made here' })
+    .getByRole('button', { name: 'Undo it' })
+    .click()
+  await expect(offer).toBeVisible()
+})
+
+test('a boat chosen cold from What fits opens on its page', async ({ page }, info) => {
   await throughTheDoor(page)
-  await page.goto('/fitment?boat=boat_stabicraft%3A30')
-  await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
+  await page.goto('/fitment?maker=Highfield')
+  await expect(page.locator('[data-testid="fitment"][data-read][data-mode="choose"]')).toBeVisible({
     timeout: 15_000,
   })
-  const motor = page.getByRole('region', { name: /^Motor/ })
-  await expect(motor).toContainText(
-    '10 of the 11 name a rigging kit the price list marks no longer sold, so their figures are the motor alone and a quote takes the motor without it.',
-  )
-  await expect(motor.getByText('No longer sold', { exact: true })).toHaveCount(10)
-  await expect(motor).not.toContainText('names no rigging kit')
+  await shot(page, 'choose-highfield', info.project.name)
+  await page.getByRole('link', { name: 'Patrol 600 10 versions', exact: true }).click()
+  await expect(page.locator('[data-testid="fitment"][data-boat]')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Highfield Patrol 600$/)
 })

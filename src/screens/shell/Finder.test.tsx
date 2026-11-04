@@ -66,8 +66,10 @@ describe('a boat found is a boat to sell', () => {
     const go = vi.fn<(href: string) => void>()
     render(<Shell at="/" go={go} org={ORG} />)
     const sheet = await find(user, 'HBS126')
-    const row = await within(sheet).findByRole('option', { name: /Start a quote/ })
-    expect(row).toHaveTextContent('HBS126')
+    /* THE BOAT'S QUOTE IT, beside its What fits (fit-flow, 2026-11-05); the code typed is lit on
+       the boat's own line, beside the two doors */
+    const row = await within(sheet).findByRole('option', { name: /^Quote it: the .*Sport 560/ })
+    expect(row.closest('.way-boat')).toHaveTextContent('HBS126')
     await user.click(row)
 
     const filed = quotes.getState().quotes
@@ -83,7 +85,7 @@ describe('a boat found is a boat to sell', () => {
     render(<Shell at="/" go={go} org={ORG} />)
     for (let i = 0; i < 2; i += 1) {
       const sheet = await find(user, 'HBS126')
-      await user.click(await within(sheet).findByRole('option', { name: /Start a quote/ }))
+      await user.click(await within(sheet).findByRole('option', { name: /^Quote it/ }))
     }
     expect(quotes.getState().quotes).toHaveLength(1)
     expect(go.mock.calls.map((c) => c[0])).toEqual([
@@ -97,7 +99,7 @@ describe('a boat found is a boat to sell', () => {
     const go = vi.fn<(href: string) => void>()
     render(<Shell at="/" go={go} />)
     const sheet = await find(user, 'HBS126')
-    await user.click(await within(sheet).findByRole('option', { name: /Start a quote/ }))
+    await user.click(await within(sheet).findByRole('option', { name: /^Quote it/ }))
     expect(within(sheet).getByRole('alert')).toHaveTextContent(NO_DESK)
     expect(go).not.toHaveBeenCalled()
     expect(quotes.getState().quotes).toHaveLength(0)
@@ -111,7 +113,7 @@ describe('a boat found is a boat to sell', () => {
     const go = vi.fn<(href: string) => void>()
     render(<Shell at="/" go={go} org={ORG} />)
     const sheet = await find(user, 'sp560')
-    const row = await within(sheet).findByRole('option', { name: /Choose the version/ })
+    const row = await within(sheet).findByRole('option', { name: /^Quote it: the .*Sport 560$/ })
     await user.click(row)
     expect(go).toHaveBeenCalledTimes(1)
     expect(go.mock.calls[0]![0]).toMatch(/^\/quote\/new\?model=/)
@@ -128,7 +130,7 @@ describe('a name typed on a quote is a customer, on the door and in the finder',
     const go = vi.fn<(href: string) => void>()
     render(<Shell at="/" go={go} org={ORG} />)
     const sheet = await find(user, 'HBS126')
-    await user.click(await within(sheet).findByRole('option', { name: /Start a quote/ }))
+    await user.click(await within(sheet).findByRole('option', { name: /^Quote it/ }))
     const quote = quotes.getState().quotes[0]!
     /* a name typed at the desk — the person at the keyboard, played by the test */
     quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
@@ -144,14 +146,38 @@ describe('a name typed on a quote is a customer, on the door and in the finder',
 })
 
 describe('the question that is not a name', () => {
-  it('trailer for sp560 answers the trailers the file pairs with it', async () => {
+  /* REWRITTEN 2026-11-05 (fit-flow, direction A): a boat's trailers are read on its own page,
+     one press away on its What fits, never as one list merged over every boat the words found */
+  it('trailer for sp560 answers with the boat, whose What fits opens its page from here', async () => {
+    const user = userEvent.setup()
+    const go = vi.fn<(href: string) => void>()
+    render(<Shell at="/" go={go} org={ORG} />)
+    const sheet = await find(user, 'trailer for sp560')
+    expect(
+      await within(sheet).findByText(
+        'The trailers that go on a boat are read on its own page. Press What fits beside the one you mean.',
+      ),
+    ).toBeInTheDocument()
+    const options = within(sheet).getAllByRole('option')
+    expect(options[0]).toHaveAccessibleName(/^What fits the .*Sport 560$/)
+    expect(options[1]).toHaveAccessibleName(/^Quote it: the .*Sport 560$/)
+    await user.click(options[0]!)
+    /* opened from Home, it lights Home (`from`) */
+    expect(go).toHaveBeenCalledWith(expect.stringMatching(/^\/fitment\?boat=[^&]+&from=home$/))
+  })
+
+  it('names the near miss of a maker misremembered, and answers with the boat that is called that', async () => {
     const user = userEvent.setup()
     render(<Shell at="/" go={() => {}} org={ORG} />)
-    const sheet = await find(user, 'trailer for sp560')
-    expect(await within(sheet).findByText('Trailers for sp560')).toBeInTheDocument()
-    const rows = within(sheet).getAllByRole('option')
-    expect(rows[0]).toHaveTextContent(/fits (all \d+|\d+ of \d+|it)/)
-    expect(rows[0]).toHaveTextContent('Open it in the price list')
+    const sheet = await find(user, 'Stabicraft PA 600')
+    expect(
+      await within(sheet).findByText(
+        /^No Stabicraft is called “PA 600”\. The “PA 600” on the price list is Highfield/,
+      ),
+    ).toBeInTheDocument()
+    expect(within(sheet).getAllByRole('option')[0]).toHaveAccessibleName(
+      'What fits the Highfield Patrol 600',
+    )
   })
 })
 

@@ -951,6 +951,12 @@
   gap: --spacing(1);
   padding: --spacing(6) 0;
 }
+/* the makers whose models the words DO find, each one press away with the words kept */
+.picker-nothing__near {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
 .picker-nothing__how {
   margin: 0;
   font-size: var(--text-sm);

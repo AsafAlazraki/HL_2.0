@@ -118,6 +118,18 @@ describe('a room behind a door', () => {
     for (const room of rooms) expect(DOORS.map((d) => d.href)).not.toContain(room.href)
   })
 
+  /* fit-flow, 2026-11-05: "I came from Home but the top bar has Data lit up" */
+  it('lights the door a room was reached from, and only on a room', () => {
+    expect(doorAt('/fitment', 'home')?.href).toBe('/')
+    expect(doorAt('/fitment', 'data')?.href).toBe('/data')
+    expect(doorAt('/fitment', 'nowhere')?.href).toBe('/data')
+    /* a door's own screen is always its own door, whatever the address carries */
+    expect(doorAt('/quotes', 'home')?.href).toBe('/quotes')
+    expect(doorAt('/', 'data')?.href).toBe('/')
+    expect(fitmentOf('PA600', 'home')).toBe('/fitment?boat=PA600&from=home')
+    expect(fitmentOf('PA600', 'data')).toBe('/fitment?boat=PA600')
+  })
+
   it('lights Data on Prices, the price list’s own prices, and the finder finds it by its word', () => {
     expect(doorAt('/levels')?.href).toBe('/data')
     expect(surfaceAt('/levels')).toBe('cockpit')

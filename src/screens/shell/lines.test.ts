@@ -17,8 +17,14 @@ import { priceReadOf } from '@/domain/modules/read'
 import { buildSearchIndex, search, spaced, type SearchIndex } from '@/domain/catalogue/search'
 import { spokenBoat } from '@/domain/quote/spoken'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
-import { askedForFits, fitsFor } from '@/domain/shell/fits'
-import { readFinder, type FinderLines, type FinderReading } from '@/domain/shell/finder'
+import { askedForFits } from '@/domain/shell/fits'
+import {
+  QUOTE_IT,
+  makerAhead,
+  readFinder,
+  type FinderLines,
+  type FinderReading,
+} from '@/domain/shell/finder'
 import { fleetOf, modelByKey, type Fleet } from '@/screens/picker/fleet'
 import { readLines } from './lines'
 
@@ -48,17 +54,21 @@ beforeAll(async () => {
   )
 })
 
-/** What the finder answers to a line, composed exactly as the shell composes it. */
+/** What the finder answers to a line, composed exactly as the shell composes it — the near miss
+ *  of a maker said ahead of a name included (`Shell.tsx`, `aside`). */
 const ask = (query: string): FinderReading => {
   const question = askedForFits(query)
-  const result = search(index, question ? question.boat : query, EVERY)
-  const boats = result.groups
-    .filter((g) => boatTables.has(g.table.id))
-    .flatMap((g) => g.hits.map((h) => ({ tableId: g.table.id, rowId: h.rowId })))
-  const fits =
-    question && boats.length > 0
-      ? { question, answer: fitsFor({ entities, rowsByEntity, views: {} }, boats, question.kind) }
-      : null
+  const asked = search(index, question ? question.boat : query, EVERY)
+  const anyBoat = (r: typeof asked) =>
+    r.groups.some((g) => boatTables.has(g.table.id) && g.hits.length > 0)
+  const makers = Object.values(entities).flatMap((t) =>
+    t.kind === 'boat' ? [t.name, spokenBoat(t.id, '').maker] : [],
+  )
+  const ahead = !question && !anyBoat(asked) ? makerAhead(query, makers) : null
+  const elsewhere = ahead ? search(index, ahead.rest, EVERY) : null
+  const aside = ahead && elsewhere && anyBoat(elsewhere) ? ahead : null
+  const result = aside && elsewhere ? elsewhere : asked
+  const fits = question ? { question } : null
   return readFinder({
     query,
     doors: [],
@@ -70,6 +80,7 @@ const ask = (query: string): FinderReading => {
     customerTableId: CUSTOMER_TABLE_ID,
     lines,
     fits,
+    aside,
   })
 }
 
@@ -90,8 +101,14 @@ describe('HBS126 — a code finds the one boat, and the verb is the sale', () =>
     const boats = reading.groups.find((g) => g.id === 'boats')!
     expect(reading.groups[0]).toBe(boats)
     const first = boats.rows[0]!
-    expect(first.verb).toBe('Start a quote')
+    expect(first.verb).toBe(QUOTE_IT)
     expect(first.target).toEqual({ at: 'start', tableId: table.id, rowId: row.id })
+    /* and its own What fits, on the line it found (fit-flow, 2026-11-05) */
+    expect(first.fits).toEqual({
+      id: `fits:${row.id}`,
+      rowId: row.id,
+      name: `${spokenBoat(table.id, '').maker} Sport 560`,
+    })
     expect(first.code).toEqual({ text: 'HBS126', at: 0, length: 6 })
     /* the figure is the picker's own, the quote engine's read at the rung a quote opens at */
     const model = fleet.brands
@@ -124,8 +141,9 @@ describe('sp560 — fifteen lines of the file, one boat', () => {
   it('is one line for the model, onto the picker’s own plate', () => {
     const boats = ask('sp560').groups.find((g) => g.id === 'boats')!
     const line = boats.rows[0]!
-    expect(line.verb).toBe('Choose the version')
+    expect(line.verb).toBe(QUOTE_IT)
     expect(line.target.at).toBe('model')
+    expect(line.fits?.name).toMatch(/Sport 560$/)
     const key = line.target.at === 'model' ? line.target.model : ''
     const model = modelByKey(fleet, key)!
     /* the picker's own key, for the picker's own model — which holds every SP560 line */
@@ -167,47 +185,73 @@ describe('yamaha f90 — the motors first', () => {
 })
 
 describe('trailer for sp560 — the question that is not a name', () => {
-  it('answers the trailers the file pairs with the SP560, then the boat', () => {
+  /* REWRITTEN 2026-11-05 (fit-flow, direction A): the question was answered with one list of
+     trailers merged over every boat the words found ("motors for PA 600" said "fits all 30" of
+     the plain Patrol 600, the EW and the ST). Now the boats answer it, each with its own What
+     fits, and the sentence says where a boat's trailers are read. */
+  it('answers with the boats, each with its own What fits, and no merged list', () => {
     const reading = ask('trailer for sp560')
     expect(reading.nothing).toBeNull()
-    const [fits, boats] = reading.groups
-    expect(fits!.id).toBe('fits')
-    expect(fits!.title).toBe('Trailers for sp560')
-    expect(fits!.rows.length).toBeGreaterThan(0)
-    for (const row of fits!.rows) {
-      const tableId = row.target.at === 'row' ? row.target.tableId : ''
-      expect(entities[tableId]?.kind).toBe('trailer')
-      expect(row.fact).toMatch(/^fits (all \d+|\d+ of \d+|it)/)
-    }
-    expect(boats!.id).toBe('boats')
-    expect(boats!.rows[0]!.verb).toBe('Choose the version')
+    expect(reading.groups.map((g) => g.id)).toEqual(['boats'])
+    expect(reading.note).toBe(
+      'The trailers that go on a boat are read on its own page. Press What fits beside the one you mean.',
+    )
+    const boats = reading.groups[0]!
+    expect(boats.rows[0]!.verb).toBe(QUOTE_IT)
+    expect(boats.rows[0]!.fits).toBeDefined()
   })
 
-  it('says so, above the boat, where the file pairs nothing of that kind', () => {
-    /* a boat the file pairs no trailer with: found by asking every boat, not named here */
-    let said = false
-    for (const table of Object.values(entities)) {
-      if (said) break
-      if (table.kind !== 'boat') continue
-      for (const row of rowsByEntity[table.id] ?? []) {
-        const answer = fitsFor(
-          { entities, rowsByEntity, views: {} },
-          [{ tableId: table.id, rowId: row.id }],
-          'trailer',
-        )
-        if (answer.fits.length > 0) continue
-        const code = row.values[table.fields.find((f) => f.name === 'Model Code')?.id ?? '']
-        if (typeof code !== 'string' || code === '') continue
-        const reading = ask(`trailer for ${code}`)
-        if (reading.groups.find((g) => g.id === 'fits')) continue
-        expect(reading.note).toMatch(/^No trailer on the price list fits the boat matching/)
-        /* and the boat is still there to quote, under the sentence */
-        expect(reading.groups.find((g) => g.id === 'boats')?.rows[0]?.verb).toBe('Start a quote')
-        said = true
-        break
-      }
-    }
-    expect(said, 'the file has a boat with no trailer paired, and it was asked').toBe(true)
+  it('answers "motors for PA 600" with three boats, the plain Patrol 600 first', () => {
+    const boats = ask('motors for PA 600').groups.find((g) => g.id === 'boats')!
+    const named = boats.rows.filter((r) => r.fits).map((r) => r.name)
+    expect(named[0]).toBe('Patrol 600')
+    expect(named).toEqual(expect.arrayContaining(['Patrol 600 EW', 'Patrol 600 ST']))
+    /* each boat's door opens its own line, never one door for the three */
+    const doors = boats.rows.filter((r) => r.fits).map((r) => r.fits!.rowId)
+    expect(new Set(doors).size).toBe(doors.length)
+  })
+})
+
+/* ============================================================
+   THE BOAT A PERSON NAMED LEADS, AND A NEAR MISS IS NAMED
+   (fit-flow, 2026-11-05, the walk's "Stabicraft PA 600").
+   ============================================================ */
+
+describe('Patrol 600 — the exact name first, and the maker misremembered', () => {
+  const boatNames = (query: string) =>
+    ask(query)
+      .groups.find((g) => g.id === 'boats')!
+      .rows.filter((r) => r.fits)
+      .map((r) => r.name)
+
+  it('leads with the plain Patrol 600 for its name, its code and its maker and name', () => {
+    for (const query of ['Patrol 600', 'PA 600', 'PA600', 'Highfield Patrol 600'])
+      expect(boatNames(query)[0], query).toBe('Patrol 600')
+  })
+
+  it('names the near miss for "Stabicraft PA 600", and answers with Highfield’s', () => {
+    const reading = ask('Stabicraft PA 600')
+    expect(reading.nothing).toBeNull()
+    expect(reading.note).toBe(
+      'No Stabicraft is called “PA 600”. The “PA 600” on the price list is Highfield’s:',
+    )
+    const boats = reading.groups.find((g) => g.id === 'boats')!
+    expect(boats.rows[0]!.name).toBe('Patrol 600')
+    expect(boats.rows[0]!.fits?.name).toBe('Highfield Patrol 600')
+  })
+
+  it('says nothing about a maker where the maker carries the name', () => {
+    expect(ask('Highfield Patrol 600').note).toBeNull()
+  })
+
+  it('opens What fits on the version its "from" figure prices', () => {
+    const line = ask('Patrol 600').groups.find((g) => g.id === 'boats')!.rows[0]!
+    const model = modelByKey(fleet, line.target.at === 'model' ? line.target.model : '')!
+    const amounts = model.variants.map((v) => v.amount).filter((n): n is number => n !== null)
+    const least = Math.min(...amounts)
+    const opened = model.variants.find((v) => v.rowId === line.fits?.rowId)
+    expect(opened?.amount).toBe(least)
+    expect(line.figure?.startsWith(money(least))).toBe(true)
   })
 })
 
@@ -241,7 +285,7 @@ describe('the names the screens print — found, and sold', () => {
       expect(reading.nothing, query).toBeNull()
       const boats = reading.groups.find((g) => g.id === 'boats')
       expect(boats, query).toBeDefined()
-      expect(['Choose the version', 'Start a quote'], query).toContain(boats!.rows[0]!.verb)
+      expect(boats!.rows[0]!.verb, query).toBe(QUOTE_IT)
     }
   })
 
@@ -296,7 +340,7 @@ describe('the names the screens print — found, and sold', () => {
   it('starts a quote on the very boat a one-line name names', () => {
     for (const query of ['haines signature fisher 525f', 'jeanneau merry fisher 605']) {
       const line = boatsOf(query)!.rows[0]!
-      expect(line.verb, query).toBe('Start a quote')
+      expect(line.verb, query).toBe(QUOTE_IT)
       const rowId = line.target.at === 'start' ? line.target.rowId : ''
       const tableId = line.target.at === 'start' ? line.target.tableId : ''
       const table = entities[tableId]!
@@ -338,10 +382,10 @@ describe('the names the screens print — found, and sold', () => {
   })
 
   it('asks what fits a boat by its said name as it asks by its code', () => {
-    const said = ask('trailer for sport 560').groups.find((g) => g.id === 'fits')!
-    const coded = ask('trailer for sp560').groups.find((g) => g.id === 'fits')!
+    const said = ask('trailer for sport 560').groups.find((g) => g.id === 'boats')!
+    const coded = ask('trailer for sp560').groups.find((g) => g.id === 'boats')!
     expect(said.rows.map((r) => r.id)).toEqual(coded.rows.map((r) => r.id))
-    expect(said.rows.map((r) => r.fact)).toEqual(coded.rows.map((r) => r.fact))
+    expect(said.rows.map((r) => r.fits)).toEqual(coded.rows.map((r) => r.fits))
   })
 
   it('still lights the code when the code is what was typed', () => {

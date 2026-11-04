@@ -359,7 +359,10 @@ test.describe('the shell', () => {
        line of the file, and they answer as ONE line onto the picker, not as eight lines for
        the sheet */
     await page.keyboard.type('adv9')
-    await expect(finder.getByRole('option').first()).toContainText('Choose the version')
+    /* REWRITTEN 2026-11-05 (fit-flow, direction A): the boat's line carries its two doors, What
+       fits and Quote it, and the first option is the first boat's What fits */
+    await expect(finder.locator('.way-boat').first()).toContainText('ADV9')
+    await expect(finder.getByRole('option').first()).toHaveAccessibleName(/^What fits the .*ADV9/)
     /* and ONE line of the file — typed by the code it is ordered by — keeps its line in the price
        list one row below the sale, and says the boat once, on the sale's row, with the code typed
        (the refine round, 2026-10-21). The code is read off the pack: the first ADV9 whose code is
@@ -378,7 +381,8 @@ test.describe('the shell', () => {
     await page.keyboard.press('Control+a')
     await page.keyboard.type(String(adv9.values['boat_highfield.d']))
     const code = String(adv9.values['boat_highfield.d'])
-    await expect(finder.getByRole('option', { name: /Start a quote/ }).first()).toContainText(code)
+    await expect(finder.locator('.way-boat').first()).toContainText(code)
+    await expect(finder.getByRole('option', { name: /^Quote it: / }).first()).toBeVisible()
     const row = finder.getByRole('option', { name: /Its line in the price list/ }).first()
     await expect(row).not.toContainText(code)
     await expect(finder).not.toContainText(label)
@@ -425,12 +429,14 @@ test.describe('the shell', () => {
     await page.keyboard.press('Control+k')
     const finder = page.getByTestId('shell-finder')
     await page.keyboard.type('HBS126')
-    const sell = finder.getByRole('option', { name: /Start a quote/ }).first()
-    await expect(sell).toContainText('HBS126')
-    await expect(sell).toContainText(/\$[\d,]+/)
+    /* the boat's line, and its Quote it beside its What fits (fit-flow, 2026-11-05) */
+    const line = finder.locator('.way-boat').first()
+    const sell = line.getByRole('option', { name: /^Quote it: / })
+    await expect(line).toContainText('HBS126')
+    await expect(line).toContainText(/\$[\d,]+/)
     /* the version as the finder says it — "Sport 560 · Hypalon · Black / Black / Black" —
        read off the row, never typed here */
-    const said = (await sell.locator('.way-row__name').innerText()).trim()
+    const said = (await line.locator('.way-row__name').innerText()).trim()
     await sell.click()
     await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 30_000 })
     await expect(page.getByTestId('running-total')).toBeVisible({ timeout: 30_000 })
@@ -459,10 +465,10 @@ test.describe('the shell', () => {
     await page.keyboard.type('sp560')
     const model = page
       .getByTestId('shell-finder')
-      .getByRole('option', { name: /Choose the version/ })
+      .getByRole('option', { name: /^Quote it: the .*Sport 560$/ })
       .first()
     /* the boat as a person says it: Highfield's own page for SP560 is headed "Sport 560" */
-    await expect(model).toContainText('Sport 560')
+    await expect(model).toHaveAccessibleName(/Sport 560$/)
     await model.click()
     await expect(page).toHaveURL(/\/quote\/new\?model=/)
     await expect(page.getByTestId('picker')).toHaveAttribute('data-stage', 'boat')
@@ -485,12 +491,12 @@ test.describe('the shell', () => {
     ] as const) {
       await page.keyboard.press('Control+a')
       await page.keyboard.type(typed)
-      await expect(finder.getByRole('option').first(), typed).toContainText(shown)
+      await expect(finder.locator('.way-boat').first(), typed).toContainText(shown)
       await expect(finder.getByText(/^Nothing matches/), typed).toHaveCount(0)
     }
     /* and the one line for the Sport 560 opens the picker on it, as "sp560" does */
-    const model = finder.getByRole('option', { name: /Choose the version/ }).first()
-    await expect(model).toContainText('Sport 560')
+    const model = finder.getByRole('option', { name: /^Quote it: the .*Sport 560$/ }).first()
+    await expect(model).toBeVisible()
     await model.click()
     await expect(page).toHaveURL(/\/quote\/new\?model=/)
     await expect(page.getByTestId('picker')).toHaveAttribute('data-stage', 'boat')
@@ -510,8 +516,15 @@ test.describe('the shell', () => {
 
     await page.keyboard.press('Control+a')
     await page.keyboard.type('trailer for sp560')
-    await expect(finder.locator('[cmdk-group-heading]').first()).toHaveText(/Trailers for sp560/i)
-    await expect(finder.getByRole('option').first()).toContainText(/fits (all \d+|\d+ of \d+|it)/)
+    /* REWRITTEN 2026-11-05 (fit-flow, direction A): the boats answer it, each with its own What
+       fits, and a boat's trailers are read on its own page, never as one merged list */
+    await expect(
+      finder.getByText(/^The trailers that go on a boat are read on its own page/),
+    ).toBeVisible()
+    await expect(finder.locator('[cmdk-group-heading]').first()).toHaveText(/Boats/i)
+    await expect(finder.getByRole('option').first()).toHaveAccessibleName(
+      /^What fits the .*Sport 560$/,
+    )
     await expect(finder.getByText(/^Nothing matches/)).toHaveCount(0)
   })
 

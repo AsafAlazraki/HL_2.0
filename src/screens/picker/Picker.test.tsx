@@ -742,6 +742,33 @@ describe('the words that are counts', () => {
     expect(screen.getByText(`No model from ${brand.name} is called that.`)).toBeInTheDocument()
   })
 
+  /* fit-flow, 2026-11-05: the walk's "Stabicraft PA 600" said "No model from Stabicraft is
+     called that" and stopped there, and All makers wiped what was typed */
+  it('names the maker whose models the words find, and goes there with the words kept', async () => {
+    const goTo = vi.fn<(next: PickerAt, how?: { stay?: boolean }) => void>()
+    const stabicraft = fleet.brands.find((b) => b.name === 'Stabicraft') as Brand
+    const highfield = fleet.brands.find((b) => b.id === 'boat_highfield') as Brand
+    const theirs = matchModels(highfield.models, 'PA 600').length
+    expect(theirs).toBeGreaterThan(0)
+    expect(matchModels(stabicraft.models, 'PA 600')).toHaveLength(0)
+    render(<Picker at={{ brand: stabicraft.id }} goTo={goTo} />)
+    const field = screen.getByLabelText(/Find a model/)
+    await userEvent.type(field, 'PA 600')
+    expect(document.getElementById('picker-find-said')).toHaveTextContent(
+      `No model from Stabicraft is called that. ${highfield.name} has ${theirs} that are.`,
+    )
+    const index = screen.getByRole('region', { name: 'Models' })
+    await userEvent.click(
+      within(index).getByRole('button', { name: `Show the ${theirs} from ${highfield.name}` }),
+    )
+    expect(goTo).toHaveBeenLastCalledWith({ brand: highfield.id })
+    expect(field).toHaveValue('PA 600')
+    /* and All makers keeps the words too */
+    await userEvent.click(within(index).getByRole('button', { name: 'All makers' }))
+    expect(goTo).toHaveBeenLastCalledWith({})
+    expect(field).toHaveValue('PA 600')
+  })
+
   it('has a singular: one model MATCHES', async () => {
     const found = fleet.brands
       .flatMap((b) => b.models.map((m) => ({ brand: b, model: m })))
