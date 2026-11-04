@@ -3,7 +3,9 @@ import { Plate, Segmented, say, undo, unsay } from '@/ui'
 import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { isDone } from '@/domain/catalogue/commands'
+import { isRetired, type EntityDef } from '@/domain/model'
 import { letQuote, quotesOnItsOwn } from '@/domain/catalogue/quotingCommand'
+import { andList } from '@/domain/quote/start'
 import type { PlaceCard } from './read'
 
 /* ============================================================
@@ -36,13 +38,16 @@ export function Selling({ card }: { card: PlaceCard }) {
   const module = modules[card.place.moduleId]
   useEffect(() => () => unsay(STEP), [])
 
-  /* the other lists the same place in the business holds, which this choice reaches too */
+  /* the other lists the same place in the business holds, which this choice reaches too: a list
+     no longer sold is offered on no new quote either way, so it is not named as sold the same
+     way (verify-2, gap 2: OBSOLETE Trailers on REDCO's) */
   const others = useMemo(
     () =>
       (module?.tableIds ?? [])
         .filter((id) => !card.tableIds.includes(id))
-        .map((id) => tables[id]?.name)
-        .filter((n): n is string => typeof n === 'string'),
+        .map((id) => tables[id])
+        .filter((t): t is EntityDef => t !== undefined && !isRetired(t))
+        .map((t) => t.name),
     [module, tables, card.tableIds],
   )
   if (!module || card.kind === 'boat' || card.place.retired) return null
@@ -83,7 +88,7 @@ export function Selling({ card }: { card: PlaceCard }) {
             ? `A quote can start from ${card.name} with no boat on it: a repower, a trailer, or parts over the counter.`
             : `${card.name} is offered inside a boat’s quote. Choose “On its own too” to sell it with no boat.`}
           {others.length > 0
-            ? ` ${others.join(', ')} ${others.length === 1 ? 'is' : 'are'} sold the same way: the choice is for all of ${module.name}.`
+            ? ` ${andList(others)} ${others.length === 1 ? 'is' : 'are'} sold the same way: the choice is for all of ${module.name}.`
             : ''}
         </p>
       </div>

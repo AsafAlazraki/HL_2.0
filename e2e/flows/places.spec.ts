@@ -177,6 +177,60 @@ test('two boats set side by side stand in the address, and the compare opens in 
   ).toBeVisible({ timeout: 30_000 })
 })
 
+test('a compare opened at the page’s end lands with no series tile under the floating bar', async ({
+  page,
+}) => {
+  /* the Sport 600 and the Sport 660 chosen, the compare closed, the page at its end where the
+     head is let go (verify-2, gap 1: at 1280 and 1440 the tiles' names stood under the bar) */
+  await toPlace(
+    page,
+    '/places/boat_highfield?series=Sport&compare=boat_highfield%3A498%2Cboat_highfield%3A513',
+  )
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await page.waitForTimeout(300)
+  const press = page.getByRole('button', { name: 'Compare 2' }).filter({ visible: true })
+  await press.first().evaluate((el) => (el as HTMLElement).focus({ preventScroll: true }))
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.pl-compare')).toBeVisible()
+  /* until the scroll the press began has come to rest: the same place twice, 250ms apart */
+  await page.evaluate(async () => {
+    await new Promise((rest) => setTimeout(rest, 250))
+    for (let i = 0; i < 40; i++) {
+      const y = window.scrollY
+      await new Promise((rest) => setTimeout(rest, 250))
+      if (window.scrollY === y) return
+    }
+  })
+  const under = await page.evaluate(() => [
+    ...new Set(
+      [...document.querySelectorAll('.pl-series :is(.pl-stile__name, .pl-stile__sub)')]
+        .filter((words) => {
+          const r = words.getBoundingClientRect()
+          const y = r.top + r.height / 2
+          if (r.width === 0 || y < 0 || y > window.innerHeight) return false
+          /* under the floating bar AND shown through it: the topmost thing at the words is the
+             bar, and the first thing of the page beneath it is the tile, not the head's ground */
+          const hits = document.elementsFromPoint(r.left + Math.min(r.width / 2, 12), y)
+          const main = document.querySelector('main')!
+          const beneath = hits.find((el) => main.contains(el))
+          return (
+            hits[0] !== undefined && !main.contains(hits[0]) && !!beneath?.closest('.pl-series')
+          )
+        })
+        .map(
+          (words) =>
+            words.closest('.pl-stile')?.querySelector('.pl-stile__name')?.textContent ?? '',
+        ),
+    ),
+  ])
+  expect(under).toEqual([])
+  const dock = page.locator('.pl-dock')
+  const docks = await dock.evaluate(
+    (el) => getComputedStyle(el).getPropertyValue('--docks').trim() === '1',
+  )
+  if (docks) await expect(dock).toHaveAttribute('data-stuck', '')
+})
+
 test('Yamaha reads by horsepower, a rating opening in the address', async ({ page }) => {
   await toPlace(page, '/places/mot_yamaha')
   const ladder = page.getByRole('group', { name: 'By horsepower' })

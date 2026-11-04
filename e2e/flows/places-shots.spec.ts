@@ -162,6 +162,73 @@ test('every state of a maker’s own page, photographed and measured', async ({ 
   if (!seen) faults.push('06-compare-refused: the refusal is out of sight of the press')
   await shot('06-compare-refused')
 
+  /* opened from the range's foot at the page's end, where the head is let go: it lands as it
+     does from the top, the head docked and no series tile's name under the floating bar
+     (verify-2, gap 1, at 1280 and 1440). Pressed from the keyboard, the page left at its end. */
+  await press(
+    page,
+    page.getByRole('button', { name: 'Close the compare' }).filter({ visible: true }),
+  )
+  await expect(page.locator('.pl-compare')).toHaveCount(0)
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await page.waitForTimeout(300)
+  const again = page.getByRole('button', { name: 'Compare 3' }).filter({ visible: true }).first()
+  await again.evaluate((el) => (el as HTMLElement).focus({ preventScroll: true }))
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.pl-compare')).toBeVisible()
+  /* until the scroll the press began has come to rest: the same place twice, 250ms apart */
+  await page.evaluate(async () => {
+    await new Promise((rest) => setTimeout(rest, 250))
+    for (let i = 0; i < 40; i++) {
+      const y = window.scrollY
+      await new Promise((rest) => setTimeout(rest, 250))
+      if (window.scrollY === y) return
+    }
+  })
+  const landed = await page.evaluate(() => {
+    const dock = document.querySelector('.pl-dock')!
+    const docks = getComputedStyle(dock).getPropertyValue('--docks').trim() === '1'
+    const under = [
+      ...new Set(
+        [...document.querySelectorAll('.pl-series :is(.pl-stile__name, .pl-stile__sub)')]
+          .filter((words) => {
+            const r = words.getBoundingClientRect()
+            const y = r.top + r.height / 2
+            if (r.width === 0 || y < 0 || y > window.innerHeight) return false
+            /* under the floating bar AND shown through it: the topmost thing at the words is the
+               bar, and the first thing of the page beneath it is the tile, not the head's ground */
+            const hits = document.elementsFromPoint(r.left + Math.min(r.width / 2, 12), y)
+            const main = document.querySelector('main')!
+            const beneath = hits.find((el) => main.contains(el))
+            return (
+              hits[0] !== undefined && !main.contains(hits[0]) && !!beneath?.closest('.pl-series')
+            )
+          })
+          .map(
+            (words) =>
+              words.closest('.pl-stile')?.querySelector('.pl-stile__name')?.textContent ?? '',
+          ),
+      ),
+    ]
+    return {
+      docks,
+      stuck: dock.hasAttribute('data-stuck'),
+      inset: parseFloat(getComputedStyle(dock).getPropertyValue('--shell-inset')) || 0,
+      top: Math.round(document.querySelector('.pl-compare')!.getBoundingClientRect().top),
+      under,
+    }
+  })
+  console.log(`[${size}] 06b-compare-from-end: ${JSON.stringify(landed)}`)
+  if (landed.under.length > 0)
+    faults.push(`06b-compare-from-end: series tiles under the bar: ${landed.under.join(' | ')}`)
+  if (landed.docks && !landed.stuck)
+    faults.push('06b-compare-from-end: the head is not docked over the compare')
+  /* where the head does not dock, the compare's own top comes to the window's top, under the
+     bar where a bar stands at the top (its scroll margin) */
+  if (!landed.docks && (landed.top < 0 || landed.top > landed.inset + 24))
+    faults.push(`06b-compare-from-end: the compare's top lands at ${landed.top}`)
+  await shot('06b-compare-from-end')
+
   /* ordered by length: the quiet bar on each card */
   await to(page, '/places/boat_highfield?series=Sport&sort=length')
   await page.locator('.pl-card').first().scrollIntoViewIfNeeded()
@@ -254,5 +321,5 @@ test('every state of a maker’s own page, photographed and measured', async ({ 
   console.log(`[${size}] faults: ${faults.length ? faults.join('\n  ') : 'none'}`)
   expect(errors).toEqual([])
   /* a refusal said out of sight of its press, or a tray out of sight among the cards, fails */
-  expect(faults.filter((f) => /out of sight/.test(f))).toEqual([])
+  expect(faults.filter((f) => /out of sight|06b-compare-from-end/.test(f))).toEqual([])
 })

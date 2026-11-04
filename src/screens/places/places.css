@@ -569,6 +569,9 @@
   block-size: 0;
 }
 .pl-dock {
+  /* whether this window docks the head, read by the compare's scroll whatever the dock's state
+     (a head let go at the range's foot is static for the moment but docks again) */
+  --docks: 1;
   position: sticky;
   inset-block-start: var(--shell-inset);
   z-index: 4;
@@ -1707,6 +1710,7 @@
   }
   /* A WINDOW THIS SHORT IS NOT DOCKED: the head would take more than half of it */
   .pl-dock {
+    --docks: 0;
     position: static;
   }
   .pl-range :where(a, button, input, .pl-compare) {
@@ -1765,6 +1769,7 @@
     max-inline-size: none;
   }
   .pl-dock {
+    --docks: 0;
     position: static;
     margin-block-start: 0;
     margin-inline: 0;

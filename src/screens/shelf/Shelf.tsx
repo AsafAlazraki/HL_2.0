@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
-  ArrowCounterClockwiseIcon,
   ArrowRightIcon,
   ClipboardTextIcon,
   DownloadSimpleIcon,
   EyeIcon,
-  FileArrowUpIcon,
   FileXlsIcon,
   ImageSquareIcon,
   LockSimpleIcon,
@@ -17,21 +15,37 @@ import {
   UploadSimpleIcon,
   UsersThreeIcon,
 } from '@phosphor-icons/react'
-import { Button, Icon, Plate, Refusal, Water } from '@/ui'
+import { Button, Icon, Plate, Refusal } from '@/ui'
 import { useCatalogue, usePrefs, useQuotes } from '@/app/useStores'
-import { letterheadNow } from '@/app/northside'
 import { catalogue } from '@/state/catalogue'
+import { prefs, type PrefValue } from '@/state/prefs'
+import { session } from '@/state/session'
 import { isDone } from '@/domain/catalogue/commands'
 import { WorkbookRefusal, readWorkbook, type Workbook } from '@/domain/io/workbook'
+import { planNewFile, sheetsOnThePriceList, type NewFilePlan } from '@/domain/io/newFile'
 import {
-  newFileCommand,
-  planNewFile,
-  sheetsOnThePriceList,
-  type NewFilePlan,
-} from '@/domain/io/newFile'
+  NO_CHOICES,
+  changeSetOf,
+  chosenCommand,
+  draftsMoved,
+  tally,
+  type ChangeSet,
+  type Choices,
+  type Narrow,
+} from '@/domain/io/changeSet'
+import {
+  appliedSince,
+  noteApplied,
+  noteCleared,
+  notePutBack,
+  noteRead,
+  notesOf,
+  type BroughtNote,
+} from '@/domain/io/brought'
 import { validateEnvelope, type ProjectFile } from '@/domain/io/envelope'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { LAST_COPY_PREF, saveACopy } from './acts'
+import { packedOn, provenanceOfSheet } from '@/screens/data/file'
+import { LAST_COPY_PREF, apartRefusal, clearThePriceList, saveACopy } from './acts'
 import { bytesOf, inflateRaw, sizeOf } from './files'
 import { count, inventoryOf, plural, whenSaid, type Inventory } from './read'
 import { Changes } from './Changes'
@@ -41,119 +55,166 @@ import { BringBack, ClearPage, ForgetPage } from './Pages'
 import './shelf.css'
 
 /* ============================================================
-   THE SHELF — direction D, "The safe" (docs/directions/shelf-boards/
-   d-the-safe.html), with C's glyphs and its Undo said before the act
-   grafted on (the verdict's graft), and the change sheet drawn as D's
-   own (its must-change).
+   THE SHELF, ROUND 2 — board A, "One working table"
+   (docs/directions/data-round/shelf/boards/a.html), with C's opening
+   sentence and its triage of the lines to look at first, and B's
+   "Save a copy now" after Apply grafted on (the three judges).
 
-   WHAT IT IS FOR, AND NOTHING MORE. Two things a dealership does
-   rarely and fears doing: bringing in a new version of its Master Price
-   File, and keeping its own work safe — one file out, the same file
-   back on a new computer. Northside's own mark leads, as the showpiece;
-   the new price list is one blue band; the work is an inventory,
-   counted; the two acts that take things away are at the foot, far
-   from Save, each a page of its own and never a box everybody clicks
-   through.
+   WHAT IT IS FOR. Two things a dealership does rarely and fears doing:
+   bringing in a new version of its Master Price File, and keeping its
+   own work safe. The rest page opens on WHICH PRICE LIST THIS COMPUTER
+   HOLDS (the date it came with the app, its fingerprint, and every
+   workbook applied since), then the account of every workbook brought
+   in on this computer and what became of it, then the copy: what one
+   would hold, and the way one comes back. The two acts that take
+   things away stay at the foot, each a page of its own.
 
-   EVERY POSITION IS AN ADDRESS (`see`): the change sheet, the paste,
-   bringing a copy back, and the two pages that take things away. What
-   was read stays in this screen while a person moves between them, and
-   a reload forgets it — a workbook is read again by choosing it again.
+   THE CHANGE SHEET is one working table (`./Changes`): what does not
+   move, said first; four counts that are also filters; a toolbar that
+   stays in view; every line, every figure named; a tick on each line;
+   and Apply pinned in view with what it will write counted beside it.
+
+   EVERY POSITION IS AN ADDRESS (`see`, and the sheet's narrowing). What
+   was read stays while a person moves about the app, and a reload
+   forgets it — and says so where it was, rather than landing silently.
    ============================================================ */
 
-export type ShelfSee = 'changes' | 'paste' | 'restore' | 'clear' | 'forget' | 'back' | 'cleared'
+export type ShelfSee =
+  | 'changes'
+  | 'paste'
+  | 'restore'
+  | 'clear'
+  | 'forget'
+  | 'back'
+  | 'cleared'
+  /** the change sheet or the copy was asked for after the page was opened again, and is gone */
+  | 'unread'
+  | 'uncopied'
 
 export interface ShelfProps {
   see: ShelfSee | undefined
   onSee: (see: ShelfSee | undefined) => void
+  narrow?: Narrow
+  onNarrow?: (next: Narrow) => void
 }
 
-/** A workbook read on this visit. */
+/** Where the account of every workbook brought in on this computer is kept. */
+export const BROUGHT_PREF = 'shelf.brought'
+
+/** A workbook read on this visit, with what it would do. */
 export interface Brought {
   book: Workbook
   fileName: string
   size: number
+  /** ISO: the day the file says it was last saved on this computer */
+  saved: string | null
+  /** how long reading it took, in milliseconds, measured here */
+  readMs: number
+  /** its entry in the account */
+  noteId: string
+  /** the price list it was read against, and what it would do to it */
+  against: unknown
+  plan: NewFilePlan
+  set: ChangeSet
 }
 
 /** What Apply did, while its Undo is still the one to press. */
 export interface Applied {
   eventId: string
+  /** the changes it wrote: what was kept */
   changes: number
   fileName: string
-  /** THE CHANGE SHEET AS IT WAS APPLIED. Read again against the price list it has just changed,
-   *  the sheet said "15,691 of 15,691 lines stay exactly as they are" a moment after three had
-   *  moved; it keeps what it showed until Undo puts them back */
+  /** THE CHANGE SHEET AS IT WAS APPLIED, so it reads what it wrote until Undo puts it back */
   plan: NewFilePlan
+  set: ChangeSet
+  choices: Choices
 }
 
-/* THE UNDO OUTLIVES A WALK AWAY FROM THE SHELF (built-critique-m4.md, minor 3). The step itself
-   was always kept: the catalogue store's undo stack lives as long as the page does. What was lost
-   was the shelf's memory that the step was this workbook's, because it lived in the screen and
-   the screen goes when a person leaves it. It lives here now, beside the screen, and it is offered
-   again only while the step is still the next one back — the same pin the press itself has
-   (`undo(eventId)`). The workbook it came from is kept with it, so Undo on the sheet puts the
-   changes back and the same sheet offers Apply again. A reload forgets all of it, together. */
-let appliedOnThisVisit: { applied: Applied; brought: Brought } | null = null
+/* WHAT WAS READ OUTLIVES A WALK AWAY FROM THE SHELF (built-critique-m4.md, minor 3): the workbook,
+   what was left out and placed, which of the lines to look at first were looked at, and the
+   Apply whose Undo is still the next step back. A reload forgets all of it, together. */
+interface Visit {
+  brought: Brought | null
+  choices: Choices
+  looked: ReadonlySet<string>
+  applied: Applied | null
+}
+let visit: Visit = { brought: null, choices: NO_CHOICES, looked: new Set(), applied: null }
 
 const stillTheNextStepBack = (a: Applied | null): a is Applied =>
   a !== null && catalogue.getState().undoable()?.eventId === a.eventId
 
-export function Shelf({ see, onSee }: ShelfProps) {
+const writeNotes = (next: BroughtNote[]): void =>
+  prefs.getState().set(BROUGHT_PREF, next as unknown as PrefValue)
+
+const readNotes = (): BroughtNote[] => notesOf(prefs.getState().values[BROUGHT_PREF])
+
+const WIDE: Narrow = {}
+const NOWHERE = (): void => {}
+
+export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfProps) {
   const status = useCatalogue((s) => s.status)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
   const modules = useCatalogue((s) => s.modules)
   const constraintDefs = useCatalogue((s) => s.constraintDefs)
   const org = useCatalogue((s) => s.org)
-  const business = useCatalogue((s) => s.business)
+  const version = useCatalogue((s) => s.version)
   const quoteList = useQuotes((s) => s.quotes)
   const quotesRead = useQuotes((s) => s.loaded)
   const lastCopy = usePrefs((s) => s.values[LAST_COPY_PREF])
+  const notes = notesOf(usePrefs((s) => s.values[BROUGHT_PREF]))
 
-  const [kept] = useState(() =>
-    appliedOnThisVisit && stillTheNextStepBack(appliedOnThisVisit.applied)
-      ? appliedOnThisVisit
-      : null,
+  const [brought, setBrought] = useState<Brought | null>(visit.brought)
+  const [choices, setChoices] = useState<Choices>(visit.choices)
+  const [looked, setLooked] = useState<ReadonlySet<string>>(visit.looked)
+  const [applied, setApplied] = useState<Applied | null>(() =>
+    stillTheNextStepBack(visit.applied) ? visit.applied : null,
   )
-  const [brought, setBrought] = useState<Brought | null>(kept?.brought ?? null)
   const [reading, setReading] = useState<string | null>(null)
   const [doorSaid, setDoorSaid] = useState<string | null>(null)
-  const [applied, setAppliedHere] = useState<Applied | null>(kept?.applied ?? null)
-  const setApplied = (next: Applied | null): void => {
-    appliedOnThisVisit = next && brought ? { applied: next, brought } : null
-    setAppliedHere(next)
-  }
-  /* the workbook whose changes Undo has just put back, so the band says so; null otherwise */
+  /* the workbook whose changes Undo has just put back, so the shelf says so; null otherwise */
   const [putBack, setPutBack] = useState<string | null>(null)
   const [copy, setCopy] = useState<{ data: ProjectFile; fileName: string } | null>(null)
   const [copySaid, setCopySaid] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
+
+  useEffect(() => {
+    visit = { brought, choices, looked, applied }
+  }, [brought, choices, looked, applied])
 
   const read = status === 'ready' && quotesRead
   const inventory = useMemo(
     () => inventoryOf({ tables, rows, modules, constraintDefs, org }, quoteList),
     [tables, rows, modules, constraintDefs, org, quoteList],
   )
-  const plan = useMemo<NewFilePlan | null>(
-    () =>
-      brought && status === 'ready'
-        ? planNewFile(brought.book, { tables, rows }, brought.fileName)
-        : null,
-    [brought, status, tables, rows],
+  /* THE PLAN, read again only when the price list moved under it since it was read */
+  const fresh = useMemo<{ plan: NewFilePlan; set: ChangeSet } | null>(() => {
+    if (!brought || status !== 'ready' || applied) return null
+    if (brought.against === rows) return { plan: brought.plan, set: brought.set }
+    const plan = planNewFile(brought.book, { tables, rows }, brought.fileName)
+    return { plan, set: changeSetOf(plan, brought.book, { tables, rows }) }
+  }, [brought, status, tables, rows, applied])
+
+  const sheet = useMemo(
+    () => (applied ? { plan: applied.plan, set: applied.set } : fresh),
+    [applied, fresh],
   )
-  const mark = letterheadNow({ org, business })?.mark ?? null
-  const name = org?.name ?? business ?? 'Northside Marine'
+  const drafts = useMemo(
+    () => (sheet ? draftsMoved(quoteList, sheet.set, applied?.choices ?? choices) : []),
+    [sheet, quoteList, applied, choices],
+  )
+  const edition = provenanceOfSheet(version)
 
   /* a page reached with nothing to show — a reload on the change sheet — goes back to the shelf */
   useEffect(() => {
     if (!read) return
-    if (see === 'changes' && !plan && !applied) onSee(undefined)
-    if (see === 'restore' && !copy) onSee(undefined)
-  }, [read, see, plan, applied, copy, onSee])
+    if (see === 'changes' && !sheet) onSee('unread')
+    if (see === 'restore' && !copy) onSee('uncopied')
+  }, [read, see, sheet, copy, onSee])
 
   async function bringIn(file: File): Promise<void> {
     setDoorSaid(null)
-    setApplied(null)
     setPutBack(null)
     if (!/\.xlsx$/i.test(file.name)) {
       setDoorSaid(
@@ -165,16 +226,48 @@ export function Shelf({ see, onSee }: ShelfProps) {
     }
     setReading(file.name)
     try {
+      const started = performance.now()
       const wanted = sheetsOnThePriceList({ tables, rows })
       const book = await readWorkbook(await bytesOf(file), inflateRaw, (n) => wanted.has(n))
       if (book.sheets.length === 0) {
         setDoorSaid(
           `${file.name} has no sheet the price list here is read from. Its sheets are ${book.names.slice(0, 6).join(', ')}${book.names.length > 6 ? ' and more' : ''}; the price list’s lines come from ${[...wanted].slice(0, 8).join(', ')}.`,
         )
-        setBrought(null)
-      } else {
-        setBrought({ book, fileName: file.name, size: file.size })
+        return
       }
+      const plan = planNewFile(book, { tables, rows }, file.name)
+      const set = changeSetOf(plan, book, { tables, rows })
+      const readMs = performance.now() - started
+      const at = new Date().toISOString()
+      const savedOn =
+        Number.isFinite(file.lastModified) && file.lastModified > 0
+          ? new Date(file.lastModified).toISOString()
+          : null
+      const noted = noteRead(readNotes(), {
+        file: file.name,
+        bytes: file.size,
+        saved: savedOn,
+        read: at,
+        by: session.getState().name,
+        changes: set.changing,
+        adding: set.adding,
+        cannot: set.cannot,
+      })
+      writeNotes(noted.notes)
+      setApplied(null)
+      setChoices(NO_CHOICES)
+      setLooked(new Set())
+      setBrought({
+        book,
+        fileName: file.name,
+        size: file.size,
+        saved: savedOn,
+        readMs,
+        noteId: noted.id,
+        against: rows,
+        plan,
+        set,
+      })
     } catch (error) {
       setDoorSaid(
         error instanceof WorkbookRefusal
@@ -186,12 +279,19 @@ export function Shelf({ see, onSee }: ShelfProps) {
     }
   }
 
+  function putDown(): void {
+    setBrought(null)
+    setChoices(NO_CHOICES)
+    setLooked(new Set())
+    onSee(undefined)
+  }
+
   async function openCopy(file: File): Promise<void> {
     setCopySaid(null)
     if (!/\.json$/i.test(file.name)) {
       setCopySaid(
         /\.xlsx$/i.test(file.name)
-          ? `${file.name} is a workbook, not a saved copy. A new Master Price File comes in through the blue panel above.`
+          ? `${file.name} is a workbook, not a saved copy. A new Master Price File comes in through Bring in a workbook, above.`
           : `${file.name} is not a copy this app saved. A copy is the .json file Save a copy writes.`,
       )
       return
@@ -217,17 +317,28 @@ export function Shelf({ see, onSee }: ShelfProps) {
   }
 
   function applyIt(): string | null {
-    if (!plan) return null
-    const outcome = catalogue
-      .getState()
-      .apply(
-        newFileCommand(
-          plan,
-          `${plan.fileName}: ${plural(plan.changes, 'change', 'changes')} brought into the price list`,
-        ),
-      )
+    if (!fresh || !brought) return null
+    const counted = tally(fresh.set, choices)
+    const command = chosenCommand(
+      fresh.plan,
+      fresh.set,
+      choices,
+      `${brought.fileName}: ${plural(counted.in, 'change', 'changes')} brought into the price list`,
+    )
+    if (!command) {
+      return 'Every line is left out, so nothing would change the price list. Tick a line to keep it.'
+    }
+    const outcome = catalogue.getState().apply(command)
     if (!isDone(outcome)) return outcome.refused || 'Nothing in it would change the price list.'
-    setApplied({ eventId: outcome.event.id, changes: plan.changes, fileName: plan.fileName, plan })
+    setApplied({
+      eventId: outcome.event.id,
+      changes: counted.in,
+      fileName: brought.fileName,
+      plan: fresh.plan,
+      set: fresh.set,
+      choices,
+    })
+    writeNotes(noteApplied(readNotes(), brought.noteId, counted.in, new Date().toISOString()))
     setPutBack(null)
     return null
   }
@@ -236,6 +347,7 @@ export function Shelf({ see, onSee }: ShelfProps) {
     if (!applied) return null
     const outcome = catalogue.getState().undo(applied.eventId)
     if (!isDone(outcome)) return outcome.refused || 'There is nothing to put back.'
+    if (brought) writeNotes(notePutBack(readNotes(), brought.noteId, new Date().toISOString()))
     setApplied(null)
     setPutBack(applied.fileName)
     return null
@@ -243,6 +355,13 @@ export function Shelf({ see, onSee }: ShelfProps) {
 
   async function save(): Promise<void> {
     setSaved(await saveACopy())
+  }
+
+  async function clearIt(): Promise<string | null> {
+    const apart = apartRefusal()
+    if (apart) return apart
+    writeNotes(noteCleared(readNotes(), new Date().toISOString(), session.getState().name))
+    return clearThePriceList()
   }
 
   if (!read) {
@@ -255,15 +374,40 @@ export function Shelf({ see, onSee }: ShelfProps) {
     )
   }
 
-  const sheet = applied?.plan ?? (brought ? plan : null)
-  if (see === 'changes' && sheet) {
+  const editionName = edition.known
+    ? `The price list of ${packedOn(edition.file.packedAt, 'long')}`
+    : 'The price list on this computer'
+  const fingerprint = edition.known ? edition.file.sha256.slice(0, 12) : null
+
+  if (see === 'changes' && sheet && (brought || applied)) {
     return (
       <Changes
-        plan={sheet}
+        plan={sheet.plan}
+        set={sheet.set}
+        file={{
+          name: applied?.fileName ?? brought?.fileName ?? sheet.plan.fileName,
+          size: brought?.size ?? null,
+          saved: brought?.saved ?? null,
+          readMs: brought?.readMs ?? null,
+        }}
+        edition={editionName}
+        fingerprint={fingerprint}
+        choices={applied?.choices ?? choices}
+        setChoices={setChoices}
+        looked={looked}
+        setLooked={setLooked}
+        narrow={narrow}
+        onNarrow={onNarrow}
         applied={applied}
         apply={applyIt}
         undo={undoIt}
+        drafts={drafts}
+        save={save}
+        saved={saved}
+        lastCopy={typeof lastCopy === 'string' ? lastCopy : null}
         back={() => onSee(undefined)}
+        paste={() => onSee('paste')}
+        putDown={putDown}
       />
     )
   }
@@ -274,6 +418,9 @@ export function Shelf({ see, onSee }: ShelfProps) {
         copy={copy.data}
         fileName={copy.fileName}
         here={inventory}
+        hereRows={rows}
+        hereQuotes={quoteList}
+        edition={editionName}
         save={save}
         saved={saved}
         back={() => onSee(undefined)}
@@ -281,7 +428,15 @@ export function Shelf({ see, onSee }: ShelfProps) {
     )
   }
   if (see === 'clear') {
-    return <ClearPage here={inventory} save={save} saved={saved} back={() => onSee(undefined)} />
+    return (
+      <ClearPage
+        here={inventory}
+        save={save}
+        saved={saved}
+        act={clearIt}
+        back={() => onSee(undefined)}
+      />
+    )
   }
   if (see === 'forget') {
     return (
@@ -295,41 +450,65 @@ export function Shelf({ see, onSee }: ShelfProps) {
     )
   }
 
+  const since = appliedSince(notes)
+  const latest = since[since.length - 1]
+  const now = new Date()
+
   return (
-    <main className="sf" data-testid="shelf" data-read="">
+    <main className="sf sf-rest" data-testid="shelf" data-read="">
       <header className="sf-head">
-        <div className="sf-mark">
-          {mark ? (
-            <img src={mark.src} width={mark.width} height={mark.height} alt={name} />
-          ) : (
-            <span className="sf-mark__name">{name}</span>
-          )}
-        </div>
         <div className="sf-head__words">
-          <p className="sf-eyebrow">The shelf</p>
-          <h1 className="sf-title">{name.split(' ')[0]}’s work, kept safe.</h1>
-          <p className="sf-lede">
-            A new Master Price File comes in at the top, every change shown first. Everything
-            Northside has made goes out as one file, and comes back on a new computer.
+          <p className="sf-eyebrow">The shelf · this computer holds</p>
+          <h1 className="sf-title">{editionName}</h1>
+          <p className="sf-head__meta">
+            <span>{plural(inventory.lists, 'list', 'lists')}</span>
+            <span>{plural(inventory.lines, 'line', 'lines')}</span>
+            {fingerprint ? (
+              <span>
+                fingerprint <code className="sf-code">{fingerprint}</code>
+              </span>
+            ) : null}
+            <span>
+              {latest
+                ? `${plural(since.length, 'workbook', 'workbooks')} applied since, the last ${whenSaid(latest.at ?? latest.read, now)}`
+                : 'no workbook applied since'}
+            </span>
           </p>
+          {!edition.known ? <p className="sf-head__say">{edition.because}</p> : null}
         </div>
+        <SaveNow
+          lastCopy={typeof lastCopy === 'string' ? lastCopy : null}
+          saved={saved}
+          save={() => void save()}
+          after={applied ? applied.changes : null}
+        />
       </header>
 
-      {see === 'back' || see === 'cleared' ? (
+      {see === 'back' || see === 'cleared' || see === 'unread' || see === 'uncopied' ? (
         <p className="sf-landed" aria-live="polite">
           {see === 'back'
             ? `The copy is back: ${plural(inventory.quotes, 'quote', 'quotes')}, ${plural(inventory.customers, 'customer', 'customers')}, ${plural(inventory.rules, 'rule', 'rules')} Northside wrote, and ${count(inventory.lines)} lines of the price list.`
-            : `The price list is back as the Master Price File came with the app. ${plural(inventory.quotes, 'quote', 'quotes')}, ${plural(inventory.customers, 'customer', 'customers')} and ${plural(inventory.rules, 'rule', 'rules')} Northside wrote are still here.`}
+            : see === 'cleared'
+              ? `The price list is back as the Master Price File came with the app. ${plural(inventory.quotes, 'quote', 'quotes')}, ${plural(inventory.customers, 'customer', 'customers')} and ${plural(inventory.rules, 'rule', 'rules')} Northside wrote are still here.`
+              : see === 'unread'
+                ? 'The page was opened again, and a workbook read before that is not kept. Bring it in again to see its changes; what was done with it is listed under Files brought in.'
+                : 'The page was opened again, and a copy chosen before that is not kept. Choose it again to set it beside this computer.'}
         </p>
       ) : null}
 
-      <NewPriceList
+      <FilesBroughtIn
+        notes={notes}
         reading={reading}
         said={doorSaid}
-        brought={brought}
-        plan={plan}
+        brought={brought && !applied ? brought : null}
         applied={applied}
         putBack={putBack}
+        fingerprint={fingerprint}
+        packedAt={edition.known ? edition.file.packedAt : null}
+        lines={inventory.lines}
+        lists={inventory.lists}
+        drafts={inventory.quotes - inventory.given}
+        moved={drafts.length}
         bringIn={(f) => void bringIn(f)}
         see={() => onSee('changes')}
         paste={() => onSee('paste')}
@@ -337,12 +516,7 @@ export function Shelf({ see, onSee }: ShelfProps) {
       />
 
       <div className="sf-keep">
-        <SaveACopy
-          inventory={inventory}
-          lastCopy={typeof lastCopy === 'string' ? lastCopy : null}
-          saved={saved}
-          save={() => void save()}
-        />
+        <SaveACopy inventory={inventory} saved={saved} />
         <BringBackACopy said={copySaid} open={(f) => void openCopy(f)} />
       </div>
 
@@ -383,14 +557,10 @@ export function Shelf({ see, onSee }: ShelfProps) {
             }
             stays={
               typeof lastCopy === 'string' ? (
-                <>
-                  Copies saved to this computer’s Downloads, the last{' '}
-                  {whenSaid(lastCopy, new Date())}.
-                </>
+                <>Copies saved from this computer, the last {whenSaid(lastCopy, now)}.</>
               ) : (
                 <>
-                  Copies saved to this computer’s Downloads. <strong>None saved yet</strong>: save
-                  one first.
+                  Copies saved from this computer. <strong>None saved yet</strong>: save one first.
                 </>
               )
             }
@@ -404,27 +574,113 @@ export function Shelf({ see, onSee }: ShelfProps) {
 }
 
 /* ---------------------------------------------------------- */
-/* the blue band: a new Master Price File                      */
+/* save a copy, now: the one amber act at the head              */
 /* ---------------------------------------------------------- */
 
-function NewPriceList({
+function SaveNow({
+  lastCopy,
+  saved,
+  save,
+  after,
+}: {
+  lastCopy: string | null
+  saved: string | null
+  save: () => void
+  /** changes just applied that no copy holds yet, or null */
+  after: number | null
+}) {
+  const now = new Date()
+  return (
+    <Plate as="aside" pad="md" label="Save a copy">
+      <div className="sf-savenow">
+        <p className="sf-savenow__say" aria-live="polite" data-none={lastCopy ? undefined : ''}>
+          {saved ? (
+            <>
+              <strong>Saved as {saved}.</strong> Keep it somewhere a new computer can reach.
+            </>
+          ) : after !== null ? (
+            <>
+              <strong>{plural(after, 'change is', 'changes are')} on the price list</strong> that no
+              copy holds yet.
+            </>
+          ) : lastCopy ? (
+            <>
+              <strong>Last copy saved {whenSaid(lastCopy, now)}.</strong>
+            </>
+          ) : (
+            <>
+              <strong>No copy saved yet.</strong> Nothing of Northside’s could come back on another
+              computer.
+            </>
+          )}
+        </p>
+        <span className="sf-savenow__act">
+          <Button intent="act" icon={DownloadSimpleIcon} onClick={save}>
+            {saved ? 'Save another copy' : 'Save a copy'}
+          </Button>
+        </span>
+      </div>
+    </Plate>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* files brought in: the account, and the way a new one comes  */
+/* ---------------------------------------------------------- */
+
+const dayOf = (iso: string, now: Date): string => {
+  const at = new Date(iso)
+  if (Number.isNaN(at.getTime())) return ''
+  if (at.toDateString() === now.toDateString()) return 'Today'
+  return at.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function NowSaid({ note }: { note: BroughtNote }) {
+  const word =
+    note.now === 'applied'
+      ? `Applied: ${count(note.applied ?? 0)}`
+      : note.now === 'put-back'
+        ? 'Put back by Undo'
+        : note.now === 'cleared'
+          ? 'Cleared'
+          : 'Read, not applied'
+  return (
+    <span className="sf-now" data-now={note.now}>
+      {word}
+    </span>
+  )
+}
+
+function FilesBroughtIn({
+  notes,
   reading,
   said,
   brought,
-  plan,
   applied,
   putBack,
+  fingerprint,
+  packedAt,
+  lines,
+  lists,
+  drafts,
+  moved,
   bringIn,
   see,
   paste,
   undo,
 }: {
+  notes: BroughtNote[]
   reading: string | null
   said: string | null
   brought: Brought | null
-  plan: NewFilePlan | null
   applied: Applied | null
   putBack: string | null
+  fingerprint: string | null
+  packedAt: string | null
+  lines: number
+  lists: number
+  drafts: number
+  moved: number
   bringIn: (file: File) => void
   see: () => void
   paste: () => void
@@ -433,104 +689,34 @@ function NewPriceList({
   const input = useRef<HTMLInputElement>(null)
   const { ref: zone, over } = useDrop<HTMLElement>(bringIn)
   const [undoSaid, setUndoSaid] = useState<string | null>(null)
-
-  let body: ReactNode
-  if (reading) {
-    body = (
-      <div className="sf-band__words">
-        <p className="sf-band__title">Reading {reading}…</p>
-        <p className="sf-band__say">Only the sheets the price list here is read from are opened.</p>
-      </div>
-    )
-  } else if (applied) {
-    body = (
-      <>
-        <div className="sf-band__words">
-          <p className="sf-band__title">
-            {applied.fileName} is on the price list: {plural(applied.changes, 'change', 'changes')}.
-          </p>
-          <p className="sf-band__say">
-            Undo puts all {count(applied.changes)} back in one step. A quote already given keeps its
-            figures.
-          </p>
-        </div>
-        <span className="sf-band__act">
-          <Button
-            intent="veiled"
-            icon={ArrowCounterClockwiseIcon}
-            onClick={() => setUndoSaid(undo())}
-            refusedBecause={undoSaid ?? undefined}
-          >
-            Undo
-          </Button>
-        </span>
-      </>
-    )
-  } else if (brought && plan) {
-    body = (
-      <>
-        <div className="sf-band__words">
-          <p className="sf-band__title">{brought.fileName} is read. Nothing is written yet.</p>
-          <p className="sf-band__say">
-            {putBack ? 'Put back: nothing from it is on the price list now. ' : ''}
-            {sizeOf(brought.size)}, not dated inside, so nothing here says which is newer. A quote
-            already given keeps its figures.
-          </p>
-        </div>
-        <dl className="sf-band__counts">
-          <div>
-            <dt>change</dt>
-            <dd>{count(plan.changing)}</dd>
-          </div>
-          <div>
-            <dt>new</dt>
-            <dd>{count(plan.adding)}</dd>
-          </div>
-          <div>
-            <dt>can’t place</dt>
-            <dd>{count(plan.cannot)}</dd>
-          </div>
-        </dl>
-        <span className="sf-band__act">
-          <Button intent="veiled" icon={ArrowRightIcon} onClick={see}>
-            See every change
-          </Button>
-        </span>
-      </>
-    )
-  } else {
-    body = (
-      <>
-        <div className="sf-band__words">
-          <p className="sf-band__title">A new Master Price File? Bring it in.</p>
-          <p className="sf-band__say" aria-live="polite">
-            {putBack
-              ? `Put back: nothing from ${putBack} is on the price list now. `
-              : 'Choose the workbook as it arrives, or drop it here. Every change is shown first, and nothing is written until you apply it.'}
-          </p>
-        </div>
-        <span className="sf-band__act">
-          <Button intent="veiled" icon={FileXlsIcon} onClick={() => input.current?.click()}>
-            Choose a workbook
-          </Button>
-        </span>
-      </>
-    )
-  }
-
+  const now = new Date()
+  const open = brought ?? null
   return (
-    <div className="sf-new">
-      <section
-        ref={zone}
-        className="sf-band"
-        data-over={over ? '' : undefined}
-        aria-label="A new Master Price File"
-      >
-        <Water />
-        <span className="sf-band__glyph" aria-hidden="true">
-          <Icon glyph={FileArrowUpIcon} size="lg" />
-        </span>
-        {body}
+    <section
+      ref={zone}
+      className="sf-files"
+      data-over={over ? '' : undefined}
+      aria-labelledby="sf-files-title"
+      data-ground="plate"
+    >
+      <header className="sf-files__head">
+        <div className="sf-files__words">
+          <h2 id="sf-files-title" className="sf-h2">
+            Files brought in
+          </h2>
+          <p className="sf-files__say">
+            Every workbook read on this computer, what it offered and what was done with it. Drop a
+            new one here, or choose it.
+          </p>
+        </div>
+        <div className="sf-files__acts">
+          <Button intent="secondary" icon={FileXlsIcon} onClick={() => input.current?.click()}>
+            {open ? 'Bring in a different workbook' : 'Bring in a workbook'}
+          </Button>
+          <Button intent="quiet" icon={ClipboardTextIcon} onClick={paste}>
+            Paste lines
+          </Button>
+        </div>
         <input
           ref={input}
           className="sf-file"
@@ -545,24 +731,181 @@ function NewPriceList({
             if (file) bringIn(file)
           }}
         />
-      </section>
-      <div className="sf-new__foot">
-        {said ? <Refusal on="room">{said}</Refusal> : null}
-        {brought && !reading && !applied ? (
-          <Button
-            intent="quiet"
-            size="sm"
-            icon={FileXlsIcon}
-            onClick={() => input.current?.click()}
-          >
-            Bring in a different workbook
-          </Button>
-        ) : null}
-        <Button intent="quiet" size="sm" icon={ClipboardTextIcon} onClick={paste}>
-          Paste lines from Excel instead
-        </Button>
-      </div>
-    </div>
+      </header>
+      {said ? <Refusal on="room">{said}</Refusal> : null}
+
+      {reading ? (
+        <p className="sf-files__reading" aria-live="polite">
+          Reading {reading}… Only the sheets the price list here is read from are opened.
+        </p>
+      ) : null}
+
+      {open ? (
+        <div className="sf-open" aria-live="polite">
+          <p className="sf-open__title">
+            <strong>{open.fileName} is read. Nothing is written yet.</strong>{' '}
+            {putBack ? 'Put back: nothing from it is on the price list now. ' : ''}
+          </p>
+          <dl className="sf-open__counts">
+            <div data-fate="change">
+              <dt>change</dt>
+              <dd>{count(open.set.changing)}</dd>
+            </div>
+            <div data-fate="new">
+              <dt>new</dt>
+              <dd>{count(open.set.adding)}</dd>
+            </div>
+            <div data-fate="cannot">
+              <dt>can’t place</dt>
+              <dd>{count(open.set.cannot)}</dd>
+            </div>
+          </dl>
+          <span className="sf-open__act">
+            <Button intent="primary" icon={ArrowRightIcon} onClick={see}>
+              See every change
+            </Button>
+          </span>
+        </div>
+      ) : applied ? (
+        <div className="sf-open" data-applied="" aria-live="polite">
+          <p className="sf-open__title">
+            <strong>
+              {applied.fileName} is on the price list:{' '}
+              {plural(applied.changes, 'change', 'changes')}.
+            </strong>{' '}
+            Undo puts every one of them back in one step. A quote already given keeps its figures.
+          </p>
+          <span className="sf-open__act sf-open__act--two">
+            <Button intent="secondary" icon={EyeIcon} onClick={see}>
+              See what it changed
+            </Button>
+            <Button
+              intent="secondary"
+              onClick={() => setUndoSaid(undo())}
+              refusedBecause={undoSaid ?? undefined}
+            >
+              Undo
+            </Button>
+          </span>
+        </div>
+      ) : putBack ? (
+        <p className="sf-files__reading" aria-live="polite">
+          Put back: nothing from {putBack} is on the price list now.
+        </p>
+      ) : null}
+
+      <table className="sf-ledger">
+        <caption className="sf-visually-hidden">Files brought in</caption>
+        <thead>
+          <tr className="sf-ledger__row sf-ledger__row--head">
+            <th scope="col">File</th>
+            <th scope="col">Read</th>
+            <th scope="col">Change</th>
+            <th scope="col">New</th>
+            <th scope="col">Can’t place</th>
+            <th scope="col">Now</th>
+          </tr>
+        </thead>
+        <tbody>
+          {notes.map((n) => (
+            <tr className="sf-ledger__row" key={n.id} data-now={n.now}>
+              <td className="sf-ledger__file">
+                <strong>{n.now === 'cleared' ? 'The price list, cleared' : n.file}</strong>
+                <small>
+                  {n.now === 'cleared'
+                    ? `back as it came with the app${n.by ? ` · by ${n.by}` : ''}`
+                    : [
+                        sizeOf(n.bytes),
+                        n.saved ? `saved on this computer ${dayOf(n.saved, now)}` : null,
+                        n.by ? `by ${n.by}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                </small>
+              </td>
+              <td data-label="Read">{dayOf(n.read, now)}</td>
+              <td data-label="Change" className="sf-fig">
+                {n.now === 'cleared' ? '—' : count(n.changes)}
+              </td>
+              <td data-label="New" className="sf-fig">
+                {n.now === 'cleared' ? '—' : count(n.adding)}
+              </td>
+              <td data-label="Can’t place" className="sf-fig">
+                {n.now === 'cleared' ? '—' : count(n.cannot)}
+              </td>
+              <td data-label="Now">
+                <NowSaid note={n} />
+              </td>
+            </tr>
+          ))}
+          <tr className="sf-ledger__row" data-now="came">
+            <td className="sf-ledger__file">
+              <strong>The Master Price File, as it came with the app</strong>
+              <small>
+                {plural(lists, 'list', 'lists')} · {plural(lines, 'line', 'lines')} here now
+                {fingerprint ? (
+                  <>
+                    {' · '}
+                    <code className="sf-code">{fingerprint}</code>
+                  </>
+                ) : null}
+              </small>
+            </td>
+            <td data-label="Read">{packedAt ? packedOn(packedAt) : '—'}</td>
+            <td data-label="Change" className="sf-fig">
+              —
+            </td>
+            <td data-label="New" className="sf-fig">
+              —
+            </td>
+            <td data-label="Can’t place" className="sf-fig">
+              —
+            </td>
+            <td data-label="Now">
+              <span className="sf-now" data-now="came">
+                Came with the app
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p className="sf-drafts">
+        <Icon glyph={ReceiptIcon} />
+        <span>
+          {drafts === 0 ? (
+            <>
+              <strong>No quote is being written on this computer</strong>, so no workbook would move
+              one.
+            </>
+          ) : open || applied ? (
+            moved === 0 ? (
+              <>
+                <strong>
+                  {plural(drafts, 'quote is', 'quotes are')} being written, and this workbook moves
+                  no line of {drafts === 1 ? 'it' : 'them'}.
+                </strong>
+              </>
+            ) : (
+              <>
+                <strong>
+                  {plural(moved, 'quote being written carries', 'quotes being written carry')} a
+                  line this workbook moves
+                </strong>
+                , counted on its changes before Apply.
+              </>
+            )
+          ) : (
+            <>
+              <strong>{plural(drafts, 'quote is', 'quotes are')} being written.</strong> When a
+              workbook is read, the lines of them it would move are counted before Apply.
+            </>
+          )}{' '}
+          A line on a quote keeps the price it had when it was chosen; a line chosen after Apply
+          reads the new one. A quote already given never moves.
+        </span>
+      </p>
+    </section>
   )
 }
 
@@ -570,17 +913,7 @@ function NewPriceList({
 /* save a copy: the inventory                                  */
 /* ---------------------------------------------------------- */
 
-function SaveACopy({
-  inventory: n,
-  lastCopy,
-  saved,
-  save,
-}: {
-  inventory: Inventory
-  lastCopy: string | null
-  saved: string | null
-  save: () => void
-}) {
+function SaveACopy({ inventory: n, saved }: { inventory: Inventory; saved: string | null }) {
   const settings = [
     n.details > 0 ? plural(n.details, 'detail', 'details') : null,
     n.people > 0 ? plural(n.people, 'person', 'people') : null,
@@ -592,13 +925,10 @@ function SaveACopy({
       <div className="sf-save">
         <header className="sf-save__head">
           <h2 id="sf-save-title" className="sf-h2">
-            Save a copy
+            What a copy holds
           </h2>
           <p className="sf-save__say">
             Everything Northside would need on a new computer, in one file.
-          </p>
-          <p className="sf-save__when" data-none={lastCopy ? undefined : ''}>
-            {lastCopy ? `Last copy saved ${whenSaid(lastCopy, new Date())}` : 'No copy saved yet'}
           </p>
         </header>
         <ul className="sf-kinds">
@@ -635,7 +965,7 @@ function SaveACopy({
             name="Pictures Northside chose"
             say={
               n.pictures === 0
-                ? 'none chosen yet, on a maker’s own page or in Settings'
+                ? 'none chosen yet'
                 : `on ${plural(n.placesDressed, 'place', 'places')} and in Settings`
             }
             figure={n.pictures}
@@ -647,18 +977,11 @@ function SaveACopy({
             figure={n.lines}
           />
         </ul>
-        <footer className="sf-save__foot">
-          <p className="sf-save__note" aria-live="polite">
-            {saved
-              ? `Saved as ${saved}, in this computer’s Downloads. Keep it somewhere a new computer can reach.`
-              : 'A copy goes to this computer’s Downloads as one .json file.'}
-          </p>
-          <span className="sf-save__act">
-            <Button intent="act" icon={DownloadSimpleIcon} onClick={save}>
-              Save a copy
-            </Button>
-          </span>
-        </footer>
+        <p className="sf-save__note">
+          {saved
+            ? `Saved as ${saved}. The browser chose where it went.`
+            : 'A copy is one .json file, handed to the browser to save. Save a copy is at the top of the page.'}
+        </p>
       </div>
     </Plate>
   )
@@ -707,7 +1030,7 @@ function BringBackACopy({ said, open }: { said: string | null; open: (file: File
         <div ref={zone} className="sf-drop" data-over={over ? '' : undefined}>
           <Icon glyph={UploadSimpleIcon} size="lg" />
           <p className="sf-drop__say">Drop a saved copy here</p>
-          <Button intent="secondary" size="sm" onClick={() => input.current?.click()}>
+          <Button intent="secondary" onClick={() => input.current?.click()}>
             Choose a copy on this computer
           </Button>
           <input
@@ -730,7 +1053,8 @@ function BringBackACopy({ said, open }: { said: string | null; open: (file: File
           <li>
             <Icon glyph={EyeIcon} />
             <span>
-              It says what the copy holds, counted, <strong>before</strong> anything is replaced.
+              It is set beside this computer, kind by kind, <strong>before</strong> anything is
+              replaced.
             </span>
           </li>
           <li>
@@ -742,8 +1066,8 @@ function BringBackACopy({ said, open }: { said: string | null; open: (file: File
           <li>
             <Icon glyph={LockSimpleIcon} />
             <span>
-              A quote comes back with the figures, letterhead and preparer it was given with, and a
-              quote already here stays as it is.
+              A quote already here stays exactly as it is; the copy’s others come here as they were
+              given.
             </span>
           </li>
         </ul>

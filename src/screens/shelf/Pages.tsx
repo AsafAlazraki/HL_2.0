@@ -8,7 +8,10 @@ import {
 } from '@phosphor-icons/react'
 import { Button, Icon, Plate } from '@/ui'
 import type { ProjectFile } from '@/domain/io/envelope'
-import { bringBack, clearThePriceList, forgetEverything } from './acts'
+import type { QuoteDef, RowData } from '@/domain/model'
+import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
+import { priceListsBeside, quotesBeside } from '@/domain/io/beside'
+import { bringBack, forgetEverything } from './acts'
 import {
   count,
   forgetRefusal,
@@ -56,6 +59,7 @@ function Frame({
   testid,
   tone,
   refused = null,
+  beside = null,
 }: {
   title: string
   say: string
@@ -71,6 +75,8 @@ function Frame({
   back: () => void
   testid: string
   tone: 'away' | 'back'
+  /** what is set beside this computer before the act, drawn above Goes and Stays */
+  beside?: ReactNode
 }) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState<string | null>(null)
@@ -99,7 +105,7 @@ function Frame({
       data-tone={tone}
     >
       <nav className="sf-crumb" aria-label="The shelf">
-        <Button intent="quiet" size="sm" icon={ArrowLeftIcon} onClick={back}>
+        <Button intent="quiet" icon={ArrowLeftIcon} onClick={back}>
           Back to the shelf
         </Button>
       </nav>
@@ -110,6 +116,7 @@ function Frame({
             {title}
           </h1>
           <p className="sf-page__say">{say}</p>
+          {beside}
           <dl className="sf-goes sf-goes--page">
             <dt>Goes</dt>
             <dd>{goes}</dd>
@@ -118,7 +125,7 @@ function Frame({
           </dl>
           {saved ? (
             <p className="sf-page__saved" aria-live="polite">
-              Saved as {saved}, in this computer’s Downloads.
+              Saved as {saved}. The browser chose where it went.
             </p>
           ) : null}
           <div className="sf-page__acts">
@@ -147,7 +154,13 @@ function Frame({
   )
 }
 
-export function ClearPage({ here, save, saved, back }: PageProps) {
+export function ClearPage({
+  here,
+  save,
+  saved,
+  back,
+  act,
+}: PageProps & { act: () => Promise<string | null> }) {
   return (
     <Frame
       testid="clear"
@@ -171,7 +184,7 @@ export function ClearPage({ here, save, saved, back }: PageProps) {
       }
       saved={saved}
       save={save}
-      act={clearThePriceList}
+      act={act}
       actSay="Clear the price list from this computer"
       back={back}
     />
@@ -203,12 +216,12 @@ export function ForgetPage({
       stays={
         saved || lastCopy ? (
           <>
-            Copies saved to this computer’s Downloads
+            Copies saved from this computer
             {lastCopy ? `, the last ${whenSaid(lastCopy, new Date())}` : ''}. Bring one back on any
             computer to have all of it again.
           </>
         ) : (
-          <>Copies saved to this computer’s Downloads.</>
+          <>Copies saved from this computer.</>
         )
       }
       saved={saved}
@@ -221,31 +234,93 @@ export function ForgetPage({
   )
 }
 
-/** What the copy's quotes do: join the ones here, never replace one by the same number. */
-function joinSaid(n: number): string {
-  if (n === 0) return 'The copy holds no quote.'
-  return n === 1
-    ? 'The copy’s 1 quote joins them, with the figures, letterhead and preparer it was given with, unless a quote by the same number is already here.'
-    : `The copy’s ${count(n)} quotes join them, each with the figures, letterhead and preparer it was given with; a quote already here by the same number is left as it is.`
-}
-
 export function BringBack({
   copy,
   fileName,
   here,
+  hereRows,
+  hereQuotes,
+  edition,
   save,
   saved,
   back,
-}: PageProps & { copy: ProjectFile; fileName: string }) {
+}: PageProps & {
+  copy: ProjectFile
+  fileName: string
+  hereRows: Readonly<Record<string, readonly RowData[]>>
+  hereQuotes: readonly QuoteDef[]
+  edition: string
+}) {
   const theirs = inventoryOfCopy(copy)
-  const saidOn = copy.exportedAt ? whenSaid(copy.exportedAt, new Date()) : ''
+  const now = new Date()
+  const saidOn = copy.exportedAt ? whenSaid(copy.exportedAt, now) : ''
   const hasWork = hasOwnWork(here)
+  const lists = priceListsBeside(hereRows, copy.rows ?? {}, new Set([CUSTOMER_TABLE_ID]))
+  const quotes = quotesBeside(hereQuotes, copy.quotes ?? [])
+  const kinds: { name: string; here: number; copy: number }[] = [
+    { name: 'Quotes', here: here.quotes, copy: theirs.quotes },
+    { name: 'Customers', here: here.customers, copy: theirs.customers },
+    { name: 'Rules Northside wrote', here: here.rules, copy: theirs.rules },
+    { name: 'Details on Settings', here: here.details, copy: theirs.details },
+    { name: 'Pictures Northside chose', here: here.pictures, copy: theirs.pictures },
+    { name: 'Lists on the price list', here: here.lists, copy: theirs.lists },
+    { name: 'Lines on the price list', here: here.lines, copy: theirs.lines },
+  ]
   return (
     <Frame
       testid="restore"
       tone="back"
       title={`Bring back ${fileName}`}
-      say={`${saidOn ? `Saved ${saidOn}. ` : ''}It holds ${plural(theirs.quotes, 'quote', 'quotes')}, ${plural(theirs.customers, 'customer', 'customers')}, ${plural(theirs.rules, 'rule', 'rules')} Northside wrote, ${plural(theirs.details, 'detail', 'details')} of its settings, ${plural(theirs.pictures, 'picture', 'pictures')} it chose, and ${count(theirs.lines)} lines of the price list in ${plural(theirs.lists, 'list', 'lists')}.`}
+      say={`${saidOn ? `Saved ${saidOn}. ` : ''}It is set beside this computer below, kind by kind. Nothing is replaced until you bring it back.`}
+      beside={
+        <div className="sf-beside">
+          <table className="sf-beside__table">
+            <caption className="sf-visually-hidden">This computer beside the copy</caption>
+            <thead>
+              <tr>
+                <th scope="col">Kind</th>
+                <th scope="col">This computer</th>
+                <th scope="col">The copy</th>
+              </tr>
+            </thead>
+            <tbody>
+              {kinds.map((k) => (
+                <tr key={k.name} data-differs={k.here === k.copy ? undefined : ''}>
+                  <th scope="row">{k.name}</th>
+                  <td className="sf-fig">{count(k.here)}</td>
+                  <td className="sf-fig">{count(k.copy)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <ul className="sf-beside__said">
+            <li>
+              <strong>The price list.</strong> This computer holds{' '}
+              {edition.replace(/^The p/, 'the p')}. Of the copy’s{' '}
+              {count(lists.same + lists.differ + lists.copyOnly)} lines, {count(lists.same)} read
+              exactly as they do here
+              {lists.differ > 0 ? `, ${count(lists.differ)} read differently` : ''}
+              {lists.copyOnly > 0 ? `, and ${count(lists.copyOnly)} are only in the copy` : ''}
+              {lists.hereOnly > 0 ? `; ${count(lists.hereOnly)} here are not in it and go` : ''}.
+            </li>
+            <li>
+              <strong>Quotes.</strong>{' '}
+              {quotes.fresh.length + quotes.already.length === 0
+                ? 'The copy holds no quote.'
+                : [
+                    quotes.fresh.length > 0
+                      ? `${plural(quotes.fresh.length, 'quote comes', 'quotes come')} here new, as ${quotes.fresh.length === 1 ? 'it was' : 'they were'} given`
+                      : null,
+                    quotes.already.length > 0
+                      ? `${plural(quotes.already.length, 'quote is', 'quotes are')} already here and ${quotes.already.length === 1 ? 'stays' : 'stay'} exactly as ${quotes.already.length === 1 ? 'it is' : 'they are'}`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join('; ') + '.'}
+            </li>
+          </ul>
+        </div>
+      }
       goes={
         <>
           This computer’s price list ({count(here.lines)} lines),{' '}
@@ -254,14 +329,19 @@ export function BringBack({
               <strong>{plural(here.kept, 'customer', 'customers')}</strong> kept on Customers,{' '}
             </>
           ) : null}
-          {plural(here.rules, 'rule', 'rules')} Northside wrote, its places and its settings: each
-          becomes the copy’s.
+          the rules Northside wrote, its places and its settings: each becomes the copy’s.
         </>
       }
       stays={
         <>
-          <strong>{plural(here.quotes, 'quote', 'quotes')}</strong> on this computer, untouched,
-          with the customers they name. {joinSaid(theirs.quotes)}
+          {here.quotes === 0 ? (
+            'Every quote: there is none here now.'
+          ) : (
+            <>
+              <strong>{plural(here.quotes, 'quote', 'quotes')}</strong> on this computer, untouched,
+              with the customers they name.
+            </>
+          )}
         </>
       }
       saved={saved}

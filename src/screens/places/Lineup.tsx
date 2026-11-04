@@ -792,7 +792,10 @@ function Compare({
     const behavior: ScrollBehavior = still ? 'auto' : 'smooth'
     const head = dock.current
     const top = mark.current
-    if (head && top && getComputedStyle(head).position === 'sticky') {
+    /* asked of the window, not of the dock's state: pressed from the range's foot, the head is
+       let go (static) for the moment, yet it docks again once the page comes up to the compare
+       (verify-2, gap 1: the tiles under the bar at 1280 and 1440) */
+    if (head && top && getComputedStyle(head).getPropertyValue('--docks').trim() === '1') {
       const shell = parseFloat(getComputedStyle(head).getPropertyValue('--shell-inset')) || 0
       /* two pixels past where the head docks, so it is docked */
       window.scrollTo({

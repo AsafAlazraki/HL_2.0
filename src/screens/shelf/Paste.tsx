@@ -12,7 +12,7 @@ import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { isDone } from '@/domain/catalogue/commands'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
-import { pasteCommand, readPaste } from './pasted'
+import { pasteCommand, readPaste, type PastedColumn, type PastePoints } from './pasted'
 import { count, dollars, plural } from './read'
 
 /* ============================================================
@@ -30,6 +30,7 @@ export function Paste({ back }: { back: () => void }) {
   const [text, setText] = useState('')
   const [applied, setApplied] = useState<{ eventId: string; changes: number } | null>(null)
   const [refused, setRefused] = useState<string | null>(null)
+  const [points, setPoints] = useState<PastePoints>({})
 
   const options = useMemo(
     () =>
@@ -41,8 +42,8 @@ export function Paste({ back }: { back: () => void }) {
   )
   const chosen = tableId ? tables[tableId] : undefined
   const pasted = useMemo(
-    () => (chosen && !applied ? readPaste(chosen, rows[chosen.id] ?? [], text) : null),
-    [chosen, rows, text, applied],
+    () => (chosen && !applied ? readPaste(chosen, rows[chosen.id] ?? [], text, points) : null),
+    [chosen, rows, text, applied, points],
   )
   const changes = pasted?.ok ? pasted.changing + pasted.adding : 0
 
@@ -78,17 +79,18 @@ export function Paste({ back }: { back: () => void }) {
   return (
     <main className="sf sf-paste" data-testid="shelf" data-read="" data-see="paste">
       <nav className="sf-crumb" aria-label="The shelf">
-        <Button intent="quiet" size="sm" icon={ArrowLeftIcon} onClick={back}>
+        <Button intent="quiet" icon={ArrowLeftIcon} onClick={back}>
           Back to the shelf
         </Button>
       </nav>
-      <header className="sf-ch-head">
+      <header className="sf-paste-head">
         <p className="sf-eyebrow">The shelf · paste from Excel</p>
         <h1 className="sf-page__title">Paste lines onto one list.</h1>
         <p className="sf-ch-say">
-          Copy the lines in Excel with their headings, choose the list they belong on, and paste
-          them here. A line is found by its name; every change is shown before anything is written,
-          and nothing is ever taken away.
+          Copy the lines in Excel with their headings, as the workbook heads them, choose the list
+          they belong on, and paste them here. Each pasted heading is shown with what it becomes,
+          and any of them can be pointed elsewhere. A line is found by its name; every change is
+          shown before anything is written, and nothing is ever taken away.
         </p>
       </header>
 
@@ -100,6 +102,7 @@ export function Paste({ back }: { back: () => void }) {
               value={tableId}
               onValueChange={(v) => {
                 setTableId(v)
+                setPoints({})
                 setApplied(null)
               }}
               placeholder="Choose a list"
@@ -112,6 +115,7 @@ export function Paste({ back }: { back: () => void }) {
               value={text}
               onValueChange={(v) => {
                 setText(v)
+                setPoints({})
                 setApplied(null)
               }}
               aria-label="The lines, pasted from Excel"
@@ -122,6 +126,23 @@ export function Paste({ back }: { back: () => void }) {
           </Field>
         </div>
       </Plate>
+
+      {chosen && pasted?.columns && pasted.columns.length > 0 ? (
+        <Mapping
+          list={chosen.name}
+          columns={pasted.columns}
+          offers={chosen.fields
+            .filter(
+              (f) =>
+                f.type !== 'formula' &&
+                f.type !== 'image' &&
+                !f.id.startsWith('__') &&
+                f.id !== `${chosen.id}.src`,
+            )
+            .map((f) => ({ value: f.id, label: f.name }))}
+          point={(at, to) => setPoints({ ...points, [at]: to })}
+        />
+      ) : null}
 
       {pasted && !pasted.ok && pasted.say ? (
         <p className="sf-paste__said">
@@ -222,5 +243,65 @@ export function Paste({ back }: { back: () => void }) {
         </footer>
       ) : null}
     </main>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* your heading → what it becomes on the list                  */
+/* ---------------------------------------------------------- */
+
+const HOW: Record<PastedColumn['how'], string> = {
+  heading: 'the same heading',
+  names: '',
+  you: 'you pointed it here',
+  none: 'no figure on the list is called so',
+}
+
+function Mapping({
+  list,
+  columns,
+  offers,
+  point,
+}: {
+  list: string
+  columns: PastedColumn[]
+  offers: { value: string; label: string }[]
+  point: (at: number, to: string) => void
+}) {
+  const options = [{ value: 'skip', label: 'Left out' }, ...offers]
+  return (
+    <Plate as="section" pad="lg" labelledBy="sf-map-title">
+      <div className="sf-map">
+        <h2 id="sf-map-title" className="sf-h2">
+          Your headings, on {list}
+        </h2>
+        <ul className="sf-map__list">
+          {columns.map((c) => (
+            <li key={c.index} className="sf-map__row" data-how={c.how}>
+              <span className="sf-map__from">
+                <strong>{c.title}</strong>
+                <small>
+                  {c.how === 'names' && c.names
+                    ? `read as the name: ${count(c.names.hit)} of ${count(c.names.of)} pasted lines name a line on ${list}`
+                    : HOW[c.how]}
+                  {c.sample.length > 0 ? ` · ${c.sample.slice(0, 2).join(', ')}` : ''}
+                </small>
+              </span>
+              <span className="sf-map__arrow" aria-hidden="true">
+                <Icon glyph={ArrowRightIcon} />
+              </span>
+              <span className="sf-map__to">
+                <Select
+                  options={options}
+                  value={c.to ?? 'skip'}
+                  onValueChange={(v) => point(c.index, v ?? 'skip')}
+                  aria-label={`${c.title} becomes`}
+                />
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Plate>
   )
 }

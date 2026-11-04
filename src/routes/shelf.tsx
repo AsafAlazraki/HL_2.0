@@ -6,6 +6,7 @@ import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Shelf, type ShelfSee } from '@/screens/shelf/Shelf'
+import type { Narrow, Way } from '@/domain/io/changeSet'
 
 /* ============================================================
    /shelf — a new Master Price File, and Northside's work kept safe
@@ -19,7 +20,12 @@ import { Shelf, type ShelfSee } from '@/screens/shelf/Shelf'
    repository and every quote, because the inventory counts both and a
    copy carries both.
 
-   ONE SEARCH PARAM, `see`: the change sheet, the paste, bringing a
+   THE CHANGE SHEET'S NARROWING IS AN ADDRESS TOO (round 2, board A): `list`, `who` (a
+   supplier), `way` (higher, lower, new, cannot, others), `twice` (doubled or halved), `q`
+   (words of a name or a code) and `fig` (a figure that moves). They are written with
+   `replace`, so Back leaves the sheet rather than walking back through every press.
+
+   AND `see`: the change sheet, the paste, bringing a
    copy back, and the two pages that take things away — each a page of
    its own and never a box over the shelf — plus the two words the
    shelf is opened with after a copy comes back or the price list is
@@ -27,8 +33,46 @@ import { Shelf, type ShelfSee } from '@/screens/shelf/Shelf'
    page that takes things away rather than past it.
    ============================================================ */
 
-export interface ShelfSearch {
+export interface ShelfSearch extends Narrow {
   see?: ShelfSee
+}
+
+const WAYS: readonly Way[] = ['higher', 'lower', 'new', 'cannot', 'others']
+
+const word = (value: unknown, most: number): string | undefined => {
+  const text = typeof value === 'string' ? value.trim() : ''
+  return text !== '' && text.length <= most ? text : undefined
+}
+
+/** The narrowing as it is read off the address; anything else is dropped, not repaired. */
+function narrowOf(search: Record<string, unknown>): Narrow {
+  const list = word(search.list, 80)
+  const who = word(search.who, 80)
+  const q = word(search.q, 120)
+  const fig = word(search.fig, 80)
+  const way = typeof search.way === 'string' && (WAYS as readonly string[]).includes(search.way)
+  return {
+    ...(list ? { list } : {}),
+    ...(who ? { supplier: who } : {}),
+    ...(way ? { way: search.way as Way } : {}),
+    ...(search.twice === '1' || search.twice === 1 || search.twice === true
+      ? { doubled: true }
+      : {}),
+    ...(q ? { q } : {}),
+    ...(fig ? { figure: fig } : {}),
+  }
+}
+
+/** The narrowing written back as the address says it. */
+function searchOf(n: Narrow): Record<string, string> {
+  return {
+    ...(n.list ? { list: n.list } : {}),
+    ...(n.supplier ? { who: n.supplier } : {}),
+    ...(n.way ? { way: n.way } : {}),
+    ...(n.doubled ? { twice: '1' } : {}),
+    ...(n.q ? { q: n.q } : {}),
+    ...(n.figure ? { fig: n.figure } : {}),
+  }
 }
 
 const SEES: readonly ShelfSee[] = [
@@ -39,13 +83,18 @@ const SEES: readonly ShelfSee[] = [
   'forget',
   'back',
   'cleared',
+  'unread',
+  'uncopied',
 ]
 
 export const Route = createFileRoute('/shelf')({
-  validateSearch: (search: Record<string, unknown>): ShelfSearch =>
-    typeof search.see === 'string' && (SEES as readonly string[]).includes(search.see)
-      ? { see: search.see as ShelfSee }
-      : {},
+  validateSearch: (search: Record<string, unknown>): ShelfSearch => {
+    const see =
+      typeof search.see === 'string' && (SEES as readonly string[]).includes(search.see)
+        ? (search.see as ShelfSee)
+        : undefined
+    return see === 'changes' ? { see, ...narrowOf(search) } : see ? { see } : {}
+  },
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
   },
@@ -54,7 +103,7 @@ export const Route = createFileRoute('/shelf')({
 
 function ShelfRoute() {
   const navigate = useNavigate()
-  const { see } = Route.useSearch()
+  const { see, ...narrow } = Route.useSearch()
 
   useEffect(() => {
     if (catalogue.getState().status === 'empty') {
@@ -71,5 +120,18 @@ function ShelfRoute() {
     [navigate],
   )
 
-  return <Shelf see={see} onSee={onSee} />
+  const onNarrow = useCallback(
+    (next: Narrow) => {
+      void navigate({
+        to: '/shelf',
+        search: { see: 'changes', ...searchOf(next) },
+        replace: true,
+        resetScroll: false,
+        viewTransition: false,
+      })
+    },
+    [navigate],
+  )
+
+  return <Shelf see={see} onSee={onSee} narrow={narrow} onNarrow={onNarrow} />
 }

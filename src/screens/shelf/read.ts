@@ -10,6 +10,7 @@
    ============================================================ */
 import type {
   CatalogueCtx,
+  CellValue,
   ConstraintDef,
   DiscoveredRule,
   EntityDef,
@@ -262,18 +263,48 @@ export function lineName(
 /* ------------------------------------------------------------ */
 
 const whole = new Intl.NumberFormat('en-AU')
-const money = new Intl.NumberFormat('en-AU', {
+const wholeMoney = new Intl.NumberFormat('en-AU', {
   style: 'currency',
   currency: 'AUD',
+  maximumFractionDigits: 0,
+})
+const centsMoney = new Intl.NumberFormat('en-AU', {
+  style: 'currency',
+  currency: 'AUD',
+  minimumFractionDigits: 2,
   maximumFractionDigits: 2,
-  minimumFractionDigits: 0,
 })
 
 export const count = (n: number): string => whole.format(n)
 
-/** A price as the dealer reads it: $1,540, $242.10. */
+/** A price as the dealer reads it: $1,540, $242.10 — whole dollars bare, cents always two
+ *  (the judge's "$242.1": one formatter with no least number of places dropped the nought). */
 export function dollars(n: number): string {
-  return money.format(Math.round(n * 100) / 100)
+  const cents = Math.round(n * 100) / 100
+  return (Number.isInteger(cents) ? wholeMoney : centsMoney).format(cents)
+}
+
+const ratio = new Intl.NumberFormat('en-AU', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+const plainNumber = new Intl.NumberFormat('en-AU', { maximumFractionDigits: 2 })
+
+/** A figure of a line as its kind is read: money in dollars, a proportion to three places, any
+ *  other number as it is, words as they are, and nothing as an em rule. */
+export function figureSaid(v: CellValue, as: 'money' | 'ratio' | 'plain'): string {
+  if (v === null || v === '' || Array.isArray(v)) return '—'
+  if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+  if (typeof v === 'number') {
+    if (!Number.isFinite(v)) return '—'
+    return as === 'money' ? dollars(v) : as === 'ratio' ? ratio.format(v) : plainNumber.format(v)
+  }
+  return v.replace(/s+/g, ' ').trim()
+}
+
+/** A move as a share of where it was: "+6%", "−97%"; null where it cannot be said. */
+export function shareMoved(from: CellValue, to: CellValue): string | null {
+  if (typeof from !== 'number' || typeof to !== 'number' || from === 0 || from === to) return null
+  const pct = Math.round(((to - from) / Math.abs(from)) * 100)
+  if (pct === 0) return to > from ? '+<1%' : '−<1%'
+  return `${pct > 0 ? '+' : '−'}${Math.abs(pct).toLocaleString('en-AU')}%`
 }
 
 export const plural = (n: number, one: string, many: string): string =>

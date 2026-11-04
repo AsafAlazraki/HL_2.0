@@ -269,6 +269,12 @@ describe('a list that is not a boat maker', () => {
     expect(trade.querySelector('.pl-line__price')?.textContent).toBe('$143.10')
     /* never Actual's $105 nor the ex-GST $144.55 the file's other sheets cost an hour at */
     expect(document.body.textContent).not.toMatch(/\$105\b|\$144\.55|\$130\.09/)
+    /* and the two columns left out are said plainly (verify-2, gap 3) */
+    expect(
+      screen.getByText(
+        /Its other two figures, Actual and Rate\s\(Exc\sGST\), are kept in the price list and not printed here\./,
+      ),
+    ).toBeTruthy()
   })
 
   it('says each trailer by the boats it takes in the file’s own words, its length and what it fits', () => {
@@ -288,12 +294,27 @@ describe('a list that is not a boat maker', () => {
     expect(screen.getByText(/24 of the 73 carry their own length in the price list/)).toBeTruthy()
   })
 
-  it('says which models each Yamaha motor fits, maker by maker', () => {
+  it('says which models each Yamaha motor fits, maker by maker, and the size of those boats', () => {
     drawPlace('mot_yamaha', 'range', { in: '175' })
     const line = [...document.querySelectorAll('.pl-line')].find((l) =>
       /F175XC/.test(l.querySelector('.pl-line__name')?.textContent ?? ''),
     )!
     expect(line.textContent).toMatch(/fits \d+ models: .*\d+ Highfield/)
+    const facts = [...line.querySelectorAll('.pl-run__item')].map((i) => i.textContent ?? '')
+    expect(facts.some((f) => /^on boats of \d+(?:\.\d+)?(?:–\d+(?:\.\d+)?)? m/.test(f))).toBe(true)
+    cleanup()
+    drawPlace('mot_yamaha', 'range', { in: '150' })
+    const f150 = [...document.querySelectorAll('.pl-line')].find((l) =>
+      /F150XC/.test(l.querySelector('.pl-line__name')?.textContent ?? ''),
+    )!
+    expect([...f150.querySelectorAll('.pl-run__item')].map((i) => i.textContent)).toContain(
+      'on boats of 5.65–7.12 m',
+    )
+  })
+
+  it('says no boat size on a trailer, whose own "boats of" the file writes', () => {
+    drawPlace('trl_redco')
+    expect(document.body.textContent).not.toMatch(/on boats of/)
   })
 
   it('draws OBSOLETE Trailers’ ten, each no longer sold', () => {
@@ -384,6 +405,15 @@ describe('its settings', () => {
     drawPlace('trl_redco', 'settings')
     expect(screen.getAllByText('No mark for REDCO / Tinka Trailers yet.').length).toBe(1)
     expect(screen.queryByRole('radio', { name: 'In white' })).toBeNull()
+  })
+
+  it('names as sold the same way only the lists still sold, never OBSOLETE Trailers', () => {
+    drawPlace('trl_redco', 'settings')
+    const said = screen.getByRole('region', { name: /^How REDCO/ }).textContent ?? ''
+    expect(said).toMatch(/sold the same way/)
+    expect(said).not.toMatch(/OBSOLETE/)
+    /* the lists said as a person says a list, its last after "and" */
+    expect(said).toMatch(/, [^,]+ and [^,]+ are sold the same way/)
   })
 
   it('offers only its own boats as its photograph, and its ground with white measured on it', async () => {

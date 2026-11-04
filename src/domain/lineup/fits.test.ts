@@ -6,7 +6,8 @@ import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { modelKeyOf } from '@/domain/quote/boats'
 import { isDiscontinued } from '@/domain/model'
 import { carriesOf } from './carries'
-import { fitsOf, fitsSaid } from './fits'
+import { fitsOf, fitsSaid, fitsSizeSaid } from './fits'
+import { measureOf } from './measure'
 
 let pack: PackFixture
 beforeAll(async () => {
@@ -76,14 +77,64 @@ describe('what a motor or a trailer fits', () => {
             { tableId: 'boat_highfield', models: 9 },
             { tableId: 'boat_stacer', models: 3 },
           ],
+          length: null,
         },
         word,
       ),
     ).toBe('fits 12 models: 9 Highfield, 3 Stacer')
-    expect(fitsSaid({ models: 1, byMaker: [{ tableId: 'boat_highfield', models: 1 }] }, word)).toBe(
-      'fits 1 Highfield model',
-    )
+    expect(
+      fitsSaid(
+        { models: 1, byMaker: [{ tableId: 'boat_highfield', models: 1 }], length: null },
+        word,
+      ),
+    ).toBe('fits 1 Highfield model')
     expect(fitsSaid(undefined, word)).toBe('fits no model in the price list')
+  })
+
+  it('says the size of boat a Yamaha motor is made for, from the lengths its models file', () => {
+    const all = makers()
+    const fits = fitsOf(pack.ctx, 'mot_yamaha', all)
+    /* every line's length is held to its models' own rows, read one by one */
+    const lengths = new Map<string, number | null>()
+    for (const m of all) {
+      const table = pack.ctx.entities[m.tableId]!
+      const byId = new Map((pack.ctx.rowsByEntity[m.tableId] ?? []).map((r) => [r.id, r]))
+      for (const id of m.anchors) {
+        const l = measureOf(table, [byId.get(id)!], 'length')
+        lengths.set(`${m.tableId}:${id}`, l?.kind === 'span' ? l.lo : null)
+      }
+    }
+    const filed = [...lengths.values()].filter((v): v is number => v !== null)
+    expect(filed.length).toBeGreaterThan(0)
+    /* every length the file writes on a boat's own row reads in metres */
+    expect(Math.max(...filed)).toBeLessThan(30)
+    let sized = 0
+    for (const f of fits.values()) {
+      if (!f.length) continue
+      sized++
+      expect(f.length.n).toBeLessThanOrEqual(f.models)
+      expect(f.length.lo).toBeGreaterThanOrEqual(Math.min(...filed))
+      expect(f.length.hi).toBeLessThanOrEqual(Math.max(...filed))
+    }
+    expect(sized).toBeGreaterThan(0)
+    const f150 = (pack.ctx.rowsByEntity['mot_yamaha'] ?? []).find((r) =>
+      /"F150XC"/.test(JSON.stringify(r.values)),
+    )!
+    /* measured on the Master Price File of 16 September 2026: its 45 models each file a length */
+    expect(fits.get(f150.id)?.length).toEqual({ lo: 5.65, hi: 7.12, n: 45 })
+    expect(fitsSizeSaid(fits.get(f150.id))).toBe('on boats of 5.65–7.12 m')
+  }, 120_000)
+
+  it('says a size in metres, with how many are measured where not every one is', () => {
+    const one = { tableId: 'boat_highfield', models: 3 }
+    expect(fitsSizeSaid({ models: 3, byMaker: [one], length: { lo: 4.2, hi: 6.52, n: 3 } })).toBe(
+      'on boats of 4.2–6.52 m',
+    )
+    expect(fitsSizeSaid({ models: 3, byMaker: [one], length: { lo: 5.3, hi: 5.3, n: 2 } })).toBe(
+      'on boats of 5.3 m, 2 of the 3 measured',
+    )
+    expect(fitsSizeSaid({ models: 3, byMaker: [one], length: null })).toBeNull()
+    expect(fitsSizeSaid(undefined)).toBeNull()
   })
 
   it('fits nothing for a list no boat maker reads', () => {

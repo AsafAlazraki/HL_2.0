@@ -31,7 +31,8 @@ import { Run } from './Run'
    every line as no longer sold.
 
    EACH MOTOR AND TRAILER SAYS WHAT IT FITS, maker by maker, counted
-   the way the boat makers' cards count it (`fitsOf`); each trailer
+   the way the boat makers' cards count it (`fitsOf`); a motor says the
+   size of boat it is made for, from those boats' own lengths; each trailer
    says the boats it takes in the file's own words and its own length
    where the file carries one, and the head says how many do.
    ============================================================ */
@@ -57,7 +58,7 @@ export function Shelf({
   onAt?: (next: PlaceAt) => void
   go?: (href: string) => void
   /** what each line fits, said, by its row id; absent for a list no boat maker reads */
-  fits?: ReadonlyMap<string, string> | null
+  fits?: ReadonlyMap<string, readonly string[]> | null
 }) {
   const table = page.table
   if (!table) return null
@@ -147,8 +148,9 @@ export function Shelf({
           <InfoIcon aria-hidden="true" />
           <span>
             {name} declares no price of its own, so each rate is printed at the price list’s{' '}
-            {shelf.charge.label}, what an hour is charged at. Its Actual and Rate (Exc GST), which
-            the price list’s other sheets cost an hour at, stay in the price list.
+            {shelf.charge.label}, what an hour is charged at. Its other two figures, Actual and{' '}
+            {/* a column's name is never broken at its bracket */}
+            {'Rate (Exc GST)'}, are kept in the price list and not printed here.
           </span>
         </p>
       ) : !shelf.level ? (
@@ -300,7 +302,7 @@ function Group({
   cents: boolean
   named: boolean
   lineName: (s: string) => string
-  fits: ReadonlyMap<string, string> | null
+  fits: ReadonlyMap<string, readonly string[]> | null
 }) {
   const span =
     g.from !== null && g.to !== null
@@ -342,7 +344,7 @@ function Group({
                     </span>
                   ) : null,
                   ...l.facts,
-                  fits ? (fits.get(l.id) ?? null) : null,
+                  ...(fits?.get(l.id) ?? []),
                 ]}
               />
             </span>

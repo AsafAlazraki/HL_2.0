@@ -20,15 +20,23 @@
 import { isRetired, type CatalogueCtx } from '@/domain/model'
 import { joinRefFor, makeEngine, relatedRows } from '@/domain/catalogue/views'
 import { defaultBlocksFor } from '@/domain/catalogue/views/relations'
+import { measureOf } from './measure'
 
 /** The models one line is made for, maker by maker, in the order the makers were given. */
 export interface Fits {
   /** every model, across every maker */
   models: number
   byMaker: { tableId: string; models: number }[]
+  /** THE BOATS' OWN LENGTHS: the least and the most a model it fits files on its own row, and how
+   *  many of its models file one; null where none does */
+  length: { lo: number; hi: number; n: number } | null
 }
 
-export const FITS_NOTHING: Fits = { models: 0, byMaker: [] }
+export const FITS_NOTHING: Fits = { models: 0, byMaker: [], length: null }
+
+/** A model's length off its own row, in metres as the file writes them; a cell that is words,
+ *  or a figure no boat is long (a length filed in millimetres), is no length. */
+const LONGEST_BOAT_M = 30
 
 /**
  * What every line of one list fits, keyed by the line's row id: for each boat maker given, the
@@ -54,9 +62,12 @@ export function fitsOf(
     if (blocks.length === 0) continue
     const byId = new Map((ctx.rowsByEntity[tableId] ?? []).map((r) => [r.id, r]))
     const reached = new Map<string, number>()
+    const longs = new Map<string, { lo: number; hi: number; n: number }>()
     for (const id of anchors) {
       const row = byId.get(id)
       if (!row) continue
+      const m = measureOf(root, [row], 'length')
+      const metres = m?.kind === 'span' && m.hi < LONGEST_BOAT_M ? m.lo : null
       const lines = new Set<string>()
       for (const block of blocks) {
         const result = relatedRows({
@@ -70,12 +81,31 @@ export function fitsOf(
         })
         for (const r of result.rows) lines.add(r.row.id)
       }
-      for (const line of lines) reached.set(line, (reached.get(line) ?? 0) + 1)
+      for (const line of lines) {
+        reached.set(line, (reached.get(line) ?? 0) + 1)
+        if (metres === null) continue
+        const was = longs.get(line)
+        longs.set(
+          line,
+          was
+            ? { lo: Math.min(was.lo, metres), hi: Math.max(was.hi, metres), n: was.n + 1 }
+            : { lo: metres, hi: metres, n: 1 },
+        )
+      }
     }
     for (const [line, models] of reached) {
-      const fits = out.get(line) ?? { models: 0, byMaker: [] }
+      const fits = out.get(line) ?? { models: 0, byMaker: [], length: null }
       fits.models += models
       fits.byMaker.push({ tableId, models })
+      const long = longs.get(line)
+      if (long)
+        fits.length = fits.length
+          ? {
+              lo: Math.min(fits.length.lo, long.lo),
+              hi: Math.max(fits.length.hi, long.hi),
+              n: fits.length.n + long.n,
+            }
+          : { ...long }
       out.set(line, fits)
     }
   }
@@ -94,4 +124,19 @@ export function fitsSaid(fits: Fits | undefined, makerWord: (tableId: string) =>
   return `fits ${fits.models.toLocaleString('en-AU')} ${noun(fits.models)}: ${fits.byMaker
     .map((m) => `${m.models.toLocaleString('en-AU')} ${makerWord(m.tableId)}`)
     .join(', ')}`
+}
+
+/** THE SIZE OF BOAT A LINE IS MADE FOR, from the lengths its models file: "on boats of
+ *  4.2–6.5 m", "on boats of 5.3 m", with how many of them file a length where not every one
+ *  does ("on boats of 4.2–6.5 m, 40 of the 45 measured"). Null where none files one. */
+export function fitsSizeSaid(fits: Fits | undefined): string | null {
+  if (!fits?.length || fits.models === 0) return null
+  const m = (v: number) => v.toLocaleString('en-AU', { maximumFractionDigits: 2 })
+  const { lo, hi, n } = fits.length
+  const size = lo === hi ? `${m(lo)} m` : `${m(lo)}–${m(hi)} m`
+  const of =
+    n === fits.models
+      ? ''
+      : `, ${n.toLocaleString('en-AU')} of the ${fits.models.toLocaleString('en-AU')} measured`
+  return `on boats of ${size}${of}`
 }

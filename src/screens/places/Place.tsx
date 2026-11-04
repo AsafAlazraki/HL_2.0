@@ -12,7 +12,7 @@ import { makeCtx } from '@/domain/model'
 import { money } from '@/domain/money'
 import { heroesOf } from '@/domain/modules/livery'
 import { shelfOf } from '@/domain/lineup/shelf'
-import { fitsOf, fitsSaid } from '@/domain/lineup/fits'
+import { fitsOf, fitsSaid, fitsSizeSaid } from '@/domain/lineup/fits'
 import { brandOf } from '@/screens/picker/fleet'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { ctxFrom } from '@/state/catalogue'
@@ -139,9 +139,14 @@ export function Place({ address, tab, onTab, at = AT_REST, onAt, go, openTheFile
       const name = ctx.entities[id]?.name ?? id
       return book.marksFor(name)[0]?.brand ?? name
     }
-    const said = new Map<string, string>()
-    for (const line of shelf.groups.flatMap((g) => g.lines))
-      said.set(line.id, fitsSaid(read.get(line.id), word))
+    /* a motor says the size of boat it is made for, from its boats' own lengths; a trailer's
+       size is the file's own "boats of", read on the line itself (`shelfOf`) */
+    const said = new Map<string, readonly string[]>()
+    for (const line of shelf.groups.flatMap((g) => g.lines)) {
+      const f = read.get(line.id)
+      const size = kind === 'motor' ? fitsSizeSaid(f) : null
+      said.set(line.id, size ? [fitsSaid(f, word), size] : [fitsSaid(f, word)])
+    }
     return said
   }, [ctx, page, shelf, book])
   const stamp = useMemo(() => {

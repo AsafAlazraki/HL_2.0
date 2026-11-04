@@ -12,7 +12,9 @@
    ============================================================ */
 import type { CellValue, EntityDef, RowData } from '@/domain/model'
 import {
+  bodyOf,
   fieldOffers,
+  nameKey,
   planPaste,
   proposeMapping,
   readColumns,
@@ -22,6 +24,7 @@ import {
 import type { TableUploadPlan } from '@/domain/io/tableCsv'
 import { addRow, batch, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { displayFieldOf } from '@/domain/model'
+import { cellToText } from '@/domain/catalogue/table/core/coerce'
 import { priceLevelsFor } from '@/domain/quote/pricing'
 
 export interface PastedLine {
@@ -34,10 +37,28 @@ export interface PastedLine {
   figures: number
 }
 
+/** One pasted column, and what it becomes on the list. */
+export interface PastedColumn {
+  index: number
+  /** its heading as pasted, or "Column 3" */
+  title: string
+  sample: string[]
+  /** the list's figure it becomes, or null when it is left out */
+  to: string | null
+  /** how that was decided: by its heading, by measuring its names, by the person, or not at all */
+  how: 'heading' | 'names' | 'you' | 'none'
+  /** for a column read as the name by its values: how many of its lines name a line on the list */
+  names?: { hit: number; of: number }
+}
+
+/** What a person pointed at: a pasted column's index → the list's figure, or 'skip'. */
+export type PastePoints = Readonly<Record<number, string>>
+
 export type PasteRead =
-  | { ok: false; say: string }
+  | { ok: false; say: string; columns?: PastedColumn[] }
   | {
       ok: true
+      columns: PastedColumn[]
       /** the list's own names of what was read, in the pasted order */
       read: string[]
       /** pasted headings that name nothing on the list, left out */
@@ -54,7 +75,12 @@ export type PasteRead =
 const numberOf = (v: CellValue | undefined): number | null =>
   typeof v === 'number' && Number.isFinite(v) ? v : null
 
-export function readPaste(entity: EntityDef, rows: RowData[], text: string): PasteRead {
+export function readPaste(
+  entity: EntityDef,
+  rows: RowData[],
+  text: string,
+  points: PastePoints = {},
+): PasteRead {
   if (text.trim() === '') return { ok: false, say: '' }
   const block = readPastedBlock(text)
   if (!block.ok) {
@@ -66,16 +92,59 @@ export function readPaste(entity: EntityDef, rows: RowData[], text: string): Pas
   const headerRow = block.headerLikely
   const cols = readColumns(block, headerRow)
   const proposed = proposeMapping(cols, fieldOffers(entity), headerRow)
-  const choices: MapTo[] = proposed.map((p) =>
-    p.choice.to === 'field' ? p.choice : { to: 'skip' },
-  )
+  const columns: PastedColumn[] = cols.map((c, i) => {
+    const p = proposed[i]
+    return {
+      index: c.index,
+      title: c.title,
+      sample: c.sample,
+      to: p?.choice.to === 'field' ? p.choice.fieldId : null,
+      how: p?.choice.to === 'field' ? 'heading' : 'none',
+    }
+  })
+  /* WHAT THE PERSON POINTED AT WINS, and a figure two columns would fill goes to the one pointed */
+  for (const [at, to] of Object.entries(points)) {
+    const col = columns[Number(at)]
+    if (!col) continue
+    const fieldId = to === 'skip' ? null : to
+    if (fieldId)
+      for (const other of columns) if (other !== col && other.to === fieldId) other.to = null
+    col.to = fieldId
+    col.how = 'you'
+  }
   const display = displayFieldOf(entity)
-  const named = choices.some((c) => c.to === 'field' && c.fieldId === display?.id)
   const listName = entity.name
+  /* NO HEADING READS THE NAME: the workbook heads its name column with the sheet's own title
+     ("Parts & Accessories Module"). The column whose lines name lines on the list is read as the
+     name, and the count it was read by is said beside it. */
+  if (display && !columns.some((c) => c.to === display.id)) {
+    const known = new Set(
+      rows.map((r) => nameKey(cellToText(r.values[display.id] ?? null, display))),
+    )
+    const body = bodyOf(block, headerRow)
+    let best: { col: PastedColumn; hit: number } | null = null
+    for (const col of columns) {
+      if (col.how === 'you') continue
+      const values = body.map((r) => (r[col.index] ?? '').trim()).filter((v) => v !== '')
+      const hit = values.filter((v) => known.has(nameKey(v))).length
+      if (hit > 0 && (!best || hit > best.hit)) best = { col, hit }
+    }
+    if (best) {
+      const of = body.filter((r) => (r[best.col.index] ?? '').trim() !== '').length
+      best.col.to = display.id
+      best.col.how = 'names'
+      best.col.names = { hit: best.hit, of }
+    }
+  }
+  const choices: MapTo[] = columns.map((c) =>
+    c.to ? { to: 'field', fieldId: c.to } : { to: 'skip' },
+  )
+  const named = choices.some((c) => c.to === 'field' && c.fieldId === display?.id)
   if (!named) {
     return {
       ok: false,
-      say: `No pasted heading reads ${display?.name ?? 'the name'}, which is how a line on ${listName} is found. Copy the headings with the lines, and the ${display?.name ?? 'name'} with them.`,
+      columns,
+      say: `No pasted heading reads ${display?.name ?? 'the name'}, and no pasted line names a line on ${listName}. Point at the column that holds the ${display?.name ?? 'name'} below.`,
     }
   }
   const pasted = planPaste({ entity, rows, block, headerRow, cols, choices })
@@ -87,6 +156,7 @@ export function readPaste(entity: EntityDef, rows: RowData[], text: string): Pas
       .join(', ')
     return {
       ok: false,
+      columns,
       say: `Nothing pasted names a figure on ${listName}. The headings have to read as the list’s own: ${figures}.`,
     }
   }
@@ -123,6 +193,7 @@ export function readPaste(entity: EntityDef, rows: RowData[], text: string): Pas
   )
   return {
     ok: true,
+    columns,
     read,
     left: pasted.skipped,
     plan,
