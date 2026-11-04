@@ -45,6 +45,7 @@ import type { CatalogueData } from '@/domain/catalogue/sheet'
 import { bandOf, isMoney, isRatio } from '@/domain/catalogue/views/columns'
 import { isCostColumn, priceLevelsFor } from '@/domain/quote/pricing'
 import { mergeLines } from './tableCsv'
+import { withoutNoise } from './noise'
 import { writableColumns, type CannotBecause, type LineFate, type NewFilePlan } from './newFile'
 import type { Workbook } from './workbook'
 
@@ -388,16 +389,19 @@ export function changeSetOf(
       const candidates: Candidate[] = same.map((r) => {
         let cells: Moved[] = []
         if (display && nameAt !== undefined && fileCells.length > 0) {
-          const p = mergeLines({
-            entity,
-            rows: [r],
-            lines: [fileCells],
-            writable,
-            identity: { on: 'name', at: nameAt, field: display },
-            columns: { matched: [], unknown: [], ambiguous: [], readOnly: [], missing: [] },
-            fileName: plan.fileName,
-            fileColumns: fileCells.length,
-          })
+          const p = withoutNoise(
+            mergeLines({
+              entity,
+              rows: [r],
+              lines: [fileCells],
+              writable,
+              identity: { on: 'name', at: nameAt, field: display },
+              columns: { matched: [], unknown: [], ambiguous: [], readOnly: [], missing: [] },
+              fileName: plan.fileName,
+              fileColumns: fileCells.length,
+            }),
+            [r],
+          )
           cells = order(
             p.changes.map((x) => movedOf(x.fieldId, r.values[x.fieldId] ?? null, x.value)),
           )

@@ -35,10 +35,11 @@ import {
   type Way,
 } from '@/domain/io/changeSet'
 import type { NewFilePlan } from '@/domain/io/newFile'
+import { afterChoices, type AfterChoices } from '@/domain/io/afterChoices'
 import { lineSaid, nameFirst } from '@/domain/quote/spoken'
 import type { Applied } from './Shelf'
 import { sizeOf } from './files'
-import { count, dollars, figureSaid, lineName, plural, shareMoved, whenSaid } from './read'
+import { count, dollars, lineName, movedSaid, plural, shareMoved, whenSaid } from './read'
 import { useMedia } from './media'
 
 /* ============================================================
@@ -83,6 +84,10 @@ export interface ChangesProps {
   save: () => Promise<void>
   saved: string | null
   lastCopy: string | null
+  /** whether the last copy saved holds what was applied: saved at or after the Apply */
+  held: boolean
+  /** the workbook whose changes Undo has just put back, so the sheet says so; null otherwise */
+  putBack: string | null
   back: () => void
   paste: () => void
   putDown: () => void
@@ -104,6 +109,8 @@ export function Changes(props: ChangesProps) {
   const { plan, set, choices, setChoices, narrow, onNarrow, applied } = props
   const view = useMemo(() => narrowed(set.lines, narrow), [set, narrow])
   const counted = tally(set, choices)
+  /* ONE COUNT PER FATE, for the legend and the tiles alike (verify-1.md, gap 4) */
+  const after = useMemo(() => afterChoices(set, choices), [set, choices])
   const settled = applied !== null
   const table = useMedia('(min-width: 1200px)')
   const mid = useMedia('(min-width: 1400px)')
@@ -120,12 +127,14 @@ export function Changes(props: ChangesProps) {
       </nav>
 
       <Head {...props} />
-      <Stay set={set} drafts={props.drafts} past={settled} choices={choices} />
+      <Stay set={set} drafts={props.drafts} past={settled} after={after} />
       <Tiles
         set={set}
         narrow={narrow}
         onNarrow={onNarrow}
         counted={counted}
+        after={after}
+        past={settled}
         looked={props.looked}
       />
       {narrow.list ? <Figures set={set} narrow={narrow} onNarrow={onNarrow} /> : null}
@@ -186,7 +195,17 @@ export function Changes(props: ChangesProps) {
 /* the head: the workbook, and the price list it was read against */
 /* ---------------------------------------------------------- */
 
-function Head({ file, edition, fingerprint, applied, paste, putDown, lastCopy }: ChangesProps) {
+function Head({
+  file,
+  edition,
+  fingerprint,
+  applied,
+  paste,
+  putDown,
+  lastCopy,
+  putBack,
+  held,
+}: ChangesProps) {
   const now = new Date()
   return (
     <header className="sf-ch-head">
@@ -197,7 +216,9 @@ function Head({ file, edition, fingerprint, applied, paste, putDown, lastCopy }:
         <p className="sf-eyebrow">
           {applied
             ? `Applied · ${plural(applied.changes, 'change is', 'changes are')} on the price list`
-            : 'A new price list · nothing is written until you apply'}
+            : putBack
+              ? 'Put back by Undo · nothing of it is on the price list'
+              : 'A new price list · nothing is written until you apply'}
         </p>
         <h1 className="sf-ch-title">{file.name}</h1>
         <p className="sf-ch-meta">
@@ -222,7 +243,12 @@ function Head({ file, edition, fingerprint, applied, paste, putDown, lastCopy }:
               </>
             ) : null}
           </span>
-          {applied && lastCopy ? <span>last copy saved {whenSaid(lastCopy, now)}</span> : null}
+          {applied && lastCopy ? (
+            <span>
+              last copy saved {whenSaid(lastCopy, now)}
+              {held ? '' : ', before Apply'}
+            </span>
+          ) : null}
         </p>
       </div>
       {applied ? null : (
@@ -249,39 +275,24 @@ function Stay({
   set,
   drafts,
   past,
-  choices,
+  after,
 }: {
   set: ChangeSet
   drafts: DraftMove[]
   past: boolean
-  choices: Choices
+  after: AfterChoices
 }) {
   /* WHAT STAYS IS WHAT IS KEPT OUT AS WELL: a change left out stays as it is, and a line placed
-     by a person moves one that would otherwise have stayed */
-  let outChange = 0
-  let outNew = 0
-  let placed = 0
-  for (const l of set.lines) {
-    if (l.fate === 'change' && choices.out.has(l.key)) outChange += 1
-    else if (l.fate === 'new' && choices.out.has(l.key)) outNew += 1
-    else if (l.fate === 'cannot') {
-      const rowId = choices.placed.get(l.key)
-      if ((l.candidates?.find((c) => c.rowId === rowId)?.cells.length ?? 0) > 0) placed += 1
-    }
-  }
-  const stays = set.unmoved + outChange - placed
+     by a person moves one that would otherwise have stayed (`afterChoices`) */
+  const stays = after.stays
   const whole = set.totalRows + set.adding + set.cannot
   const inks = [
     { fate: 'kept' as const, n: stays, say: past ? 'stayed as they were' : 'stay as they are' },
-    {
-      fate: 'change' as const,
-      n: set.changing - outChange + placed,
-      say: past ? 'changed' : 'change',
-    },
-    { fate: 'new' as const, n: set.adding - outNew, say: 'new' },
+    { fate: 'change' as const, n: after.change, say: past ? 'changed' : 'change' },
+    { fate: 'new' as const, n: after.fresh, say: 'new' },
     {
       fate: 'cannot' as const,
-      n: set.cannot - choices.placed.size,
+      n: after.cannot,
       say: past ? 'were not placed' : 'can’t be placed',
     },
   ]
@@ -313,19 +324,25 @@ function Stay({
           </li>
         ))}
       </ul>
-      <DraftsSaid drafts={drafts} />
+      <DraftsSaid drafts={drafts} past={past} />
     </section>
   )
 }
 
-function DraftsSaid({ drafts }: { drafts: DraftMove[] }) {
+/**
+ * THE QUOTES BEING WRITTEN, SAID AS WHAT REALLY HAPPENS (verify-1.md, gap 3). The sheet said a
+ * draft "GX700W $249 → $240 −$9 in all" beside "each keeps the price it had", and after Apply
+ * the draft still read $249: the −$9 never happened. A line on a quote keeps its price; the
+ * price list reads the new one; choosing the line again gives the new one. Each is said so.
+ */
+function DraftsSaid({ drafts, past }: { drafts: DraftMove[]; past: boolean }) {
   if (drafts.length === 0) {
     return (
       <p className="sf-drafts sf-drafts--sheet">
         <Icon glyph={ReceiptIcon} />
         <span>
-          <strong>No quote being written carries a line this moves.</strong> A quote already given
-          never moves.
+          <strong>No quote being written carries a line this {past ? 'moved' : 'moves'}.</strong> A
+          quote already given never moves.
         </span>
       </p>
     )
@@ -338,25 +355,29 @@ function DraftsSaid({ drafts }: { drafts: DraftMove[] }) {
         <p>
           <strong>
             {plural(drafts.length, 'quote being written carries', 'quotes being written carry')}{' '}
-            {plural(lines, 'line', 'lines')} this moves.
+            {plural(lines, 'line', 'lines')} this {past ? 'moved' : 'moves'}.
           </strong>{' '}
-          Each keeps the price it had when it was chosen; a line chosen after Apply reads the new
-          one.
+          {past ? 'Apply left each quote as it was' : 'Apply leaves each quote as it is'}: a line
+          keeps the price it had when it was chosen, and reads the new one only when it is chosen
+          again.
         </p>
         <ul className="sf-drafts__list">
           {drafts.map((d) => (
             <li key={d.quoteId}>
               <strong>{d.reference}</strong> {nameFirst(lineSaid(d.subject))}
-              {d.customer ? ` · ${d.customer}` : ''} ·{' '}
+              {d.customer ? ` for ${d.customer}` : ''}
+              {/* each line as a person says it; the quote's own subject is not said twice */}
               {d.lines
                 .map(
                   (l) =>
-                    `${l.label} ${l.carries !== null ? dollars(l.carries) : '—'} → ${dollars(l.would)}`,
+                    `${l.label === d.subject ? '' : ` · ${nameFirst(lineSaid(l.label))}`} keeps ${l.carries !== null ? dollars(l.carries) : 'no price of its own'}; the price list ${past ? 'now reads' : 'would read'} ${dollars(l.would)}`,
                 )
-                .join(', ')}{' '}
+                .join('')}
+              {' · '}
               <span className="sf-fig" data-up={d.by > 0 ? '' : undefined}>
                 {d.by >= 0 ? '+' : '−'}
-                {dollars(Math.abs(d.by))} in all
+                {dollars(Math.abs(d.by))}{' '}
+                {d.lines.length === 1 ? 'if it is chosen again' : 'in all if each is chosen again'}
               </span>
             </li>
           ))}
@@ -375,12 +396,17 @@ function Tiles({
   narrow,
   onNarrow,
   counted,
+  after,
+  past,
   looked,
 }: {
   set: ChangeSet
   narrow: Narrow
   onNarrow: (n: Narrow) => void
   counted: ReturnType<typeof tally>
+  after: AfterChoices
+  /** applied: the tiles say what happened, as the legend does */
+  past: boolean
   looked: ReadonlySet<string>
 }) {
   const by = (pick: (l: ChangeSet['lists'][number]) => number): string =>
@@ -391,32 +417,48 @@ function Tiles({
   const doubledLooked = set.lines.filter(
     (l) => l.fate === 'change' && l.swing >= DOUBLED && looked.has(l.key),
   ).length
+  /* THE TILE READS WHAT THE LEGEND READS (verify-1.md, gap 4): the figure is the price list after
+     the choices made, and when a choice moved it, the line under it says from what and how */
+  const changeSay = [
+    after.placedMoving > 0 || after.outChange > 0 ? `${count(set.changing)} in the workbook` : null,
+    after.placedMoving > 0 ? `${count(after.placedMoving)} placed by you` : null,
+    after.outChange > 0 ? `${count(after.outChange)} left out` : null,
+  ].filter(Boolean)
   const tiles = [
     {
       key: 'change',
-      figure: set.changing,
-      word: plural(set.changing, 'line changes', 'lines change').replace(/^[\d,]+ /, ''),
-      say: by((l) => l.changing),
+      figure: after.change,
+      word: past
+        ? after.change === 1
+          ? 'line changed'
+          : 'lines changed'
+        : after.change === 1
+          ? 'line changes'
+          : 'lines change',
+      say: changeSay.length > 0 ? changeSay.join(' · ') : by((l) => l.changing),
       on: narrow.way === 'higher' || narrow.way === 'lower' || narrow.way === 'others',
       go: { way: 'higher' as Way },
       fate: 'change',
     },
     {
       key: 'new',
-      figure: set.adding,
-      word: set.adding === 1 ? 'new line' : 'new lines',
-      say: by((l) => l.adding) || 'none',
+      figure: after.fresh,
+      word: after.fresh === 1 ? 'new line' : 'new lines',
+      say:
+        after.outNew > 0
+          ? `${count(set.adding)} in the workbook · ${count(after.outNew)} left out`
+          : by((l) => l.adding) || 'none',
       on: narrow.way === 'new',
       go: { way: 'new' as Way },
       fate: 'new',
     },
     {
       key: 'cannot',
-      figure: set.cannot,
-      word: 'can’t be placed',
+      figure: after.cannot,
+      word: past ? 'were not placed' : 'can’t be placed',
       say:
-        counted.placed > 0
-          ? `${count(counted.placed)} placed by you`
+        after.placed > 0
+          ? `${count(set.cannot)} in the workbook · ${count(after.placed)} placed by you`
           : set.suggested > 0
             ? `${count(set.suggested)} named by their own Code`
             : 'each says why',
@@ -989,16 +1031,30 @@ function TableHead({
           </span>
           {columns.map((c) => (
             <span key={c.name} className="sf-table__col" data-own={c.own ? '' : undefined}>
-              <span>
-                {c.own ? <Icon glyph={LockSimpleIcon} /> : null}
-                {c.name}
-              </span>
+              <ColName name={c.name} own={c.own} />
               <small>{count(c.lines)}</small>
             </span>
           ))}
         </div>
       ) : null}
     </>
+  )
+}
+
+/** A column's name with its lock after it, the lock bound to the last word so a name that wraps
+ *  keeps it on its own side of the column (verify-1.md, gap 11), as a card's figure keeps it. */
+function ColName({ name, own }: { name: string; own: boolean }) {
+  if (!own) return <span className="sf-table__name">{name}</span>
+  const cut = name.lastIndexOf(' ')
+  return (
+    <span className="sf-table__name">
+      {cut > 0 ? `${name.slice(0, cut)} ` : ''}
+      <span className="sf-table__last">
+        {cut > 0 ? name.slice(cut + 1) : name}
+        <Icon glyph={LockSimpleIcon} />
+        <span className="sf-visually-hidden"> Northside’s own</span>
+      </span>
+    </span>
   )
 }
 
@@ -1113,9 +1169,19 @@ const said = (l: ChangeLine): string =>
     ? nameFirst(lineSaid(l.name.replace(/\s+/g, ' ').trim()))
     : lineName(l.name, { tableId: l.tableId, name: l.list }, false)
 
-function Meta({ line, withList = false }: { line: ChangeLine; withList?: boolean }) {
+function Meta({
+  line,
+  withList = false,
+  out = false,
+}: {
+  line: ChangeLine
+  withList?: boolean
+  /** left out of this Apply: said first under the name, never inside it (verify-1.md, gap 7) */
+  out?: boolean
+}) {
   return (
     <span className="sf-line__meta">
+      {out ? <span className="sf-line__outsaid">Left out</span> : null}
       {withList && line.list ? <span>{line.list}</span> : null}
       {line.supplier ? <span>{line.supplier}</span> : null}
       {line.code ? <code className="sf-code">{line.code}</code> : null}
@@ -1129,12 +1195,11 @@ function Meta({ line, withList = false }: { line: ChangeLine; withList?: boolean
 function Figure({ m, read }: { m: Moved; read: boolean }) {
   const pct = read ? shareMoved(m.from, m.to) : null
   const up = typeof m.from === 'number' && typeof m.to === 'number' ? m.to > m.from : false
+  const told = movedSaid(m.from, m.to, m.as)
   return (
     <span className="sf-fig sf-move">
-      {m.from !== null && m.from !== '' ? (
-        <s className="sf-move__was">{figureSaid(m.from, m.as)}</s>
-      ) : null}
-      <strong className="sf-move__now">{figureSaid(m.to, m.as)}</strong>
+      {m.from !== null && m.from !== '' ? <s className="sf-move__was">{told.from}</s> : null}
+      <strong className="sf-move__now">{told.to}</strong>
       {pct ? (
         <span className="sf-move__pct" data-up={up ? '' : undefined}>
           {pct}
@@ -1190,9 +1255,8 @@ function Line({
             {line.fate === 'new' ? 'New line: ' : 'Changes: '}
           </span>
           {name}
-          {keep ? null : <span className="sf-line__outsaid">Left out</span>}
         </span>
-        <Meta line={line} withList={triage !== null} />
+        <Meta line={line} withList={triage !== null} out={!keep} />
         {rest.length > 0 ? (
           table ? (
             <span className="sf-line__also">
@@ -1200,8 +1264,10 @@ function Line({
                 <span key={m.fieldId} className="sf-also">
                   {m.own ? <Icon glyph={LockSimpleIcon} /> : null}
                   {m.name}{' '}
-                  {m.from !== null && m.from !== '' ? <s>{figureSaid(m.from, m.as)}</s> : null} →{' '}
-                  <strong>{figureSaid(m.to, m.as)}</strong>
+                  {m.from !== null && m.from !== '' ? (
+                    <s>{movedSaid(m.from, m.to, m.as).from}</s>
+                  ) : null}{' '}
+                  → <strong>{movedSaid(m.from, m.to, m.as).to}</strong>
                 </span>
               ))}
             </span>
@@ -1298,7 +1364,10 @@ function placedSaid(c: Candidate | undefined): string | null {
   if (c.cells.length === 0) return 'Placed, it changes nothing: that line already reads exactly so.'
   const first = c.cells
     .slice(0, 3)
-    .map((m) => `${m.name} ${figureSaid(m.from, m.as)} → ${figureSaid(m.to, m.as)}`)
+    .map((m) => {
+      const told = movedSaid(m.from, m.to, m.as)
+      return `${m.name} ${told.from} → ${told.to}`
+    })
     .join(' · ')
   return `Placed, it changes ${count(c.cells.length)}: ${first}${c.cells.length > 3 ? ` and ${count(c.cells.length - 3)} more` : ''}.`
 }
@@ -1427,11 +1496,16 @@ function Dock({
   back,
   save,
   saved,
+  lastCopy,
+  held,
+  putBack,
   counted,
 }: ChangesProps & { counted: ReturnType<typeof tally> }) {
   const [refused, setRefused] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   if (applied) {
+    /* A COPY HOLDS THE APPLY ONLY WHEN IT WAS SAVED AFTER IT (verify-1.md, gap 2): a copy saved
+       earlier in the visit is a copy of the price list before it */
     return (
       <footer className="sf-dock" data-applied="" aria-label="Applied">
         <p className="sf-dock__said" aria-live="polite">
@@ -1440,12 +1514,22 @@ function Dock({
             <strong>
               {plural(applied.changes, 'change is', 'changes are')} on the price list.
             </strong>{' '}
-            {saved ? (
-              `Saved as ${saved}.`
+            {held ? (
+              saved ? (
+                `Saved as ${saved}.`
+              ) : (
+                `The copy saved ${lastCopy ? whenSaid(lastCopy, new Date()) : ''} holds ${applied.changes === 1 ? 'it' : 'them'}.`
+              )
             ) : (
-              <span className="sf-dock__more">
-                No copy holds them yet: save a copy now. Undo puts every one back in one step.
-              </span>
+              /* said in a hand too: it is why the amber act beside it is the next one */
+              <>
+                No copy holds {applied.changes === 1 ? 'it' : 'them'} yet
+                <span className="sf-dock__more">
+                  {saved ? `: ${saved} was saved before Apply` : ''}. Undo puts every one back in
+                  one step
+                </span>
+                .
+              </>
             )}
           </span>
         </p>
@@ -1468,7 +1552,7 @@ function Dock({
               }}
               refusedBecause={saving ? 'Saving: the copy is being written.' : undefined}
             >
-              {saved ? 'Save another copy' : 'Save a copy now'}
+              {held ? 'Save another copy' : 'Save a copy now'}
             </Button>
           </span>
         </span>
@@ -1524,12 +1608,22 @@ function Dock({
             </span>
           ) : null}
         </span>
-        <small className="sf-dock__undo">
-          {counted.in === 1
-            ? 'Undo puts it back in one step.'
-            : `Undo puts all ${count(counted.in)} back in one step.`}{' '}
-          A quote already given never moves.
-        </small>
+        {putBack ? (
+          /* UNDO IS ACKNOWLEDGED WHERE IT WAS PRESSED (verify-1.md, gap 12), not only on the
+             rest page: the sheet is the plan again, and says why */
+          <small className="sf-dock__back">
+            <Icon glyph={ArrowCounterClockwiseIcon} />
+            Put back by Undo: nothing of it is on the price list now. Apply writes it again in one
+            step.
+          </small>
+        ) : (
+          <small className="sf-dock__undo">
+            {counted.in === 1
+              ? 'Undo puts it back in one step.'
+              : `Undo puts all ${count(counted.in)} back in one step.`}{' '}
+            A quote already given never moves.
+          </small>
+        )}
       </p>
       <span className="sf-dock__acts">
         <span className="sf-dock__act">

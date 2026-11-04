@@ -36,6 +36,7 @@ import { useCatalogue, useQuotes } from '@/app/useStores'
 import { useOptionPicture } from '@/app/optionPicture'
 import { letterheadNow, preparerNow } from '@/app/northside'
 import { contactLine } from '@/domain/northside/letterhead'
+import { depositOnPaper } from '@/domain/northside/deposit'
 import type { FrozenLetterhead, OrgProfile, PaperSection, TableKind } from '@/domain/model'
 import { money } from '@/domain/money'
 import { setPaperSection, signedMoney } from '@/domain/quote'
@@ -318,7 +319,7 @@ export function unsetOn(
       act: 'Write the terms',
       at: { line: 'quoteTerms' },
     })
-  if (!lh?.deposit?.trim())
+  if (!hasDeposit(lh))
     out.push({
       what: 'The deposit wording',
       so: 'so nothing under the total says what secures the order',
@@ -390,6 +391,12 @@ export interface DocumentProps {
    * it is the page's `<main>` and the cover's name its h1.
    */
   embedded?: boolean
+  /**
+   * THE PAGES ALONE, AS SETTINGS DRAWS THEM (the data round, 2026-11-04): the sheaf with no chrome,
+   * no panel of what goes on the paper and no note beside it, the tab's title left as it is, and
+   * no picture packed for a printer that is not being asked. Embedded, as the package is.
+   */
+  proof?: boolean
 }
 
 /** THE LEVEL THE PAPER'S HEADINGS START AT: 1 on its own address, 4 drawn inside the package. */
@@ -417,6 +424,7 @@ export function Document({
   ways = NO_WAYS,
   go,
   embedded = false,
+  proof = false,
 }: DocumentProps) {
   const filed = useQuotes((s) => s.quotes)
   const apply = useQuotes((s) => s.apply)
@@ -425,10 +433,19 @@ export function Document({
   const quote = filed.find((q) => q.id === quoteId)
 
   if (!quote)
-    return <Missing read={read} problem={problem} ways={ways} go={go} embedded={embedded} />
+    return (
+      <Missing read={read} problem={problem} ways={ways} go={go} embedded={embedded || proof} />
+    )
   return (
-    <HeadAt.Provider value={embedded ? 4 : 1}>
-      <Sheaf quote={quote} goBack={goBack} print={print} apply={apply} embedded={embedded} />
+    <HeadAt.Provider value={embedded || proof ? 4 : 1}>
+      <Sheaf
+        quote={quote}
+        goBack={goBack}
+        print={print}
+        apply={apply}
+        embedded={embedded || proof}
+        proof={proof}
+      />
     </HeadAt.Provider>
   )
 }
@@ -557,12 +574,14 @@ function Sheaf({
   print,
   apply,
   embedded,
+  proof = false,
 }: {
   quote: QuoteDef
   goBack?: () => void
   print?: () => void
   apply: (quoteId: string, command: ReturnType<typeof setPaperSection>) => unknown
   embedded: boolean
+  proof?: boolean
 }) {
   /* A DRAFT PRINTS NORTHSIDE'S LETTERHEAD AS IT STANDS TODAY; a given quote prints the one it was
      given with, and nothing on /manage reaches it (Milestone 4) */
@@ -602,7 +621,7 @@ function Sheaf({
   /* THE PICTURES AS THE PRINTER IS HANDED THEM (`usePrinted`): each held picture drawn once as a
      JPEG no wider than the sheet needs, so the saved PDF carries a photograph and not its pixels
      unpacked */
-  const { printed, ready } = usePrinted(doc, art)
+  const { printed, ready } = usePrinted(doc, art, !proof)
   const blocks = useMemo(
     () => blocksOf(doc, art, travel, fit, printed),
     [doc, art, travel, fit, printed],
@@ -613,6 +632,8 @@ function Sheaf({
      quote's while the paper is open (`paperTitle`) and the app's again
      the moment it closes. */
   useEffect(() => {
+    /* the pages drawn small on Settings leave the tab named for Settings */
+    if (proof) return
     const was = globalThis.document.title
     const ours = paperTitle(doc)
     globalThis.document.title = ours
@@ -629,7 +650,7 @@ function Sheaf({
       keep.disconnect()
       globalThis.document.title = was
     }
-  }, [doc])
+  }, [doc, proof])
 
   const root = useRef<HTMLElement>(null)
   const gauge = useRef<HTMLSpanElement>(null)
@@ -775,25 +796,29 @@ function Sheaf({
         root.current = element
       }}
     >
-      <Chrome
-        doc={doc}
-        pages={settled ? sheets.length : null}
-        goBack={goBack}
-        print={print}
-        ready={ready}
-      />
+      {proof ? null : (
+        <Chrome
+          doc={doc}
+          pages={settled ? sheets.length : null}
+          goBack={goBack}
+          print={print}
+          ready={ready}
+        />
+      )}
 
       <div className="doc-floor">
         {/* WHAT GOES ON THE PAPER, chosen beside it: first in the reading order, so a salesperson
             on a phone meets the switches before the pages they change */}
-        <SectionsPanel
-          doc={doc}
-          apply={apply}
-          quote={quote}
-          art={art}
-          shown={shown}
-          people={org?.people ?? []}
-        />
+        {proof ? null : (
+          <SectionsPanel
+            doc={doc}
+            apply={apply}
+            quote={quote}
+            art={art}
+            shown={shown}
+            people={org?.people ?? []}
+          />
+        )}
         <article
           className="doc-sheaf"
           data-settled={settled ? 'yes' : 'no'}
@@ -912,7 +937,7 @@ function Sheaf({
             room has to say about it; a grid puts the note in the margin
             at a desk width, which changes where it is drawn and never
             where it is read. */}
-        <DeskNote doc={doc} art={art} shown={shown} />
+        {proof ? null : <DeskNote doc={doc} art={art} shown={shown} />}
       </div>
     </Root>
   )
@@ -998,8 +1023,13 @@ async function jpegOf(src: string, px: number): Promise<string | null> {
  * packed for paper: nothing is cropped, and nothing is drawn larger than its own pixels.
  * Until a JPEG is made, and in a browser that cannot make one, the held file is drawn.
  */
-function usePrinted(doc: PrintedQuote, art: CoverArt): { printed: Printed; ready: boolean } {
-  const wanted = useMemo(() => picturesOn(doc, art), [doc, art])
+function usePrinted(
+  doc: PrintedQuote,
+  art: CoverArt,
+  forPrint = true,
+): { printed: Printed; ready: boolean } {
+  /* the pages Settings draws are never handed to a printer, so nothing is packed for one */
+  const wanted = useMemo(() => (forPrint ? picturesOn(doc, art) : []), [doc, art, forPrint])
   const key = wanted.map((w) => `${w.src}@${w.px}`).join('|')
   const [made, setMade] = useState<{ of: string; urls: Printed }>(() => ({
     of: '',
@@ -1263,6 +1293,10 @@ export function unpicturedOf(doc: PrintedQuote): string[] {
 /** Why Northside's terms cannot be printed. */
 export const NO_TERMS_SET = 'No terms are written on Settings yet.'
 
+/** Whether the letterhead carries a deposit to print: Northside's wording, its rule, or both. */
+const hasDeposit = (lh: FrozenLetterhead | null | undefined): boolean =>
+  Boolean(lh?.deposit?.trim()) || lh?.depositRule !== undefined
+
 /** Why no deposit wording can be printed. */
 export const NO_DEPOSIT_SET = 'No deposit wording is written on Settings yet.'
 
@@ -1359,10 +1393,10 @@ export function choicesOf(doc: PrintedQuote): PaperChoice[] {
     },
     {
       section: 'deposit',
-      label: 'The deposit wording',
+      label: doc.letterhead?.depositRule ? 'The deposit' : 'The deposit wording',
       holds: '',
-      on: doc.chosen.deposit && Boolean(doc.letterhead?.deposit),
-      ...(doc.letterhead?.deposit ? {} : { refused: NO_DEPOSIT_SET }),
+      on: doc.chosen.deposit && hasDeposit(doc.letterhead),
+      ...(hasDeposit(doc.letterhead) ? {} : { refused: NO_DEPOSIT_SET }),
     },
     {
       section: 'details',
@@ -2138,6 +2172,7 @@ function Cover({
 }) {
   const register = registerOf(doc)
   const total = doc.totals.total
+  const depositLine = depositOnPaper(doc.letterhead?.depositRule, total)
   const over = eyebrowOf(doc)
   const includes = includesSay(doc)
   const gst = gstSay(doc)
@@ -2314,6 +2349,13 @@ function Cover({
           {gst === '' ? null : <p className="doc-money__line">{gst}.</p>}
           {/* NORTHSIDE'S OWN DEPOSIT WORDING, under the figure it is about, where it was set on
               Settings and kept on. Never written for Northside: absent, nothing is said. */}
+          {/* AND NORTHSIDE'S DEPOSIT RULE, WORKED ON THIS QUOTE'S OWN TOTAL (the data round,
+              2026-11-04): a share of the total or a fixed figure, frozen with the letterhead */}
+          {depositLine && doc.chosen.deposit ? (
+            <p className="doc-money__line doc-money__deposit" data-deposit="figure">
+              {depositLine}
+            </p>
+          ) : null}
           {doc.letterhead?.deposit && doc.chosen.deposit ? (
             <p className="doc-money__line doc-money__deposit">{doc.letterhead.deposit}</p>
           ) : null}

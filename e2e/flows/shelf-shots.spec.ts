@@ -106,11 +106,14 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
     if (bad.length) faults.push(`${label}: ${bad.join(' ; ')}`)
   }
   const shot = async (name: string, dock = false, at?: string) => {
-    /* in a hand, a narrowed sheet is read from where its narrowing begins, not from the head */
-    if (at && page.viewportSize()!.width < 834) {
+    /* in a hand, and on a turned phone, a narrowed sheet is read from where its narrowing begins,
+       not from the head (verify-1.md, gap 5: the 844x390 shots of 05 to 11 showed only the head) */
+    if (at && (page.viewportSize()!.width < 834 || page.viewportSize()!.height < 520)) {
       await page.evaluate((sel) => {
         const el = document.querySelector(sel)
-        if (el) window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 16)
+        /* clear of the pill when it stands at the top: the page's own top padding is its clearance */
+        const inset = parseFloat(getComputedStyle(document.querySelector('main')!).paddingTop) || 16
+        if (el) window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - inset)
       }, at)
     }
     await page.waitForTimeout(400)
@@ -122,6 +125,15 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await page.goto('/shelf')
   await expect(page.locator('[data-testid="shelf"][data-read]')).toBeVisible({ timeout: 30_000 })
   await shot('01-rest')
+
+  /* ---- a wrong file at the door: the refusal reads across its plate (verify-1.md, gap 10) ---- */
+  await page.getByTestId('shelf-workbook').setInputFiles({
+    name: 'wrong.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('not a workbook'),
+  })
+  await expect(page.getByText(/^wrong\.txt is not an Excel workbook/)).toBeVisible()
+  await shot('01b-wrong-file')
 
   /* ---- the workbook, as it arrives ---- */
   const t0 = Date.now()
@@ -179,6 +191,12 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await go(page, '/shelf?see=changes&q=GX700')
   await shot('11-find', true, '.sf-tools')
 
+  /* ---- a copy saved before Apply, which never holds it (verify-1.md, gap 2) ---- */
+  await go(page, '/shelf')
+  const early = page.waitForEvent('download', { timeout: 120_000 })
+  await page.getByRole('button', { name: 'Save a copy' }).first().click()
+  await early
+
   /* ---- Apply, and the next safe act ---- */
   await go(page, '/shelf?see=changes')
   const apply = page.getByRole('button', { name: /^Apply [\d,]+ changes$/ })
@@ -187,7 +205,19 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await apply.click()
   await expect(page.getByText(/changes are on the price list\.$/)).toBeVisible({ timeout: 60_000 })
   console.log(`[${size}] ${said.trim()} in ${Date.now() - t1} ms`)
+  await expect(page.locator('.sf-dock')).toContainText('No copy holds them yet')
   await shot('12-applied', true)
+
+  /* ---- Undo from the dock, said on the sheet; then Apply again ---- */
+  await page.locator('.sf-dock').getByRole('button', { name: 'Undo' }).click()
+  await expect(
+    page.getByText(/^Put back by Undo: nothing of it is on the price list now/),
+  ).toBeVisible({
+    timeout: 60_000,
+  })
+  await shot('12b-undone', true)
+  await page.getByRole('button', { name: /^Apply [\d,]+ changes$/ }).click()
+  await expect(page.getByText(/changes are on the price list\.$/)).toBeVisible({ timeout: 60_000 })
 
   /* ---- the rest page after: the account and the date ---- */
   await press(page, page.getByRole('button', { name: 'Back to the shelf' }).first())
@@ -195,12 +225,15 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await shot('13-rest-after')
 
   /* ---- a copy saved after Apply, and set beside this computer before it would come back ---- */
-  const saving = page.waitForEvent('download')
+  /* the copy waits for Apply's writes to land first (`saveACopy`, flush), which takes longer under load */
+  const saving = page.waitForEvent('download', { timeout: 120_000 })
   await page.getByRole('button', { name: 'Save a copy' }).first().click()
   const copy = test.info().outputPath('copy.json')
   await (await saving).saveAs(copy)
   await page.getByTestId('shelf-copy').setInputFiles(copy)
   await expect(page.locator('[data-see="restore"]')).toBeVisible({ timeout: 60_000 })
+  /* the copy names its own price list, beside this computer's (verify-1.md, S3) */
+  await expect(page.getByText(/The copy holds the same\./)).toBeVisible()
   await shot('13b-restore')
   await press(page, page.getByRole('button', { name: 'Back to the shelf' }).first())
 
@@ -223,8 +256,9 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await expect(page.getByText(/read as the name/)).toBeVisible()
   await shot('15-paste')
 
-  /* ---- clearing, its page ---- */
+  /* ---- clearing, its page: a copy was saved, so it is not asked for "first" again ---- */
   await go(page, '/shelf?see=clear')
+  await expect(page.getByRole('button', { name: 'Save another copy' })).toBeVisible()
   await shot('16-clear')
 
   expect(errors, 'page errors').toEqual([])

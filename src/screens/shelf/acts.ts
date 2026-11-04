@@ -38,6 +38,9 @@ import { PACK_ORG_ID, openCatalogue } from '@/data/pack/boot'
 import { makeCtx, type EntityDef, type ModuleDef } from '@/domain/model'
 import { buildExportPayload } from '@/domain/io/exportPayload'
 import type { ProjectFile } from '@/domain/io/envelope'
+import { notesOf } from '@/domain/io/brought'
+import { EDITION_KEY, editionHere } from '@/domain/io/copyEdition'
+import { shippedFile } from '@/screens/data/file'
 import { changeRefusal } from '@/domain/northside/people'
 import { catalogue, ctxFrom, dataOf } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
@@ -48,6 +51,9 @@ import { download } from './files'
 
 /** Where the day of the last copy saved on this computer is remembered. */
 export const LAST_COPY_PREF = 'shelf.lastCopy'
+
+/** Where the account of every workbook brought in on this computer is kept. */
+export const BROUGHT_PREF = 'shelf.brought'
 
 /** Why the person at the keyboard may not do this, or null: the store's own switch, asked here. */
 export const apartRefusal = (): string | null =>
@@ -93,7 +99,14 @@ export async function saveACopy(now: Date = new Date()): Promise<string> {
     Object.values(state.galleries ?? {}),
   )
   const name = copyFileName(state.org?.name ?? state.business ?? 'Northside Marine', now)
-  download(JSON.stringify(payload), name)
+  /* AND WHICH PRICE LIST IT HOLDS, beside the envelope, whose reader ignores a key it does not
+     know: the pack it came from and every workbook applied since (src/domain/io/copyEdition.ts) */
+  const edition = editionHere(
+    shippedFile(),
+    state.version,
+    notesOf(prefs.getState().values[BROUGHT_PREF]),
+  )
+  download(JSON.stringify({ ...payload, [EDITION_KEY]: edition }), name)
   prefs.getState().set(LAST_COPY_PREF, now.toISOString())
   return name
 }

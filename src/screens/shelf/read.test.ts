@@ -10,6 +10,7 @@ import {
   figureSaid,
   keptThroughAClear,
   lineName,
+  movedSaid,
   shareMoved,
   whenSaid,
 } from './read'
@@ -230,5 +231,29 @@ describe('a figure, as it is said', () => {
     expect(shareMoved(98, 3)).toBe('−97%')
     expect(shareMoved(819, 769)).toBe('−6%')
     expect(shareMoved(5, 5)).toBeNull()
+  })
+})
+
+describe('a figure that moved, both sides of the arrow', () => {
+  /* the figures are the ones the verifier read as "X → X" on Northside's own workbook
+     (verify-1.md, gap 1), and the ones the probe of 2026-11-04 found beside them */
+  it('reads both sides one place further until they differ', () => {
+    expect(movedSaid(479.204, 479.2, 'money')).toEqual({ from: '$479.204', to: '$479.20' })
+    expect(movedSaid(8.41, 8.41464, 'money')).toEqual({ from: '$8.41', to: '$8.415' })
+    expect(movedSaid(0.27760657421674373, 0.27840909090909083, 'ratio')).toEqual({
+      from: '0.2776',
+      to: '0.2784',
+    })
+    expect(movedSaid(529, 529.001, 'money')).toEqual({ from: '$529.00', to: '$529.001' })
+  })
+
+  it('leaves a move the usual places already tell apart as it is', () => {
+    expect(movedSaid(98, 3, 'money')).toEqual({ from: '$98', to: '$3' })
+    expect(movedSaid(0.111, 0.078, 'ratio')).toEqual({ from: '0.111', to: '0.078' })
+    expect(movedSaid(null, 55, 'money')).toEqual({ from: '—', to: '$55' })
+  })
+
+  it('says words as they are, a letter s and all', () => {
+    expect(figureSaid('Glass  Holder ', 'plain')).toBe('Glass Holder')
   })
 })

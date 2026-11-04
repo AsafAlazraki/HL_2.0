@@ -1,4 +1,5 @@
 import type { ImageRef } from './images'
+import type { DepositRule } from './project'
 import type { CustomerRef, FrozenCustomer } from './people'
 import type { FrozenLevel } from './pricing'
 import type { TableKind } from './tables'
@@ -429,6 +430,9 @@ export interface FrozenLetterhead {
   mark?: { src: string; width: number; height: number }
   /** Northside's own deposit wording */
   deposit?: string
+  /** NORTHSIDE'S DEPOSIT RULE AS IT STOOD, copied with the rest: the paper works the figure from
+   *  this and the quote's own total, so a share changed tomorrow never moves a deposit given today */
+  depositRule?: DepositRule
   /** how many days it stands for, and the day that comes to (`YYYY-MM-DD`) */
   validDays?: number
   validUntil?: string

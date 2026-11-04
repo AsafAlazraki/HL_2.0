@@ -56,6 +56,8 @@ export function letterheadOf(
     if (value) out[key] = value
   }
   if (mark) out.mark = mark
+  /* THE DEPOSIT RULE RIDES THE LETTERHEAD, so the give freezes it with the rest */
+  if (org?.depositRule) out.depositRule = { ...org.depositRule }
   if (org?.validDays !== undefined) out.validDays = org.validDays
   out.accent = accentOf(org)
   return out
@@ -94,6 +96,7 @@ export function validUntil(givenAt: string, days: number): string {
 export function freezeLetterhead(letterhead: FrozenLetterhead, givenAt: string): FrozenLetterhead {
   const kept: FrozenLetterhead = { ...letterhead }
   if (letterhead.mark) kept.mark = { ...letterhead.mark }
+  if (letterhead.depositRule) kept.depositRule = { ...letterhead.depositRule }
   if (letterhead.validDays !== undefined)
     kept.validUntil = validUntil(givenAt, letterhead.validDays)
   return kept

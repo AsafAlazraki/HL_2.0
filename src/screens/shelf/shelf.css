@@ -566,7 +566,8 @@ fieldset.sf-triage {
 }
 .sf-page__say {
   margin: 0;
-  max-inline-size: 62ch;
+  /* the page's own sentence reads as wide as its Goes and Stays beneath it */
+  max-inline-size: 96ch;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   color: var(--color-ink-2);
@@ -616,6 +617,17 @@ fieldset.sf-triage {
 }
 .sf-beside__table tr[data-differs] td {
   font-weight: 800;
+}
+.sf-beside__table td,
+.sf-beside__table thead th + th {
+  inline-size: 1%;
+  white-space: nowrap;
+}
+.sf-beside__long {
+  display: none;
+}
+.sf-beside__short {
+  display: inline;
 }
 .sf-beside__said {
   display: grid;
@@ -1068,7 +1080,6 @@ fieldset.sf-triage {
   margin-block-start: 1px;
 }
 .sf-line__outsaid {
-  margin-inline-start: auto;
   font-size: var(--text-xs);
   font-weight: 700;
   color: var(--color-carmine-600);
@@ -1341,6 +1352,14 @@ fieldset.sf-triage {
   font-size: var(--text-xs);
   color: var(--color-ink-2);
 }
+.sf-dock__back {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
 .sf-dock__acts {
   display: flex;
   flex-wrap: wrap;
@@ -1495,6 +1514,39 @@ fieldset.sf-triage {
   .sf-dock__undo {
     display: none !important;
   }
+  /* THE HEAD FILLED THE FIRST SCREEN (verify-1.md, gap 5): on a turned phone the glyph goes, the
+     head's two acts stand one above the other beside its words, and the gaps close, so the sentence of what stays is read
+     above the dock before any scroll */
+  .sf-ch {
+    --sf-gap: --spacing(3);
+  }
+  .sf-ch .sf-crumb {
+    margin-block-end: calc(--spacing(2) * -1);
+  }
+  .sf-ch .sf-ch-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: --spacing(1) --spacing(3);
+  }
+  .sf-ch-head__glyph {
+    display: none;
+  }
+  .sf-ch .sf-ch-head__acts {
+    grid-column: auto;
+    flex-direction: column;
+    align-items: end;
+    gap: 0;
+  }
+  .sf-ch .sf-ch-title {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+  .sf-stay__title {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+  }
+  .sf-stay__figure {
+    font-size: var(--text-2xl);
+  }
 }
 
 /* ---------------------------------------------------------- */
@@ -1504,6 +1556,12 @@ fieldset.sf-triage {
 @media (min-width: 600px) {
   .sf-line__cells {
     grid-template-columns: 1fr 1fr;
+  }
+  .sf-beside__long {
+    display: inline;
+  }
+  .sf-beside__short {
+    display: none;
   }
   .sf-dock {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1700,10 +1758,14 @@ fieldset.sf-triage {
     text-align: end;
     line-height: var(--text-sm--line-height);
   }
-  .sf-table__col span {
+  .sf-table__name {
+    display: block;
+  }
+  .sf-table__last {
     display: inline-flex;
     align-items: center;
     gap: --spacing(1);
+    white-space: nowrap;
   }
   .sf-table[data-table] .sf-line__cell {
     display: grid;
@@ -1721,6 +1783,14 @@ fieldset.sf-triage {
   }
   .sf-cannot__placed {
     grid-column: 2;
+  }
+  .sf-settle:has(.sf-settle__act) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: --spacing(8);
+  }
+  .sf-settle__say {
+    max-inline-size: none;
   }
 }
 

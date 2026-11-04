@@ -60,6 +60,7 @@ import { addRow, batch, updateCell, type CatalogueCommand } from '@/domain/catal
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 import { priceLevelsFor } from '@/domain/quote/pricing'
 import { mergeLines, type TableUploadPlan } from './tableCsv'
+import { withoutNoise } from './noise'
 import { columnIndex, type SheetLine, type Workbook } from './workbook'
 
 /* ------------------------------------------------------------ */
@@ -371,16 +372,20 @@ export function planNewFile(
       const cannotLines = cannot.get(feed.entity.id) ?? []
       if (mine.length === 0 && cannotLines.length === 0) continue
       const width = mine.reduce((n, a) => Math.max(n, a.line.cells.length), 0)
-      const plan = mergeLines({
-        entity: feed.entity,
-        rows: feed.rows,
-        lines: mine.map((a) => a.line.cells),
-        writable: feed.writable,
-        identity: { on: 'name', at: feed.nameAt, field: feed.display },
-        columns: { matched: [], unknown: [], ambiguous: [], readOnly: [], missing: [] },
-        fileName,
-        fileColumns: width,
-      })
+      /* a cell that moves nothing a person could read is not a change (`./noise`) */
+      const plan = withoutNoise(
+        mergeLines({
+          entity: feed.entity,
+          rows: feed.rows,
+          lines: mine.map((a) => a.line.cells),
+          writable: feed.writable,
+          identity: { on: 'name', at: feed.nameAt, field: feed.display },
+          columns: { matched: [], unknown: [], ambiguous: [], readOnly: [], missing: [] },
+          fileName,
+          fileColumns: width,
+        }),
+        feed.rows,
+      )
       lists.push(listOf(feed, sheet.name, mine, cannotLines, plan))
     }
   }

@@ -15,6 +15,7 @@ import { Icon } from './Icon'
 export function Refusal({
   id,
   on,
+  wide,
   children,
 }: {
   id?: string
@@ -27,10 +28,16 @@ export function Refusal({
    * The refusal ruler measured the paper ink on the finale's night ground at 2.23 : 1.
    */
   on?: 'room'
+  /**
+   * SET ACROSS A WIDE PLATE, apart from any control (2026-11-04, the shelf's verifier, gap 10): a
+   * refusal of a file at a door stood in a 44ch column inside a 1,150px plate. Wide, it reads to
+   * the plate's own measure. Beneath a control it stays narrow, as the control is.
+   */
+  wide?: boolean
   children: string
 }) {
   return (
-    <span id={id} className="ui-refusal" data-on={on}>
+    <span id={id} className="ui-refusal" data-on={on} data-wide={wide ? '' : undefined}>
       <Icon glyph={WarningCircleIcon} weight="fill" />
       {children}
     </span>

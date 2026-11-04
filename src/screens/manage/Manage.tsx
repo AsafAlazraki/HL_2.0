@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import {
   ArrowUUpLeftIcon,
   CheckIcon,
@@ -7,7 +16,7 @@ import {
   UserIcon,
   UserSwitchIcon,
 } from '@phosphor-icons/react'
-import { Button, Field, Input, Plate, Refusal, Toggle, say, undo } from '@/ui'
+import { Button, Field, Input, Plate, Refusal, Segmented, Toggle, say, undo } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { heldPaperMark, letterheadNow } from '@/app/northside'
 import { Letterhead, type LetterheadLine } from '@/screens/document/Document'
@@ -17,7 +26,6 @@ import { newId } from '@/domain/id'
 import type { OrgPerson, OrgProfile, QuoteDef } from '@/domain/model'
 import {
   DETAIL_LINES,
-  QUOTE_KEYS,
   detailSaid,
   detailText,
   readDetail,
@@ -29,34 +37,52 @@ import {
   personNameRefusal,
   setApartRefusal,
 } from '@/domain/northside/people'
+import {
+  depositDue,
+  depositRuleSaid,
+  depositTypedOf,
+  depositWayOf,
+  readDepositRule,
+  type DepositWay,
+} from '@/domain/northside/deposit'
+import { lastSaid, preparedBy } from '@/domain/northside/decided'
 import { MARK_FLOOR } from '@/domain/northside/pixels'
 import { saidRatio } from '@/domain/northside/colour'
+import { quoteTotals } from '@/domain/quote/totals'
+import { money } from '@/domain/money'
 import { catalogue } from '@/state/catalogue'
 import { readMark } from './measure'
+import { DESK, useMedia, useReading } from './hooks'
+import { LANDS, Proof, litOf } from './Proof'
+import { Elsewhere } from './Elsewhere'
 import { Water } from './Water'
 import './manage.css'
 
 /* ============================================================
    SETTINGS — "Paper and water", board C of docs/directions/manage-boards/,
-   the judge's pick of 2026-10-29, with board B's stage grafted onto the
-   water and the judge's must-change made on the paper.
+   the judge's pick of 2026-10-29, deepened by the data round's judge of
+   2026-11-04 (docs/directions/data-round/manage/judge.md, DEEPEN).
 
    ONE PAGE SPLIT DOWN ITS MIDDLE BY WHERE A CHOICE LANDS. The left half
    is the white paper — what prints on every quote: the letterhead as the
    quote itself draws it (the document's own `Letterhead`, on the newest
    draft), every empty line a dashed box that prints nothing and opens its
-   field when pressed; what every quote says; and who prepares it, as the
-   cards they print. The right half is the water — what shows on every
-   screen: Home drawn small with the colour and the photograph already on
-   it before anything is kept, the colour measured as white words on it,
-   the photographs each with the veil its own pixels asked for, Home's
-   sections, and the shape of things. A manager learns why the mark comes
-   twice — dark on paper, white on water — without reading a word.
+   field when pressed; what every quote says, the deposit now a rule the
+   quote works out from its own total; who prepares it, as the cards they
+   print; and, at a desk, the quote's own first and last pages with the
+   line being set lit where it lands. The right half is the water — what
+   shows on every screen: Home drawn small, standing beside its choices at
+   a desk, wearing the colour and the photograph before anything is kept,
+   with "Changed, not kept" docked at the window's foot.
+
+   ONE INDEX OF EVERYTHING NORTHSIDE HAS DECIDED: the page's own parts as
+   a row of words (standing at the window's head in a hand), who changed
+   a setting last, and the decisions kept in other rooms, counted, at the
+   page's end.
 
    NOTHING IS WRITTEN FOR NORTHSIDE. Every line starts empty and prints
    nothing. No address, phone or ABN is offered: docs/DECISIONS.md holds no
-   yes to the original HelmLogic's. The one name known on day one is the
-   one typed at the door, and it is drawn as that.
+   yes to the original HelmLogic's.
 
    EVERY CHANGE IS ONE STEP WITH ITS UNDO, through the catalogue's own
    stack (`src/domain/catalogue/orgCommands.ts`), and a person Northside
@@ -79,6 +105,8 @@ export interface ManageProps {
   /** SOMEONE ELSE AT THE DESK: the name given at the door is let go and the door asks again
    *  (exposure.md: `signOut` had no caller, so a shared computer kept one name on every quote) */
   onChangeDesk?: () => void
+  /** follow a door to another screen without a page load */
+  go?: (href: string) => void
 }
 
 /** Said where no price list is open: there is no business to keep details for. */
@@ -102,25 +130,58 @@ function keep(command: CatalogueCommand): string | null {
   return null
 }
 
+/** AN EDITOR OPENED STANDS CLEAR OF THE FOOT, where the Undo of the last step may still stand (the
+ *  judge, P3: at 390 it covered the person editor's Email field) */
+function useClearOfTheFoot<T extends HTMLElement>(): RefObject<T | null> {
+  const box = useRef<T>(null)
+  useEffect(() => {
+    const el = box.current
+    if (!el || typeof el.scrollIntoView !== 'function') return
+    const frame = requestAnimationFrame(() => el.scrollIntoView({ block: 'nearest' }))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+  return box
+}
+
 const NOWHERE: ManagePlace = {}
 
-export function Manage({ place = NOWHERE, onPlace, onChangeDesk }: ManageProps) {
+/** The parts of the page, in the order the index names them. */
+const PARTS: ReadonlyArray<{ id: string; word: string }> = [
+  { id: 'mg-letterhead-g', word: 'Letterhead' },
+  { id: 'mg-says-g', word: 'Quote words' },
+  { id: 'mg-people-g', word: 'People' },
+  { id: 'mg-proof', word: 'The quote' },
+  { id: 'mg-colour-g', word: 'Colour' },
+  { id: 'mg-pictures-g', word: 'Pictures' },
+  { id: 'mg-watermark-g', word: 'Mark' },
+  { id: 'mg-home-arrange', word: 'Home' },
+  { id: 'mg-shape-g', word: 'Shape' },
+  { id: 'mg-elsewhere', word: 'Elsewhere' },
+]
+const PART_IDS = PARTS.map((p) => p.id)
+
+export function Manage({ place = NOWHERE, onPlace, onChangeDesk, go }: ManageProps) {
   const status = useCatalogue((s) => s.status)
   const org = useCatalogue((s) => s.org)
   const business = useCatalogue((s) => s.business)
+  const stamps = useCatalogue((s) => s.stamps)
   const who = useSession((s) => s.name)
   const quotes = useQuotes((s) => s.quotes)
   const quotesRead = useQuotes((s) => s.loaded)
+  const desk = useMedia(DESK)
 
   const open = status === 'ready' && (business ?? '').trim() !== ''
   const apart = changeRefusal(org, who)
   const move = useCallback((next: ManagePlace) => onPlace?.(next), [onPlace])
 
-  /* THE NEWEST DRAFT ON THIS COMPUTER: the letterhead is drawn on it, never on a made-up quote */
+  /* THE NEWEST DRAFT ON THIS COMPUTER: the letterhead and the pages are drawn on it, never on a
+     made-up quote */
   const draft = useMemo(() => newestDraft(quotes), [quotes])
   /* COUNTED, so the note under the letterhead never says no quote was started when one was
      given (built-critique-m4.md, major 6: it counted drafts only) */
   const given = useMemo(() => quotes.filter((q) => q.state !== 'draft').length, [quotes])
+  const last = lastSaid(stamps, new Date())
+  const reading = useReading(PART_IDS, '.mg-index', open && !desk)
 
   return (
     <main
@@ -128,15 +189,50 @@ export function Manage({ place = NOWHERE, onPlace, onChangeDesk }: ManageProps) 
       data-testid="manage"
       data-read={status === 'ready' && quotesRead ? '' : undefined}
     >
-      {/* AT 390 THE HALVES STACK, paper first, and two words say where each begins */}
-      <nav className="mg-jump" aria-label="Settings, in two halves">
-        <a className="mg-jump__to" href="#mg-paper">
-          What prints
-        </a>
-        <a className="mg-jump__to" href="#mg-water">
-          What shows
-        </a>
-      </nav>
+      {/* THE PAGE'S NAME, and who changed what last (the judge, P15 and L4) */}
+      <header className="mg-top">
+        <div className="mg-top__words">
+          <h1 className="mg-title">Settings</h1>
+          <p className="mg-top__say">
+            {`${business?.trim() || 'Northside'}, as it prints on every quote and shows on every screen.`}
+          </p>
+        </div>
+        {open ? (
+          <p className="mg-top__last" data-testid="manage-last">
+            {last
+              ? `Last changed: ${last}.`
+              : org
+                ? 'Who changes a setting, and when, is kept from the next change.'
+                : 'Nothing is set yet: every quote prints the name alone, and every screen shows as designed.'}
+          </p>
+        ) : null}
+      </header>
+
+      {/* THE INDEX: every part of the page by its word. In a hand it stands at the window's head,
+          the part being read lit (the judge, L7: 6 to 11 screens of scroll with no way across) */}
+      {open ? (
+        <nav className="mg-index" aria-label="Settings, by part">
+          <ul className="mg-index__list">
+            {PARTS.map((p) => (
+              <li key={p.id}>
+                <a
+                  className="mg-index__to"
+                  href={`#${p.id}`}
+                  aria-current={reading === p.id ? 'location' : undefined}
+                  onClick={(e) => {
+                    const el = document.getElementById(p.id)
+                    if (!el) return
+                    e.preventDefault()
+                    el.scrollIntoView({ block: 'start' })
+                  }}
+                >
+                  {p.word}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
 
       {apart ? (
         <output className="mg-apart">
@@ -158,8 +254,11 @@ export function Manage({ place = NOWHERE, onPlace, onChangeDesk }: ManageProps) 
               who={who}
               draft={draft}
               given={given}
+              quotes={quotes}
               place={place}
               move={move}
+              desk={desk}
+              {...(go ? { go } : {})}
               {...(onChangeDesk ? { changeDesk: onChangeDesk } : {})}
             />
           ) : (
@@ -176,6 +275,8 @@ export function Manage({ place = NOWHERE, onPlace, onChangeDesk }: ManageProps) 
           <Water open={open} />
         </section>
       </div>
+
+      {open ? <Elsewhere {...(go ? { go } : {})} /> : null}
     </main>
   )
 }
@@ -229,14 +330,25 @@ function Head({
 /* The paper: what prints                                      */
 /* ---------------------------------------------------------- */
 
+/** The lines every quote says, in the order they are set: the deposit is one line, rule and words. */
+const SAYS: readonly ('gstRate' | 'validDays' | 'deposit' | 'quoteTerms')[] = [
+  'gstRate',
+  'validDays',
+  'deposit',
+  'quoteTerms',
+]
+
 function Paper({
   org,
   business,
   who,
   draft,
   given,
+  quotes,
   place,
   move,
+  desk,
+  go,
   changeDesk,
 }: {
   org: OrgProfile | undefined
@@ -244,8 +356,11 @@ function Paper({
   who: string | null
   draft: QuoteDef | null
   given: number
+  quotes: readonly QuoteDef[]
   place: ManagePlace
   move: (next: ManagePlace) => void
+  desk: boolean
+  go?: (href: string) => void
   changeDesk?: () => void
 }) {
   const today = useMemo(() => letterheadNow({ org, business }), [org, business])
@@ -253,6 +368,9 @@ function Paper({
   const ownPaper = org?.marks?.paper
   const opened = place.line ?? null
   const inStrip = opened === 'mark' || opened === 'name' || isStripLine(opened)
+  const lit = litOf(place.line, place.person)
+  /* where the line being set lands on the pages, said under its field where the pages are drawn */
+  const lands = draft && desk && lit ? LANDS[lit] : null
 
   const pressLine = (line: string): void => move(opened === line ? {} : { line })
 
@@ -265,7 +383,7 @@ function Paper({
       />
 
       {/* THE LETTERHEAD, AS THE QUOTE ITSELF DRAWS IT */}
-      <section className="mg-group" aria-labelledby="mg-letterhead">
+      <section className="mg-group" id="mg-letterhead-g" aria-labelledby="mg-letterhead">
         <div className="mg-group__head">
           <h3 className="mg-group__title" id="mg-letterhead">
             The letterhead
@@ -313,6 +431,7 @@ function Paper({
               which={opened as DetailKey}
               org={org}
               business={business}
+              lands={lands}
               close={() => move({})}
             />
           )
@@ -320,21 +439,24 @@ function Paper({
       </section>
 
       {/* WHAT EVERY QUOTE SAYS: value first, for what is not in the letterhead */}
-      <section className="mg-group" aria-labelledby="mg-says">
+      <section className="mg-group" id="mg-says-g" aria-labelledby="mg-says">
         <div className="mg-group__head">
           <h3 className="mg-group__title" id="mg-says">
             What every quote says
           </h3>
-          <p className="mg-group__say">Northside’s own words, never written for it</p>
+          <p className="mg-group__say">Northside’s own words and rules, never written for it</p>
         </div>
         <ul className="mg-lines">
-          {QUOTE_KEYS.map((key) => {
-            const shown = detailSaid(org, key)
+          {SAYS.map((key) => {
             const isOpen = opened === key
+            const shown =
+              key === 'deposit'
+                ? depositShown(org)
+                : { ...detailSaid(org, key), label: DETAIL_LINES[key].label }
             return (
               <li className="mg-line" key={key} data-open={isOpen ? '' : undefined}>
                 <div className="mg-line__row">
-                  <span className="mg-line__label">{DETAIL_LINES[key].label}</span>
+                  <span className="mg-line__label">{shown.label}</span>
                   <span className="mg-line__value" data-set={shown.set ? '' : undefined}>
                     {shown.said}
                   </span>
@@ -342,26 +464,31 @@ function Paper({
                     intent="quiet"
                     size="sm"
                     aria-expanded={isOpen}
-                    aria-label={`${shown.set ? 'Change' : 'Set'} ${DETAIL_LINES[key].label.toLowerCase()}`}
+                    aria-label={`${shown.set ? 'Change' : 'Set'} ${shown.label.toLowerCase()}`}
                     onClick={() => pressLine(key)}
                   >
                     {isOpen
                       ? 'Close'
                       : shown.set
                         ? 'Change'
-                        : DETAIL_LINES[key].long
+                        : key === 'quoteTerms'
                           ? 'Write'
                           : 'Set'}
                   </Button>
                 </div>
                 {isOpen ? (
-                  <LineEditor
-                    key={key}
-                    which={key}
-                    org={org}
-                    business={business}
-                    close={() => move({})}
-                  />
+                  key === 'deposit' ? (
+                    <DepositEditor org={org} draft={draft} lands={lands} close={() => move({})} />
+                  ) : (
+                    <LineEditor
+                      key={key}
+                      which={key}
+                      org={org}
+                      business={business}
+                      lands={lands}
+                      close={() => move({})}
+                    />
+                  )
                 ) : null}
               </li>
             )
@@ -372,12 +499,30 @@ function Paper({
       <People
         org={org}
         who={who}
+        quotes={quotes}
         place={place}
         move={move}
+        lands={lands}
         {...(changeDesk ? { changeDesk } : {})}
       />
+
+      <Proof draft={draft} given={given} lit={lit} desk={desk} {...(go ? { go } : {})} />
     </>
   )
+}
+
+/** The deposit as the line says it, value first: the rule, then Northside's own words. */
+function depositShown(org: OrgProfile | undefined): { label: string; set: boolean; said: string } {
+  const rule = org?.depositRule
+  const words = org?.deposit?.trim() ?? ''
+  if (!rule && words === '') return { label: 'Deposit', set: false, said: 'None, so none prints' }
+  return {
+    label: 'Deposit',
+    set: true,
+    said: [rule ? depositRuleSaid(rule) : 'No figure, words only', words === '' ? '' : `“${words}”`]
+      .filter((s) => s !== '')
+      .join('\n'),
+  }
 }
 
 const STRIP_LINES: ReadonlySet<string> = new Set([
@@ -482,11 +627,13 @@ function LineEditor({
   which,
   org,
   business,
+  lands,
   close,
 }: {
   which: DetailKey
   org: OrgProfile | undefined
   business: string | null
+  lands: string | null
   close: () => void
 }) {
   const line = DETAIL_LINES[which]
@@ -494,10 +641,11 @@ function LineEditor({
   const [typed, setTyped] = useState(was)
   const [refused, setRefused] = useState<string | null>(null)
   const field = useRef<HTMLElement>(null)
+  const box = useClearOfTheFoot<HTMLFormElement>()
   const id = useId()
 
   useEffect(() => {
-    field.current?.focus({ preventScroll: false })
+    field.current?.focus({ preventScroll: true })
   }, [])
 
   const save = (raw: string): void => {
@@ -526,6 +674,7 @@ function LineEditor({
 
   return (
     <form
+      ref={box}
       className="mg-editor"
       data-testid="manage-editor"
       aria-label={line.label}
@@ -534,7 +683,7 @@ function LineEditor({
         save(typed)
       }}
     >
-      <Field label={line.label} description={PRINTS[which]}>
+      <Field label={line.label} description={lands ? `${PRINTS[which]} ${lands}` : PRINTS[which]}>
         <Input
           ref={field}
           id={id}
@@ -574,6 +723,145 @@ function LineEditor({
 }
 
 /* ---------------------------------------------------------- */
+/* The deposit: a rule and Northside's own words                */
+/* ---------------------------------------------------------- */
+
+const DEPOSIT_WAYS: ReadonlyArray<{ value: DepositWay; label: string }> = [
+  { value: 'none', label: 'No figure' },
+  { value: 'share', label: 'A share' },
+  { value: 'amount', label: 'A fixed figure' },
+]
+
+/**
+ * THE DEPOSIT AS NORTHSIDE'S RULE (the judge, L3): a share of each quote's own total, or one fixed
+ * figure, worked out on the quote and printed under its total — said here on the newest draft's
+ * own total where there is one — with Northside's own words under it. One Keep, one step.
+ */
+function DepositEditor({
+  org,
+  draft,
+  lands,
+  close,
+}: {
+  org: OrgProfile | undefined
+  draft: QuoteDef | null
+  lands: string | null
+  close: () => void
+}) {
+  const rule = org?.depositRule
+  const [way, setWay] = useState<DepositWay>(depositWayOf(rule))
+  const [figure, setFigure] = useState(depositTypedOf(rule))
+  const [words, setWords] = useState(org?.deposit ?? '')
+  const [refused, setRefused] = useState<string | null>(null)
+  const box = useClearOfTheFoot<HTMLFormElement>()
+  const total = useMemo(() => (draft ? quoteTotals(draft).total : null), [draft])
+  const read = readDepositRule(way, figure)
+  const due = read.ok ? depositDue(read.rule, total) : null
+
+  const save = (): void => {
+    if (!read.ok) {
+      setRefused(read.refused)
+      return
+    }
+    const text = words.replace(/\r\n/g, '\n').trim()
+    const ruleMoved = JSON.stringify(read.rule ?? null) !== JSON.stringify(rule ?? null)
+    const said =
+      read.rule === undefined && text === ''
+        ? 'The deposit: none, so none prints'
+        : read.rule
+          ? `The deposit is ${depositRuleSaid(read.rule)}`
+          : 'The deposit wording set'
+    const out = keep(
+      changeOrg(said, ruleMoved ? 'depositRule' : 'deposit', (o) =>
+        withKey(withKey(o, 'depositRule', read.rule), 'deposit', text === '' ? undefined : text),
+      ),
+    )
+    if (out) {
+      setRefused(out)
+      return
+    }
+    close()
+  }
+
+  return (
+    <form
+      ref={box}
+      className="mg-editor"
+      data-testid="manage-editor"
+      aria-label="Deposit"
+      onSubmit={(e) => {
+        e.preventDefault()
+        save()
+      }}
+    >
+      <p className="mg-editor__say">
+        {`${PRINTS.deposit}${lands ? ` ${lands}` : ''} Each quote works the figure out from its own total, and a given quote keeps the rule it was given with.`}
+      </p>
+      <div className="mg-deposit">
+        <Segmented<DepositWay>
+          label="The deposit"
+          options={DEPOSIT_WAYS}
+          value={way}
+          onValueChange={(next) => {
+            setWay(next)
+            setRefused(null)
+          }}
+        />
+        {way === 'none' ? null : (
+          <Field label={way === 'share' ? 'Share of the total, in %' : 'Fixed figure, in dollars'}>
+            <Input
+              aria-label={way === 'share' ? 'Share of the total, in %' : 'Fixed figure, in dollars'}
+              inputMode="decimal"
+              autoComplete="off"
+              value={figure}
+              onValueChange={(next) => {
+                setFigure(next)
+                setRefused(null)
+              }}
+              aria-invalid={refused ? true : undefined}
+            />
+          </Field>
+        )}
+      </div>
+      {way !== 'none' && read.ok && read.rule ? (
+        <p className="mg-editor__say" data-testid="manage-deposit-worked">
+          {draft && due !== null
+            ? `On ${draft.reference}, whose total is ${money(total ?? 0)}, the deposit prints as ${money(due)}.`
+            : draft
+              ? `${draft.reference} has no total yet, so it prints the rule in words until every price is confirmed.`
+              : 'Each quote prints the figure worked from its own total.'}
+        </p>
+      ) : null}
+      <Field
+        label="Deposit wording"
+        description="Printed under the figure, in Northside’s own words."
+      >
+        <Input
+          aria-label="Deposit wording"
+          look="lines"
+          autoComplete="off"
+          value={words}
+          onValueChange={setWords}
+        />
+      </Field>
+      {refused ? (
+        <p className="mg-editor__refused" role="alert">
+          <Refusal>{refused}</Refusal>
+        </p>
+      ) : null}
+      <div className="mg-editor__acts">
+        <Button type="submit" intent="primary" size="sm" icon={CheckIcon}>
+          Keep
+        </Button>
+        <Button type="button" intent="quiet" size="sm" onClick={close}>
+          Close
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+/* ---------------------------------------------------------- */
 /* The mark on paper                                           */
 /* ---------------------------------------------------------- */
 
@@ -589,6 +877,7 @@ function MarkEditor({
   const [refused, setRefused] = useState<string | null>(null)
   const [reading, setReading] = useState(false)
   const picker = useRef<HTMLInputElement>(null)
+  const box = useClearOfTheFoot<HTMLFieldSetElement>()
   const own = org?.marks?.paper
 
   const chosen = async (file: File | undefined): Promise<void> => {
@@ -633,7 +922,7 @@ function MarkEditor({
   }
 
   return (
-    <fieldset className="mg-editor" data-testid="manage-editor" aria-label="The mark">
+    <fieldset ref={box} className="mg-editor" data-testid="manage-editor" aria-label="The mark">
       <p className="mg-editor__say">
         {own
           ? `Every quote prints ${own.name}, Northside’s own. Quotes already given keep the mark they were given with.`
@@ -709,22 +998,30 @@ function MarkEditor({
 function People({
   org,
   who,
+  quotes,
   place,
   move,
+  lands,
   changeDesk,
 }: {
   changeDesk?: () => void
   org: OrgProfile | undefined
   who: string | null
+  quotes: readonly QuoteDef[]
   place: ManagePlace
   move: (next: ManagePlace) => void
+  lands: string | null
 }) {
   const people = org?.people ?? []
   const [refused, setRefused] = useState<string | null>(null)
+  /* THE PERSON WHOSE SWITCH WAS REFUSED: the sentence stands only while it is still true, so it
+     goes the moment a second person who may is added (the judge, J5 and P4) */
+  const [apartAsked, setApartAsked] = useState<string | null>(null)
+  const apartSaid = apartAsked ? setApartRefusal(people, apartAsked, false) : null
   const atDoor = who && !people.some((p) => p.name.toLowerCase() === who.toLowerCase()) ? who : null
 
   return (
-    <section className="mg-group" aria-labelledby="mg-people">
+    <section className="mg-group" id="mg-people-g" aria-labelledby="mg-people">
       <div className="mg-group__head">
         <h3 className="mg-group__title" id="mg-people">
           Who prepares it
@@ -745,29 +1042,31 @@ function People({
           </Button>
         </p>
       ) : null}
-      {refused ? (
+      {apartSaid || refused ? (
         <p className="mg-editor__refused" role="alert">
-          <Refusal>{refused}</Refusal>
+          <Refusal>{apartSaid ?? refused ?? ''}</Refusal>
         </p>
       ) : null}
       <ul className="mg-people">
         {people.map((person) =>
           place.person === person.id ? (
             <li key={person.id} className="mg-person" data-open="">
-              <PersonEditor person={person} people={people} close={() => move({})} />
+              <PersonEditor person={person} people={people} lands={lands} close={() => move({})} />
             </li>
           ) : (
             <li key={person.id} className="mg-person">
               <PersonCard
                 person={person}
+                prepared={preparedBy(quotes, person.name)}
                 isYou={who !== null && person.name.toLowerCase() === who.toLowerCase()}
                 open={() => move({ person: person.id })}
                 onSwitch={(next) => {
                   const no = setApartRefusal(people, person.id, next)
                   if (no) {
-                    setRefused(no)
+                    setApartAsked(person.id)
                     return
                   }
+                  setApartAsked(null)
                   setRefused(
                     keep(
                       changeOrg(
@@ -821,6 +1120,7 @@ function People({
               person={null}
               start={atDoor ?? ''}
               people={people}
+              lands={lands}
               close={() => move({})}
             />
           ) : (
@@ -836,16 +1136,19 @@ function People({
 
 function PersonCard({
   person,
+  prepared,
   isYou,
   open,
   onSwitch,
 }: {
   person: OrgPerson
+  prepared: number
   isYou: boolean
   open: () => void
   onSwitch: (next: boolean) => void
 }) {
   const reach = [person.phone, person.email].filter((v): v is string => Boolean(v))
+  const may = mayChange(person)
   return (
     <Plate as="div" pad="md">
       <p className="mg-person__lab">Prepared by</p>
@@ -859,12 +1162,13 @@ function PersonCard({
       ) : (
         <p className="mg-person__say">No phone or email yet, so the name prints alone.</p>
       )}
+      <p className="mg-person__count">
+        {prepared === 0
+          ? 'No quote prepared on this computer yet'
+          : `${prepared} ${prepared === 1 ? 'quote' : 'quotes'} prepared on this computer`}
+      </p>
       <div className="mg-person__foot">
-        <Toggle
-          label="May change prices and settings"
-          checked={mayChange(person)}
-          onCheckedChange={onSwitch}
-        />
+        <Toggle label="May change prices and settings" checked={may} onCheckedChange={onSwitch} />
         <Button
           intent="quiet"
           size="sm"
@@ -875,6 +1179,11 @@ function PersonCard({
           Change
         </Button>
       </div>
+      <p className="mg-person__may">
+        {may
+          ? 'Writes and gives quotes, and may change a price, the price list and these settings.'
+          : 'Writes and gives quotes; changes no price and no setting.'}
+      </p>
     </Plate>
   )
 }
@@ -883,11 +1192,13 @@ function PersonEditor({
   person,
   start = '',
   people,
+  lands,
   close,
 }: {
   person: OrgPerson | null
   start?: string
   people: readonly OrgPerson[]
+  lands: string | null
   close: () => void
 }) {
   const [name, setName] = useState(person?.name ?? start)
@@ -896,8 +1207,9 @@ function PersonEditor({
   const [email, setEmail] = useState(person?.email ?? '')
   const [refused, setRefused] = useState<string | null>(null)
   const first = useRef<HTMLElement>(null)
+  const box = useClearOfTheFoot<HTMLFormElement>()
   useEffect(() => {
-    first.current?.focus()
+    first.current?.focus({ preventScroll: true })
   }, [])
 
   const save = (): void => {
@@ -957,6 +1269,7 @@ function PersonEditor({
 
   return (
     <form
+      ref={box}
       className="mg-editor mg-editor--person"
       data-testid="manage-person"
       aria-label={person ? `Change ${person.name}` : 'A new person'}
@@ -965,7 +1278,12 @@ function PersonEditor({
         save()
       }}
     >
-      <Field label="Name" description="Printed as Prepared by, and offered at sign-in.">
+      {/* ONE SENTENCE OVER THE FOUR FIELDS, so no field carries a line the others do not and the
+          four stand level two by two (the judge, P11: Name and Title 11px apart at 1440) */}
+      <p className="mg-editor__say">
+        {`Printed under Prepared by on each quote this person prepares, title, phone and email each only where given, and offered at sign-in.${lands ? ` ${lands}` : ''}`}
+      </p>
+      <Field label="Name">
         <Input
           ref={first}
           aria-label="Name"

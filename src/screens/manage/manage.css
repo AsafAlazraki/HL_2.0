@@ -5,17 +5,20 @@
    SETTINGS — board C, "Paper and water" (docs/directions/manage-boards/
    c-paper-and-water.html), the judge's pick of 2026-10-29, with board B's
    stage grafted onto the water and the paper headed by the quote's own
-   letterhead. These rules are this screen's alone: nothing here is shared
-   with the document, Home, Customers or Data, and nothing is stamped from
-   one of them. Every colour, size, radius, shadow and duration is a token.
+   letterhead; DEEPENED by the data round's judge of 2026-11-04
+   (docs/directions/data-round/manage/judge.md). These rules are this
+   screen's alone: nothing here is shared with the document, Home,
+   Customers or Data, and nothing is stamped from one of them — the one
+   reach into another screen's drawing is the quote's own pages inside
+   `.mg-proof`, laid out small and lit, never restyled. Every colour,
+   size, radius, shadow and duration is a token.
 
    THE COMPOSITION. One page split on its centre line by where a choice
    lands. The left half is white paper in the plate's day inks whatever
    the theme (`data-ground="plate"`): what prints. The right half is the
    water, navy deepening downwards, in the night's inks
-   (`data-ground="night"`): what shows, with every kit control a white
-   plate on the navy room. No other screen in the app is split down its
-   middle; the pill floats on the seam.
+   (`data-ground="night"`): what shows. At a desk the seam runs from the
+   page's head to its foot, and the pill floats on it.
 
    WHAT NORTHSIDE CHANGES HERE IS THIS SCREEN TOO: the water is drawn in
    the brand's own deep steps, the letterhead's rule and the chosen rings
@@ -24,80 +27,136 @@
    ------------------------------------------------------------------------------------
    THE REFLOW, at the six sizes the rulers walk:
 
-     390 × 844    one column, 16px gutters. "What prints · What shows" at the head jumps to
-                  either half, two equal plates, each with a dot of its ground; the paper first, then the water. The letterhead's lines wrap under the mark; a field opens in place,
-                  full width, under the line pressed; a long address or file name wraps
-                  inside the sheet, and the sheet's stamp wraps under the mark below 34rem. People stack one to a line. The stage is
-                  the full width; the colours two across; the photographs two across. The pill
-                  is the tab bar at the foot, and the page keeps `--shell-foot` at its end.
-     844 × 390    the same in one column with 24px gutters; the pill at the top.
-     834 × 1112   one column with 32px gutters; people two across; the colours three across,
-                  the photographs three across.
-     1280 × 800   the two halves side by side, each its own column of the page; the pill
-                  stands on the seam. People two across; photographs three across.
+     390 × 844    one column, 16px gutters. The page's name, "Settings", and who changed what
+                  last head it; under them the index of its ten parts, one row of words that
+                  scrolls sideways inside itself and STANDS AT THE WINDOW'S HEAD from the moment
+                  it reaches it, the part being read lit (the pill is the tab bar at the foot,
+                  so the head is free). Then the paper, then the water, then "Decided
+                  elsewhere", one card to a line. The letterhead's lines wrap under the mark; a
+                  field opens in place under the line pressed, and scrolls itself clear of the
+                  foot; the sheet's stamp wraps under the mark below 34rem. People stack one to a
+                  line. The quote's own pages are a door here (an A4 page at this width is type
+                  at five pixels). The colours two across, the photographs two across, each
+                  photograph once with its two places as two presses. "Changed, not kept" docks
+                  at the window's foot over the tab bar while the water is in sight, and a toast
+                  stands above it. The page keeps `--shell-foot` at its end.
+     844 × 390    the same in one column with 24px gutters; the pill at the top, and the index
+                  stands under it at `--shell-inset`. "Changed, not kept" docks at the foot.
+     834 × 1112   one column with 32px gutters; people two across, the person being set across
+                  both; the colours three across, the photographs three across.
+     1280 × 800   THE TWO HALVES SIDE BY SIDE, the seam from the head to the foot: the page's
+                  name and its last change head the paper, the index heads the water. The paper
+                  ends with the newest draft's own first and last pages, two thirds of A4, the
+                  line being set lit on them; the water's stage (Home or the sign-in page, small)
+                  STANDS at the window's head beside its choices while they scroll, and "Changed,
+                  not kept" docks at the window's foot. People two across; photographs three
+                  across. "Decided elsewhere" spans both halves at the end, three across.
      1440 × 900   the same, with more air inside each half.
      1920 × 1080  the same; each half's content holds at 46rem and stands against the seam,
                   so the paper and the water meet in the middle of a wide screen.
 
-   NOTHING FLOATS OVER A FIELD: no part of this screen is fixed or sticky, so the only thing
-   that floats is the shell's own pill, and every half keeps the pill's clearance above it and
-   the tab bar's below it.
+   WHAT FLOATS, AND OVER WHAT: the shell's pill; the index in a hand, on its own white ground,
+   while the page passes under it; the stage at a desk, on its own navy plate, while its own
+   choices pass under it; and the dock, on its own ground, while the water passes under it. Each
+   leaves what it covers to a scroll, and the page's end keeps room for the dock.
    ============================================================ */
 
 .mg {
   --gutter: --spacing(4);
-  --half-pad: --spacing(5);
   --measure: 46rem;
 
   box-sizing: border-box;
   min-block-size: 100dvh;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  /* A BLOCK, NOT A GRID, IN A HAND: the index stands at the window's head only while its
+     containing block is the whole page, and a grid item's is its own row */
+  display: block;
   background: var(--color-paper);
   color: var(--color-neutral-950);
 }
 
-/* ---- the jump between the halves, in a hand ---- */
-.mg-jump {
-  display: flex;
+/* ---- the page's name, and who changed what last ---- */
+.mg-top {
+  display: grid;
   gap: --spacing(2);
-  padding: max(--spacing(4), var(--shell-inset)) var(--gutter) 0;
+  padding: max(--spacing(6), calc(var(--shell-inset) + --spacing(3))) var(--gutter) --spacing(4);
+  background: var(--color-paper);
 }
-/* TWO EQUAL PLATES, neither drawn as chosen (built-critique-m4.md, minor: the navy "What shows"
-   read as the selected tab at 390). Each wears a dot of the ground it jumps to, paper or water. */
-.mg-jump__to {
-  flex: 1 1 0;
+.mg-top__words {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.mg-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight, -0.01em);
+  color: var(--color-neutral-950);
+}
+.mg-top__say {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-700);
+}
+.mg-top__last {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-700);
+}
+
+/* ---- the index: every part by its word ---- */
+.mg-index {
+  position: sticky;
+  inset-block-start: var(--shell-inset);
+  z-index: 4;
+  background: var(--color-white);
+  box-shadow:
+    0 1px 0 var(--day-rule),
+    0 -1px 0 var(--day-rule);
+}
+.mg-index__list {
+  display: flex;
+  gap: --spacing(1);
+  margin: 0;
+  padding: --spacing(2) var(--gutter);
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.mg-index__list::-webkit-scrollbar {
+  display: none;
+}
+.mg-index__to {
   display: inline-flex;
-  justify-content: center;
   align-items: center;
-  gap: --spacing(2);
-  min-block-size: --spacing(10);
+  min-block-size: --spacing(9);
+  padding-inline: --spacing(3);
   border-radius: var(--radius-pill);
   font-size: var(--text-sm);
   font-weight: 600;
+  white-space: nowrap;
   text-decoration: none;
+  color: var(--color-neutral-700);
+}
+.mg-index__to:hover {
   color: var(--color-neutral-950);
-  background: var(--color-white);
-  box-shadow: 0 0 0 1px var(--day-rule);
+  background: var(--color-neutral-100);
 }
-.mg-jump__to::before {
-  content: '';
-  inline-size: --spacing(3);
-  block-size: --spacing(3);
-  border-radius: var(--radius-pill);
-  background: var(--color-paper);
-  box-shadow: 0 0 0 1px var(--day-rule-strong);
+.mg-index__to[aria-current] {
+  color: var(--color-white);
+  background: var(--color-neutral-950);
 }
-.mg-jump__to:last-child::before {
-  background: var(--color-blue-800);
-  box-shadow: none;
-}
-.mg-jump__to:focus-visible {
+.mg-index__to:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
 
 .mg-apart {
+  display: block;
   margin: 0;
   padding: --spacing(3) var(--gutter);
   background: var(--color-white);
@@ -113,14 +172,15 @@
 .mg-paper,
 .mg-water {
   box-sizing: border-box;
-  display: grid;
-  align-content: start;
+  /* A COLUMN OF FLEX ITEMS, so the stage and the dock may stand at the window's head and foot
+     across the whole half (a grid item's sticky room is its own row) */
+  display: flex;
+  flex-direction: column;
   gap: --spacing(8);
   min-inline-size: 0;
-  /* THE TAB BAR'S ROOM AT THE FOOT: the halves end the page now that the foot's row of the price
-     list's rooms is gone (Data's head carries them; built-critique-m4.md major 1) */
   padding: --spacing(8) var(--gutter) max(--spacing(10), calc(var(--shell-foot) + --spacing(4)));
-  scroll-margin-block-start: var(--shell-inset);
+  /* where the index lands a part: under the pill and under the index itself */
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(14));
 }
 .mg-paper {
   background: var(--color-paper);
@@ -204,8 +264,9 @@
   display: grid;
   gap: --spacing(3);
   min-inline-size: 0;
-  /* where "Arrange Home" lands, clear of the pill on a desk and of the screen's edge in a hand */
-  scroll-margin-block-start: max(--spacing(4), var(--shell-inset));
+  /* where the index and "Arrange Home" land a part: clear of the pill on a desk, of the index
+     in a hand, and of the screen's edge */
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(16));
 }
 .mg-group__head {
   display: flex;
@@ -240,13 +301,6 @@
 .mg-water .mg-group__foot {
   color: var(--color-neutral-200);
 }
-.mg-sub {
-  margin: --spacing(2) 0 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-white);
-}
 
 /* ---- the letterhead, as the quote draws it, on its own sheet of paper ---- */
 .mg-sheet {
@@ -278,6 +332,13 @@
     text-align: start;
   }
 }
+/* THE STAMP'S WORDS STAND ON ONE LINE EACH beside the mark, where the sheet is wide enough for
+   them beside it: at 1440 "Dated the day it is / given" broke ragged (the judge, P10) */
+@container (min-width: 34rem) {
+  .mg-sheet .doc-cover__stamp > p {
+    white-space: nowrap;
+  }
+}
 .mg-sheet .doc-cover__contact > * {
   min-inline-size: 0;
   max-inline-size: 100%;
@@ -303,15 +364,22 @@
 .mg-editor {
   display: grid;
   gap: --spacing(3);
+  margin: 0;
   padding: --spacing(4);
+  border: 0;
   border-radius: var(--radius-plate);
   background: var(--color-white);
   box-shadow:
     0 0 0 1px var(--day-rule),
     var(--shadow-plate);
+  /* an editor opened scrolls itself clear of the foot, where the tab bar and the last step's
+     Undo stand (the judge, P3) */
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(20));
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(16));
 }
 .mg-editor--person {
   grid-template-columns: minmax(0, 1fr);
+  align-items: end;
 }
 .mg-editor__say {
   margin: 0;
@@ -335,6 +403,17 @@
   block-size: 1px;
   opacity: 0;
   pointer-events: none;
+}
+/* the deposit's way and its figure, side by side where they fit */
+.mg-deposit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: --spacing(3);
+}
+.mg-deposit > :last-child:not(:first-child) {
+  flex: 1 1 --spacing(40);
+  min-inline-size: 0;
 }
 
 /* ---- what every quote says: the value first ---- */
@@ -400,8 +479,8 @@
 }
 .mg-person__lab {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -423,7 +502,8 @@
 }
 .mg-person__title,
 .mg-person__reach,
-.mg-person__say {
+.mg-person__say,
+.mg-person__count {
   margin: --spacing(1.5) 0 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
@@ -437,6 +517,9 @@
 .mg-person__say {
   margin-block-end: --spacing(3);
 }
+.mg-person__count {
+  color: var(--color-neutral-600);
+}
 .mg-person__foot {
   display: flex;
   flex-wrap: wrap;
@@ -446,6 +529,92 @@
   margin-block-start: --spacing(3);
   padding-block-start: --spacing(3);
   border-block-start: 1px solid var(--day-rule);
+}
+.mg-person__may {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-600);
+}
+
+/* ---- the quote these print on ---- */
+.mg-proof__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-700);
+}
+.mg-proof-none,
+.mg-proof-door {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(3);
+  padding: --spacing(5);
+  border-radius: var(--radius-plate);
+  /* a dashed frame prints nothing, as the letterhead's empty lines do */
+  border: 1.5px dashed var(--day-rule-strong);
+}
+.mg-proof-door {
+  border-style: solid;
+  border-color: var(--day-rule);
+  background: var(--color-white);
+}
+.mg-proof-none__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-700);
+}
+/* THE PAGES THEMSELVES: the document's own sheaf, small (its zoom is worked from this frame's
+   width in Proof.tsx), with its room, chrome and margins taken away and its middle pages left out */
+.mg-proof {
+  min-inline-size: 0;
+  display: grid;
+  justify-items: start;
+}
+.mg-proof .doc {
+  min-block-size: 0;
+  padding: 0;
+  background: none;
+}
+.mg-proof .doc .doc-floor,
+.mg-proof .doc:not([data-gauging]) .doc-floor {
+  display: block;
+  padding: 0;
+}
+.mg-proof .doc-sheaf {
+  position: relative;
+}
+.mg-proof .doc-sheaf[data-settled='yes'] > .doc-page:not(:first-of-type, :last-of-type) {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  visibility: hidden;
+}
+.mg-proof .doc-page__marks {
+  display: none;
+}
+/* THE LINE BEING SET, LIT WHERE IT LANDS: an amber ring around the part of the page it prints in */
+.mg-proof[data-lit]
+  :is(
+    .doc-cover__mast,
+    .doc-money__sum,
+    .doc-money__by,
+    .doc-terms,
+    .doc-page__house,
+    .doc-cover__valid
+  ) {
+  border-radius: var(--radius-glyph);
+  outline-offset: 6px;
+}
+.mg-proof[data-lit='letterhead'] .doc-page:first-of-type .doc-cover__mast,
+.mg-proof[data-lit='valid'] .doc-page:first-of-type .doc-cover__valid,
+.mg-proof[data-lit='gst'] .doc-page:first-of-type .doc-money__sum,
+.mg-proof[data-lit='deposit'] .doc-page:first-of-type .doc-money__sum,
+.mg-proof[data-lit='by'] .doc-page:first-of-type .doc-money__by,
+.mg-proof[data-lit='terms'] .doc-page:last-of-type .doc-terms,
+.mg-proof[data-lit='name'] .doc-page:last-of-type .doc-page__house {
+  outline: 5px solid var(--color-act);
 }
 
 /* ---- the stage: Home or the sign-in page, drawn small, wearing what was tried ---- */
@@ -577,8 +746,10 @@
   display: grid;
   place-items: center;
   min-inline-size: 0;
-  block-size: --spacing(7);
-  padding-inline: --spacing(1);
+  /* TALL ENOUGH FOR A SCRIPT MARK TO READ: Signature's script and Jeanneau's star were a smudge
+     at 16px (the judge, P12) */
+  block-size: --spacing(9);
+  padding-inline: --spacing(1.5);
   border-radius: var(--radius-glyph);
   background: var(--color-white);
   box-shadow: 0 0 0 1px var(--day-rule);
@@ -588,7 +759,7 @@
 .mg-mini__maker-mark {
   display: block;
   max-inline-size: 100%;
-  max-block-size: --spacing(4);
+  max-block-size: --spacing(6);
   object-fit: contain;
 }
 .mg-mini__maker-name {
@@ -642,18 +813,52 @@
   color: var(--color-neutral-200);
 }
 
-/* ---- changed, not kept ---- */
+/* ---- changed, not kept: docked at the window's foot while the choices are in sight ---- */
+.mg-choices {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(8);
+}
+.mg-choices > * {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+.mg-choices__top {
+  display: block;
+  block-size: 0;
+  margin-block-end: calc(-1 * --spacing(8));
+}
+.mg-dock {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: --spacing(2);
+  margin-block-start: auto;
+}
+.mg-dock[data-docks] {
+  position: sticky;
+  inset-block-end: calc(var(--shell-foot) + --spacing(3));
+}
+/* THE TOAST STANDS ABOVE THE DOCK, never on its Keep (the judge, P3: at 390 the last step's Undo
+   covered Keep and Put back for 8.3–8.7 s). The dock writes its own height (`--mg-dock`); the
+   toaster's own offsets are lifted by it while it stands. */
+:root:has(.mg-dock[data-docks]) [data-sonner-toaster][data-y-position='bottom'] {
+  --offset-bottom: calc(var(--mg-dock, 0px) + --spacing(8)) !important;
+  --mobile-offset-bottom: calc(var(--shell-foot) + var(--mg-dock, 0px) + --spacing(7)) !important;
+}
 .mg-staged {
   display: grid;
   gap: --spacing(2);
   padding: --spacing(3) --spacing(4);
   border-radius: var(--radius-plate);
   background: var(--color-neutral-900);
-  box-shadow: 0 0 0 1px var(--color-act);
+  box-shadow:
+    0 0 0 1px var(--color-act),
+    var(--shadow-toast);
 }
 .mg-staged__lab {
   margin: 0;
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -676,6 +881,11 @@
 }
 .mg-water-refused {
   margin: 0;
+}
+.mg-dock > .mg-water-refused {
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-neutral-900);
 }
 
 /* ---- colour ---- */
@@ -714,9 +924,10 @@
   font-size: var(--text-xs);
   color: var(--color-neutral-700);
 }
+/* 12px, never the 11px the judge measured on these notes (P14) */
 .mg-colour__note {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--color-neutral-600);
 }
 .mg-colour--chip {
@@ -741,8 +952,38 @@
   gap: --spacing(2) --spacing(3);
 }
 .mg-colour-try > :first-child {
-  flex: 1 1 --spacing(56);
+  flex: 1 1 --spacing(48);
   min-inline-size: 0;
+}
+/* the system's own picker, as a swatch the height of the field */
+.mg-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  block-size: --spacing(11);
+  padding-inline: --spacing(1.5) --spacing(3);
+  border-radius: var(--radius-field);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-neutral-950);
+  background: var(--color-white);
+  cursor: pointer;
+}
+.mg-picker__input {
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-glyph);
+  background: none;
+  cursor: pointer;
+}
+.mg-picker:focus-within {
+  box-shadow: var(--shadow-focus);
+}
+.mg-picker__input:focus-visible {
+  outline: none;
 }
 .mg-refused {
   display: grid;
@@ -761,29 +1002,37 @@
   grid-auto-flow: column;
   justify-content: start;
 }
-/* ---- pictures ---- */
-/* the photographs, as many across as the half has room for, each whole */
+
+/* ---- pictures: one grid, each photograph once, with its two places ---- */
 .mg-shots {
-  grid-template-columns: repeat(auto-fill, minmax(--spacing(30), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .mg-shot {
   display: grid;
+  grid-template-rows: auto auto 1fr auto;
   gap: --spacing(1);
   min-inline-size: 0;
+  padding: --spacing(2);
+  border-radius: var(--radius-tile);
+  background: var(--color-white);
+  color: var(--color-neutral-950);
+  box-shadow: var(--shadow-plate);
 }
-.mg-shot__img {
+/* where it stands now, ringed in the act's amber: Home's, the sign-in page's, or both */
+.mg-shot:is([data-home], [data-door]) {
+  box-shadow:
+    0 0 0 2px var(--color-act),
+    var(--shadow-plate);
+}
+.mg-shot__img,
+.mg-shot__frame {
   display: block;
   inline-size: 100%;
   aspect-ratio: 3 / 2;
   object-fit: cover;
   border-radius: var(--radius-glyph);
 }
-.mg-shot--water::before {
-  content: '';
-  display: block;
-  inline-size: 100%;
-  aspect-ratio: 3 / 2;
-  border-radius: var(--radius-glyph);
+.mg-shot__frame--water {
   background: linear-gradient(160deg, var(--color-blue-600), var(--color-blue-900));
 }
 .mg-shot__name {
@@ -794,7 +1043,15 @@
 }
 .mg-shot__note {
   font-size: var(--text-xs);
-  color: var(--color-neutral-700);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-600);
+}
+.mg-shot__acts {
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1);
+  padding-block-start: --spacing(1);
 }
 
 /* ---- Home's sections ---- */
@@ -835,6 +1092,13 @@
   align-items: center;
   gap: --spacing(2);
 }
+.mg-sub {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
 /* every boat with a photograph, wrapped, opened on a press */
 .mg-firsts {
   display: flex;
@@ -867,13 +1131,59 @@
   inline-size: --spacing(5);
   block-size: --spacing(5);
   border-radius: var(--radius-pill);
-  font-size: var(--text-2xs);
+  font-size: var(--text-xs);
   font-weight: 700;
   color: var(--color-accent);
   background: var(--color-white);
 }
 
-/* ---- shape, spacing, motion, face ---- */
+/* ---- shape, spacing and motion ---- */
+/* WHAT THE STEPS DO: a plate of three lines and a tile, in the app's own radii, shadows and list
+   step, so a press shows its effect here (the judge, L9) */
+.mg-specimen {
+  display: flex;
+  align-items: start;
+  gap: --spacing(4);
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-blue-50);
+}
+.mg-specimen__plate {
+  flex: 1 1 auto;
+  display: grid;
+  gap: calc(--spacing(2.5) + var(--list-step, 0px));
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-white);
+  box-shadow: var(--shadow-plate);
+}
+.mg-specimen__line {
+  display: block;
+  block-size: --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-200);
+}
+.mg-specimen__line:nth-child(2) {
+  inline-size: 72%;
+}
+.mg-specimen__line:nth-child(3) {
+  inline-size: 48%;
+}
+.mg-specimen__tile {
+  flex: 0 0 --spacing(28);
+  display: grid;
+  gap: --spacing(2);
+  padding: --spacing(2);
+  border-radius: var(--radius-tile);
+  background: var(--color-white);
+  box-shadow: var(--shadow-plate);
+}
+.mg-specimen__shot {
+  display: block;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-glyph);
+  background: linear-gradient(160deg, var(--color-blue-500), var(--color-blue-800));
+}
 .mg-steps {
   display: grid;
   gap: --spacing(3);
@@ -893,6 +1203,128 @@
   font-weight: 700;
   color: var(--color-ink-2);
 }
+
+/* WHO IS AT THIS DESK, and the way to hand it to someone else (the flow round, 2026-10-30): one
+   line under the people's head, the sentence then its act, wrapping under it on a phone */
+.mg-desk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  margin: 0 0 --spacing(3);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.mg-desk b {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* ---- decided elsewhere: the rest of the index, at the page's end ---- */
+.mg-elsewhere {
+  display: grid;
+  gap: --spacing(4);
+  padding: --spacing(8) var(--gutter) max(--spacing(10), calc(var(--shell-foot) + --spacing(6)));
+  background: var(--color-paper);
+  border-block-start: 1px solid var(--day-rule);
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(14));
+}
+.mg-elsewhere__head {
+  display: grid;
+  gap: --spacing(1);
+}
+.mg-elsewhere__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mg-decided {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: --spacing(1);
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-white);
+  box-shadow:
+    0 0 0 1px var(--day-rule),
+    var(--shadow-plate);
+}
+.mg-decided__name {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+.mg-decided__count {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+  color: var(--color-neutral-950);
+}
+.mg-decided[data-none] .mg-decided__count {
+  color: var(--color-neutral-600);
+}
+.mg-decided__holds,
+.mg-decided__last {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-700);
+}
+.mg-decided__last {
+  font-size: var(--text-xs);
+  color: var(--color-neutral-600);
+}
+.mg-decided > :last-child {
+  margin-block-start: auto;
+  padding-block-start: --spacing(2);
+}
+/* IN A HAND EACH DECISION IS A ROW, its count beside its name and its door under, so the six
+   stand in about a screen rather than two */
+@media (max-width: 639.98px) {
+  .mg-elsewhere__list {
+    gap: 0;
+    border-block-start: 1px solid var(--day-rule);
+  }
+  .mg-decided {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0 --spacing(3);
+    padding: --spacing(3) 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    border-block-end: 1px solid var(--day-rule);
+  }
+  .mg-decided__count {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .mg-decided__holds,
+  .mg-decided__last,
+  .mg-decided > :last-child {
+    grid-column: 1 / -1;
+  }
+  .mg-decided__holds {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+  .mg-decided > :last-child {
+    padding-block-start: --spacing(1);
+  }
+}
+
 /* ============================================================
    THE LADDER
    ============================================================ */
@@ -903,6 +1335,9 @@
     --gutter: --spacing(6);
   }
   .mg-colours {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .mg-shots {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .mg-section {
@@ -926,6 +1361,17 @@
   .mg-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .mg-elsewhere__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mg-top {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+  .mg-top__last {
+    max-inline-size: 28rem;
+    text-align: end;
+  }
 }
 
 /* A TABLET STANDING UP */
@@ -944,51 +1390,153 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .mg-editor--person > .mg-editor__acts,
-  .mg-editor--person > .mg-editor__refused {
+  .mg-editor--person > .mg-editor__refused,
+  .mg-editor--person > .mg-editor__say {
     grid-column: 1 / -1;
   }
 }
 
-/* A DESK: THE TWO HALVES SIDE BY SIDE, AND THE PILL ON THE SEAM */
+/* A DESK: THE TWO HALVES SIDE BY SIDE, THE SEAM FROM HEAD TO FOOT, AND THE PILL ON IT */
 @media (min-width: 1200px) {
-  .mg-jump {
-    display: none;
+  .mg {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  /* the page's name heads the paper; the index heads the water, on the water's first blue */
+  .mg-top {
+    grid-column: 1;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    justify-items: end;
+    padding: max(--spacing(8), calc(var(--shell-inset) + --spacing(6))) --spacing(10) --spacing(2);
+  }
+  .mg-top > * {
+    inline-size: 100%;
+    max-inline-size: var(--measure);
+  }
+  .mg-top__last {
+    max-inline-size: var(--measure);
+    text-align: start;
+  }
+  .mg-index {
+    grid-column: 2;
+    position: static;
+    display: grid;
+    align-items: end;
+    padding: max(--spacing(8), calc(var(--shell-inset) + --spacing(6))) --spacing(10) --spacing(2);
+    background: var(--color-blue-800);
+    box-shadow: none;
+  }
+  .mg-index__list {
+    max-inline-size: var(--measure);
+    flex-wrap: wrap;
+    padding: 0;
+    overflow: visible;
+  }
+  .mg-index__to {
+    color: var(--color-neutral-100);
+    box-shadow: inset 0 0 0 1px var(--color-rule);
+  }
+  .mg-index__to:hover {
+    color: var(--color-white);
+    background: oklch(from var(--color-white) l c h / 12%);
+  }
+  .mg-apart,
+  .mg-halves,
+  .mg-elsewhere {
+    grid-column: 1 / -1;
   }
   .mg-halves {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   .mg-paper,
   .mg-water {
-    padding: max(--spacing(8), calc(var(--shell-inset) + --spacing(4))) --spacing(10) --spacing(12);
+    padding: --spacing(6) --spacing(10) --spacing(12);
   }
   /* each half's content stands against the seam, so the two meet in the middle */
   .mg-paper {
-    justify-items: end;
+    align-items: flex-end;
   }
   .mg-water {
-    justify-items: start;
+    align-items: flex-start;
+    background: linear-gradient(
+      175deg,
+      var(--color-blue-800) 0%,
+      var(--color-blue-950) 38%,
+      var(--color-neutral-950) 100%
+    );
+  }
+  /* THE STAGE STANDS BESIDE ITS CHOICES (the judge, L2: it was static at y 252–611 while its
+     choices ran to y 2,600), on a navy plate of its own while they pass under it */
+  .mg-stage-wrap {
+    position: sticky;
+    inset-block-start: calc(var(--shell-inset) + --spacing(3));
+    z-index: 2;
+    gap: --spacing(2);
+    padding: --spacing(3);
+    border-radius: var(--radius-plate);
+    background: var(--color-blue-950);
+    box-shadow:
+      0 0 0 1px var(--color-rule),
+      var(--shadow-toast);
+  }
+  /* COMPACT WHILE IT STANDS, so its choices keep the larger share of the window under it */
+  .mg-stage-wrap .mg-mini__sea {
+    min-block-size: --spacing(28);
+    padding: --spacing(3);
+  }
+  .mg-stage-wrap .mg-mini__boat {
+    aspect-ratio: 2 / 1;
+  }
+  .mg-stage-wrap .mg-mini__maker {
+    block-size: --spacing(8);
+  }
+  /* A PART OF THE WATER THE INDEX LANDS, AND ANY CONTROL A CARET OR A PRESS BRINGS INTO VIEW,
+     stands under the stage and over the dock, never behind either */
+  .mg-water .mg-group,
+  .mg-water .mg-group * {
+    scroll-margin-block-start: calc(var(--shell-inset) + var(--mg-stage, 0px) + --spacing(6));
+    scroll-margin-block-end: calc(var(--mg-dock, 0px) + --spacing(8));
+  }
+  /* WITH NO DRAFT, THE PAGES' PLACE IS DRAWN AS A SHEET OF A4, dashed, as an empty line is */
+  .mg-proof-none {
+    aspect-ratio: 210 / 297;
+    inline-size: min(100%, 26rem);
+    align-content: center;
+    justify-items: center;
+    text-align: center;
+    padding: --spacing(10);
+    background: var(--color-white);
+  }
+  .mg-dock[data-docks] {
+    inset-block-end: --spacing(4);
+  }
+  /* WHERE THE STAGE COMES TO REST: a standing element stays inside its half, so at the half's end
+     it would stand over the last choices and the dock; the half keeps the stage's own height
+     after them, and the stage rests there, under everything it stood beside */
+  .mg-water::after {
+    content: '';
+    flex: none;
+    block-size: var(--mg-stage, 0px);
+    margin-block-start: calc(-1 * --spacing(4));
+  }
+  .mg-elsewhere {
+    padding-inline: --spacing(10);
+    justify-items: center;
+  }
+  .mg-elsewhere > * {
+    inline-size: 100%;
+    max-inline-size: calc(2 * var(--measure) + --spacing(20));
+  }
+  .mg-elsewhere__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (min-width: 1680px) {
   .mg-paper,
-  .mg-water {
+  .mg-water,
+  .mg-top,
+  .mg-index {
     padding-inline: --spacing(16);
   }
-}
-
-/* WHO IS AT THIS DESK, and the way to hand it to someone else (the flow round, 2026-10-30): one
-   line under the people's head, the sentence then its act, wrapping under it on a phone */
-.mg-desk {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: --spacing(1) --spacing(3);
-  margin: 0 0 --spacing(3);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.mg-desk b {
-  color: var(--color-ink);
-  font-weight: 600;
 }

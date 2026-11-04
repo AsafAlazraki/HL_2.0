@@ -56,11 +56,21 @@ test('the details set on /manage print on the next quote given, and never move o
   await setLine(page, /^ABN — none given/, 'ABN', ABN)
   await setLine(page, /^Phone — none given/, 'Phone', '07 3265 1022')
   await setLine(page, 'Set a quote stands for', 'A quote stands for', '30')
+  /* THE DEPOSIT AS NORTHSIDE'S RULE (the data round, 2026-11-04): 10% of the quote's own total */
+  await page.getByRole('button', { name: 'Set deposit' }).click()
+  await page.locator('.ui-segmented-face', { hasText: /^A share$/ }).click()
+  await page.getByRole('textbox', { name: 'Share of the total, in %' }).fill('10')
+  await expect(page.getByTestId('manage-deposit-worked')).toContainText(
+    /the deposit prints as \$\d/,
+  )
+  await page.getByTestId('manage-editor').getByRole('button', { name: 'Keep' }).click()
+  await expect(page.getByTestId('manage-editor')).toHaveCount(0)
   await page.getByRole('button', { name: 'Keep Asaf as a person' }).click()
   await page.getByRole('textbox', { name: 'Title' }).fill('Sales manager')
   await page.getByRole('textbox', { name: 'Phone', exact: true }).fill('0400 111 222')
   await page.getByTestId('manage-person').getByRole('button', { name: 'Keep' }).click()
-  await expect(page.getByText('Sales manager')).toBeVisible()
+  /* on the person's card: at a desk the quote's own pages, drawn beside it, print it too */
+  await expect(page.locator('#mg-people-g').getByText('Sales manager')).toBeVisible()
   await written(page)
 
   /* the draft is given on the build, and its printed quote opened from the finale */
@@ -79,6 +89,18 @@ test('the details set on /manage print on the next quote given, and never move o
   await expect(money).toContainText('Prepared by')
   await expect(money).toContainText('Sales manager')
   await expect(money).toContainText('0400 111 222')
+  /* the deposit worked from the given quote's own total, to the cent */
+  const figure = /\$([\d,]+(?:\.\d+)?)/.exec(await page.getByTestId('document-total').innerText())
+  const total = Number((figure?.[1] ?? '').replace(/,/g, ''))
+  expect(total).toBeGreaterThan(0)
+  const due = Math.round(total * 10) / 100
+  const said = `$${due.toLocaleString('en-AU', {
+    minimumFractionDigits: Number.isInteger(due) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`
+  await expect(money.locator('[data-deposit="figure"]')).toHaveText(
+    `Deposit, 10% of the total: ${said}`,
+  )
   const printed = await head.innerText()
   const documentAt = page.url()
   await written(page)
@@ -91,6 +113,10 @@ test('the details set on /manage print on the next quote given, and never move o
   await expect(
     page.getByRole('button', { name: `ABN, ABN ${ABN_LATER} — change it` }),
   ).toBeVisible()
+  await page.getByRole('button', { name: 'Change deposit' }).click()
+  await page.getByRole('textbox', { name: 'Share of the total, in %' }).fill('25')
+  await page.getByTestId('manage-editor').getByRole('button', { name: 'Keep' }).click()
+  await expect(page.getByTestId('manage-editor')).toHaveCount(0)
   await written(page)
 
   /* the given quote prints what it printed before, read again after a reload */
@@ -102,6 +128,7 @@ test('the details set on /manage print on the next quote given, and never move o
   const again = page.getByTestId('document').getByTestId('letterhead')
   await expect(again).toContainText(`ABN ${ABN}`)
   await expect(again).not.toContainText(ABN_LATER)
+  await expect(page.locator('.doc-money [data-deposit="figure"]')).toContainText('10% of the total')
   expect(await again.innerText()).toBe(printed)
 })
 

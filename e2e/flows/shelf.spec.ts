@@ -208,7 +208,9 @@ test('the shelf: a new price list is shown before it is written, applies, undoes
   await expect(page).toHaveURL(/\/shelf\?see=cleared/, { timeout: 60_000 })
   await shelfReady(page)
   await expect(
-    page.getByText(/^The price list is back as the Master Price File came with the app\. 1 quote,/),
+    page.getByText(
+      /^The price list is back as the Master Price File came with the app\. Still here: 1 quote/,
+    ),
   ).toBeVisible()
   await bringIn(page, bytes)
   await expect(band).toContainText(String(lines))
@@ -300,7 +302,7 @@ test('the shelf: a copy saved, everything forgotten, and the copy brought back i
   await page.getByRole('button', { name: 'Bring this copy back' }).click()
   await expect(page).toHaveURL(/\/shelf\?see=back/, { timeout: 60_000 })
   await shelfReady(page)
-  await expect(page.getByText(/^The copy is back: 1 quote,/)).toBeVisible()
+  await expect(page.getByText(/^The copy is back: 1 quote/)).toBeVisible()
   await expect(quotesKind.locator('.sf-kind__figure')).toHaveText('1')
 
   /* AND THE QUOTE THAT CAME BACK PRINTS THE PAPER IT WAS GIVEN AS — every word, read whole */
@@ -314,4 +316,48 @@ test('the shelf: a copy saved, everything forgotten, and the copy brought back i
   await expect(back).toContainText('07 3265 1022')
   await expect(back).not.toContainText('07 3265 9999')
   expect(await page.getByTestId('document').innerText()).toBe(printed)
+})
+
+test('a quote being written: the shelf says what Apply really does to it, before and after', async ({
+  page,
+}, info) => {
+  test.skip(
+    !['desktop', 'phone'].includes(info.project.name),
+    'the salesperson is walked at a desk and in a hand',
+  )
+  test.setTimeout(300_000)
+
+  /* a draft, never given: the boat the walk chooses, at the price the price list reads today */
+  await startAQuote(page)
+  await written(page)
+  const { sheet } = boatModule()
+  const bytes = writeWorkbook([sheet])
+
+  await page.goto('/shelf')
+  await shelfReady(page)
+  await bringIn(page, bytes)
+  await page.getByRole('button', { name: 'See every change' }).click()
+  await expect(page.locator('[data-see="changes"]')).toBeVisible()
+
+  /* BEFORE APPLY (verify-1.md, gap 3): the draft keeps its price, the list would read the new one,
+     and the difference is what choosing it again would make, never a move Apply makes */
+  const said = page.locator('.sf-stay .sf-drafts')
+  await expect(said).toContainText('1 quote being written carries 1 line this moves.')
+  await expect(said).toContainText('Apply leaves each quote as it is')
+  const line = said.locator('.sf-drafts__list li').first()
+  await expect(line).toContainText(/ keeps \$[\d,]+; the price list would read \$[\d,]+/)
+  await expect(line).toContainText(/\+\$1,000 if it is chosen again/)
+  const kept = /keeps (\$[\d,]+)/.exec(await line.innerText())![1]
+  if (process.env.HL2_SHELF_SHOTS) {
+    const size = `${page.viewportSize()!.width}x${page.viewportSize()!.height}`
+    await page.screenshot({
+      path: `docs/directions/data-round/shelf/${process.env.HL2_SHELF_SHOTS === '1' ? 'after' : process.env.HL2_SHELF_SHOTS}/17-sales-before--${size}.png`,
+    })
+  }
+
+  await page.getByRole('button', { name: /^Apply \d+ changes?$/ }).click()
+  await expect(page.getByText(/changes? (is|are) on the price list\.$/)).toBeVisible()
+  /* AFTER: the same draft still keeps its price, and the list now reads the new one */
+  await expect(said).toContainText('Apply left each quote as it was')
+  await expect(line).toContainText(`keeps ${kept}; the price list now reads`)
 })

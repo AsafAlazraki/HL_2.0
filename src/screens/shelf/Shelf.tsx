@@ -43,11 +43,17 @@ import {
   type BroughtNote,
 } from '@/domain/io/brought'
 import { validateEnvelope, type ProjectFile } from '@/domain/io/envelope'
+import {
+  copyHolds,
+  editionHere,
+  editionOfCopy,
+  type PriceListEdition,
+} from '@/domain/io/copyEdition'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { packedOn, provenanceOfSheet } from '@/screens/data/file'
-import { LAST_COPY_PREF, apartRefusal, clearThePriceList, saveACopy } from './acts'
+import { packedOn, provenanceOfSheet, shippedFile } from '@/screens/data/file'
+import { BROUGHT_PREF, LAST_COPY_PREF, apartRefusal, clearThePriceList, saveACopy } from './acts'
 import { bytesOf, inflateRaw, sizeOf } from './files'
-import { count, inventoryOf, plural, whenSaid, type Inventory } from './read'
+import { count, inventoryOf, kindsSaid, plural, whenSaid, type Inventory } from './read'
 import { Changes } from './Changes'
 import { useDrop } from './drop'
 import { Paste } from './Paste'
@@ -98,8 +104,7 @@ export interface ShelfProps {
   onNarrow?: (next: Narrow) => void
 }
 
-/** Where the account of every workbook brought in on this computer is kept. */
-export const BROUGHT_PREF = 'shelf.brought'
+export { BROUGHT_PREF }
 
 /** A workbook read on this visit, with what it would do. */
 export interface Brought {
@@ -123,6 +128,8 @@ export interface Applied {
   eventId: string
   /** the changes it wrote: what was kept */
   changes: number
+  /** ISO: when it was written, so a copy saved before it is never said to hold it */
+  at: string
   fileName: string
   /** THE CHANGE SHEET AS IT WAS APPLIED, so it reads what it wrote until Undo puts it back */
   plan: NewFilePlan
@@ -175,7 +182,12 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
   const [doorSaid, setDoorSaid] = useState<string | null>(null)
   /* the workbook whose changes Undo has just put back, so the shelf says so; null otherwise */
   const [putBack, setPutBack] = useState<string | null>(null)
-  const [copy, setCopy] = useState<{ data: ProjectFile; fileName: string } | null>(null)
+  const [copy, setCopy] = useState<{
+    data: ProjectFile
+    fileName: string
+    /** the price list the copy names, or null when it was saved before copies named one */
+    edition: PriceListEdition | null
+  } | null>(null)
   const [copySaid, setCopySaid] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
 
@@ -312,7 +324,7 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
       )
       return
     }
-    setCopy({ data: checked.data, fileName: file.name })
+    setCopy({ data: checked.data, fileName: file.name, edition: editionOfCopy(raw) })
     onSee('restore')
   }
 
@@ -330,15 +342,17 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
     }
     const outcome = catalogue.getState().apply(command)
     if (!isDone(outcome)) return outcome.refused || 'Nothing in it would change the price list.'
+    const at = new Date().toISOString()
     setApplied({
       eventId: outcome.event.id,
       changes: counted.in,
+      at,
       fileName: brought.fileName,
       plan: fresh.plan,
       set: fresh.set,
       choices,
     })
-    writeNotes(noteApplied(readNotes(), brought.noteId, counted.in, new Date().toISOString()))
+    writeNotes(noteApplied(readNotes(), brought.noteId, counted.in, at))
     setPutBack(null)
     return null
   }
@@ -374,10 +388,14 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
     )
   }
 
+  /* THE DAY IS ONE WORD TO A LINE BREAK (verify-1.md, gap 8): "16 / September 2026" at 390 */
   const editionName = edition.known
-    ? `The price list of ${packedOn(edition.file.packedAt, 'long')}`
+    ? `The price list of ${packedOn(edition.file.packedAt, 'long').replace(/ /g, '\u00a0')}`
     : 'The price list on this computer'
   const fingerprint = edition.known ? edition.file.sha256.slice(0, 12) : null
+  const copiedAt = typeof lastCopy === 'string' ? lastCopy : null
+  const since = appliedSince(notes)
+  const latest = since[since.length - 1]
 
   if (see === 'changes' && sheet && (brought || applied)) {
     return (
@@ -404,7 +422,9 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
         drafts={drafts}
         save={save}
         saved={saved}
-        lastCopy={typeof lastCopy === 'string' ? lastCopy : null}
+        lastCopy={copiedAt}
+        held={applied ? copyHolds(copiedAt, applied.at) : false}
+        putBack={applied ? null : putBack}
         back={() => onSee(undefined)}
         paste={() => onSee('paste')}
         putDown={putDown}
@@ -417,12 +437,14 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
       <BringBack
         copy={copy.data}
         fileName={copy.fileName}
+        copyEdition={copy.edition}
         here={inventory}
         hereRows={rows}
         hereQuotes={quoteList}
-        edition={editionName}
+        hereEdition={editionHere(shippedFile(), version, notes)}
         save={save}
         saved={saved}
+        lastCopy={copiedAt}
         back={() => onSee(undefined)}
       />
     )
@@ -433,6 +455,7 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
         here={inventory}
         save={save}
         saved={saved}
+        lastCopy={copiedAt}
         act={clearIt}
         back={() => onSee(undefined)}
       />
@@ -442,7 +465,7 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
     return (
       <ForgetPage
         here={inventory}
-        lastCopy={typeof lastCopy === 'string' ? lastCopy : null}
+        lastCopy={copiedAt}
         save={save}
         saved={saved}
         back={() => onSee(undefined)}
@@ -450,8 +473,6 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
     )
   }
 
-  const since = appliedSince(notes)
-  const latest = since[since.length - 1]
   const now = new Date()
 
   return (
@@ -477,19 +498,19 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
           {!edition.known ? <p className="sf-head__say">{edition.because}</p> : null}
         </div>
         <SaveNow
-          lastCopy={typeof lastCopy === 'string' ? lastCopy : null}
+          lastCopy={copiedAt}
           saved={saved}
           save={() => void save()}
-          after={applied ? applied.changes : null}
+          latest={latest ?? null}
         />
       </header>
 
       {see === 'back' || see === 'cleared' || see === 'unread' || see === 'uncopied' ? (
         <p className="sf-landed" aria-live="polite">
           {see === 'back'
-            ? `The copy is back: ${plural(inventory.quotes, 'quote', 'quotes')}, ${plural(inventory.customers, 'customer', 'customers')}, ${plural(inventory.rules, 'rule', 'rules')} Northside wrote, and ${count(inventory.lines)} lines of the price list.`
+            ? `The copy is back: ${[kindsSaid(inventory), `${count(inventory.lines)} lines of the price list`].filter(Boolean).join(', and ')}.`
             : see === 'cleared'
-              ? `The price list is back as the Master Price File came with the app. ${plural(inventory.quotes, 'quote', 'quotes')}, ${plural(inventory.customers, 'customer', 'customers')} and ${plural(inventory.rules, 'rule', 'rules')} Northside wrote are still here.`
+              ? `The price list is back as the Master Price File came with the app.${kindsSaid(inventory) ? ` Still here: ${kindsSaid(inventory)}.` : ''}`
               : see === 'unread'
                 ? 'The page was opened again, and a workbook read before that is not kept. Bring it in again to see its changes; what was done with it is listed under Files brought in.'
                 : 'The page was opened again, and a copy chosen before that is not kept. Choose it again to set it beside this computer.'}
@@ -581,28 +602,37 @@ function SaveNow({
   lastCopy,
   saved,
   save,
-  after,
+  latest,
 }: {
   lastCopy: string | null
   saved: string | null
   save: () => void
-  /** changes just applied that no copy holds yet, or null */
-  after: number | null
+  /** the last workbook applied and still on the price list, or null */
+  latest: BroughtNote | null
 }) {
   const now = new Date()
+  /* A COPY HOLDS AN APPLY ONLY WHEN IT WAS SAVED AFTER IT (verify-1.md, gap 2): measured against
+     the account, so it holds across a reload and a walk away from the shelf as well */
+  const unheld = latest !== null && !copyHolds(lastCopy, latest.at ?? latest.read)
   return (
     <Plate as="aside" pad="md" label="Save a copy">
       <div className="sf-savenow">
         <p className="sf-savenow__say" aria-live="polite" data-none={lastCopy ? undefined : ''}>
-          {saved && lastCopy ? (
+          {unheld ? (
+            <>
+              <strong>
+                {latest.file}:{' '}
+                {plural(latest.applied ?? latest.changes, 'change is', 'changes are')} on the price
+                list
+              </strong>{' '}
+              that no copy holds yet
+              {lastCopy ? `; the last copy was saved ${whenSaid(lastCopy, now)}, before Apply` : ''}
+              .
+            </>
+          ) : saved && lastCopy ? (
             <>
               <strong>Last copy saved {whenSaid(lastCopy, now)}</strong>, as {saved}. Keep it
               somewhere a new computer can reach.
-            </>
-          ) : after !== null ? (
-            <>
-              <strong>{plural(after, 'change is', 'changes are')} on the price list</strong> that no
-              copy holds yet.
             </>
           ) : lastCopy ? (
             <>
@@ -617,7 +647,7 @@ function SaveNow({
         </p>
         <span className="sf-savenow__act">
           <Button intent="act" icon={DownloadSimpleIcon} onClick={save}>
-            {saved ? 'Save another copy' : 'Save a copy'}
+            {unheld ? 'Save a copy now' : lastCopy ? 'Save another copy' : 'Save a copy'}
           </Button>
         </span>
       </div>
@@ -733,7 +763,11 @@ function FilesBroughtIn({
           }}
         />
       </header>
-      {said ? <Refusal on="room">{said}</Refusal> : null}
+      {said ? (
+        <Refusal on="room" wide>
+          {said}
+        </Refusal>
+      ) : null}
 
       {reading ? (
         <p className="sf-files__reading" aria-live="polite">

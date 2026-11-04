@@ -23,6 +23,10 @@
 .ui-refusal[data-on='room'] {
   color: var(--color-ink-reason);
 }
+/* SET ACROSS A WIDE PLATE (`wide`): the plate's own measure, not a control's */
+.ui-refusal[data-wide] {
+  max-width: 96ch;
+}
 /* the glyph sits on the first line's centre: 13px type at 1.5 is a 19.5px line, 16px glyph */
 .ui-refusal > .ui-icon {
   margin-block-start: 0.1em;

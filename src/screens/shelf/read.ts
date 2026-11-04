@@ -296,7 +296,45 @@ export function figureSaid(v: CellValue, as: 'money' | 'ratio' | 'plain'): strin
     if (!Number.isFinite(v)) return '—'
     return as === 'money' ? dollars(v) : as === 'ratio' ? ratio.format(v) : plainNumber.format(v)
   }
-  return v.replace(/s+/g, ' ').trim()
+  return v.replace(/\s+/g, ' ').trim()
+}
+
+/** The places a kind is read to, and the most a move is ever followed to. */
+const PLACES = { money: 2, ratio: 3, plain: 2 } as const
+const DEEPEST = 6
+
+function atPlaces(v: number, as: 'money' | 'ratio' | 'plain', places: number): string {
+  return new Intl.NumberFormat('en-AU', {
+    ...(as === 'money' ? { style: 'currency' as const, currency: 'AUD' } : {}),
+    minimumFractionDigits: as === 'plain' ? 0 : PLACES[as],
+    maximumFractionDigits: places,
+  }).format(v)
+}
+
+/**
+ * A FIGURE THAT MOVED, BOTH SIDES OF THE ARROW, AT THE PRECISION THAT MOVED. The sheet printed
+ * "$479.20 → $479.20" on a Dealer Fit line where the price list carried 479.204 and the
+ * workbook 479.2 (verify-1.md, gap 1): the two read alike at cents. Where the usual places say
+ * the same, both sides are read one place further until they differ, as far as six; "$479.204 →
+ * $479.20", "$8.41 → $8.415". A figure that moves by less than that is not a change at all
+ * (`movesNothing`, src/domain/io/noise.ts) and never reaches here.
+ */
+export function movedSaid(
+  from: CellValue,
+  to: CellValue,
+  as: 'money' | 'ratio' | 'plain',
+): { from: string; to: string } {
+  const was = figureSaid(from, as)
+  const now = figureSaid(to, as)
+  if (was !== now || typeof from !== 'number' || typeof to !== 'number')
+    return { from: was, to: now }
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return { from: was, to: now }
+  for (let places = PLACES[as] + 1; places <= DEEPEST; places += 1) {
+    const a = atPlaces(from, as, places)
+    const b = atPlaces(to, as, places)
+    if (a !== b) return { from: a, to: b }
+  }
+  return { from: was, to: now }
 }
 
 /** A move as a share of where it was: "+6%", "−97%"; null where it cannot be said. */
@@ -309,6 +347,26 @@ export function shareMoved(from: CellValue, to: CellValue): string | null {
 
 export const plural = (n: number, one: string, many: string): string =>
   `${count(n)} ${n === 1 ? one : many}`
+
+/** A list said as a person says it: "a", "a and b", "a, b and c". */
+export function listSaid(words: readonly string[]): string {
+  if (words.length <= 1) return words[0] ?? ''
+  return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`
+}
+
+/**
+ * NORTHSIDE'S OWN WORK, SAID WITHOUT ITS NOUGHTS: "1 quote and 2 customers". The clear page read
+ * "0 quotes… 0 customers, 0 rules Northside wrote" (verify-1.md, gap 9): a kind with none is
+ * left out of the sentence, and with none of any, null, so the sentence that holds it says so.
+ */
+export function kindsSaid(n: Pick<Inventory, 'quotes' | 'customers' | 'rules'>): string | null {
+  const said = [
+    n.quotes > 0 ? plural(n.quotes, 'quote', 'quotes') : null,
+    n.customers > 0 ? plural(n.customers, 'customer', 'customers') : null,
+    n.rules > 0 ? plural(n.rules, 'rule Northside wrote', 'rules Northside wrote') : null,
+  ].filter((x): x is string => x !== null)
+  return said.length === 0 ? null : listSaid(said)
+}
 
 /** A copy's own day, said: "today at 9:41", "29 October at 16:02". */
 export function whenSaid(iso: string, now: Date): string {

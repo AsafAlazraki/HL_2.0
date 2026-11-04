@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import { inkOf, veilFor, type InkReading, type VeilReading } from '@/domain/northside/pixels'
+import { sourceColourOf, type SourceColour } from '@/domain/northside/source'
 
 /** The part of Home's sea the name and the greeting stand over: its middle, as a share. */
 const WORDS = { x: 0.15, y: 0.2, w: 0.7, h: 0.6 }
@@ -99,4 +100,34 @@ export function useVeils(srcs: readonly { id: string; src: string }[]): Map<stri
     /* the caller hands the list memoised: a new list is a new reading */
   }, [srcs])
   return read
+}
+
+/** THE COLOUR A PHOTOGRAPH'S OWN PIXELS CARRY (`sourceColourOf`), read once per picture; null
+ *  while it is read, where it carries none, or where this browser cannot read it. */
+export function useSourceColour(src: string | null): SourceColour | null {
+  const [read, setRead] = useState<{ of: string; colour: SourceColour | null } | null>(null)
+  useEffect(() => {
+    if (!src || typeof document === 'undefined' || typeof Image === 'undefined') return
+    let alive = true
+    load(src)
+      .then((img) => {
+        const w = READ_WIDTH
+        const h = Math.max(1, Math.round((img.naturalHeight / img.naturalWidth) * w))
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
+        if (!ctx) return
+        ctx.drawImage(img, 0, 0, w, h)
+        const colour = sourceColourOf(ctx.getImageData(0, 0, w, h).data)
+        if (alive) setRead({ of: src, colour })
+      })
+      .catch(() => {
+        /* a picture that would not be read offers no colour */
+      })
+    return () => {
+      alive = false
+    }
+  }, [src])
+  return src && read?.of === src ? read.colour : null
 }

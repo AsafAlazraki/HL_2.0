@@ -7,6 +7,7 @@
    ============================================================ */
 
 import type {
+  DepositRule,
   HomeSection,
   OrgGround,
   OrgHome,
@@ -42,6 +43,16 @@ function person(raw: unknown): OrgPerson | undefined {
   }
   if (raw.mayChange === false) out.mayChange = false
   return out
+}
+
+/** A deposit rule: a share from 1 to 100, or a fixed figure over $0 (src/domain/northside/deposit.ts). */
+export function depositRule(raw: unknown): DepositRule | undefined {
+  if (!isBag(raw)) return undefined
+  const share = num(raw.share, 1, 100)
+  if (share !== undefined && raw.amount === undefined) return { share }
+  const amount = num(raw.amount, 0.01, 10_000_000)
+  if (amount !== undefined && raw.share === undefined) return { amount }
+  return undefined
 }
 
 function markFile(raw: unknown): OrgMarkFile | undefined {
@@ -137,6 +148,8 @@ export function readOrg(raw: unknown, stamp = ''): OrgProfile | undefined {
     const water = markFile(raw.marks.water)
     if (paper || water) out.marks = { ...(paper ? { paper } : {}), ...(water ? { water } : {}) }
   }
+  const rule = depositRule(raw.depositRule)
+  if (rule) out.depositRule = rule
   const l = look(raw.look)
   if (l) out.look = l
   const h = home(raw.home)

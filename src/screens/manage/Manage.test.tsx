@@ -243,3 +243,77 @@ describe('shape, spacing and motion', () => {
     expect(catalogue.getState().org?.look?.corners).toBe('square')
   })
 })
+
+describe('the data round’s deepening (judge of 2026-11-04)', () => {
+  it('names the page, and says who changed what last', () => {
+    draw()
+    expect(screen.getByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument()
+    /* who changed what last, or that nothing is kept yet: stamps outlive one case here */
+    expect(screen.getByTestId('manage-last')).toHaveTextContent(
+      /^(Nothing is set yet|Last changed: |Who changes a setting)/,
+    )
+    expect(screen.getByRole('navigation', { name: 'Settings, by part' })).toBeInTheDocument()
+  })
+
+  it('keeps the deposit as a rule, refused in a sentence where it cannot be one', async () => {
+    const { again } = draw()
+    await press('Set deposit')
+    again()
+    await userEvent.click(screen.getByRole('radio', { name: 'A share' }))
+    await userEvent.type(screen.getByRole('textbox', { name: 'Share of the total, in %' }), '0')
+    await press('Keep')
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'A deposit share is from 1 to 100, as in 10 for 10% of the total.',
+    )
+    await userEvent.clear(screen.getByRole('textbox', { name: 'Share of the total, in %' }))
+    await userEvent.type(screen.getByRole('textbox', { name: 'Share of the total, in %' }), '10')
+    await press('Keep')
+    again()
+    expect(catalogue.getState().org?.depositRule).toEqual({ share: 10 })
+    expect(screen.getByText('10% of each quote’s total')).toBeInTheDocument()
+  })
+
+  it('takes the set-apart refusal away once it is no longer true', async () => {
+    const { again } = draw()
+    await press('Keep Asaf as a person')
+    again()
+    await press('Keep')
+    again()
+    await userEvent.click(screen.getByRole('switch', { name: 'May change prices and settings' }))
+    expect(screen.getByText(/this is the last person who may/)).toBeInTheDocument()
+    place = { person: 'new' }
+    again()
+    await userEvent.type(screen.getByRole('textbox', { name: 'Name' }), 'Sam')
+    await press('Keep')
+    place = {}
+    again()
+    expect(screen.queryByText(/this is the last person who may/)).toBeNull()
+  })
+
+  it('writes the chosen colour into the field, so it never reads a colour no longer tried', async () => {
+    draw()
+    await userEvent.type(screen.getByRole('textbox', { name: 'Any other colour' }), '#FFEA28')
+    await press('Try it')
+    await userEvent.click(screen.getByRole('button', { name: /^From the mark, #0066CC/ }))
+    expect(screen.getByRole('textbox', { name: 'Any other colour' })).toHaveValue('#0066CC')
+  })
+
+  it('counts what Northside decided in the other rooms, a count of nothing said as nothing', () => {
+    draw()
+    const elsewhere = screen.getByTestId('manage-elsewhere')
+    expect(within(elsewhere).getAllByRole('listitem')).toHaveLength(6)
+    expect(within(elsewhere).getByText('None chosen here')).toBeInTheDocument()
+    expect(within(elsewhere).getByRole('link', { name: 'Prices: open Prices' })).toHaveAttribute(
+      'href',
+      '/levels',
+    )
+  })
+
+  it('with no draft, says there are no pages to draw on rather than drawing a made-up quote', () => {
+    draw()
+    expect(screen.getByTestId('manage-proof-none')).toHaveTextContent(
+      'No quote has been started on this computer yet',
+    )
+    expect(screen.queryByTestId('manage-proof')).toBeNull()
+  })
+})

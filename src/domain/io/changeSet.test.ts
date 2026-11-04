@@ -266,13 +266,25 @@ describe.runIf(existsSync(REAL))('Northside’s Parts Module (2), as the judge m
       sheetsOnThePriceList(data).has(n),
     )
     const real = changeSetOf(planNewFile(book, data, 'Parts Module (2).xlsx'), book, data)
+    /* 3,042 change, where 3,082 did before 2026-11-04: 40 lines moved nothing but the workbook's own
+       arithmetic past the ninth place or a space at a name's end (see ./noise.ts), and are not changes */
     expect([real.changing, real.adding, real.cannot, real.suggested, real.doubled]).toEqual([
-      3082, 817, 61, 47, 25,
+      3042, 817, 61, 47, 25,
     ])
-    expect(real.unmoved).toBe(12609)
+    expect(real.unmoved).toBe(12649)
+    /* and no figure that moves reads alike either side, to six places */
+    const alike = real.lines.flatMap((l) =>
+      [...l.cells, ...(l.candidates ?? []).flatMap((c) => c.cells)].filter(
+        (c) =>
+          typeof c.from === 'number' &&
+          typeof c.to === 'number' &&
+          c.from.toFixed(6) === c.to.toFixed(6),
+      ),
+    )
+    expect(alike).toEqual([])
     /* no Dealer Fit line is a bare count of figures: each names what moves */
     const fit = real.lines.filter((l) => l.tableId === 'dealer_fit' && l.fate === 'change')
-    expect(fit.length).toBe(1625)
+    expect(fit.length).toBe(1624)
     expect(fit.every((l) => l.cells.length > 0 && l.cells.every((c) => c.name !== ''))).toBe(true)
     /* IBC, found by its supplier: 58 tube covers, every one lower at Sell */
     const ibc = narrowed(real.lines, { supplier: 'IBC' })

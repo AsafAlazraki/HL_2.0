@@ -39,6 +39,7 @@ import type {
 } from '@/data/repository'
 import { NO_STAMPS, stamped, type Stamps } from '@/domain/catalogue/table/stamps'
 import { pricesStamped } from '@/domain/pricing/chosen'
+import { settingsStamped } from '@/domain/northside/stamped'
 import { holdGalleries, holdOwnPictures } from '@/data/ownPictures'
 import { standingGalleries, standingOwnPictures } from '@/domain/catalogue/pictureCommands'
 import type { GalleryOrder } from '@/domain/model/gallery'
@@ -835,7 +836,11 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
         stamps:
           orgId === null
             ? state.stamps
-            : pricesStamped(stamped(state.stamps, event, orgId), event, orgId),
+            : settingsStamped(
+                pricesStamped(stamped(state.stamps, event, orgId), event, orgId),
+                event,
+                orgId,
+              ),
       })
       keep(event)
       writeSoon(store)

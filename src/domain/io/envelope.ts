@@ -138,7 +138,7 @@ import {
 import { newId, nowIso } from '@/domain/id'
 import { readGalleryOrder, type GalleryOrder } from '@/domain/model/gallery'
 import { readOwnPicture, type OwnPicture } from '@/domain/model/ownPictures'
-import { readOrg } from '@/domain/northside/read'
+import { depositRule, readOrg } from '@/domain/northside/read'
 import { parseHex } from '@/domain/northside/colour'
 import { GROUNDS } from '@/domain/modules/livery'
 /* TYPE-ONLY, so the validator still depends on the model and nothing
@@ -1558,6 +1558,9 @@ function normLetterhead(raw: unknown): FrozenLetterhead | undefined {
   }
   const deposit = printedLine(raw.deposit, 2000)
   if (deposit) out.deposit = deposit
+  /* the deposit rule it was given with, read as Settings keeps one (src/domain/northside/read.ts) */
+  const rule = depositRule(raw.depositRule)
+  if (rule) out.depositRule = rule
   const mark = normMark(raw.mark)
   if (mark) out.mark = mark
   if (

@@ -190,6 +190,48 @@ describe('a new price list brought in', () => {
     await user.click(screen.getByRole('button', { name: 'Undo' }))
     await waitFor(() => expect(sellOf(tube.id)).toBe(tube.values['parts.l']))
   })
+
+  it('never says a copy saved before Apply holds it, names the price list a copy holds, and says Undo where it was pressed', async () => {
+    const user = userEvent.setup()
+    prefs.getState().forgetAll()
+    const tube = pack.rowsByEntity.parts.find(
+      (r) => r.values['parts.c'] === 'Tube Covers to suit PVC Boat - 2.0 Mtr',
+    )!
+    const bytes = writeWorkbook([
+      {
+        name: 'Parts Maintenance',
+        lines: [{ at: 597, cells: { C: 'Tube Covers to suit PVC Boat - 2.0 Mtr', L: 1540 } }],
+      },
+    ])
+    render(<Driven />)
+    /* a copy saved first, as a careful manager would (verify-1.md, gap 2) */
+    await user.click(screen.getByRole('button', { name: 'Save a copy' }))
+    expect(JSON.parse(handed.text).priceList).toMatchObject({ version: '1', applied: [] })
+    fireEvent.change(screen.getByTestId('shelf-workbook'), {
+      target: { files: [new File([bytes.buffer as ArrayBuffer], 'Parts Module (2).xlsx')] },
+    })
+    await user.click(await screen.findByRole('button', { name: 'See every change' }))
+    await user.click(screen.getByRole('button', { name: 'Apply 1 change' }))
+    expect(document.querySelector('.sf-dock')?.textContent).toMatch(
+      /No copy holds it yet: .* was saved before Apply. Undo/,
+    )
+    expect(screen.getByRole('button', { name: 'Save a copy now' })).toBeInTheDocument()
+
+    /* saved after it, the copy holds it and names the workbook applied to its price list */
+    await user.click(screen.getByRole('button', { name: 'Save a copy now' }))
+    await waitFor(() => expect(screen.getByText(/^Saved as /)).toBeInTheDocument())
+    const named = JSON.parse(handed.text).priceList
+    expect(named.applied).toHaveLength(1)
+    expect(named.applied[0]).toMatchObject({ file: 'Parts Module (2).xlsx', changes: 1 })
+
+    /* Undo from the dock is said on the sheet itself (verify-1.md, gap 12) */
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(sellOf(tube.id)).toBe(tube.values['parts.l']))
+    expect(
+      screen.getByText(/^Put back by Undo: nothing of it is on the price list now\./),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Apply 1 change' })).toBeInTheDocument()
+  })
 })
 
 /* ------------------------------------------------------------ */

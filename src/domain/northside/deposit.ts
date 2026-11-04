@@ -25,13 +25,15 @@ import { money } from '@/domain/money'
 export type DepositWay = 'none' | 'share' | 'amount'
 
 /** The rule as it is kept, or the sentence that refuses what was typed. */
-export type DepositTyped = { ok: true; rule: DepositRule | undefined } | { ok: false; refused: string }
+export type DepositTyped =
+  { ok: true; rule: DepositRule | undefined } | { ok: false; refused: string }
 
 /** The most a fixed deposit may be: a figure past this is a slip of the keyboard. */
 export const DEPOSIT_MOST = 10_000_000
 
 export const SHARE_REFUSED = 'A deposit share is from 1 to 100, as in 10 for 10% of the total.'
-export const AMOUNT_REFUSED = 'A fixed deposit is an amount in dollars over $0, as in 5000 for $5,000.'
+export const AMOUNT_REFUSED =
+  'A fixed deposit is an amount in dollars over $0, as in 5000 for $5,000.'
 
 /** Read what a person typed for a deposit rule, or say why it cannot be kept. */
 export function readDepositRule(way: DepositWay, raw: string): DepositTyped {
@@ -92,7 +94,5 @@ export function depositOnPaper(rule: DepositRule | undefined, total: number | nu
   }
   if (due === null)
     return `Deposit: ${money(rule.amount)}, or the whole total where the total is less.`
-  return due < rule.amount
-    ? `Deposit: ${money(due)}, the whole total`
-    : `Deposit: ${money(due)}`
+  return due < rule.amount ? `Deposit: ${money(due)}, the whole total` : `Deposit: ${money(due)}`
 }

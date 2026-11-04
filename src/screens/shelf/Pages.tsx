@@ -8,6 +8,8 @@ import {
 } from '@phosphor-icons/react'
 import { Button, Icon, Plate } from '@/ui'
 import type { ProjectFile } from '@/domain/io/envelope'
+import { sameEdition, type PriceListEdition } from '@/domain/io/copyEdition'
+import { packedOn } from '@/screens/data/file'
 import type { QuoteDef, RowData } from '@/domain/model'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { priceListsBeside, quotesBeside } from '@/domain/io/beside'
@@ -17,6 +19,8 @@ import {
   forgetRefusal,
   hasOwnWork,
   inventoryOfCopy,
+  kindsSaid,
+  listSaid,
   plural,
   whenSaid,
   type Inventory,
@@ -43,6 +47,8 @@ interface PageProps {
   here: Inventory
   save: () => Promise<void>
   saved: string | null
+  /** ISO: when the last copy was saved on this computer, or null when none ever was */
+  lastCopy: string | null
   back: () => void
 }
 
@@ -52,6 +58,7 @@ function Frame({
   goes,
   stays,
   saved,
+  lastCopy,
   save,
   act,
   actSay,
@@ -66,6 +73,7 @@ function Frame({
   goes: ReactNode
   stays: ReactNode
   saved: string | null
+  lastCopy: string | null
   save: (() => Promise<void>) | null
   /** null when it went ahead; otherwise the sentence it was refused with */
   act: () => Promise<string | null>
@@ -127,12 +135,16 @@ function Frame({
             <p className="sf-page__saved" aria-live="polite">
               Saved as {saved}. The browser chose where it went.
             </p>
+          ) : lastCopy && save ? (
+            /* A COPY SAVED A MOMENT AGO IS SAID, and "first" is not asked of it again (verify-1.md,
+               gap 9): a copy saved before the page opened again is still a copy */
+            <p className="sf-page__saved">Last copy saved {whenSaid(lastCopy, new Date())}.</p>
           ) : null}
           <div className="sf-page__acts">
             {save ? (
               <span className="sf-page__safe">
                 <Button intent="act" icon={DownloadSimpleIcon} onClick={() => void save()}>
-                  {saved ? 'Save another copy' : 'Save a copy first'}
+                  {saved || lastCopy ? 'Save another copy' : 'Save a copy first'}
                 </Button>
               </span>
             ) : null}
@@ -158,9 +170,11 @@ export function ClearPage({
   here,
   save,
   saved,
+  lastCopy,
   back,
   act,
 }: PageProps & { act: () => Promise<string | null> }) {
+  const own = kindsSaid({ quotes: 0, customers: here.customers, rules: here.rules })
   return (
     <Frame
       testid="clear"
@@ -176,13 +190,24 @@ export function ClearPage({
       }
       stays={
         <>
-          <strong>{plural(here.quotes, 'quote', 'quotes')}</strong>: a clear never reaches a quote.{' '}
-          <strong>{plural(here.customers, 'customer', 'customers')}</strong>,{' '}
-          {plural(here.rules, 'rule', 'rules')} Northside wrote, its places and the prices it
-          decided, and its settings.
+          {here.quotes > 0 ? (
+            <strong>{plural(here.quotes, 'quote', 'quotes')}</strong>
+          ) : (
+            'Every quote'
+          )}
+          : a clear never reaches a quote.{' '}
+          {own ? (
+            <>
+              <strong>{own}</strong>, Northside’s places
+            </>
+          ) : (
+            'Northside’s places'
+          )}
+          , the prices it decided and its settings.
         </>
       }
       saved={saved}
+      lastCopy={lastCopy}
       save={save}
       act={act}
       actSay="Clear the price list from this computer"
@@ -191,13 +216,17 @@ export function ClearPage({
   )
 }
 
-export function ForgetPage({
-  here,
-  lastCopy,
-  save,
-  saved,
-  back,
-}: PageProps & { lastCopy: string | null }) {
+export function ForgetPage({ here, lastCopy, save, saved, back }: PageProps) {
+  /* what goes, without its noughts: a kind with none is not said (verify-1.md, gap 9) */
+  const own = listSaid(
+    [
+      here.quotes > 0
+        ? `${plural(here.quotes, 'quote', 'quotes')}${here.given > 0 ? ` (${count(here.given)} given)` : ''}`
+        : null,
+      here.customers > 0 ? plural(here.customers, 'customer', 'customers') : null,
+      here.rules > 0 ? plural(here.rules, 'rule Northside wrote', 'rules Northside wrote') : null,
+    ].filter((x): x is string => x !== null),
+  )
   return (
     <Frame
       testid="forget"
@@ -206,11 +235,13 @@ export function ForgetPage({
       say="This computer keeps nothing of Northside’s afterwards, and asks who is at the desk again. Use it before a computer is handed on."
       goes={
         <>
-          The price list, <strong>{plural(here.quotes, 'quote', 'quotes')}</strong> (
-          {count(here.given)} given),{' '}
-          <strong>{plural(here.customers, 'customer', 'customers')}</strong>,{' '}
-          {plural(here.rules, 'rule', 'rules')} Northside wrote, its settings and pictures, and the
-          name given at the start.
+          The price list
+          {own ? (
+            <>
+              , <strong>{own}</strong>
+            </>
+          ) : null}
+          , its settings and pictures, and the name given at the start.
         </>
       }
       stays={
@@ -225,6 +256,7 @@ export function ForgetPage({
         )
       }
       saved={saved}
+      lastCopy={lastCopy}
       save={save}
       act={forgetEverything}
       refused={forgetRefusal(here, Boolean(saved || lastCopy))}
@@ -240,16 +272,21 @@ export function BringBack({
   here,
   hereRows,
   hereQuotes,
-  edition,
+  hereEdition,
+  copyEdition,
   save,
   saved,
+  lastCopy,
   back,
 }: PageProps & {
   copy: ProjectFile
   fileName: string
   hereRows: Readonly<Record<string, readonly RowData[]>>
   hereQuotes: readonly QuoteDef[]
-  edition: string
+  /** the price list this computer holds, as a copy saved now would name it */
+  hereEdition: PriceListEdition
+  /** the price list the copy names, or null when it was saved before copies named one */
+  copyEdition: PriceListEdition | null
 }) {
   const theirs = inventoryOfCopy(copy)
   const now = new Date()
@@ -279,8 +316,19 @@ export function BringBack({
             <thead>
               <tr>
                 <th scope="col">Kind</th>
-                <th scope="col">This computer</th>
-                <th scope="col">The copy</th>
+                {/* in a hand the two short words, so the kind keeps the room (verify-1.md, gap 6) */}
+                <th scope="col">
+                  <span className="sf-beside__long">This computer</span>
+                  <span className="sf-beside__short" aria-hidden="true">
+                    Here
+                  </span>
+                </th>
+                <th scope="col">
+                  <span className="sf-beside__long">The copy</span>
+                  <span className="sf-beside__short" aria-hidden="true">
+                    Copy
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -295,10 +343,14 @@ export function BringBack({
           </table>
           <ul className="sf-beside__said">
             <li>
-              <strong>The price list.</strong> This computer holds{' '}
-              {edition.replace(/^The p/, 'the p')}. Of the copy’s{' '}
-              {count(lists.same + lists.differ + lists.copyOnly)} lines, {count(lists.same)} read
-              exactly as they do here
+              <strong>The price list.</strong> This computer holds {editionSaid(hereEdition, now)}.{' '}
+              {copyEdition === null
+                ? 'The copy does not name its price list: it was saved before copies named the price list they carry.'
+                : sameEdition(copyEdition, hereEdition)
+                  ? 'The copy holds the same.'
+                  : `The copy holds ${editionSaid(copyEdition, now)}.`}{' '}
+              Of the copy’s {count(lists.same + lists.differ + lists.copyOnly)} lines,{' '}
+              {count(lists.same)} read exactly as they do here
               {lists.differ > 0 ? `, ${count(lists.differ)} read differently` : ''}
               {lists.copyOnly > 0 ? `, and ${count(lists.copyOnly)} are only in the copy` : ''}
               {lists.hereOnly > 0 ? `; ${count(lists.hereOnly)} here are not in it and go` : ''}.
@@ -345,10 +397,25 @@ export function BringBack({
         </>
       }
       saved={saved}
+      lastCopy={lastCopy}
       save={hasWork ? save : null}
       act={() => bringBack(copy)}
       actSay="Bring this copy back"
       back={back}
     />
   )
+}
+
+/** A price list named as a person says it: the Master Price File it came from, and every workbook
+ *  applied to it since, each with its day and how many of its changes. */
+function editionSaid(e: PriceListEdition, now: Date): string {
+  const from = e.packedAt
+    ? `the price list of ${packedOn(e.packedAt, 'long')}${e.fingerprint ? ` (${e.fingerprint})` : ''}`
+    : 'a price list this app was not shipped with'
+  if (e.applied.length === 0) return `${from}, with no workbook applied since`
+  return `${from}, with ${listSaid(
+    e.applied.map(
+      (a) => `${a.file} applied ${whenSaid(a.at, now)} (${plural(a.changes, 'change', 'changes')})`,
+    ),
+  )}`
 }

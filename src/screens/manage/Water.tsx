@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   ArrowDownIcon,
   ArrowUUpLeftIcon,
@@ -56,7 +56,9 @@ import { greetingFor } from '@/screens/home/Home'
 import { packMark } from '@/screens/home/mark'
 import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
-import { readMark, useVeils } from './measure'
+import { boatNamed } from '@/domain/northside/boatNamed'
+import { readMark, useSourceColour, useVeils } from './measure'
+import { useHeightOnRoot } from './hooks'
 
 /* ============================================================
    THE WATER — what shows on every screen at Northside, measured on the
@@ -115,6 +117,10 @@ export function Water({ open }: { open: boolean }) {
   const [staged, setStaged] = useState<Staged>({})
   const [surface, setSurface] = useState<'home' | 'door'>('home')
   const [refused, setRefused] = useState<string | null>(null)
+  /* the stage's own height, so a part the index lands at a desk stands under it, not behind it */
+  const [stageBox, setStageBox] = useState<HTMLElement | null>(null)
+  const [top, setTop] = useState<HTMLElement | null>(null)
+  useHeightOnRoot(stageBox, '--mg-stage')
 
   const boats = useMemo(() => (open ? everyPhotographed(tables, rows) : []), [open, tables, rows])
   /* the boat makers Home draws as doors, each by its own mark in dark ink where one is held and
@@ -143,6 +149,8 @@ export function Water({ open }: { open: boolean }) {
   const door = staged.door !== undefined ? staged.door : keptDoor
 
   const changes = changedLines(staged, { brand: keptBrand, hero: keptHero, door: keptDoor }, boats)
+  const docked = changes.length > 0 || refused !== null
+  const heroBoat = hero ? boats.find((b) => b.picture.id === hero.picture) : undefined
 
   const keepStaged = (): void => {
     const patch: Partial<OrgLook> = {}
@@ -182,7 +190,11 @@ export function Water({ open }: { open: boolean }) {
 
       {/* THE STAGE (board B's, grafted): Home or the sign-in page, small, wearing what has been
           tried before it is kept */}
-      <section className="mg-stage-wrap" aria-label="How it looks, before it is kept">
+      <section
+        className="mg-stage-wrap"
+        ref={setStageBox}
+        aria-label="How it looks, before it is kept"
+      >
         <div className="mg-stage-switch">
           <Segmented
             label="Drawn on"
@@ -206,74 +218,140 @@ export function Water({ open }: { open: boolean }) {
           white={white?.src ?? null}
           business={business}
         />
-        {changes.length > 0 ? (
-          <output className="mg-staged" data-testid="manage-staged">
-            <p className="mg-staged__lab">Changed, not kept</p>
-            <ul className="mg-staged__list">
-              {changes.map((c) => (
-                <li key={c.key}>{c.said}</li>
-              ))}
-            </ul>
-            <div className="mg-staged__acts">
-              <Button intent="act" size="sm" icon={CheckIcon} onClick={keepStaged}>
-                Keep
-              </Button>
-              <Button
-                intent="veiled"
-                size="sm"
-                icon={ArrowUUpLeftIcon}
-                onClick={() => {
-                  setStaged({})
-                  setRefused(null)
-                }}
-              >
-                Put back
-              </Button>
-            </div>
-          </output>
-        ) : null}
-        {refused ? (
-          <p className="mg-water-refused" role="alert">
-            <Refusal on="room">{refused}</Refusal>
-          </p>
-        ) : null}
       </section>
 
-      {open ? (
-        <>
-          <Colour
-            brand={brand}
-            kept={keptBrand}
-            business={business}
-            stage={(next) =>
-              setStaged((s) => ({ ...s, brand: next === keptBrand ? undefined : next }))
-            }
-          />
-          <Pictures
-            boats={boats}
-            veils={veils}
-            hero={hero}
-            door={door}
-            stageHero={(next) =>
-              setStaged((s) => ({
-                ...s,
-                hero: sameGround(next, keptHero) ? undefined : next,
-              }))
-            }
-            stageDoor={(next) =>
-              setStaged((s) => ({ ...s, door: next === keptDoor ? undefined : next }))
-            }
-          />
-          <WaterMark org={org} />
-          <HomeArrangement home={org?.home} boats={boats} />
-          <Shape look={org?.look} />
-        </>
-      ) : (
-        <p className="mg-said mg-said--water">
-          Northside’s colour, pictures and Home are set once a price list is open here.
-        </p>
-      )}
+      {/* THE CHOICES, AND THE DOCK THAT STANDS OVER THEM: its own room heads them while something is
+          tried, so where the choices enter the window from below the dock rests on that room and
+          never on the stage or a choice */}
+      <div className="mg-choices">
+        <span className="mg-choices__top" ref={setTop} aria-hidden="true" />
+        {open ? (
+          <>
+            <Colour
+              brand={brand}
+              kept={keptBrand}
+              business={business}
+              photo={
+                heroBoat
+                  ? {
+                      src: thumbOf(heroBoat.picture, 320),
+                      name: boatSaid(boats, heroBoat.picture.id),
+                    }
+                  : null
+              }
+              stage={(next) =>
+                setStaged((s) => ({ ...s, brand: next === keptBrand ? undefined : next }))
+              }
+            />
+            <Pictures
+              boats={boats}
+              veils={veils}
+              hero={hero}
+              door={door}
+              stageHero={(next) => {
+                setSurface('home')
+                setStaged((s) => ({
+                  ...s,
+                  hero: sameGround(next, keptHero) ? undefined : next,
+                }))
+              }}
+              stageDoor={(next) => {
+                setSurface('door')
+                setStaged((s) => ({ ...s, door: next === keptDoor ? undefined : next }))
+              }}
+            />
+            <WaterMark org={org} />
+            <HomeArrangement home={org?.home} boats={boats} />
+            <Shape look={org?.look} />
+          </>
+        ) : (
+          <p className="mg-said mg-said--water">
+            Northside’s colour, pictures and Home are set once a price list is open here.
+          </p>
+        )}
+
+        {/* CHANGED, NOT KEPT, DOCKED AT THE WINDOW'S FOOT while the water is in sight (the judge, L2:
+          at 844 × 390 its Keep stood at y = −172, above the press that staged it). It is the
+          water's last child, so it rests at the water's end and stands at the window's foot from
+          anywhere above it; the Undo of the last step stands above it, never on it. */}
+        {docked ? (
+          <Docked top={top}>
+            {changes.length > 0 ? (
+              <output className="mg-staged" data-testid="manage-staged">
+                <p className="mg-staged__lab">Changed, not kept</p>
+                <ul className="mg-staged__list">
+                  {changes.map((c) => (
+                    <li key={c.key}>{c.said}</li>
+                  ))}
+                </ul>
+                <div className="mg-staged__acts">
+                  <Button intent="act" size="sm" icon={CheckIcon} onClick={keepStaged}>
+                    Keep
+                  </Button>
+                  <Button
+                    intent="veiled"
+                    size="sm"
+                    icon={ArrowUUpLeftIcon}
+                    onClick={() => {
+                      setStaged({})
+                      setRefused(null)
+                    }}
+                  >
+                    Put back
+                  </Button>
+                </div>
+              </output>
+            ) : null}
+            {refused ? (
+              <p className="mg-water-refused" role="alert">
+                <Refusal on="room">{refused}</Refusal>
+              </p>
+            ) : null}
+          </Docked>
+        ) : null}
+      </div>
     </>
+  )
+}
+
+/** THE DOCK: its own height is written on the root while it stands, so the toaster lifts its cards
+ *  above it (manage.css, `--mg-dock`) */
+function Docked({ top, children }: { top: HTMLElement | null; children: ReactNode }) {
+  const [box, setBox] = useState<HTMLDivElement | null>(null)
+  useHeightOnRoot(box, '--mg-dock')
+  /* IT DOCKS ONCE THE CHOICES HAVE COME UP PAST IT: where their head is still in the window's
+     lower part, a docked bar could only stand on that head, so until then it rests at the water's
+     end and nothing is under it */
+  const [docks, setDocks] = useState(false)
+  useEffect(() => {
+    if (!box || !top || typeof window === 'undefined') return
+    let frame = 0
+    const read = (): void => {
+      frame = 0
+      const room = window.innerHeight - box.offsetHeight - 24
+      setDocks(top.getBoundingClientRect().top < room)
+    }
+    const soon = (): void => {
+      if (frame === 0) frame = requestAnimationFrame(read)
+    }
+    read()
+    window.addEventListener('scroll', soon, { passive: true })
+    window.addEventListener('resize', soon)
+    return () => {
+      if (frame !== 0) cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', soon)
+      window.removeEventListener('resize', soon)
+    }
+  }, [box, top])
+  return (
+    <div
+      className="mg-dock"
+      ref={setBox}
+      data-testid="manage-dock"
+      data-docks={docks ? '' : undefined}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -288,7 +366,7 @@ function thumbOf(picture: Photographed['picture'], width: number): string {
 
 const boatSaid = (boats: readonly Photographed[], id: string | null): string => {
   const boat = boats.find((b) => b.picture.id === id)
-  return boat ? `the ${boat.maker} ${boat.model}` : 'the photograph'
+  return boat ? `the ${boatNamed(boat.maker, boat.model)}` : 'the photograph'
 }
 
 /** What has been tried and not kept, each as the stage says it and as the step will. */
@@ -475,14 +553,18 @@ function Colour({
   brand,
   kept,
   business,
+  photo,
   stage,
 }: {
   brand: string | null
   kept: string | null
   business: string | null
+  /** the photograph Home stands on, kept or tried, which offers a colour of its own */
+  photo: { src: string; name: string } | null
   stage: (next: string | null) => void
 }) {
   const fromMark = useMemo(() => markInkOf(business), [business])
+  const fromPhoto = useSourceColour(photo?.src ?? null)
   const [typed, setTyped] = useState('')
   const [tried, setTried] = useState<string | null>(null)
   const [triedSay, setTriedSay] = useState<string | null>(null)
@@ -493,15 +575,33 @@ function Colour({
      7: a ratio on every card, every chip and eleven ramp steps was the machinery, not the step) */
   const whiteOn = useMemo(() => readBrand(shownHex).whiteOn, [shownHex])
 
+  /* A CARD CHOSEN IS THE COLOUR ON THE STAGE, and the field says it too: it read #FFEA28 while
+     #0066CC was ticked (the judge, P5) */
+  const choose = (value: string | null): void => {
+    setTried(null)
+    setTriedSay(null)
+    setTyped(value ? value.toUpperCase() : '')
+    stage(value)
+  }
+
+  const tryHex = (raw: string): void => {
+    const hex = parseHex(raw)
+    if (!hex) {
+      setTried(null)
+      setTriedSay('A colour is written as six figures after a hash, as the mark’s is.')
+      return
+    }
+    setTriedSay(null)
+    setTried(hex)
+    if (readBrand(hex).refused === null) stage(hex)
+  }
+
   const card = (key: string, title: string, hex: string, value: string | null, note: string) => (
     <li key={key}>
       <Tile
         tone="room"
         selected={(brand ?? null) === value}
-        onSelect={() => {
-          setTried(null)
-          stage(value)
-        }}
+        onSelect={() => choose(value)}
         label={`${title}, ${hex.toUpperCase()}, white on it ${saidRatio(readBrand(hex).whiteOn)}`}
       >
         <span className="mg-colour">
@@ -514,10 +614,11 @@ function Colour({
     </li>
   )
 
-  const own = kept && kept !== DESIGNED && kept !== fromMark?.hex ? kept : null
+  const own =
+    kept && kept !== DESIGNED && kept !== fromMark?.hex && kept !== fromPhoto?.offered ? kept : null
 
   return (
-    <section className="mg-group mg-group--water" aria-labelledby="mg-colour">
+    <section className="mg-group mg-group--water" id="mg-colour-g" aria-labelledby="mg-colour">
       <div className="mg-group__head">
         <h3 className="mg-group__title" id="mg-colour">
           Colour
@@ -537,21 +638,27 @@ function Colour({
               `the ink of the mark on ${fromMark.from}`,
             )
           : null}
+        {/* A COLOUR OF ANOTHER KIND, from the photograph Home stands on (the judge, L10: the two
+            offers were two blues a customer could not tell apart) — its own pixels' colour, or
+            the nearest to it that white words read on */}
+        {fromPhoto && photo
+          ? card(
+              'photo',
+              'From the photograph',
+              fromPhoto.offered,
+              fromPhoto.offered,
+              fromPhoto.moved
+                ? `the nearest that reads to the colour in ${photo.name}`
+                : `the colour in ${photo.name}`,
+            )
+          : null}
         {own ? card('own', 'Northside’s own', own, own, 'typed here') : null}
       </ul>
       <form
         className="mg-colour-try"
         onSubmit={(e) => {
           e.preventDefault()
-          const hex = parseHex(typed)
-          if (!hex) {
-            setTried(null)
-            setTriedSay('A colour is written as six figures after a hash, as the mark’s is.')
-            return
-          }
-          setTriedSay(null)
-          setTried(hex)
-          if (readBrand(hex).refused === null) stage(hex)
+          tryHex(typed)
         }}
       >
         {/* NO DESCRIPTION UNDER THE FIELD, so "Try it" stands on the field's own line (the
@@ -567,6 +674,21 @@ function Colour({
             autoComplete="off"
           />
         </Field>
+        {/* THE SYSTEM'S OWN PICKER beside the written colour (the judge, L10): what it picks is
+            written into the field and tried, measured as a typed colour is */}
+        <label className="mg-picker">
+          <input
+            className="mg-picker__input"
+            type="color"
+            aria-label="Pick a colour"
+            value={parseHex(typed) ?? shownHex}
+            onChange={(e) => {
+              setTyped(e.target.value.toUpperCase())
+              tryHex(e.target.value)
+            }}
+          />
+          <span className="mg-picker__word">Pick</span>
+        </label>
         {/* the field's own height, so it stands on the field's line */}
         <Button type="submit" intent="veiled">
           Try it
@@ -592,7 +714,10 @@ function Colour({
                       tone="room"
                       shape="chip"
                       selected={brand === p.hex}
-                      onSelect={() => stage(p.hex)}
+                      onSelect={() => {
+                        setTyped(p.hex.toUpperCase())
+                        stage(p.hex)
+                      }}
                       label={`${p.hex.toUpperCase()}, the nearest that reads`}
                     >
                       <span className="mg-colour mg-colour--chip">
@@ -639,82 +764,103 @@ function Pictures({
      loading for anything that waits on every picture (the rulers' settle did, at every size) */
   const onWater = boats.filter((b) => !b.picture.person).slice(0, 8)
   const offered = onWater.length > 0 ? onWater : boats.slice(0, 8)
+  const atDoor = door ?? DOOR_DESIGNED
   return (
-    <section className="mg-group mg-group--water" aria-labelledby="mg-pictures">
+    <section className="mg-group mg-group--water" id="mg-pictures-g" aria-labelledby="mg-pictures">
       <div className="mg-group__head">
         <h3 className="mg-group__title" id="mg-pictures">
           Pictures
         </h3>
         <p className="mg-group__say">
-          Each darkened just enough, by its own light, for Home’s words to read
+          One photograph for Home, one for the sign-in page, each darkened by its own light just
+          enough for the words on it to read
         </p>
       </div>
 
-      <h4 className="mg-sub">Under Home’s name</h4>
+      {/* ONE GRID, EACH PHOTOGRAPH ONCE (the judge, L6: the same eight drawn twice were a third of
+          the phone's page), with the two places it can stand as its two presses */}
       <ul className="mg-shots">
-        <li>
-          <Tile
-            tone="room"
-            selected={hero === null}
-            onSelect={() => stageHero(null)}
-            label="The drawn water, as built"
-          >
-            <span className="mg-shot mg-shot--water">
-              <span className="mg-shot__name">The drawn water</span>
-              <span className="mg-shot__note">as built</span>
-            </span>
-          </Tile>
+        <li className="mg-shot" data-ground="plate" data-home={hero === null ? '' : undefined}>
+          <span className="mg-shot__frame mg-shot__frame--water" aria-hidden="true" />
+          <span className="mg-shot__name">The drawn water</span>
+          <span className="mg-shot__note">Home as it was built</span>
+          <span className="mg-shot__acts">
+            <Place on={hero === null} onPress={() => stageHero(null)} word="Home" />
+          </span>
         </li>
         {offered.map((b) => {
           const read = veils.get(b.picture.id)
+          const name = boatNamed(b.maker, b.model)
+          const home = hero?.picture === b.picture.id
+          const signIn = atDoor === b.picture.id
           return (
-            <li key={b.picture.id}>
-              <Tile
-                tone="room"
-                selected={hero?.picture === b.picture.id}
-                onSelect={
-                  read ? () => stageHero({ picture: b.picture.id, veil: read.veil }) : undefined
-                }
-                refusedBecause={
-                  read
-                    ? undefined
-                    : 'Its pixels are still being read, so its veil is not known yet.'
-                }
-                label={`${b.maker} ${b.model}`}
-              >
-                <span className="mg-shot">
-                  <img className="mg-shot__img" src={thumbOf(b.picture, 320)} alt="" />
-                  <span className="mg-shot__name">{`${b.maker} ${b.model}`}</span>
-                  {read ? null : <span className="mg-shot__note">reading its light…</span>}
-                </span>
-              </Tile>
+            <li
+              className="mg-shot"
+              data-ground="plate"
+              key={b.picture.id}
+              data-home={home ? '' : undefined}
+              data-door={signIn ? '' : undefined}
+            >
+              <img className="mg-shot__img" src={thumbOf(b.picture, 320)} alt="" />
+              <span className="mg-shot__name">{name}</span>
+              {b.picture.id === DOOR_DESIGNED ? (
+                <span className="mg-shot__note">the sign-in page as designed</span>
+              ) : null}
+              <span className="mg-shot__acts">
+                <Place
+                  on={home}
+                  word="Home"
+                  label={`${name} under Home’s name`}
+                  onPress={
+                    read ? () => stageHero({ picture: b.picture.id, veil: read.veil }) : undefined
+                  }
+                  refused={
+                    read
+                      ? undefined
+                      : 'Its pixels are still being read, so its veil is not known yet.'
+                  }
+                />
+                <Place
+                  on={signIn}
+                  word="Sign-in"
+                  label={`${name} on the sign-in page`}
+                  onPress={() => stageDoor(b.picture.id === DOOR_DESIGNED ? null : b.picture.id)}
+                />
+              </span>
             </li>
           )
         })}
       </ul>
-
-      <h4 className="mg-sub">On the sign-in page</h4>
-      <ul className="mg-shots">
-        {offered.map((b) => (
-          <li key={b.picture.id}>
-            <Tile
-              tone="room"
-              selected={(door ?? DOOR_DESIGNED) === b.picture.id}
-              onSelect={() => stageDoor(b.picture.id === DOOR_DESIGNED ? null : b.picture.id)}
-              label={`${b.maker} ${b.model} on the sign-in page`}
-            >
-              <span className="mg-shot">
-                <img className="mg-shot__img" src={thumbOf(b.picture, 320)} alt="" />
-                <span className="mg-shot__name">{`${b.maker} ${b.model}`}</span>
-                {b.picture.id === DOOR_DESIGNED ? (
-                  <span className="mg-shot__note">as designed</span>
-                ) : null}
-              </span>
-            </Tile>
-          </li>
-        ))}
-      </ul>
     </section>
+  )
+}
+
+/** One of the two places a photograph can stand, pressed to put it there; lit where it stands. */
+function Place({
+  on,
+  word,
+  label,
+  onPress,
+  refused,
+}: {
+  on: boolean
+  word: string
+  label?: string
+  onPress: (() => void) | undefined
+  refused?: string
+}) {
+  return (
+    <Button
+      intent={on ? 'act' : 'secondary'}
+      size="sm"
+      icon={on ? CheckIcon : undefined}
+      aria-pressed={on}
+      aria-label={label ? `${word}: ${label}` : undefined}
+      onClick={onPress}
+      refusedBecause={refused}
+    >
+      {word}
+    </Button>
   )
 }
 
@@ -770,7 +916,11 @@ function WaterMark({ org }: { org: OrgProfile | undefined }) {
   }
 
   return (
-    <section className="mg-group mg-group--water" aria-labelledby="mg-watermark">
+    <section
+      className="mg-group mg-group--water"
+      id="mg-watermark-g"
+      aria-labelledby="mg-watermark"
+    >
       <div className="mg-group__head">
         <h3 className="mg-group__title" id="mg-watermark">
           The mark on the water
@@ -971,8 +1121,8 @@ function HomeArrangement({
                 onSelect={() =>
                   set(
                     at >= 0
-                      ? `The ${b.maker} ${b.model} is no longer first on Home`
-                      : `The ${b.maker} ${b.model} is first on Home`,
+                      ? `The ${boatNamed(b.maker, b.model)} is no longer first on Home`
+                      : `The ${boatNamed(b.maker, b.model)} is first on Home`,
                     {
                       ...home,
                       first:
@@ -982,11 +1132,11 @@ function HomeArrangement({
                     },
                   )
                 }
-                label={`${b.maker} ${b.model}${at >= 0 ? `, number ${at + 1} on Home` : ''}`}
+                label={`${boatNamed(b.maker, b.model)}${at >= 0 ? `, number ${at + 1} on Home` : ''}`}
               >
                 <span className="mg-first">
                   <img className="mg-first__img" src={thumbOf(b.picture, 240)} alt="" />
-                  <span className="mg-first__name">{`${b.maker} ${b.model}`}</span>
+                  <span className="mg-first__name">{boatNamed(b.maker, b.model)}</span>
                   {at >= 0 ? <span className="mg-first__n">{at + 1}</span> : null}
                 </span>
               </Tile>
@@ -1018,7 +1168,7 @@ function Shape({ look }: { look: OrgLook | undefined }) {
   const motion = look?.motion ?? AS_DESIGNED.motion
 
   return (
-    <section className="mg-group mg-group--water" aria-labelledby="mg-shape">
+    <section className="mg-group mg-group--water" id="mg-shape-g" aria-labelledby="mg-shape">
       <div className="mg-group__head">
         <h3 className="mg-group__title" id="mg-shape">
           Shape, spacing and motion
@@ -1030,6 +1180,20 @@ function Shape({ look }: { look: OrgLook | undefined }) {
           <Refusal on="room">{refused}</Refusal>
         </p>
       ) : null}
+      {/* WHAT THE FOUR STEPS DO, SHOWN WHERE THEY ARE CHOSEN (the judge, L9: "Soft" and "Deep" were
+          chosen blind). A plate of three lines and a tile beside it, drawn with the very
+          properties the app wears, so a press here changes this drawing with everything else */}
+      <div className="mg-specimen" aria-hidden="true" data-testid="manage-specimen">
+        <span className="mg-specimen__plate">
+          <span className="mg-specimen__line" />
+          <span className="mg-specimen__line" />
+          <span className="mg-specimen__line" />
+        </span>
+        <span className="mg-specimen__tile">
+          <span className="mg-specimen__shot" />
+          <span className="mg-specimen__line" />
+        </span>
+      </div>
       <div className="mg-steps">
         <Step label="Corners">
           <Segmented<OrgCorners>
