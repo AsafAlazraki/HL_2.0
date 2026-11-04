@@ -1,0 +1,42 @@
+[
+  {
+    "id": "datasette-facets-390",
+    "url": "https://latest.datasette.io/fixtures/facetable?_facet=state&_facet=_city_id&_facet=on_earth",
+    "wait": 3000,
+    "note": "Datasette counted facets at 390",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://latest.datasette.io/fixtures/facetable?_facet=state&_facet=_city_id&_facet=on_earth",
+    "title": "fixtures: facetable: 15 rows",
+    "file": "datasette-facets-390.png"
+  },
+  {
+    "id": "weblate-changes-390",
+    "url": "https://hosted.weblate.org/changes/",
+    "wait": 3000,
+    "note": "Weblate changes ledger at 390",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://hosted.weblate.org/changes/",
+    "title": "Checking your browser",
+    "file": "weblate-changes-390.png"
+  },
+  {
+    "id": "dockmaster-parts-load-390",
+    "url": "https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/vendor-loads/inventory-parts-load/",
+    "wait": 2500,
+    "note": "DockMaster docs at 390",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/vendor-loads/inventory-parts-load/",
+    "title": "Inventory Parts Load | DockMaster Documentation",
+    "file": "dockmaster-parts-load-390.png"
+  },
+  {
+    "id": "workbookdiff-390",
+    "url": "https://workbookdiff.com/",
+    "title": "WorkbookDiff - Compare Excel Files Online, Free & No Upload",
+    "note": "The comparison result head at 390 x 844",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://workbookdiff.com/",
+    "file": "workbookdiff-390.png",
+    "via": "playwright MCP, driven by hand"
+  }
+]

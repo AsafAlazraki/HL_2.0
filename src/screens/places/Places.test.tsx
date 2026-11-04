@@ -212,12 +212,25 @@ describe('the line-up', () => {
       series: 'Sport',
       compare: ['boat_highfield:483', SPORT_600, SPORT_660],
     })
-    await userEvent.click(within(card('Sport 700 ST')).getByRole('button', { name: /Compare/ }))
-    expect(
-      screen.getByText(
-        'Three boats are set side by side at most. Take one off to add the Sport 700 ST.',
-      ),
-    ).toBeTruthy()
+    const press = within(card('Sport 700 ST')).getByRole('button', { name: /Compare/ })
+    await userEvent.click(press)
+    const said = 'Three boats are set side by side at most. Take one off to add the Sport 700 ST.'
+    /* on the card whose Compare was pressed, described by it, and said to a screen reader */
+    expect(within(card('Sport 700 ST')).getByText(said)).toBeTruthy()
+    const described = document.getElementById(press.getAttribute('aria-describedby') ?? '')
+    expect(described?.textContent).toBe(said)
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toBe(said)
+    /* and nowhere else */
+    expect(screen.getAllByText(said).length).toBe(2)
+  })
+
+  it('never begins or ends a wrapped line of facts on a dot: each dot stands before its fact', () => {
+    drawPlace('boat_highfield', 'range', { series: 'Sport', all: true })
+    const facts = card('Sport 800').querySelector('.pl-card__facts')!
+    const items = [...facts.querySelectorAll('.pl-run__item')].map((i) => i.textContent)
+    /* the file's "350 / 2 x 200 HP" said for each count of motors, and no dot in any fact */
+    expect(items).toEqual(['8.11 m', '15 people', '250–350 hp or up to 2 × 200 hp'])
+    expect(facts.textContent).not.toContain('·')
   })
 })
 
@@ -236,15 +249,51 @@ describe('a list that is not a boat maker', () => {
     expect(onAt).toHaveBeenCalledWith({ in: '2 x 70' })
   })
 
-  it('says why Labour Rates prints no rate, where the rates are', () => {
+  it('prints what an hour costs at the file’s own Rate (inc GST), and says why, never its cost', () => {
     drawPlace('labour_rates')
     expect(
       screen.getByText(
-        /Labour Rates names no price a customer may be shown, so no figure is printed here/,
+        /Labour Rates declares no price of its own, so each rate is printed at the price list’s Rate \(inc GST\)/,
       ),
     ).toBeTruthy()
-    expect(document.querySelectorAll('.pl-line').length).toBe(18)
-    expect(document.querySelector('.pl-line__price')).toBeNull()
+    /* the head answers it at once: the file's own first rate, the one its sheets sell an hour at */
+    expect(document.querySelector('.pl-figs')?.textContent).toMatch(
+      /\$159\.00 an hour of Retail Labour · Rate \(inc GST\)/,
+    )
+    const lines = [...document.querySelectorAll('.pl-line')]
+    expect(lines.length).toBe(18)
+    const retail = lines.find((l) => /Retail Labour/.test(l.textContent ?? ''))!
+    /* to the cent, as the column is said on the sheet: 7 of its 18 carry cents */
+    expect(retail.querySelector('.pl-line__price')?.textContent).toBe('$159.00')
+    const trade = lines.find((l) => l.querySelector('.pl-line__name')?.textContent === 'Trade')!
+    expect(trade.querySelector('.pl-line__price')?.textContent).toBe('$143.10')
+    /* never Actual's $105 nor the ex-GST $144.55 the file's other sheets cost an hour at */
+    expect(document.body.textContent).not.toMatch(/\$105\b|\$144\.55|\$130\.09/)
+  })
+
+  it('says each trailer by the boats it takes in the file’s own words, its length and what it fits', () => {
+    drawPlace('trl_nsmcustom', 'range', { find: 'formosa' })
+    const facts = [...document.querySelectorAll('.pl-line .pl-run__item')].map(
+      (i) => i.textContent ?? '',
+    )
+    /* a size in metres only where the file writes metres, never "boats of Formosa 495 m" */
+    for (const f of facts.filter((x) => x.startsWith('boats of ')))
+      expect(f).toMatch(/^boats of \d{1,2}(?:\.\d+)?(?:(?:–| or )\d{1,2}(?:\.\d+)?)? m$/)
+    expect(facts).toContain('for the Formosa 495')
+    expect(facts).toContain('5.93 m long')
+    expect(facts.some((f) => /^fits \d+ Formosa models?$/.test(f))).toBe(true)
+    /* the head says how many carry a length, measured, once the find is cleared */
+    cleanup()
+    drawPlace('trl_nsmcustom')
+    expect(screen.getByText(/24 of the 73 carry their own length in the price list/)).toBeTruthy()
+  })
+
+  it('says which models each Yamaha motor fits, maker by maker', () => {
+    drawPlace('mot_yamaha', 'range', { in: '175' })
+    const line = [...document.querySelectorAll('.pl-line')].find((l) =>
+      /F175XC/.test(l.querySelector('.pl-line__name')?.textContent ?? ''),
+    )!
+    expect(line.textContent).toMatch(/fits \d+ models: .*\d+ Highfield/)
   })
 
   it('draws OBSOLETE Trailers’ ten, each no longer sold', () => {
@@ -255,8 +304,13 @@ describe('a list that is not a boat maker', () => {
 
   it('hands Parts to the chandlery, which reads the same list with find and aisles', async () => {
     const { go } = drawPlace('parts')
-    expect(screen.getByText(/The chandlery reads the same 2,238 products/)).toBeTruthy()
-    await userEvent.click(screen.getAllByRole('link', { name: 'Open the chandlery' })[0]!)
+    /* the sentence says why, with no count that disagrees with the head's 2,937 */
+    const why = screen.getByText(/The chandlery reads Parts & Accessories with find, aisles/)
+    expect(why.textContent).not.toMatch(/2,238|180|187/)
+    expect(why.textContent).toMatch(/25 carry no category in the price list/)
+    /* one door to the chandlery, beside the sentence that says why */
+    expect(screen.getAllByRole('link', { name: 'Open the chandlery' }).length).toBe(1)
+    await userEvent.click(screen.getByRole('link', { name: 'Open the chandlery' }))
     expect(go).toHaveBeenCalledWith('/catalogue')
     expect(document.querySelectorAll('.pl-line').length).toBe(0)
   })

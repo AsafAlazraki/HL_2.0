@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import {
   ArrowDownIcon,
   ArrowRightIcon,
@@ -22,6 +22,7 @@ import { compareRows, ordered, type CompareRow } from '@/domain/lineup/range'
 import type { Lineup as LineupRead, LineupModel, LineupSeries } from './models'
 import type { PlacePage } from './read'
 import { COMPARE_MOST, type PlaceAt } from './tabs'
+import { Run } from './Run'
 
 /* ============================================================
    THE LINE-UP — every model of a boat maker, the range a person at the
@@ -49,7 +50,15 @@ import { COMPARE_MOST, type PlaceAt } from './tabs'
    order, the find and the compare tray, so the tray never floats over a
    card. Up to three boats are set side by side, in place under it, in
    bands — Price, Specifications, What fits — with a dash where the file
-   carries nothing, and the rows that differ lit.
+   carries nothing, and the rows that differ lit. Opened by a press, the
+   page is brought to the compare with the head docked over it, so the
+   series tiles never stand half under the bar (verify-1, gap 7).
+
+   IN A HAND, AND IN A WINDOW TOO SHORT TO DOCK, the head is not docked,
+   so the tray stands at the foot of the range instead, held at the
+   bottom of the screen while the cards pass (verify-1, gap 2). A
+   compare refused is said on the card whose Compare was pressed, and
+   to a screen reader, at every size.
    ============================================================ */
 
 const n = (v: number): string => v.toLocaleString('en-AU')
@@ -119,11 +128,13 @@ export function Lineup({
   const chosen = (at.compare ?? [])
     .map((k) => lineup.models.find((m) => m.key === k))
     .filter((m): m is LineupModel => m !== undefined)
-  /* a refusal belongs to the boats it was said over: a change of them takes it away */
+  /* a refusal belongs to the boats it was said over, and is said on the card whose Compare was
+     pressed: a change of the boats takes it away */
   const compareKey = chosen.map((c) => c.key).join(',')
-  const [refusal, setRefusal] = useState<{ over: string; said: string } | null>(null)
-  const refused = refusal && refusal.over === compareKey ? refusal.said : null
-  const setRefused = (said: string) => setRefusal({ over: compareKey, said })
+  const [refusal, setRefusal] = useState<{ over: string; at: string; said: string } | null>(null)
+  const refused = refusal && refusal.over === compareKey ? refusal : null
+  /* the compare is brought into view only when a press opens it, never on a load */
+  const [brought, setBrought] = useState(0)
   const toggle = (m: LineupModel): void => {
     const keys = chosen.map((c) => c.key)
     if (keys.includes(m.key)) {
@@ -132,7 +143,11 @@ export function Lineup({
       return
     }
     if (keys.length >= COMPARE_MOST) {
-      setRefused(`Three boats are set side by side at most. Take one off to add the ${m.said}.`)
+      setRefusal({
+        over: compareKey,
+        at: m.key,
+        said: `Three boats are set side by side at most. Take one off to add the ${m.said}.`,
+      })
       return
     }
     move({ compare: [...keys, m.key] })
@@ -172,6 +187,49 @@ export function Lineup({
       window.removeEventListener('resize', ask)
     }
   }, [])
+
+  /* THE TRAY: in the dock at a desk; at the range's foot in a hand and in a short window, where
+     the head is not docked (the window decides which of the two is drawn, places.css) */
+  const tray = (where: 'head' | 'foot') => (
+    <fieldset className="pl-tray" data-at={where} data-empty={chosen.length === 0 ? '' : undefined}>
+      <legend className="pl-unseen">Boats set side by side</legend>
+      <span className="pl-tray__head" aria-hidden="true">
+        <ScalesIcon /> Compare
+      </span>
+      {chosen.length === 0 ? (
+        <span className="pl-tray__say">Choose two or three boats to set side by side.</span>
+      ) : (
+        chosen.map((m) => (
+          <button
+            key={m.key}
+            type="button"
+            className="pl-tray__chip"
+            onClick={() => toggle(m)}
+            aria-label={`Take the ${m.said} out of the compare`}
+          >
+            {m.said}
+            <XIcon aria-hidden="true" />
+          </button>
+        ))
+      )}
+      {chosen.length === 1 ? (
+        <span className="pl-tray__say">Choose one more to set beside it.</span>
+      ) : null}
+      {chosen.length >= 2 ? (
+        <Button
+          intent={comparing ? 'secondary' : 'primary'}
+          size="sm"
+          icon={comparing ? XIcon : ArrowRightIcon}
+          onClick={() => {
+            if (!comparing) setBrought((b) => b + 1)
+            move({ see: comparing ? undefined : 'compare' })
+          }}
+        >
+          {comparing ? 'Close the compare' : `Compare ${chosen.length}`}
+        </Button>
+      ) : null}
+    </fieldset>
+  )
 
   if (!table) return null
   const sheet = `/data/${encodeURIComponent(table.id)}`
@@ -301,46 +359,20 @@ export function Lineup({
               : 'Open the price list'}
           </Button>
         </div>
-        <fieldset className="pl-tray" data-empty={chosen.length === 0 ? '' : undefined}>
-          <legend className="pl-unseen">Boats set side by side</legend>
-          <span className="pl-tray__head" aria-hidden="true">
-            <ScalesIcon /> Compare
-          </span>
-          {chosen.length === 0 ? (
-            <span className="pl-tray__say">Choose two or three boats to set side by side.</span>
-          ) : (
-            chosen.map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                className="pl-tray__chip"
-                onClick={() => toggle(m)}
-                aria-label={`Take the ${m.said} out of the compare`}
-              >
-                {m.said}
-                <XIcon aria-hidden="true" />
-              </button>
-            ))
-          )}
-          {chosen.length === 1 ? (
-            <span className="pl-tray__say">Choose one more to set beside it.</span>
-          ) : null}
-          {chosen.length >= 2 ? (
-            <Button
-              intent={comparing ? 'secondary' : 'primary'}
-              size="sm"
-              icon={comparing ? XIcon : ArrowRightIcon}
-              onClick={() => move({ see: comparing ? undefined : 'compare' })}
-            >
-              {comparing ? 'Close the compare' : `Compare ${chosen.length}`}
-            </Button>
-          ) : null}
-          <output className="pl-tray__refused">{refused ?? ''}</output>
-        </fieldset>
+        {tray('head')}
       </div>
 
       {comparing ? (
-        <Compare models={chosen} rows={rows} rung={lineup.rung} go={go} quoteOf={quoteOf} />
+        <Compare
+          models={chosen}
+          rows={rows}
+          rung={lineup.rung}
+          go={go}
+          quoteOf={quoteOf}
+          brought={brought}
+          dock={dock}
+          mark={mark}
+        />
       ) : null}
 
       {shown?.key === '' || (!shown && lineup.unfiled.length > 0 && lineup.filesSeries) ? (
@@ -354,27 +386,33 @@ export function Lineup({
         </p>
       ) : null}
 
-      {models.length === 0 ? (
-        <p className="pl-none__say">
-          No {title === 'Every model' ? maker : title} model or code holds “{at.find}”.
-        </p>
-      ) : (
-        <ul className="pl-cards" data-sort={at.sort ?? 'file'}>
-          {drawn.map((m) => (
-            <Card
-              key={m.key}
-              model={m}
-              rung={lineup.rung}
-              picked={chosen.some((c) => c.key === m.key)}
-              longest={at.sort === 'length' ? longest : 0}
-              onCompare={() => toggle(m)}
-              fits={fitmentOf(m.key)}
-              quote={page.quotable ? quoteOf(m) : null}
-              go={go}
-            />
-          ))}
-        </ul>
-      )}
+      {/* THE CARDS AND THE FOOT TRAY IN ONE BOX: the tray holds to the window's foot only while
+          the cards are in the window, and never floats over the series or the head above them */}
+      <div className="pl-deck">
+        {models.length === 0 ? (
+          <p className="pl-none__say">
+            No {title === 'Every model' ? maker : title} model or code holds “{at.find}”.
+          </p>
+        ) : (
+          <ul className="pl-cards" data-sort={at.sort ?? 'file'}>
+            {drawn.map((m) => (
+              <Card
+                key={m.key}
+                model={m}
+                rung={lineup.rung}
+                picked={chosen.some((c) => c.key === m.key)}
+                longest={at.sort === 'length' ? longest : 0}
+                onCompare={() => toggle(m)}
+                refused={refused?.at === m.key ? refused.said : null}
+                fits={fitmentOf(m.key)}
+                quote={page.quotable ? quoteOf(m) : null}
+                go={go}
+              />
+            ))}
+          </ul>
+        )}
+        {chosen.length > 0 ? tray('foot') : null}
+      </div>
       {drawn.length < models.length ? (
         <span className="pl-more">
           <Button intent="secondary" icon={ArrowDownIcon} onClick={() => move({ all: true })}>
@@ -399,7 +437,11 @@ export function Lineup({
         </span>
       </p>
       <span className="pl-unseen" aria-live="polite">
-        {words.length > 0 ? `${plural(models.length, 'model')} of ${name} found` : ''}
+        {refused
+          ? refused.said
+          : words.length > 0
+            ? `${plural(models.length, 'model')} of ${name} found`
+            : ''}
       </span>
     </section>
   )
@@ -468,6 +510,7 @@ function Card({
   picked,
   longest,
   onCompare,
+  refused,
   fits,
   quote,
   go,
@@ -477,6 +520,8 @@ function Card({
   picked: boolean
   longest: number
   onCompare: () => void
+  /** the sentence a press of this card's Compare was refused with, or null */
+  refused: string | null
   fits: string
   quote: string | null
   go?: (href: string) => void
@@ -522,20 +567,32 @@ function Card({
             )}
           </span>
         </div>
-        <p className="pl-card__sub">
-          {m.code ? <span className="pl-card__code">{m.code}</span> : null}
-          {m.code ? ' · ' : ''}
-          {versionsSaid(m)}
-        </p>
-        <p className="pl-card__facts">
-          {facts.length ? <span className="pl-card__fact">{facts.length}</span> : null}
-          {facts.people ? (
-            <span className="pl-card__fact">{facts.people}</span>
-          ) : facts.peopleUnfiled ? (
-            <span className="pl-card__fact pl-card__gap">people not in the price list</span>
-          ) : null}
-          {facts.hp ? <span className="pl-card__fact">{facts.hp}</span> : null}
-        </p>
+        <Run
+          as="p"
+          className="pl-card__sub"
+          items={[
+            m.code ? (
+              <span key="code" className="pl-card__code">
+                {m.code}
+              </span>
+            ) : null,
+            versionsSaid(m),
+          ]}
+        />
+        <Run
+          as="p"
+          className="pl-card__facts"
+          items={[
+            facts.length,
+            facts.people ??
+              (facts.peopleUnfiled ? (
+                <span key="gap" className="pl-card__gap">
+                  people not in the price list
+                </span>
+              ) : null),
+            facts.hp,
+          ]}
+        />
         {longest > 0 && length !== null ? (
           <span
             className="pl-card__bar"
@@ -582,6 +639,7 @@ function Card({
           className="pl-card__cmp"
           aria-pressed={picked}
           aria-label={picked ? `Take the ${m.said} out of the compare` : `Compare the ${m.said}`}
+          aria-describedby={refused ? `pl-refused-${m.key}` : undefined}
           onClick={onCompare}
         >
           {picked ? <CheckIcon aria-hidden="true" /> : <PlusIcon aria-hidden="true" />}
@@ -610,6 +668,12 @@ function Card({
           </Button>
         ) : null}
       </div>
+      {refused ? (
+        <p className="pl-card__refused" id={`pl-refused-${m.key}`}>
+          <InfoIcon aria-hidden="true" />
+          <span>{refused}</span>
+        </p>
+      ) : null}
     </li>
   )
 }
@@ -697,25 +761,48 @@ function Compare({
   rung,
   go,
   quoteOf,
+  brought,
+  dock,
+  mark,
 }: {
   models: readonly LineupModel[]
   rows: readonly CompareRow[]
   rung: string
   go?: (href: string) => void
   quoteOf: (m: LineupModel) => string
+  /** how many times a press has opened the compare; 0 where the address opened it */
+  brought: number
+  dock: RefObject<HTMLDivElement | null>
+  mark: RefObject<HTMLSpanElement | null>
 }) {
   const [lit, setLit] = useState(true)
   const bands = useMemo(() => [...new Set(rows.map((r) => r.band))], [rows])
   const same = rows.filter((r) => !r.differs).length
-  /* OPENED, IT IS BROUGHT INTO VIEW under the docked head: opened from deep in the cards it
-     stands above them, out of sight (its scroll margin keeps it clear of the dock) */
+  /* OPENED BY A PRESS, IT IS BROUGHT INTO VIEW. Where the head docks, the page comes to rest with
+     the head just docked and the compare straight under it: the dock's own ground then covers
+     the window above it to its edge, so the series tiles never stand half under the bar with
+     their words through it (verify-1, gap 7, measured at 1280 and 1440). Where it does not dock
+     (a hand, a short window) the compare's own top comes to the window's top. Opened from an
+     address, the page is left where it loads. */
   const here = useRef<HTMLElement>(null)
   useEffect(() => {
     const el = here.current
-    if (!el || el.getBoundingClientRect().top >= 0) return
+    if (!el || brought === 0) return
     const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? true
-    el.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' })
-  }, [])
+    const behavior: ScrollBehavior = still ? 'auto' : 'smooth'
+    const head = dock.current
+    const top = mark.current
+    if (head && top && getComputedStyle(head).position === 'sticky') {
+      const shell = parseFloat(getComputedStyle(head).getPropertyValue('--shell-inset')) || 0
+      /* two pixels past where the head docks, so it is docked */
+      window.scrollTo({
+        top: window.scrollY + top.getBoundingClientRect().top - shell + 2,
+        behavior,
+      })
+      return
+    }
+    el.scrollIntoView({ block: 'start', behavior })
+  }, [brought, dock, mark])
   return (
     <section
       ref={here}

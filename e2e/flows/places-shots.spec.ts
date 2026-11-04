@@ -126,8 +126,23 @@ test('every state of a maker’s own page, photographed and measured', async ({ 
     })
     await press(page, c.getByRole('button', { name: new RegExp(`^Compare the ${said}$`) }))
   }
-  await press(page, page.getByRole('button', { name: 'Compare 3' }))
+  /* among the cards with three chosen: the tray in the docked head at a desk, at the range's
+     foot in a hand and a short window, in sight either way */
+  await page.locator('.pl-card').nth(9).scrollIntoViewIfNeeded()
+  const trayInSight = await page
+    .locator('.pl-tray')
+    .filter({ visible: true })
+    .first()
+    .evaluate((el) => {
+      const r = el.getBoundingClientRect()
+      return r.top >= 0 && r.bottom <= window.innerHeight
+    })
+  if (!trayInSight) faults.push('04b-tray-among-cards: the tray is out of sight')
+  await shot('04b-tray-among-cards')
+  await press(page, page.getByRole('button', { name: 'Compare 3' }).filter({ visible: true }))
   await expect(page).toHaveURL(/see=compare/)
+  /* where the press brought it: nothing of the series tiles under the bar */
+  await shot('05a-compare-as-opened')
   /* as a person scrolls to it: its top under the docked head, which its scroll margin keeps clear */
   await page.locator('.pl-compare').evaluate((el) => el.scrollIntoView({ block: 'start' }))
   await shot('05-compare')
@@ -137,8 +152,14 @@ test('every state of a maker’s own page, photographed and measured', async ({ 
     has: page.getByRole('heading', { name: 'Sport 700 ST', exact: true }),
   })
   await press(page, fourth.getByRole('button', { name: /^Compare the Sport 700 ST$/ }))
-  await expect(page.getByText(/Three boats are set side by side at most/)).toBeVisible()
-  await page.locator('.pl-tray').scrollIntoViewIfNeeded()
+  const refused = fourth.locator('.pl-card__refused')
+  await expect(refused).toHaveText(/Three boats are set side by side at most/)
+  /* said where it was refused: in the window, on the card pressed, with nothing scrolled */
+  const seen = await refused.evaluate((el) => {
+    const r = el.getBoundingClientRect()
+    return r.top >= 0 && r.bottom <= window.innerHeight
+  })
+  if (!seen) faults.push('06-compare-refused: the refusal is out of sight of the press')
   await shot('06-compare-refused')
 
   /* ordered by length: the quiet bar on each card */
@@ -178,6 +199,10 @@ test('every state of a maker’s own page, photographed and measured', async ({ 
   await shot('15-yamaha-150')
   await to(page, '/places/trl_redco')
   await shot('16-redco')
+  await to(page, '/places/trl_nsmcustom')
+  await shot('16b-nsm-custom')
+  await to(page, '/places/trl_gfab')
+  await shot('16c-gfab')
   await to(page, '/places/trl_obsolete')
   await shot('17-obsolete')
   await to(page, '/places/labour_rates')
@@ -228,4 +253,6 @@ test('every state of a maker’s own page, photographed and measured', async ({ 
   console.log(`[${size}] page errors: ${errors.length ? errors.join(' | ') : 'none'}`)
   console.log(`[${size}] faults: ${faults.length ? faults.join('\n  ') : 'none'}`)
   expect(errors).toEqual([])
+  /* a refusal said out of sight of its press, or a tray out of sight among the cards, fails */
+  expect(faults.filter((f) => /out of sight/.test(f))).toEqual([])
 })

@@ -1,0 +1,8 @@
+[
+ {"id":"refero-import","url":"https://refero.design/search?q=import","wait":4000,"note":"refero search: import"},
+ {"id":"refero-review-changes","url":"https://refero.design/search?q=review%20changes","wait":4000,"note":"refero search: review changes"},
+ {"id":"nicelydone-import","url":"https://nicelydone.club/tags/import","wait":3500,"note":"nicelydone: import tag"},
+ {"id":"saasframe-import","url":"https://www.saasframe.io/categories/import","wait":3500,"note":"saasframe: import category"},
+ {"id":"dribbble-data-import","url":"https://dribbble.com/tags/data-import","wait":3500,"note":"dribbble: data import tag"},
+ {"id":"mobbin-import","url":"https://mobbin.com/search/web/screens?q=import","wait":3500,"note":"mobbin: import screens"}
+]

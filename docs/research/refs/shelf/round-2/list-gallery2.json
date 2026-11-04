@@ -1,0 +1,6 @@
+[
+ {"id":"nicelydone-import-2","url":"https://nicelydone.club/examples/tags/import","wait":3500,"note":"nicelydone: import examples tag"},
+ {"id":"saasinterface-import","url":"https://saasinterface.com/search/?q=import","wait":3500,"note":"saasinterface: search import"},
+ {"id":"dribbble-csv-import","url":"https://dribbble.com/tags/csv-import","wait":3500,"note":"dribbble: csv import tag"},
+ {"id":"dribbble-version-history","url":"https://dribbble.com/tags/version-history","wait":3500,"note":"dribbble: version history tag"}
+]

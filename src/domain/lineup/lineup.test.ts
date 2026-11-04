@@ -23,7 +23,7 @@ import {
   spanAt,
   NOTHING_FILED,
 } from './range'
-import { findOnShelf, isRig, shelfOf } from './shelf'
+import { boatSizeSaid, chargeOf, findOnShelf, isRig, shelfOf, trailerLengthSaid } from './shelf'
 
 let pack: PackFixture
 beforeAll(async () => {
@@ -78,6 +78,11 @@ describe('a model, measured from its own rows', () => {
     expect(hpSaid(null, span(250, 250))).toBe('up to 250 hp')
     expect(hpSaid(span(150, 150), words('TBA'))).toBe('150 hp to TBA')
     expect(hpSaid(null, null)).toBeNull()
+    /* a choice the file writes with a slash is said for each count of motors, singles first
+       (Highfield's Sport 800, Sport 900 and ADV9, as the file carries them) */
+    expect(hpSaid(span(250, 250), words('350 / 2 x 200 HP'))).toBe('250–350 hp or up to 2 × 200 hp')
+    expect(hpSaid(words('2 x 300HP'), words('425 / 2 x 300 HP'))).toBe('up to 425 hp or 2 × 300 hp')
+    expect(hpSaid(span(450, 450), words('450 / 2 x 300 HP'))).toBe('450 hp or up to 2 × 300 hp')
     expect(wordsSaid('2 x 480 ltr')).toBe('2 × 480 L')
     expect(wordsSaid('External Tank')).toBe('External Tank')
   })
@@ -186,12 +191,25 @@ describe('a list that is not a boat maker, read as its own range', () => {
     expect(all[0]!.facts.some((f) => f.startsWith('ATM '))).toBe(true)
   })
 
-  it('reads Labour Rates as its 18 rates with no figure, because it declares no price', () => {
+  it('reads Labour Rates as its 18 rates, each at the file’s own Rate (inc GST), never its cost', () => {
     const shelf = shelfOf(table('labour_rates'), rows('labour_rates'))
     expect(shelf.by).toBe('none')
     expect(shelf.lines).toBe(18)
+    /* it declares no price, so none is a level; the hour is read at the column the file sells it at */
     expect(shelf.level).toBeNull()
+    expect(shelf.charge?.label).toBe('Rate (inc GST)')
     expect(shelf.groups.length).toBe(1)
+    const lines = shelf.groups[0]!.lines
+    expect(lines[0]!.name).toMatch(/Retail Labour/)
+    expect(lines[0]!.price).toBe(159)
+    expect(lines.every((l) => l.price !== null)).toBe(true)
+    /* 7 of 18 carry cents, so every figure is said to the cent, as the sheet says the column */
+    expect(shelf.cents).toBe(true)
+    /* never Actual (105 on every line) nor Rate (Exc GST), which the file's other sheets cost at */
+    expect(lines.some((l) => l.price === 105)).toBe(false)
+    /* a list that declares a price is read at it, never at a charge column */
+    expect(chargeOf(table('mot_yamaha'))).toBeNull()
+    expect(shelfOf(table('dealer_fit'), rows('dealer_fit')).charge).toBeNull()
   })
 
   it('reads a trailer by the boats it takes and its ATM, at Sell inc Rego', () => {
@@ -199,8 +217,42 @@ describe('a list that is not a boat maker, read as its own range', () => {
     expect(shelf.level?.label).toBe('Sell inc Rego')
     const line = shelf.groups.flatMap((g) => g.lines).find((l) => l.code === 'TA600TMO-B')!
     expect(line.facts).toContain('ATM 1,990 kg')
-    expect(line.facts).toEqual(['boats of 5.5–5.8 m', 'ATM 1,990 kg'])
+    /* its own length: 6,700 in a column named in metres, millimetres on every line */
+    expect(line.facts).toEqual(['boats of 5.5–5.8 m', '6.7 m long', 'ATM 1,990 kg'])
     expect(line.price).toBe(9643)
+    expect(shelf.lengths).toEqual({ filed: true, n: 49, of: 52 })
+  })
+
+  it('says a boat size the file writes as a boat by its own words, never with a unit it lacks', () => {
+    expect(boatSizeSaid('5.0-5.2')).toBe('boats of 5.0–5.2 m')
+    expect(boatSizeSaid('3.5 - 4.0m')).toBe('boats of 3.5–4.0 m')
+    expect(boatSizeSaid('6.2 M')).toBe('boats of 6.2 m')
+    expect(boatSizeSaid('4.7/5.0M')).toBe('boats of 4.7 or 5.0 m')
+    expect(boatSizeSaid('495')).toBe('for the 495')
+    expect(boatSizeSaid('540/575')).toBe('for the 540/575')
+    expect(boatSizeSaid('Highfield ADV7')).toBe('for the Highfield ADV7')
+    expect(boatSizeSaid('Jet Ski')).toBe('for the Jet Ski')
+    expect(boatSizeSaid('')).toBeNull()
+    expect(trailerLengthSaid(4430)).toBe('4.43 m long')
+    expect(trailerLengthSaid(6.5)).toBe('6.5 m long')
+    expect(trailerLengthSaid(150)).toBeNull()
+    /* on every trailer list of the real price list, no line is said "boats of" a figure over 30 m */
+    const trailers = Object.values(pack.ctx.entities).filter((e) => e.kind === 'trailer')
+    const facts = trailers.flatMap((t) =>
+      shelfOf(t, rows(t.id)).groups.flatMap((g) => g.lines.flatMap((l) => l.facts)),
+    )
+    const sizes = facts.filter((f) => f.startsWith('boats of '))
+    expect(sizes.length).toBeGreaterThan(0)
+    for (const f of sizes) expect(f, f).toMatch(/^boats of [\d.]+(?:(?:–| or )[\d.]+)? m$/)
+    for (const f of sizes)
+      for (const n of f.match(/[\d.]+/g) ?? []) expect(Number(n), f).toBeLessThan(30)
+    /* NSM Custom: 24 of 73 carry their own length; GFAB files no such column */
+    expect(shelfOf(table('trl_nsmcustom'), rows('trl_nsmcustom')).lengths).toEqual({
+      filed: true,
+      n: 24,
+      of: 73,
+    })
+    expect(shelfOf(table('trl_gfab'), rows('trl_gfab')).lengths?.filed).toBe(false)
   })
 
   it('finds by every word of a find, across headings', () => {

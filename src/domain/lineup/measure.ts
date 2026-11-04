@@ -174,9 +174,50 @@ export function peopleSaid(m: Measure | null): string | null {
   return said === null ? null : `${said} people`
 }
 
+/** One way a boat may be powered, as the file writes it: a single motor or a rig of two or
+ *  three, at a horsepower. */
+interface Power {
+  count: number
+  hp: number
+}
+
+/** A horsepower cell read as the ways it names, or null where any part of it is words. The file
+ *  writes a choice with a slash: "425 / 2 x 300 HP" is a single 425 or a twin 300 (Highfield's
+ *  Sport 900, measured 2026-11-04). */
+function powersOf(m: Measure): Power[] | null {
+  if (m.kind === 'span') {
+    return m.lo === m.hi
+      ? [{ count: 1, hp: m.lo }]
+      : [
+          { count: 1, hp: m.lo },
+          { count: 1, hp: m.hi },
+        ]
+  }
+  const out: Power[] = []
+  for (const word of m.words) {
+    for (const part of word.split(/\s*(?:\/|\bor\b)\s*/i)) {
+      const r = /^(?:(\d)\s*x\s*)?(\d+(?:\.\d+)?)\s*(?:hp)?$/i.exec(part.trim())
+      if (!r) return null
+      out.push({ count: r[1] ? Number(r[1]) : 1, hp: Number(r[2]) })
+    }
+  }
+  return out.length > 0 ? out : null
+}
+
+/** "150–200 hp", "up to 2 × 300 hp", "from 90 hp" — one count of motors, from its least to its
+ *  most as Min HP and Max HP name them. */
+function powerSaid(count: number, lo: number | null, hi: number | null): string {
+  const rig = count > 1 ? `${count} × ` : ''
+  if (lo !== null && hi !== null)
+    return lo === hi ? `${rig}${num(hi)} hp` : `${rig}${num(lo)}–${num(hi)} hp`
+  if (hi !== null) return `up to ${rig}${num(hi)} hp`
+  return `from ${rig}${num(lo ?? 0)} hp`
+}
+
 /** THE HORSEPOWER A BOAT TAKES, from its Min HP and Max HP read together: "150–200 hp", "up to
- *  250 hp" where the file names no least, "2 × 350–450 hp" for a twin, and the file's own
- *  words where they are words ("TBA"). Null where it names neither. */
+ *  250 hp" where the file names no least, "2 × 350–450 hp" for a twin, a choice the file writes
+ *  with a slash said for each count of motors ("250–350 hp or up to 2 × 200 hp"), and the file's
+ *  own words where they are words ("TBA"). Null where it names neither. */
 export function hpSaid(min: Measure | null, max: Measure | null): string | null {
   if (!min && !max) return null
   if (min?.kind === 'span' && max?.kind === 'span') {
@@ -184,16 +225,20 @@ export function hpSaid(min: Measure | null, max: Measure | null): string | null 
   }
   if (!min && max?.kind === 'span') return `up to ${spanSaid(max, 0)} hp`
   if (min?.kind === 'span' && !max) return `from ${num(min.lo)} hp`
-  /* a twin or triple: "2 x 350 HP" to "2 x 450 HP" read as one rig */
-  const rig = (m: Measure | null): { count: number; hp: number } | null => {
-    if (m?.kind !== 'words' || m.words.length !== 1) return null
-    const r = /^(\d)\s*x\s*(\d+)\s*hp$/i.exec(m.words[0] ?? '')
-    return r ? { count: Number(r[1]), hp: Number(r[2]) } : null
+  /* EACH COUNT OF MOTORS SAID ON ITS OWN, singles first: the least the file names for it under
+     Min HP and the most under Max HP. A twin is never spanned against a single. */
+  const least = min ? powersOf(min) : []
+  const most = max ? powersOf(max) : []
+  if (least && most) {
+    const counts = [...new Set([...least, ...most].map((p) => p.count))].sort((a, b) => a - b)
+    const pick = (list: Power[], count: number, f: (...v: number[]) => number): number | null => {
+      const hp = list.filter((p) => p.count === count).map((p) => p.hp)
+      return hp.length > 0 ? f(...hp) : null
+    }
+    return counts
+      .map((c) => powerSaid(c, pick(least, c, Math.min), pick(most, c, Math.max)))
+      .join(' or ')
   }
-  const a = rig(min)
-  const b = rig(max)
-  if (a && b && a.count === b.count)
-    return a.hp === b.hp ? `${a.count} × ${a.hp} hp` : `${a.count} × ${a.hp}–${b.hp} hp`
   const lo = measureSaid('minHp', min)
   const hi = measureSaid('maxHp', max)
   const said = [lo, hi].filter((s): s is string => s !== null)

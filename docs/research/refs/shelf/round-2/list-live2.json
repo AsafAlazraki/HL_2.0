@@ -1,0 +1,7 @@
+[
+ {"id":"attio-review-values","url":"https://a.storyblok.com/f/234930/2460x1470/502cdab970/review-values-import.png","note":"Attio Import data via CSV: review values step (attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv)"},
+ {"id":"attio-preview-import","url":"https://a.storyblok.com/f/234930/2460x1474/9508a59052/preview-import.png","note":"Attio import: preview of every update"},
+ {"id":"attio-records-already","url":"https://a.storyblok.com/f/234930/1558x616/bda4a70d83/for-records-already-in-list.png","note":"Attio import: for records already in the list"},
+ {"id":"attio-confirm-import","url":"https://a.storyblok.com/f/234930/5760x4096/033139483d/confirm-import_final.png","note":"Attio blog The new Attio importer is here: confirm import"},
+ {"id":"attio-sort-review","url":"https://a.storyblok.com/f/234930/866x486/a464912fe2/sort-review-values-step-import.png","note":"Attio import: sort in the review values step"}
+]

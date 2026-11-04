@@ -687,14 +687,35 @@
   outline: none;
   box-shadow: var(--shadow-focus);
 }
-.pl-tray__refused:empty {
+/* the cards and the tray at their foot, spaced as the range is */
+.pl-deck {
+  display: grid;
+  gap: inherit;
+  min-inline-size: 0;
+}
+
+/* THE TRAY AT THE RANGE'S FOOT, where the head is not docked (a hand, a window too short to
+   dock): held at the bottom of the screen, clear of the phone's tab bar, while the cards pass,
+   and let go where the range ends. At a desk the tray stands in the docked head instead. */
+.pl-tray[data-at='foot'] {
   display: none;
 }
-.pl-tray__refused {
-  flex-basis: 100%;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-reason);
+@media (max-width: 639.98px), (max-height: 520px) {
+  .pl-dock .pl-tray {
+    display: none;
+  }
+  .pl-tray[data-at='foot'] {
+    position: sticky;
+    inset-block-end: calc(var(--shell-foot) + --spacing(2));
+    z-index: 4;
+    display: flex;
+    padding: --spacing(2) --spacing(3);
+    border-radius: var(--radius-tile);
+    background: var(--color-plate);
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 1px var(--color-rule-strong);
+  }
 }
 
 /* ---- the cards: one per model ---- */
@@ -710,7 +731,11 @@
   color: var(--color-ink);
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template:
+    'well' auto
+    'words' 1fr
+    'foot' auto
+    / minmax(0, 1fr);
   min-inline-size: 0;
   border-radius: var(--radius-tile);
   background: var(--color-plate);
@@ -725,6 +750,7 @@
     0 0 0 2px var(--color-blue-800);
 }
 .pl-card__well {
+  grid-area: well;
   display: grid;
   place-items: center;
   aspect-ratio: 16 / 8;
@@ -757,6 +783,7 @@
   color: var(--color-ink-2);
 }
 .pl-card__words {
+  grid-area: words;
   display: grid;
   align-content: start;
   gap: --spacing(1.5);
@@ -807,20 +834,41 @@
   font-family: var(--font-mono);
 }
 .pl-card__facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 --spacing(2);
+  --run-gap: --spacing(4.5);
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
-.pl-card__fact + .pl-card__fact::before {
+
+/* A RUN OF FACTS (Run.tsx): each fact's dot stands in the gap before it, and the run is drawn
+   one gap left of its own box, which clips sideways, so the dot before the fact that starts a
+   line is never painted and no line begins or ends on a dot */
+.pl-run {
+  --run-gap: --spacing(4);
+  display: block;
+  overflow-x: clip;
+}
+.pl-run__in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-inline-start: calc(-1 * var(--run-gap));
+}
+.pl-run__item {
+  position: relative;
+  min-inline-size: 0;
+  margin-inline-start: var(--run-gap);
+}
+.pl-run__item::before {
   content: '·';
-  margin-inline-end: --spacing(2);
+  position: absolute;
+  inset-inline-end: 100%;
+  inline-size: var(--run-gap);
   color: var(--color-ink-3);
   font-weight: 400;
+  text-align: center;
 }
 /* SORTED BY LENGTH, one quiet bar for the boat's length against the longest of the maker */
 .pl-card__bar {
@@ -848,7 +896,11 @@
 }
 .pl-card__kit {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* each figure as wide as its word, the four spread across the card with a clear gap between
+     every two, so "packages" and "parts" never read as one phrase in a hand */
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+  column-gap: --spacing(3);
   margin: --spacing(0.5) 0 0;
   padding-block-start: --spacing(1.5);
   border-block-start: 1px dashed var(--color-rule-strong);
@@ -871,7 +923,42 @@
   font-weight: 600;
   color: var(--color-ink-2);
 }
+/* a Compare refused, said on the card where it was pressed */
+.pl-card__refused {
+  grid-area: refused;
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(1.5);
+  margin: 0;
+  padding: --spacing(2) --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-reason);
+  white-space: normal;
+}
+.pl-card__refused > svg {
+  flex: none;
+  margin-block-start: --spacing(0.5);
+}
+/* BESIDE THE PRESS: on the picture, just under the Compare on its corner, on its own ground, so
+   it is in the window wherever the press was (a short window cut it off under the picture) */
+@media (min-width: 640px) {
+  .pl-card__refused {
+    grid-area: well;
+    align-self: start;
+    z-index: 1;
+    margin: --spacing(12) --spacing(2) 0;
+    border: 0;
+    border-radius: var(--radius-tile);
+    background: var(--color-plate);
+    box-shadow:
+      var(--shadow-sm),
+      0 0 0 1px var(--color-rule-strong);
+  }
+}
 .pl-card__foot {
+  grid-area: foot;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1082,6 +1169,8 @@
   font-variant-numeric: tabular-nums;
 }
 .pl-group {
+  /* how many lines its box is as wide as; the group sets its own count on the list */
+  --lines: 4;
   display: grid;
   gap: --spacing(2);
   min-inline-size: 0;
@@ -1102,10 +1191,16 @@
   color: var(--color-ink-2);
   font-variant-numeric: tabular-nums;
 }
+/* AS MANY COLUMNS AS IT HAS LINES, up to what the width holds, and no wider than they need: one
+   rating's one motor is one line in a box its own width, never half of a full-width box empty */
 .pl-lines {
   color: var(--color-ink);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  /* a width, not a maximum: an auto-fit grid counts its columns from a maximum and would grow to
+     it (measured: 641px sideways on REDCO at 1440) */
+  inline-size: min(100%, calc(var(--lines) * 32rem));
+  box-sizing: border-box;
   gap: 0 --spacing(6);
   margin: 0;
   padding: --spacing(1) --spacing(4);
@@ -1134,15 +1229,15 @@
   overflow-wrap: anywhere;
 }
 .pl-line__facts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: --spacing(0.5) --spacing(2);
+  --run-gap: --spacing(3.5);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
 
+.pl-line__facts .pl-run__in {
+  row-gap: --spacing(0.5);
+}
 .pl-line__code {
   font-family: var(--font-mono);
 }
@@ -1365,17 +1460,39 @@
   font-variant-numeric: tabular-nums;
   text-align: end;
 }
-.pl-quote__who {
+.pl-quote__meta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 --spacing(3);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
 .pl-quote__state {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  text-align: end;
+  --run-gap: --spacing(3);
   font-variant-numeric: tabular-nums;
+}
+
+/* a span in the prices' table: one line where it fits, its two figures one over the other in a
+   hand, the second said "to", so no line ends on a dash */
+.pl-span {
+  white-space: nowrap;
+}
+@media (max-width: 639.98px) {
+  .pl-span__lo,
+  .pl-span__hi {
+    display: block;
+  }
+  .pl-span__dash {
+    display: none;
+  }
+  .pl-span__hi::before {
+    content: 'to ';
+    font-weight: 500;
+    color: var(--color-ink-2);
+  }
 }
 
 /* what was changed here, each a door to the line */
@@ -1667,8 +1784,11 @@
     scroll-margin-block-start: --spacing(4);
   }
   .pl-card {
-    grid-template-columns: 7.5rem minmax(0, 1fr);
-    grid-template-rows: auto auto;
+    grid-template:
+      'well refused' auto
+      'well words' 1fr
+      'foot foot' auto
+      / 7.5rem minmax(0, 1fr);
   }
   .pl-card__well {
     align-self: stretch;
@@ -1678,8 +1798,10 @@
   .pl-card__words {
     padding: --spacing(2.5) --spacing(3) --spacing(2);
   }
-  .pl-card__foot {
-    grid-column: 1 / -1;
+  /* in a hand the refusal heads the words beside the picture, by the Compare on its corner */
+  .pl-card__refused {
+    padding-block-end: 0;
+    border-block-start: 0;
   }
   .pl-card__type b {
     font-size: var(--text-base);

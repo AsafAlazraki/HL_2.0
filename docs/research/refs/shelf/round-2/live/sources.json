@@ -1,0 +1,381 @@
+[
+  {
+    "id": "recce-demo",
+    "url": "https://pr1.cloud.datarecce.io/",
+    "wait": 6000,
+    "note": "Recce public demo: data review of a change, per-column match",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://pr1.demo.datarecce.io/",
+    "title": "recce",
+    "file": "recce-demo.png"
+  },
+  {
+    "id": "workbookdiff",
+    "url": "https://workbookdiff.com/",
+    "wait": 3000,
+    "note": "WorkbookDiff: browser-local compare of two xlsx versions",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://workbookdiff.com/",
+    "title": "WorkbookDiff - Compare Excel Files Online, Free & No Upload",
+    "file": "workbookdiff.png"
+  },
+  {
+    "id": "glide-grid",
+    "url": "https://grid.glideapps.com/",
+    "wait": 4000,
+    "note": "Glide Data Grid: a virtualised grid of very many rows",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://grid.glideapps.com/",
+    "title": "Modern react data grid component - Glide Data Grid",
+    "file": "glide-grid.png"
+  },
+  {
+    "id": "weblate-changes",
+    "url": "https://hosted.weblate.org/changes/",
+    "wait": 3000,
+    "note": "Weblate public changes ledger",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://hosted.weblate.org/changes/",
+    "title": "Changes @ Hosted Weblate",
+    "file": "weblate-changes.png"
+  },
+  {
+    "id": "osmcha",
+    "url": "https://osmcha.org/",
+    "wait": 5000,
+    "note": "OSMCha: changeset review queue with flagged reasons",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://osmcha.org/",
+    "title": "OSMCha",
+    "file": "osmcha.png"
+  },
+  {
+    "id": "datasette-facets",
+    "url": "https://latest.datasette.io/fixtures/facetable?_facet=state&_facet=_city_id&_facet=on_earth",
+    "wait": 3000,
+    "note": "Datasette: counted facets above a table",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://latest.datasette.io/fixtures/facetable?_facet=state&_facet=_city_id&_facet=on_earth",
+    "title": "fixtures: facetable: 15 rows",
+    "file": "datasette-facets.png"
+  },
+  {
+    "id": "dockmaster-parts-load",
+    "url": "https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/vendor-loads/inventory-parts-load/",
+    "wait": 2500,
+    "note": "DockMaster (marine DMS) docs: loading a vendor parts price book",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/vendor-loads/inventory-parts-load/",
+    "title": "Inventory Parts Load | DockMaster Documentation",
+    "file": "dockmaster-parts-load.png"
+  },
+  {
+    "id": "dockmaster-price-factor",
+    "url": "https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/pricing/price-change-using-factor/",
+    "wait": 2500,
+    "note": "DockMaster docs: price change computed first, written in a second step",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/pricing/price-change-using-factor/",
+    "title": "Price Change Using Factor | DockMaster Documentation",
+    "file": "dockmaster-price-factor.png"
+  },
+  {
+    "id": "hubspot-past-imports-page",
+    "url": "https://knowledge.hubspot.com/import-and-export/view-and-analyze-previous-imports",
+    "wait": 2500,
+    "note": "HubSpot KB: the imports dashboard article",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://knowledge.hubspot.com/import-and-export/view-and-analyze-previous-imports",
+    "title": "View and analyze past imports",
+    "file": "hubspot-past-imports-page.png"
+  },
+  {
+    "id": "dockmaster-pricebook-1",
+    "url": "https://portal.dockmaster.com/assets/images/29d687fc-d9a4-4163-b855-3b12405bfc24-9eb06113e289df4c5653a739398c5e66.png",
+    "note": "DockMaster Loading Vendor Price Books, image 3",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://portal.dockmaster.com/assets/images/29d687fc-d9a4-4163-b855-3b12405bfc24-9eb06113e289df4c5653a739398c5e66.png",
+    "title": "29d687fc-d9a4-4163-b855-3b12405bfc24-9eb06113e289df4c5653a739398c5e66.png (835×423)",
+    "file": "dockmaster-pricebook-1.png"
+  },
+  {
+    "id": "dockmaster-pricebook-2",
+    "url": "https://portal.dockmaster.com/assets/images/38b9aa7d-c0ac-4d22-b641-99e7f430ad80-6ef22e5d0c56ff1386b1c1a85fdebbda.png",
+    "note": "DockMaster Loading Vendor Price Books, image 4",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://portal.dockmaster.com/assets/images/38b9aa7d-c0ac-4d22-b641-99e7f430ad80-6ef22e5d0c56ff1386b1c1a85fdebbda.png",
+    "title": "38b9aa7d-c0ac-4d22-b641-99e7f430ad80-6ef22e5d0c56ff1386b1c1a85fdebbda.png (663×626)",
+    "file": "dockmaster-pricebook-2.png"
+  },
+  {
+    "id": "dockmaster-pricebook-3",
+    "url": "https://portal.dockmaster.com/assets/images/c1614ce4-ce67-48a7-ae0a-629b9b26019a-1356a0d91b948b0b500438a3d291df80.png",
+    "note": "DockMaster Loading Vendor Price Books, image 1",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://portal.dockmaster.com/assets/images/c1614ce4-ce67-48a7-ae0a-629b9b26019a-1356a0d91b948b0b500438a3d291df80.png",
+    "title": "c1614ce4-ce67-48a7-ae0a-629b9b26019a-1356a0d91b948b0b500438a3d291df80.png (631×225)",
+    "file": "dockmaster-pricebook-3.png"
+  },
+  {
+    "id": "openrefine-reconcile-hover",
+    "url": "https://openrefine.org/assets/images/reconcilehover-a9fd6853e09716dfd7d81acb648e4203.png",
+    "note": "OpenRefine reconciling: candidates per cell, hover",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://openrefine.org/assets/images/reconcilehover-a9fd6853e09716dfd7d81acb648e4203.png",
+    "title": "reconcilehover-a9fd6853e09716dfd7d81acb648e4203.png (906×620)",
+    "file": "openrefine-reconcile-hover.png"
+  },
+  {
+    "id": "openrefine-reconcile-ambiguous",
+    "url": "https://openrefine.org/assets/images/reconcileParis-dd3d74a30c832ae23f778928098ff50b.gif",
+    "note": "OpenRefine: ambiguous matches",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://openrefine.org/assets/images/reconcileParis-dd3d74a30c832ae23f778928098ff50b.gif",
+    "title": "reconcileParis-dd3d74a30c832ae23f778928098ff50b.gif (619×317)",
+    "file": "openrefine-reconcile-ambiguous.png"
+  },
+  {
+    "id": "openrefine-reconcile-window",
+    "url": "https://openrefine.org/assets/images/reconcilewindow2-82c0c0cac0e5f354d50f94b9eccdea1d.png",
+    "note": "OpenRefine reconciliation window with types",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://openrefine.org/assets/images/reconcilewindow2-82c0c0cac0e5f354d50f94b9eccdea1d.png",
+    "title": "reconcilewindow2-82c0c0cac0e5f354d50f94b9eccdea1d.png (912×612)",
+    "file": "openrefine-reconcile-window.png"
+  },
+  {
+    "id": "hubspot-imports-table",
+    "url": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Import/review-import-table.png?width=800&height=344&name=review-import-table.png",
+    "note": "HubSpot File imports tab",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Import/review-import-table.png?width=800&height=344&name=review-import-table.png",
+    "title": "review-import-table.png (800×343)",
+    "file": "hubspot-imports-table.png"
+  },
+  {
+    "id": "hubspot-import-summary",
+    "url": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Import/review-import-records.png?width=800&height=613&name=review-import-records.png",
+    "note": "HubSpot import summary",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Import/review-import-records.png?width=800&height=613&name=review-import-records.png",
+    "title": "review-import-records.png (800×612)",
+    "file": "hubspot-import-summary.png"
+  },
+  {
+    "id": "airtable-csv-mapping",
+    "url": "https://assets.usepylon.com/1237091b-3473-415f-9428-359cbf617e00%2F3aedcadb-f27d-4bb6-b6d5-eefaeda09378-360004658854airtablecomtbl2EF3EdkqQqhksAviwjFfNSUSPQUSuEeCustomA1079x6321.png?Expires=253370764800&Signature=aySudEZm7IXnUwUOhbsL753MLIyUUOFV2idpou9jJCKkrKhgixvj0F2yuTuVKnBbLxqFOM3lLpABPUpZDMEqTnwIevFArjaYkiTl3zzwh93RgUEmsMIcCJwVahnpnAzLOhTVy3J63HRcEd4pBkq8~TNOWM7bIHKMj58W9HjFVWRHEa3UGIb-VsA70qKTLZV9Wj3gbh8Z7-7YSolFysQq6Zsxz6WRp-ZHT2gDfH6NJBdpZHDgR2H4Qgq1WxrZ9E~Z7sttBlMhwoXPypigkenijhmHw8UmioKaE9jClCU6wLjYYTuOqxrAnEVAewJCrWjdJgMee9uHDWhzrmp5lNIeUw__&Key-Pair-Id=K3NV4LZ47N8M46",
+    "note": "Airtable CSV import extension: field mapping (support.airtable.com/docs/csv-import-extension)",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://assets.usepylon.com/1237091b-3473-415f-9428-359cbf617e00%2F3aedcadb-f27d-4bb6-b6d5-eefaeda09378-360004658854airtablecomtbl2EF3EdkqQqhksAviwjFfNSUSPQUSuEeCustomA1079x6321.png?Expires=253370764800&Signature=aySudEZm7IXnUwUOhbsL753MLIyUUOFV2idpou9jJCKkrKhgixvj0F2yuTuVKnBbLxqFOM3lLpABPUpZDMEqTnwIevFArjaYkiTl3zzwh93RgUEmsMIcCJwVahnpnAzLOhTVy3J63HRcEd4pBkq8~TNOWM7bIHKMj58W9HjFVWRHEa3UGIb-VsA70qKTLZV9Wj3gbh8Z7-7YSolFysQq6Zsxz6WRp-ZHT2gDfH6NJBdpZHDgR2H4Qgq1WxrZ9E~Z7sttBlMhwoXPypigkenijhmHw8UmioKaE9jClCU6wLjYYTuOqxrAnEVAewJCrWjdJgMee9uHDWhzrmp5lNIeUw__&Key-Pair-Id=K3NV4LZ47N8M46",
+    "title": "1237091b-3473-415f-9428-359cbf617e00/3aedcadb-f27d-4bb6-b6d5-eefaeda09378-360004658854airtablecomtbl2EF3EdkqQqhksAviwjFfNSUSPQUSuEeCustomA1079x6321.png (2158×1264)",
+    "file": "airtable-csv-mapping.png"
+  },
+  {
+    "id": "obsidian-version-history",
+    "url": "https://publish-01.obsidian.md/access/f786db9fac45774fa4f0d8112e232d67/Attachments/version-history-collaboration.png",
+    "note": "Obsidian Sync version history (obsidian.md/help/sync/version-history)",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://publish-01.obsidian.md/access/f786db9fac45774fa4f0d8112e232d67/Attachments/version-history-collaboration.png",
+    "title": "version-history-collaboration.png (2190×1424)",
+    "file": "obsidian-version-history.png"
+  },
+  {
+    "id": "updraft-dashboard",
+    "url": "https://ps.w.org/updraftplus/assets/screenshot-1.png?rev=1927660",
+    "note": "UpdraftPlus main dashboard with existing backups",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://ps.w.org/updraftplus/assets/screenshot-1.png?rev=1927660",
+    "title": "screenshot-1.png (1033×846)",
+    "file": "updraft-dashboard.png"
+  },
+  {
+    "id": "updraft-restore-components",
+    "url": "https://ps.w.org/updraftplus/assets/screenshot-4.png?rev=1686200",
+    "note": "UpdraftPlus: choose which components to restore",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://ps.w.org/updraftplus/assets/screenshot-4.png?rev=1686200",
+    "title": "screenshot-4.png (976×237)",
+    "file": "updraft-restore-components.png"
+  },
+  {
+    "id": "figma-branch-list",
+    "url": "https://help.figma.com/hc/article_attachments/6008580195223",
+    "note": "Figma Review branch changes: the review window",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/6008580195223",
+    "title": "6008580195223 (2312×1700)",
+    "file": "figma-branch-list.png"
+  },
+  {
+    "id": "figma-branch-side",
+    "url": "https://help.figma.com/hc/article_attachments/6008252022295",
+    "note": "Figma Review branch changes: side by side",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/6008252022295",
+    "title": "6008252022295 (2308×1696)",
+    "file": "figma-branch-side.png"
+  },
+  {
+    "id": "figma-publish-library",
+    "url": "https://help.figma.com/hc/article_attachments/25924823045655",
+    "note": "Figma Publish a library: component changes panel",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/25924823045655",
+    "title": "25924823045655 (1920×1080)",
+    "file": "figma-publish-library.png"
+  },
+  {
+    "id": "onedrive-restore",
+    "url": "https://support.microsoft.com/en-us/onedrive/media/restore-your-onedrive-002.png",
+    "note": "Restore your OneDrive: file activity histogram and list",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://support.microsoft.com/en-us/onedrive/media/restore-your-onedrive-002.png",
+    "title": "restore-your-onedrive-002.png (860×832)",
+    "file": "onedrive-restore.png"
+  },
+  {
+    "id": "attio-review-values",
+    "url": "https://a.storyblok.com/f/234930/2460x1470/502cdab970/review-values-import.png",
+    "note": "Attio Import data via CSV: review values step (attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv)",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://a.storyblok.com/f/234930/2460x1470/502cdab970/review-values-import.png",
+    "title": "review-values-import.png (2460×1470)",
+    "file": "attio-review-values.png"
+  },
+  {
+    "id": "attio-preview-import",
+    "url": "https://a.storyblok.com/f/234930/2460x1474/9508a59052/preview-import.png",
+    "note": "Attio import: preview of every update",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://a.storyblok.com/f/234930/2460x1474/9508a59052/preview-import.png",
+    "title": "preview-import.png (2460×1474)",
+    "file": "attio-preview-import.png"
+  },
+  {
+    "id": "attio-records-already",
+    "url": "https://a.storyblok.com/f/234930/1558x616/bda4a70d83/for-records-already-in-list.png",
+    "note": "Attio import: for records already in the list",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://a.storyblok.com/f/234930/1558x616/bda4a70d83/for-records-already-in-list.png",
+    "title": "for-records-already-in-list.png (1558×616)",
+    "file": "attio-records-already.png"
+  },
+  {
+    "id": "attio-confirm-import",
+    "url": "https://a.storyblok.com/f/234930/5760x4096/033139483d/confirm-import_final.png",
+    "note": "Attio blog The new Attio importer is here: confirm import",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://a.storyblok.com/f/234930/5760x4096/033139483d/confirm-import_final.png",
+    "title": "confirm-import_final.png (5760×4096)",
+    "file": "attio-confirm-import.png"
+  },
+  {
+    "id": "attio-sort-review",
+    "url": "https://a.storyblok.com/f/234930/866x486/a464912fe2/sort-review-values-step-import.png",
+    "note": "Attio import: sort in the review values step",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://a.storyblok.com/f/234930/866x486/a464912fe2/sort-review-values-step-import.png",
+    "title": "sort-review-values-step-import.png (866×486)",
+    "file": "attio-sort-review.png"
+  },
+  {
+    "id": "workbookdiff-sample",
+    "url": "https://workbookdiff.com/",
+    "title": "WorkbookDiff - Compare Excel Files Online, Free & No Upload",
+    "note": "Try Sample Files pressed: two named versions, each with size and Ready to compare",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://workbookdiff.com/",
+    "file": "workbookdiff-sample.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "workbookdiff-result",
+    "url": "https://workbookdiff.com/",
+    "title": "WorkbookDiff - Compare Excel Files Online, Free & No Upload",
+    "note": "Compare pressed on the samples: counted change kinds, search, worksheet and change-type filters, Before / After table",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://workbookdiff.com/",
+    "file": "workbookdiff-result.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "recce-analysis",
+    "url": "https://pr1.demo.datarecce.io/",
+    "title": "recce",
+    "note": "Recce demo (pr1.cloud.datarecce.io redirects here): the customers model opened, Row Count 1,856 rows No Change",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://pr1.demo.datarecce.io/",
+    "file": "recce-analysis.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "recce-value-diff",
+    "url": "https://pr1.demo.datarecce.io/",
+    "title": "recce",
+    "note": "Recce Value diff: matched count and matched % per column, sorted so the moved column is first",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://pr1.demo.datarecce.io/",
+    "file": "recce-value-diff.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "recce-checklist",
+    "url": "https://pr1.demo.datarecce.io/checks/?id=abbe5f4e-26f1-4e65-8704-15b3ec5a5c20",
+    "title": "recce",
+    "note": "Recce Checklist: each check ticked, Outdated chips, Approved",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://pr1.demo.datarecce.io/checks/?id=abbe5f4e-26f1-4e65-8704-15b3ec5a5c20",
+    "file": "recce-checklist.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "dolthub-new-diff",
+    "url": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "title": "Improving Diffs on DoltHub | DoltHub Blog",
+    "note": "Blog image The new diff page (element shot): Diff Overview per table, Hide Column on a header",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "file": "dolthub-new-diff.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "dolthub-big-summary",
+    "url": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "title": "Improving Diffs on DoltHub | DoltHub Blog",
+    "note": "Blog image Big diff summary (element shot)",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "file": "dolthub-big-summary.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "dolthub-filter",
+    "url": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "title": "Improving Diffs on DoltHub | DoltHub Blog",
+    "note": "Blog gif Filtering a diff table, first frame (element shot)",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "file": "dolthub-filter.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "dolthub-hide-columns",
+    "url": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "title": "Improving Diffs on DoltHub | DoltHub Blog",
+    "note": "Blog gif Hide and unhide columns, first frame (element shot)",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.dolthub.com/blog/2021-07-14-new-diff-page/",
+    "file": "dolthub-hide-columns.png",
+    "via": "playwright MCP, driven by hand"
+  },
+  {
+    "id": "gh-desktop-partial",
+    "url": "https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop#creating-a-partial-commit",
+    "title": "Committing and reviewing changes to your project in GitHub Desktop - GitHub Docs",
+    "note": "Selecting changes to include in a commit: the list checkbox over per-file checkboxes",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop#creating-a-partial-commit",
+    "file": "gh-desktop-partial.png",
+    "via": "playwright MCP, driven by hand"
+  }
+]

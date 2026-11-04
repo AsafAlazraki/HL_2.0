@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowRightIcon,
   ClockCounterClockwiseIcon,
@@ -20,6 +20,7 @@ import {
 } from '@/domain/quote/register'
 import type { Shelf } from '@/domain/lineup/shelf'
 import { Mark } from './Livery'
+import { Run } from './Run'
 import type { Lineup } from './models'
 import type { PlacePage } from './read'
 
@@ -191,8 +192,25 @@ export function After({
 /* Its prices                                                  */
 /* ---------------------------------------------------------- */
 
-const spanCell = (lo: number | null, hi: number | null): string =>
-  lo === null || hi === null ? '—' : lo === hi ? money(lo) : `${money(lo)}–${money(hi)}`
+/** A span in a cell: "$105,930–$198,610" on one line where it fits, and in a hand its two figures
+ *  one over the other as "$105,930" / "to $198,610", never broken after the dash (verify-1). */
+function spanCell(lo: number | null, hi: number | null): ReactNode {
+  if (lo === null || hi === null) return '—'
+  if (lo === hi) return money(lo)
+  return (
+    <span className="pl-span">
+      <span className="pl-span__lo">{money(lo)}</span>
+      <span className="pl-span__hi">
+        <span className="pl-span__dash">–</span>
+        {money(hi)}
+      </span>
+    </span>
+  )
+}
+
+/** A boat as the register says it, with its separators held to the word before them, so a
+ *  wrapped name never starts a line on "/" or "·" (verify-1: "/ White / White/Blue"). */
+const heldSaid = (s: string): string => s.replace(/ ([·/–]) /g, ' $1 ')
 
 function Prices({
   page,
@@ -367,13 +385,18 @@ function Quotes({
                       )}
                     >
                       <span className="pl-quote__in">
-                        <span className="pl-quote__boat">{r.boat}</span>
+                        <span className="pl-quote__boat">{heldSaid(r.boat)}</span>
                         <span className="pl-quote__total">
                           {r.total !== null ? money(r.total) : r.insteadOfTotal}
                         </span>
-                        <span className="pl-quote__who">{r.customer ?? 'Nobody named yet'}</span>
-                        <span className="pl-quote__state" data-state={r.state}>
-                          {STATE_SAID[r.state]} · {localDay(r.createdAt)} · {r.reference}
+                        {/* who and where it stands share the full width under the boat, so the
+                            boat's name has every column but the total's */}
+                        <span className="pl-quote__meta">
+                          <span className="pl-quote__who">{r.customer ?? 'Nobody named yet'}</span>
+                          <Run
+                            className="pl-quote__state"
+                            items={[STATE_SAID[r.state], localDay(r.createdAt), r.reference]}
+                          />
                         </span>
                       </span>
                     </Tile>

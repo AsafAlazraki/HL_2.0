@@ -13,7 +13,17 @@
 
    A PRICE IS PRINTED ONLY AT A LEVEL A CUSTOMER MAY BE SHOWN
    (`levelsRead`). A list that declares none is drawn with no figure,
-   and the page says why where the figure would be.
+   and the page says why where the figure would be — with one
+   exception the file itself names: Labour Rates declares no price,
+   and each rate is printed at its "Rate (inc GST)", which the file
+   calls the sell rate (`chargeOf`), so what an hour costs is on the
+   page. Its Actual and Rate (Exc GST), which the file's other sheets
+   cost an hour at, are never read here.
+
+   A TRAILER is said by the boats it takes in the file's own words
+   (`boatSizeSaid`: metres where the file writes metres, the boat
+   itself where it writes a boat) and its own length where it carries
+   one (`trailerLengthSaid`), and the shelf counts how many do.
 
    THE HORSEPOWER LADDER is the motor's own HP Rating: single motors in
    their ratings from the least, then twin and triple rigs. The file's
@@ -37,7 +47,7 @@ import { seriesSaid } from '@/domain/catalogue/views/seriesSaid'
 import { lineSaid } from '@/domain/quote/spoken'
 import { nameOnPaper } from '@/domain/quote/paperWords'
 import { motorFactsOf } from '@/domain/quote/goodsFacts'
-import { defaultLevelKey } from '@/domain/quote/pricing'
+import { defaultLevelKey, isCostColumn } from '@/domain/quote/pricing'
 import { headingSaid, levelsRead } from './range'
 
 export interface ShelfLine {
@@ -73,6 +83,15 @@ export interface Shelf {
   heading: string
   /** the price a figure is printed at, or null where the list declares none a customer may see */
   level: PriceLevel | null
+  /** where the list declares no price, the column the file charges an hour at (Labour Rates'
+   *  Rate (inc GST)), whose figure each line prints by the file's own name; else null */
+  charge: { label: string; fieldId: string } | null
+  /** the figures are said to the cent: a quarter or more of those drawn carry cents, as the
+   *  sheet says a column (Labour Rates' Rate (inc GST), 7 of 18) */
+  cents: boolean
+  /** a trailer list: how many of the lines drawn carry their own length, and whether the list
+   *  files the column at all; null for any other kind */
+  lengths: { filed: boolean; n: number; of: number } | null
   /** the lines drawn */
   lines: number
   /** lines filed under no heading, drawn under their own */
@@ -118,14 +137,83 @@ function factsOf(table: EntityDef, row: RowData, by: Shelf['by']): string[] {
     ].filter((s): s is string => s !== null)
   }
   if (table.kind === 'trailer') {
-    const size = text(row, fieldNamed(table, 'Boat Size (Mtr)'))
+    const size = boatSizeSaid(text(row, fieldNamed(table, 'Boat Size (Mtr)')))
+    const length = trailerLengthSaid(figure(row, fieldNamed(table, TRAILER_LENGTH)))
     const atm = figure(row, fieldNamed(table, 'ATM (KG)'))
-    return [
-      size ? `boats of ${size.replace(/\s*-\s*/, '–').replace(/\s*m(tr)?$/i, '')} m` : null,
-      atm !== null ? `ATM ${kg(atm)}` : null,
-    ].filter((s): s is string => s !== null)
+    return [size, length, atm !== null ? `ATM ${kg(atm)}` : null].filter(
+      (s): s is string => s !== null,
+    )
   }
   return []
+}
+
+/* ---------------------------------------------------------- */
+/* A trailer's own words                                       */
+/* ---------------------------------------------------------- */
+
+/** A length in metres as the file writes one: "5.5", "4.75", "3.9M", "6.2 M", "4.5 - 4.9m". */
+const METRES = /^(\d{1,2}(?:\.\d+)?)\s*(?:m|mtr)?$/i
+
+/**
+ * THE BOATS A TRAILER TAKES, from its "Boat Size (Mtr)" as the file writes it. The column is
+ * named in metres and holds metres on most lists ("5.5", "5.0-5.2", "3.9M", "3.5 - 4.0m"), said
+ * "boats of 5.0–5.2 m", a slash as a choice ("4.7/5.0M" is "boats of 4.7 or 5.0 m"). On NSM
+ * Custom, GFAB, BMT and the OBSOLETE list it holds the boat itself, by its number or its name
+ * ("495", "1450 Exp", "MF 605", "Highfield ADV7", "Jet Ski"): those are said as the boat the
+ * trailer is for, in the file's own words, and never with a unit the file does not give them
+ * (until 2026-11-04 every one was printed "boats of 575 m", "boats of Jet Ski m"). A figure is
+ * read as metres only where it could be a boat's length, under 30.
+ */
+export function boatSizeSaid(value: string): string | null {
+  const v = value.trim().replace(/\s+/g, ' ')
+  if (v === '') return null
+  const parts = v.split(/\s*([-–/])\s*/)
+  /* "5.0-5.2" splits as ["5.0", "-", "5.2"]: every other part a length, between them the mark */
+  const lengths = parts.filter((_, i) => i % 2 === 0)
+  const marks = parts.filter((_, i) => i % 2 === 1)
+  const metres = lengths.map((p) => METRES.exec(p)?.[1])
+  if (metres.every((m): m is string => m !== undefined && Number(m) > 0 && Number(m) < 30)) {
+    const said = metres
+      .map((m, i) => (i === 0 ? m : `${marks[i - 1] === '/' ? ' or ' : '–'}${m}`))
+      .join('')
+    return `boats of ${said} m`
+  }
+  return `for the ${v}`
+}
+
+/** The column a trailer's own length is filed under. */
+export const TRAILER_LENGTH = 'Trailer Length (Mtr)'
+
+/**
+ * A TRAILER'S OWN LENGTH, said in metres. The column is named in metres and holds millimetres on
+ * every line that carries one (REDCO 49 of 52, NSM Custom 24 of 73, Dunbier 2 of 102, from 4,240
+ * to 9,300; measured 2026-11-04), so a figure of a thousand or more is read as millimetres and a
+ * figure under 30 as the metres the name says. Anything between is not a trailer's length and is
+ * not said.
+ */
+export function trailerLengthSaid(v: number | null): string | null {
+  if (v === null) return null
+  const m = v >= 1000 ? v / 1000 : v < 30 ? v : null
+  return m === null ? null : `${m.toLocaleString('en-AU', { maximumFractionDigits: 2 })} m long`
+}
+
+/* ---------------------------------------------------------- */
+/* An hour, where a list declares no price                     */
+/* ---------------------------------------------------------- */
+
+/** THE FILE'S OWN NAME FOR WHAT AN HOUR IS CHARGED AT, on a list that declares no price. Labour
+ *  Rates carries it: "THE SELL RATE, and five consumers in four workbooks agree on it". Its other
+ *  two figures, Actual and Rate (Exc GST), are what the file's other sheets cost an hour at, and
+ *  are never named here. */
+export const CHARGE_NAMES = ['Rate (inc GST)'] as const
+
+/** The column an hour is charged at, where a list declares no price and files one by the name
+ *  the file gives it; never a cost column. */
+export function chargeOf(table: EntityDef): { label: string; fieldId: string } | null {
+  if (levelsRead(table).shown.length > 0 || levelsRead(table).kept.length > 0) return null
+  const field = fieldNamed(table, ...CHARGE_NAMES)
+  if (!field || field.type !== 'number' || isCostColumn(table, field)) return null
+  return { label: field.name, fieldId: field.id }
 }
 
 /** A motor's horsepower as its ladder orders it: singles by rating, then rigs by count. */
@@ -149,6 +237,12 @@ export function shelfOf(table: EntityDef, rows: readonly RowData[]): Shelf {
   const shown = levelsRead(table).shown
   const level = shown.find((l) => l.key === defaultLevelKey(table)) ?? shown[0] ?? null
   const codeField = fieldNamed(table, 'Model Code', 'Code', 'Part No.', 'Part Number', 'REV Code')
+  const charge = level ? null : chargeOf(table)
+  const priceField = table.fields.find((f) => f.id === (level?.fieldId ?? charge?.fieldId))
+  const lengthField = table.kind === 'trailer' ? fieldNamed(table, TRAILER_LENGTH) : undefined
+  let lengths = 0
+  let cents = 0
+  let priced = 0
 
   const groups = new Map<string, ShelfGroup>()
   let held = 0
@@ -184,12 +278,8 @@ export function shelfOf(table: EntityDef, rows: readonly RowData[]): Shelf {
       }
       groups.set(key, group)
     }
-    const price = level
-      ? figure(
-          row,
-          table.fields.find((f) => f.id === level.fieldId),
-        )
-      : null
+    const price = figure(row, priceField)
+    if (!gone && trailerLengthSaid(figure(row, lengthField)) !== null) lengths += 1
     group.lines.push({
       id: row.id,
       name: nameOnPaper(lineSaid(rowLabel(table, row), table.name)),
@@ -200,6 +290,8 @@ export function shelfOf(table: EntityDef, rows: readonly RowData[]): Shelf {
     })
     drawn += 1
     if (!gone && price !== null) {
+      priced += 1
+      if (Math.abs(price - Math.round(price)) >= 0.005) cents += 1
       group.priced += 1
       group.from = group.from === null ? price : Math.min(group.from, price)
       group.to = group.to === null ? price : Math.max(group.to, price)
@@ -214,6 +306,10 @@ export function shelfOf(table: EntityDef, rows: readonly RowData[]): Shelf {
     by,
     heading,
     level,
+    charge,
+    cents: priced > 0 && cents * 4 >= priced,
+    lengths:
+      table.kind === 'trailer' ? { filed: lengthField !== undefined, n: lengths, of: drawn } : null,
     lines: drawn,
     unfiled: by === 'heading' ? (groups.get('')?.lines.length ?? 0) : 0,
     held,

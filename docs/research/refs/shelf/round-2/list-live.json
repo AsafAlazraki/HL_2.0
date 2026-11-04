@@ -1,0 +1,11 @@
+[
+ {"id":"recce-demo","url":"https://pr1.cloud.datarecce.io/","wait":6000,"note":"Recce public demo: data review of a change, per-column match"},
+ {"id":"workbookdiff","url":"https://workbookdiff.com/","wait":3000,"note":"WorkbookDiff: browser-local compare of two xlsx versions"},
+ {"id":"glide-grid","url":"https://grid.glideapps.com/","wait":4000,"note":"Glide Data Grid: a virtualised grid of very many rows"},
+ {"id":"weblate-changes","url":"https://hosted.weblate.org/changes/","wait":3000,"note":"Weblate public changes ledger"},
+ {"id":"osmcha","url":"https://osmcha.org/","wait":5000,"note":"OSMCha: changeset review queue with flagged reasons"},
+ {"id":"datasette-facets","url":"https://latest.datasette.io/fixtures/facetable?_facet=state&_facet=_city_id&_facet=on_earth","wait":3000,"note":"Datasette: counted facets above a table"},
+ {"id":"dockmaster-parts-load","url":"https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/vendor-loads/inventory-parts-load/","wait":2500,"note":"DockMaster (marine DMS) docs: loading a vendor parts price book"},
+ {"id":"dockmaster-price-factor","url":"https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/pricing/price-change-using-factor/","wait":2500,"note":"DockMaster docs: price change computed first, written in a second step"},
+ {"id":"hubspot-past-imports-page","url":"https://knowledge.hubspot.com/import-and-export/view-and-analyze-previous-imports","wait":2500,"note":"HubSpot KB: the imports dashboard article"}
+]

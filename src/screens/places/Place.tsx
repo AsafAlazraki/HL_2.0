@@ -1,7 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowLeftIcon,
-  ArrowRightIcon,
   DatabaseIcon,
   FilePlusIcon,
   ImagesIcon,
@@ -13,6 +12,8 @@ import { makeCtx } from '@/domain/model'
 import { money } from '@/domain/money'
 import { heroesOf } from '@/domain/modules/livery'
 import { shelfOf } from '@/domain/lineup/shelf'
+import { fitsOf, fitsSaid } from '@/domain/lineup/fits'
+import { brandOf } from '@/screens/picker/fleet'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { ctxFrom } from '@/state/catalogue'
 import { useCatalogue, useQuotes } from '@/app/useStores'
@@ -121,6 +122,28 @@ export function Place({ address, tab, onTab, at = AT_REST, onAt, go, openTheFile
         : null,
     [page, rows],
   )
+  /* WHAT EACH MOTOR OR TRAILER FITS, maker by maker, read the way each boat maker's cards read
+     what they carry: every boat maker's models, by the row a card opens Fitment on */
+  const fits = useMemo(() => {
+    const kind = page?.card.kind
+    if (!ctx || !page?.table || !shelf || shelf.retired) return null
+    if (kind !== 'motor' && kind !== 'trailer') return null
+    const makers = Object.values(ctx.entities)
+      .filter((e) => e.kind === 'boat')
+      .map((e) => ({
+        tableId: e.id,
+        anchors: brandOf(e, ctx.rowsByEntity[e.id] ?? []).models.map((m) => m.key),
+      }))
+    const read = fitsOf(ctx, page.table.id, makers)
+    const word = (id: string): string => {
+      const name = ctx.entities[id]?.name ?? id
+      return book.marksFor(name)[0]?.brand ?? name
+    }
+    const said = new Map<string, string>()
+    for (const line of shelf.groups.flatMap((g) => g.lines))
+      said.set(line.id, fitsSaid(read.get(line.id), word))
+    return said
+  }, [ctx, page, shelf, book])
   const stamp = useMemo(() => {
     const p = provenanceOfSheet(version)
     return p.known ? `Price list of ${packedOn(p.file.packedAt, 'long')}` : null
@@ -225,15 +248,6 @@ export function Place({ address, tab, onTab, at = AT_REST, onAt, go, openTheFile
             >
               Quote {withArticle(page.quoteWord)}
             </Button>
-          ) : handoff ? (
-            <Button
-              intent="act"
-              icon={StorefrontIcon}
-              href="/catalogue"
-              onClick={go ? () => go('/catalogue') : undefined}
-            >
-              Open the chandlery
-            </Button>
           ) : null
         }
         gallery={
@@ -270,7 +284,7 @@ export function Place({ address, tab, onTab, at = AT_REST, onAt, go, openTheFile
           {lineup ? <Lineup page={page} lineup={lineup} at={at} onAt={onAt} go={go} /> : null}
           {handoff ? <Handoff page={page} go={go} /> : null}
           {shelf && !handoff ? (
-            <Shelf page={page} shelf={shelf} at={at} onAt={onAt} go={go} />
+            <Shelf page={page} shelf={shelf} at={at} onAt={onAt} go={go} fits={fits} />
           ) : null}
           <After
             page={page}
@@ -340,6 +354,17 @@ function figuresOf(
         big: said.replace(' to ', '–'),
         small: `at ${shelf.level.label} · ${n(prices.length)} of ${n(lines.length)} priced`,
       })
+  } else if (shelf?.charge) {
+    /* WHAT AN HOUR COSTS, on the head: the file's first rate, the cell its other sheets read the
+       hour's sell from (Labour Rates!$H$9, Retail Labour), at the column's own name */
+    const first = shelf.groups.flatMap((g) => g.lines).find((l) => l.price !== null)
+    if (first?.price != null) {
+      const said = money(first.price)
+      out.push({
+        big: shelf.cents && /^\$[\d,]+$/.test(said) ? `${said}.00` : said,
+        small: `an hour of ${first.name} · ${shelf.charge.label}`,
+      })
+    }
   }
   return out
 }
@@ -404,17 +429,20 @@ function Handoff({ page, go }: { page: PlacePage; go?: (href: string) => void })
   const sheet = `/data/${encodeURIComponent(table.id)}`
   return (
     <section className="pl-hand" aria-label={`Where ${page.card.name} is read`}>
+      {/* NO FIGURE THE HEAD ALREADY SAYS, AND NONE THAT DISAGREES WITH IT: the head counts every
+          line and how many are no longer sold, so the sentence says only why the chandlery
+          (verify-1: "2,937 products in 187 categories" over "the same 2,238 … 180 headings") */}
       <p className="pl-hand__say">
-        The chandlery reads the same {n(shelf.lines)} {page.noun} with find, aisles and pictures, so
-        this page opens it rather than drawing {n(shelf.groups.length)} headings a second time.
+        The chandlery reads {page.card.name} with find, aisles and pictures, so this page opens it
+        rather than drawing every {shelf.heading} a second time.
         {shelf.unfiled > 0
-          ? ` ${n(shelf.unfiled)} of them carry no ${shelf.heading} in the price list, and the chandlery files them where a person looks.`
+          ? ` ${n(shelf.unfiled)} carry no ${shelf.heading} in the price list, and the chandlery files them where a person looks.`
           : ''}
       </p>
       <span className="pl-hand__doors">
         <Button
-          intent="secondary"
-          icon={ArrowRightIcon}
+          intent="act"
+          icon={StorefrontIcon}
           href="/catalogue"
           onClick={go ? () => go('/catalogue') : undefined}
         >

@@ -1,9 +1,11 @@
+import type { CSSProperties } from 'react'
 import { DatabaseIcon, InfoIcon, MagnifyingGlassIcon, TagIcon } from '@phosphor-icons/react'
 import { Button, Input, Select } from '@/ui'
 import { money } from '@/domain/money'
 import { findOnShelf, isRig, type Shelf as ShelfRead, type ShelfGroup } from '@/domain/lineup/shelf'
 import type { PlacePage } from './read'
 import type { PlaceAt } from './tabs'
+import { Run } from './Run'
 
 /* ============================================================
    A LIST THAT IS NOT A BOAT MAKER, READ AS ITS OWN RANGE.
@@ -20,9 +22,18 @@ import type { PlaceAt } from './tabs'
    presses, more as one chooser, and a find reaches every line at once.
 
    NO FIGURE WITHOUT A DECLARED PRICE. A list that declares none a
-   customer may see (Labour Rates, Dealer Fit) prints no figure, and
-   the sentence saying why stands where the figures would, with its
-   door. A list no longer sold draws every line as no longer sold.
+   customer may see (Dealer Fit) prints no figure, and the sentence
+   saying why stands where the figures would, with its door. Labour
+   Rates declares none and is read at the column the file charges an
+   hour at, its Rate (inc GST), named as the file names it
+   (`chargeOf`), so what an hour costs is on the page and never what
+   the file's other sheets cost it at. A list no longer sold draws
+   every line as no longer sold.
+
+   EACH MOTOR AND TRAILER SAYS WHAT IT FITS, maker by maker, counted
+   the way the boat makers' cards count it (`fitsOf`); each trailer
+   says the boats it takes in the file's own words and its own length
+   where the file carries one, and the head says how many do.
    ============================================================ */
 
 const n = (v: number): string => v.toLocaleString('en-AU')
@@ -38,12 +49,15 @@ export function Shelf({
   at,
   onAt,
   go,
+  fits,
 }: {
   page: PlacePage
   shelf: ShelfRead
   at: PlaceAt
   onAt?: (next: PlaceAt) => void
   go?: (href: string) => void
+  /** what each line fits, said, by its row id; absent for a list no boat maker reads */
+  fits?: ReadonlyMap<string, string> | null
 }) {
   const table = page.table
   if (!table) return null
@@ -128,6 +142,15 @@ export function Shelf({
             none is priced here. Each stands as the price list keeps it.
           </span>
         </p>
+      ) : !shelf.level && shelf.charge ? (
+        <p className="pl-note">
+          <InfoIcon aria-hidden="true" />
+          <span>
+            {name} declares no price of its own, so each rate is printed at the price list’s{' '}
+            {shelf.charge.label}, what an hour is charged at. Its Actual and Rate (Exc GST), which
+            the price list’s other sheets cost an hour at, stay in the price list.
+          </span>
+        </p>
       ) : !shelf.level ? (
         <div className="pl-note" role="note">
           <InfoIcon aria-hidden="true" />
@@ -135,7 +158,7 @@ export function Shelf({
             {name} names no price a customer may be shown, so no figure is printed here.{' '}
             {page.pricesHref
               ? `Northside chooses its price on Prices.`
-              : `Prices does not carry ${name} yet, so its figures are read in the price list.`}
+              : `It is not one of the lists on Prices yet, so its figures are read in the price list.`}
           </span>
           {page.pricesHref ? (
             <Button
@@ -155,6 +178,15 @@ export function Shelf({
           {n(shelf.held)} more {shelf.held === 1 ? 'is' : 'are'} no longer sold and{' '}
           {shelf.held === 1 ? 'is' : 'are'} not drawn here; the price list keeps{' '}
           {shelf.held === 1 ? 'it' : 'them'}.
+        </p>
+      ) : null}
+      {shelf.lengths && !finding ? (
+        <p className="pl-shelf__held">
+          {!shelf.lengths.filed
+            ? `The price list files no length for ${name}, so each trailer is said by the boats it takes and its ATM.`
+            : shelf.lengths.n === shelf.lengths.of
+              ? `Every one of the ${n(shelf.lengths.of)} carries its own length in the price list.`
+              : `${n(shelf.lengths.n)} of the ${n(shelf.lengths.of)} carry their own length in the price list; the rest are said by the boats they take and their ATM.`}
         </p>
       ) : null}
       {shelf.unfiled > 0 && !finding ? (
@@ -217,9 +249,11 @@ export function Shelf({
         <Group
           key={g.key || 'none'}
           group={g}
-          level={shelf.level?.label ?? null}
+          level={shelf.level?.label ?? shelf.charge?.label ?? null}
+          cents={shelf.cents}
           named={many || finding}
           lineName={lineName}
+          fits={fits ?? null}
         />
       ))}
       {finding && count(groups) > FOUND_MOST ? (
@@ -246,22 +280,33 @@ function cap(gs: readonly ShelfGroup[]): ShelfGroup[] {
   return out
 }
 
+/** A figure said as the list says its figures: to the cent on every line where a quarter or more
+ *  carry cents (`Shelf.cents`), so "$159.00" stands over "$143.10", never "$159". */
+const said = (v: number, cents: boolean): string => {
+  const s = money(v)
+  return cents && /^−?\$[\d,]+$/.test(s) ? `${s}.00` : s
+}
+
 function Group({
   group: g,
   level,
+  cents,
   named,
   lineName,
+  fits,
 }: {
   group: ShelfGroup
   level: string | null
+  cents: boolean
   named: boolean
   lineName: (s: string) => string
+  fits: ReadonlyMap<string, string> | null
 }) {
   const span =
     g.from !== null && g.to !== null
       ? g.from === g.to
-        ? money(g.from)
-        : `from ${money(g.from)} to ${money(g.to)}`
+        ? said(g.from, cents)
+        : `from ${said(g.from, cents)} to ${said(g.to, cents)}`
       : null
   return (
     <section className="pl-group" aria-label={g.name}>
@@ -274,27 +319,37 @@ function Group({
           </span>
         </h3>
       ) : null}
-      <ul className="pl-lines" data-ground="plate">
+      <ul
+        className="pl-lines"
+        data-ground="plate"
+        style={{ '--lines': Math.min(g.lines.length, 4) } as CSSProperties}
+      >
         {g.lines.map((l) => (
           <li key={l.id} className="pl-line" data-gone={l.gone ? '' : undefined}>
             <span className="pl-line__words">
               <span className="pl-line__name">{lineName(l.name)}</span>
-              <span className="pl-line__facts">
-                {l.gone ? <span className="pl-line__tag">No longer sold</span> : null}
-                {l.code && !l.name.includes(l.code) ? (
-                  <span className="pl-line__code">{l.code}</span>
-                ) : null}
-                {l.facts.length > 0 ? (
-                  /* one run of words, each fact held to the dot before it, so a wrapped line
-                     never starts on a dot */
-                  <span className="pl-line__fact">{l.facts.join(' · ')}</span>
-                ) : null}
-              </span>
+              <Run
+                className="pl-line__facts"
+                items={[
+                  l.gone ? (
+                    <span key="gone" className="pl-line__tag">
+                      No longer sold
+                    </span>
+                  ) : null,
+                  l.code && !l.name.includes(l.code) ? (
+                    <span key="code" className="pl-line__code">
+                      {l.code}
+                    </span>
+                  ) : null,
+                  ...l.facts,
+                  fits ? (fits.get(l.id) ?? null) : null,
+                ]}
+              />
             </span>
             {level && !l.gone ? (
               <span className="pl-line__price">
                 {l.price !== null ? (
-                  money(l.price)
+                  said(l.price, cents)
                 ) : (
                   <span className="pl-card__gap">No figure</span>
                 )}

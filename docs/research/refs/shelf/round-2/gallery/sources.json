@@ -1,0 +1,102 @@
+[
+  {
+    "id": "refero-import",
+    "url": "https://refero.design/search?q=import",
+    "wait": 4000,
+    "note": "refero search: import",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://refero.design/search?q=import",
+    "title": "Refero — Search",
+    "file": "refero-import.png"
+  },
+  {
+    "id": "refero-review-changes",
+    "url": "https://refero.design/search?q=review%20changes",
+    "wait": 4000,
+    "note": "refero search: review changes",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://refero.design/search?q=review%20changes",
+    "title": "Refero — Search",
+    "file": "refero-review-changes.png"
+  },
+  {
+    "id": "nicelydone-import",
+    "url": "https://nicelydone.club/tags/import",
+    "wait": 3500,
+    "note": "nicelydone: import tag",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://nicelydone.club/examples/tags/import",
+    "title": "Page not found — Nicelydone",
+    "file": "nicelydone-import.png"
+  },
+  {
+    "id": "saasframe-import",
+    "url": "https://www.saasframe.io/categories/import",
+    "wait": 3500,
+    "note": "saasframe: import category",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.saasframe.io/categories/import",
+    "title": "Not Found",
+    "file": "saasframe-import.png"
+  },
+  {
+    "id": "dribbble-data-import",
+    "url": "https://dribbble.com/tags/data-import",
+    "wait": 3500,
+    "note": "dribbble: data import tag",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://dribbble.com/tags/data-import",
+    "title": "Data Import designs, themes, templates and downloadable graphic elements on Dribbble",
+    "file": "dribbble-data-import.png"
+  },
+  {
+    "id": "mobbin-import",
+    "url": "https://mobbin.com/search/web/screens?q=import",
+    "wait": 3500,
+    "note": "mobbin: import screens",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://mobbin.com/?redirect_to=%2Fsearch%2Fapps%2Fweb%3Fq%3Dimport%26content_type%3Dscreens",
+    "title": "Mobbin — UI & UX design inspiration for mobile & web apps",
+    "file": "mobbin-import.png"
+  },
+  {
+    "id": "nicelydone-import-2",
+    "url": "https://nicelydone.club/examples/tags/import",
+    "wait": 3500,
+    "note": "nicelydone: import examples tag",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://nicelydone.club/examples/tags/import",
+    "title": "Page not found — Nicelydone",
+    "file": "nicelydone-import-2.png"
+  },
+  {
+    "id": "saasinterface-import",
+    "url": "https://saasinterface.com/search/?q=import",
+    "wait": 3500,
+    "note": "saasinterface: search import",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://saasinterface.com/search/?q=import",
+    "title": "Page not found - Saas Interface",
+    "file": "saasinterface-import.png"
+  },
+  {
+    "id": "dribbble-csv-import",
+    "url": "https://dribbble.com/tags/csv-import",
+    "wait": 3500,
+    "note": "dribbble: csv import tag",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://dribbble.com/tags/csv-import",
+    "title": "Csv Import designs, themes, templates and downloadable graphic elements on Dribbble",
+    "file": "dribbble-csv-import.png"
+  },
+  {
+    "id": "dribbble-version-history",
+    "url": "https://dribbble.com/tags/version-history",
+    "wait": 3500,
+    "note": "dribbble: version history tag",
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://dribbble.com/tags/version-history",
+    "title": "Version History designs, themes, templates and downloadable graphic elements on Dribbble",
+    "file": "dribbble-version-history.png"
+  }
+]

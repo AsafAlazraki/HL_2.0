@@ -1,0 +1,5 @@
+[
+ {"id":"datasette-facets-390","url":"https://latest.datasette.io/fixtures/facetable?_facet=state&_facet=_city_id&_facet=on_earth","wait":3000,"note":"Datasette counted facets at 390"},
+ {"id":"weblate-changes-390","url":"https://hosted.weblate.org/changes/","wait":3000,"note":"Weblate changes ledger at 390"},
+ {"id":"dockmaster-parts-load-390","url":"https://portal.dockmaster.com/docs/dockmaster-desktop/inventory-management/vendor-loads/inventory-parts-load/","wait":2500,"note":"DockMaster docs at 390"}
+]
