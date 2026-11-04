@@ -1,0 +1,63 @@
+[
+  {
+    "id": "mazda-cx5-390",
+    "url": "https://www.mazda.com.au/cars/cx-5/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.mazda.com.au/cars/cx-5/",
+    "title": "2026 Mazda CX-5 | Next-Gen Medium SUV | Mazda Australia",
+    "file": "mazda-cx5-390.png"
+  },
+  {
+    "id": "apple-macbookair-390",
+    "url": "https://www.apple.com/au/macbook-air/",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.apple.com/au/macbook-air/",
+    "title": "MacBook Air 13‑inch and MacBook Air 15‑inch - Apple (AU)",
+    "file": "apple-macbookair-390.png"
+  },
+  {
+    "id": "subaru-outback-390",
+    "url": "https://www.subaru.com.au/outback",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.subaru.com.au/outback",
+    "title": "2025 Subaru Outback - All-Wheel Drive, Large SUV | Subaru Australia",
+    "file": "subaru-outback-390.png"
+  },
+  {
+    "id": "rhinorack-390",
+    "url": "https://www.rhinorack.com.au/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://rhinorack.com/en-au",
+    "title": "Rhino-Rack AU | Make Space For Adventure",
+    "file": "rhinorack-390.png"
+  },
+  {
+    "id": "kia-accessories-390",
+    "url": "https://www.kia.com/au/cars/sportage/accessories.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.kia.com/au/cars/sportage/accessories.html",
+    "title": "Sportage Accessories | Seat Covers, Roof Racks, Floor Mats & More | Kia Australia",
+    "file": "kia-accessories-390.png"
+  },
+  {
+    "id": "arb-hilux-390",
+    "url": "https://www.arb.com.au/toyota/hilux",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.arb.com.au/Vehicles/Toyota/hilux",
+    "title": "Toyota HiLux Accessories | All-Terrain Essentials",
+    "file": "arb-hilux-390.png"
+  }
+]

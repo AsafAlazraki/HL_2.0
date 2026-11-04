@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fit flow B · The boat's own bar</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* ===== Direction B's own mock styles ===== */
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+
+/* --- the door: the card is the boat; Quote it rides on its corner --- */
+.home-row { padding: 22px 0 28px; }
+.row-head { display: flex; gap: 14px; align-items: baseline; margin-bottom: 12px; flex-wrap: wrap; }
+.row-head h3 { margin: 0; font-size: var(--text-lg); font-weight: 600; }
+.row-head p { margin: 0; color: var(--color-ink-2); font-size: var(--text-sm); }
+.cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
+.card { position: relative; background: var(--color-plate); border-radius: var(--radius-tile); box-shadow: var(--shadow-plate); overflow: hidden; }
+.card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.card .nm { display: block; padding: 8px 10px 0; font-weight: 600; font-size: var(--text-sm); }
+.card .mk { display: block; padding: 0 10px 4px; font-size: var(--text-xs); color: var(--color-ink-3); }
+.card .go { display: block; padding: 0 10px 10px; font-size: var(--text-xs); color: var(--color-ink-file); font-weight: 600; }
+.card .qc { position: absolute; top: 8px; right: 8px; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-xs); font-weight: 600; box-shadow: var(--shadow-sm); }
+.card.focus { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+/* --- the product bar --- */
+.bar { position: relative; background: var(--color-plate); border-bottom: 1px solid var(--color-rule-strong); box-shadow: 0 8px 24px -18px oklch(18.9% 0.0309 231.6 / 40%); }
+.bar-in { max-width: 1280px; margin: 0 auto; padding: 10px 40px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 28px; align-items: center; }
+.bar-name { display: grid; line-height: 1.2; }
+.bar-name b { font-size: var(--text-2xl); font-weight: 400; letter-spacing: var(--tracking-display); }
+.bar-name span { font-size: var(--text-xs); color: var(--color-ink-3); }
+.tabs { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; justify-self: center; }
+.tabs li { padding: 8px 14px; font-size: var(--text-base); color: var(--color-ink-2); border-bottom: 2px solid transparent; white-space: nowrap; }
+.tabs li small { color: var(--color-ink-3); margin-left: 4px; }
+.tabs li.on { color: var(--color-ink); font-weight: 600; border-bottom-color: var(--color-accent); }
+.tabs li.sel { display: none; }
+.bar-acts { display: flex; gap: 10px; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; border-radius: var(--radius-pill); padding: 8px 16px; font-size: var(--text-sm); font-weight: 600; border: 1px solid var(--color-control-edge); background: var(--color-plate); color: var(--color-ink-file); white-space: nowrap; }
+.btn.act { background: var(--color-act); color: var(--color-ink-on-act); border-color: transparent; padding: 10px 20px; font-size: var(--text-base); }
+.btn.act .fig { font-weight: 400; }
+.btn.dark { background: var(--color-blue-700); color: var(--color-white); border-color: transparent; }
+.bar.changing { background: var(--change-wash); border-bottom-color: var(--color-amber-500); }
+.crumb { max-width: 1280px; margin: 0 auto; padding: 10px 40px 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+
+/* --- overview --- */
+.ov { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px; padding: 22px 0 28px; }
+.ov figure { margin: 0; border-radius: var(--radius-plate); overflow: hidden; background: var(--color-plate); box-shadow: var(--shadow-plate); }
+.ov img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.ov figcaption { padding: 6px 12px; font-size: var(--text-xs); color: var(--color-ink-3); }
+.kick { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); font-weight: 600; }
+.price { margin: 6px 0 14px; font-size: var(--text-sm); color: var(--color-ink-3); }
+.price b { font-size: var(--text-4xl); font-weight: 300; color: var(--color-ink); margin-right: 8px; }
+.spec { list-style: none; margin: 0; padding: 0; }
+.spec li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--color-rule); font-size: var(--text-base); }
+.spec li span { color: var(--color-ink-2); }
+.spec li b { font-weight: 600; text-align: right; }
+.spec li.big b { font-size: var(--text-2xl); color: var(--color-ink-file); }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding-bottom: 28px; }
+.tile { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.tile h4 { margin: 0; font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+.tile .lead { font-size: var(--text-xl); font-weight: 600; }
+.tile p { margin: 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+.tile .named { margin-top: 4px; padding: 8px 10px; border-radius: var(--radius-field); background: var(--named-wash); font-size: var(--text-sm); }
+.tile .more { font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-file); }
+
+/* --- motor tab: the five as columns --- */
+.cmp-wrap { padding: 22px 0 10px; }
+.cmp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.cmp-head h3 { margin: 0; font-size: var(--text-3xl); font-weight: 300; }
+.cmp-head p { margin: 0; color: var(--color-ink-2); font-size: var(--text-sm); }
+.cmp { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); overflow: hidden; }
+.cmp > div { padding: 10px 14px; border-top: 1px solid var(--color-rule); font-size: var(--text-sm); }
+.cmp .rh { color: var(--color-ink-3); font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 600; }
+.cmp .hd { border-top: 0; padding-top: 16px; }
+.cmp .hd b { display: block; font-size: var(--text-lg); }
+.cmp .hd em { font-style: normal; font-size: var(--text-xs); color: var(--color-act-ink); }
+.cmp .m.c1 { background: var(--color-chosen-wash); }
+.cmp .pr { font-size: var(--text-lg); font-weight: 600; }
+.cmp .m.gone { background: var(--change-wash); color: var(--color-ink-2); }
+.cmp .m.gone em { color: var(--color-act-ink); }
+.choose { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; color: var(--color-ink-file); }
+.choose i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--color-control-edge); }
+.m.c1 .choose i { border: 5px solid var(--color-accent); }
+.say { margin: 10px 0 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+.lk { color: var(--color-ink-file); font-weight: 600; }
+.whyb { margin: 22px 0 28px; }
+.whyb h4 { margin: 0 0 10px; font-size: var(--text-lg); font-weight: 600; }
+.stack { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--color-rule); }
+.stack span { display: block; height: 100%; border-right: 2px solid var(--color-plate); }
+.stack .s1 { background: var(--color-blue-600); } .stack .s2 { background: var(--color-blue-400); } .stack .s3 { background: var(--color-blue-300); }
+.stack .s4 { background: var(--color-blue-200); } .stack .s5 { background: var(--color-neutral-300); } .stack .s6 { background: var(--color-neutral-200); }
+.keyl { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 24px; }
+.keyl li { display: grid; grid-template-columns: 14px 40px minmax(0, 1fr); gap: 2px 8px; align-items: baseline; font-size: var(--text-sm); color: var(--color-ink-2); }
+.keyl li i { width: 10px; height: 10px; border-radius: 3px; }
+.keyl li b { font-size: var(--text-xl); font-weight: 300; color: var(--color-ink); }
+.keyl li small { grid-column: 3; color: var(--color-ink-3); }
+.keyl .lk { grid-column: 3; font-size: var(--text-xs); }
+
+/* --- fit-out tab: a catalogue that keeps the boat --- */
+.filters { display: flex; gap: 18px; border-bottom: 1px solid var(--color-rule-strong); margin: 18px 0 14px; flex-wrap: wrap; }
+.filters span { padding: 8px 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+.filters span.on { color: var(--color-ink); font-weight: 600; border-bottom: 2px solid var(--color-accent); }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.it { background: var(--color-plate); border-radius: var(--radius-tile); box-shadow: var(--shadow-plate); padding: 14px; display: grid; gap: 6px; align-content: start; min-height: 132px; }
+.it .k { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); font-weight: 600; }
+.it .n { font-weight: 600; }
+.it .p { font-size: var(--text-sm); }
+.it .p b { font-size: var(--text-lg); }
+.it .a { margin-top: auto; justify-self: start; }
+.it.on { box-shadow: inset 0 0 0 2px var(--color-accent), var(--shadow-plate); }
+.it.named { background: var(--named-wash); box-shadow: none; border: 1px dashed var(--color-ochre-600); }
+.it.named .k { color: var(--color-ochre-600); }
+.band-note { margin: 14px 0 0; padding: 10px 14px; border-radius: var(--radius-field); background: var(--color-plate); font-size: var(--text-sm); color: var(--color-ink-2); }
+
+.phone-nav { display: none; }
+.pad { height: 26px; }
+
+/* ===== reflow ===== */
+@media (max-width: 1100px) {
+  .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .bar-in { grid-template-columns: minmax(0, 1fr) auto; }
+  .tabs { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
+  .ov { grid-template-columns: 1fr; }
+  .tiles { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .keyl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .wrap, .bar-in, .crumb { padding-left: 16px; padding-right: 16px; }
+  .pill { display: none; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cards li:nth-child(n+5) { display: none; }
+  .bar-name b { font-size: var(--text-lg); }
+  .tabs li { display: none; }
+  .tabs li.sel { display: block; padding: 6px 12px; border: 1px solid var(--color-control-edge); border-radius: var(--radius-field); }
+  .bar-acts .q2 { display: none; }
+  .btn.act { padding: 8px 14px; font-size: var(--text-sm); }
+  .cmp { grid-template-columns: 1fr; }
+  .cmp .m { display: grid; grid-template-columns: 1fr auto; border-left: 0; border-top: 1px solid var(--color-rule); }
+  .cmp .m:first-child { border-top: 0; }
+  .cmp .m > div { border-top: 0; padding: 4px 14px; }
+  .cmp .m > .hd { padding-top: 12px; }
+  .cmp .m > div:last-child { padding-bottom: 12px; }
+  .keyl { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; }
+  .it { min-height: 0; }
+  .phone-nav { display: flex; justify-content: space-around; margin: 0 8px 10px; padding: 8px 4px; background: var(--color-plate); border-radius: var(--radius-pill); box-shadow: var(--shadow-plate); font-size: var(--text-2xs); color: var(--color-ink-2); }
+}
+/* the phone draws the comparison as one card per motor: the desk grid is kept for wide screens */
+.m { display: flex; flex-direction: column; border-left: 1px solid var(--color-rule); }
+.m:first-child { border-left: 0; }
+/* the sideways phone: the bar is one line, the places a select */
+@media (max-height: 500px) and (orientation: landscape) {
+  .bar-in { grid-template-columns: minmax(0, 1fr) auto auto; padding-top: 6px; padding-bottom: 6px; }
+  .tabs { grid-column: auto; grid-row: auto; }
+  .tabs li { display: none; }
+  .tabs li.sel { display: block; padding: 6px 12px; border: 1px solid var(--color-control-edge); border-radius: var(--radius-field); }
+  .bar-acts .q2 { display: none; }
+  .bar-name b { font-size: var(--text-lg); }
+  .ov img { aspect-ratio: 21 / 9; }
+}
+</style>
+</head>
+<body>
+
+<header class="board-head">
+  <div>
+    <p class="board-kicker">Fit flow · direction B of three · drawn 2026-11-05</p>
+    <h1 class="board-title">The boat's own bar</h1>
+    <p class="board-lede">A boat on Home is pressed like a model on a maker's site: it opens the boat's own page, and <b>Quote it</b> rides on the card's corner. On that page a bar stays under the nav, carrying the boat's name, its places as tabs (Overview · Motor · Trailer · Fit-out) and Quote it with the running figure. Each tab answers one place in full, why-not included. Changing Northside's offer is a second, quieter button at the bar's end, and it turns the bar amber.</p>
+  </div>
+  <dl class="board-facts">
+    <dt>The one job</dt><dd>From one boat, see what goes on it and why, and quote it with what fits.</dd>
+    <dt>What only this screen does</dt><dd>A boat is the frame of the page: every place it has, and the quote, sit in one bar that never scrolls away. It reads like a maker's model page, except that every figure is from Northside's price file.</dd>
+    <dt>New references</dt><dd>mazda.com.au, the model bar <code>CX-5 | Overview … Accessories | BUILD &amp; PRICE</code> (<code>live/mazda-cx5.png</code>, folding to <code>Explore ▾</code> at 390 in <code>hand/mazda-cx5-390.png</code>). kia.com.au, <code>Features | Accessories</code> keeping the model, and "$285.00 Part &amp; Fitment" (<code>live/kia-sportage-accessories.png</code>). Apple's quiet version of the bar: <code>live/apple-macbookair-scrolled.png</code>.</dd>
+    <dt>Drawn on</dt><dd>The Highfield Patrol 600 (PA600), which a customer may call "Stabicraft PA 600", and the Highfield Sport 560, counted by <code>readBoatFit</code> and <code>readWhole</code> on this tree.</dd>
+  </dl>
+</header>
+
+<!-- 1 · THE DOOR -->
+<div class="cap"><b>1 · The door, on Home</b><span>The card is the boat and opens its page. The amber corner is Quote it, one press, as today. The 1550 Frontier is shown in focus.</span></div>
+<div class="frame">
+  <nav class="pill" aria-label="App"><ul><li class="mark"></li><li class="f">Find</li><li class="on">Home</li><li>Quotes 0</li><li>Customers</li><li>Data</li><li>History</li></ul></nav>
+  <div class="wrap home-row">
+    <div class="row-head"><h3>Start from the boat</h3><p>Press one for what goes on it. Quote it from its corner.</p></div>
+    <ul class="cards">
+      <li class="card"><img src="../../../../public/hero-images/formosa-grt-425-tiller-214e2c0b-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">GRT 425 · Tiller</span><span class="mk">Formosa</span><span class="go">What fits ›</span></li>
+      <li class="card"><img src="../../../../public/hero-images/haines-signature-fisher-525f-83a3f46b-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">Signature Fisher 525F</span><span class="mk">Haines Signature</span><span class="go">What fits ›</span></li>
+      <li class="card"><img src="../../../../public/hero-images/highfield-adv9-39562a49-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">ADV9</span><span class="mk">Highfield</span><span class="go">What fits ›</span></li>
+      <li class="card focus"><img src="../../../../public/hero-images/stabicraft-1550-frontier-494ed2ae-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">1550 Frontier</span><span class="mk">Stabicraft</span><span class="go">What fits ›</span></li>
+      <li class="card"><img src="../../../../public/hero-images/stacer-409-assault-pro-332a13ae-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">409 Assault Pro</span><span class="mk">Stacer</span><span class="go">What fits ›</span></li>
+      <li class="card"><img src="../../../../public/hero-images/surtees-575-workmate-0bd40c38-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">575 Workmate</span><span class="mk">Surtees</span><span class="go">What fits ›</span></li>
+      <li class="card"><img src="../../../../public/hero-images/formosa-grt-455-side-console-08af54a9-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">GRT 455 · Side Console</span><span class="mk">Formosa</span><span class="go">What fits ›</span></li>
+      <li class="card"><img src="../../../../public/hero-images/highfield-cl260-7ac388dd-640.webp" alt=""><span class="qc">Quote it</span><span class="nm">Classic 260</span><span class="mk">Highfield</span><span class="go">What fits ›</span></li>
+    </ul>
+    <p class="say">Find answers the same way. "Stabicraft PA 600" reads "No Stabicraft is called PA 600. The PA600 on the price list is Highfield's Patrol 600", and its row opens the page, with Quote it at the row's end. The exact name ranks first, and what was typed is kept when the maker changes.</p>
+  </div>
+</div>
+
+<!-- 2 · OVERVIEW -->
+<div class="cap"><b>2 · The boat's page, Overview</b><span><code>/fitment?boat=PA600&amp;v=HBP181&amp;on=overview&amp;from=home</code>. The bar stays under the nav as the page scrolls. The nav lights Home.</span></div>
+<div class="frame">
+  <nav class="pill" aria-label="App"><ul><li class="mark"></li><li class="f">Find</li><li class="on">Home</li><li>Quotes 0</li><li>Customers</li><li>Data</li><li>History</li></ul></nav>
+  <p class="crumb">Home › Highfield Patrol 600</p>
+  <div class="bar" style="margin-top:8px"><div class="bar-in">
+    <div class="bar-name"><b>Highfield Patrol 600</b><span>Open · PVC · Light Grey / White / Dark Grey · 1 of 10 ▾</span></div>
+    <ul class="tabs"><li class="on">Overview</li><li>Motor<small>5</small></li><li>Trailer<small>none paired</small></li><li>Fit-out<small>7</small></li><li class="sel">Overview ▾</li></ul>
+    <div class="bar-acts"><span class="btn q2">Change Northside's offer</span><span class="btn act">Quote it · <span class="fig">$47,059</span></span></div>
+  </div></div>
+  <div class="wrap">
+    <div class="ov">
+      <figure><img src="../../../../public/hero-images/highfield-pa600-3cc4d240-1280.webp" alt="Highfield Patrol 600 on the water"><figcaption>Highfield's own photograph of a Patrol 600</figcaption></figure>
+      <div>
+        <div class="kick">Highfield · Patrol · PA600</div>
+        <p class="price"><b class="fig">$30,190</b>at Cash · HBP181</p>
+        <ul class="spec">
+          <li class="big"><span>Takes</span><b class="fig">115–150 hp, one motor</b></li>
+          <li><span>Shaft</span><b>Extra-long, 25″</b></li>
+          <li><span>Steering</span><b>Remote, from the helm</b></li>
+          <li><span>Length · beam</span><b class="fig">6.16 m · 2.49 m</b></li>
+          <li><span>People · load</span><b class="fig">14 · 1,458 kg</b></li>
+          <li><span>Hull · fuel</span><b class="fig">694 kg · 140 L</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><h4>Motor</h4><span class="lead">Yamaha F115XB ★</span><p>The price list's pick, $16,869, chosen for the quote. 4 more Yamahas go on it, from $17,535 to $26,003.</p><span class="more">Motor ›</span></div>
+      <div class="tile"><h4>Trailer</h4><span class="lead">None paired</span><p>No trailer is paired with the Patrol 600 on the price list.</p><div class="named"><b>Named for it, not paired:</b> GFAB Tandem Axel Trailer t/s Highfield Patrol 600, $23,063.</div><span class="more">Trailer ›</span></div>
+      <div class="tile"><h4>Fit-out</h4><span class="lead">4 dealer fit · 3 parts</span><p>None ticked yet. Dealer-fit packages have no price set.</p><div class="named"><b>Named for it, not paired:</b> 40 PA600 packages and Sundeck for PA600.</div><span class="more">Fit-out ›</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3 · MOTOR TAB -->
+<div class="cap"><b>3 · Motor</b><span><code>&amp;on=motor</code>. The five side by side, then the other 204 as one bar with its key.</span></div>
+<div class="frame">
+  <div class="bar"><div class="bar-in">
+    <div class="bar-name"><b>Highfield Patrol 600</b><span>Open · PVC · Light Grey / White / Dark Grey · 1 of 10 ▾</span></div>
+    <ul class="tabs"><li>Overview</li><li class="on">Motor<small>5</small></li><li>Trailer<small>none paired</small></li><li>Fit-out<small>7</small></li><li class="sel">Motor ▾</li></ul>
+    <div class="bar-acts"><span class="btn q2">Change Northside's offer</span><span class="btn act">Quote it · <span class="fig">$47,059</span></span></div>
+  </div></div>
+  <div class="wrap cmp-wrap">
+    <div class="cmp-head"><h3>5 Yamahas go on the Patrol 600</h3><p>Each with its rigging kit; the kit's price is not set yet. <a class="lk">Set it in Prices</a></p></div>
+    <div class="cmp">
+      <div class="m c1"><div class="hd"><b>F115XB</b><em>★ The price list's pick</em></div><div class="pr fig">$16,869</div><div class="fig">115 hp · 176 kg</div><div>25″ shaft</div><div><span class="choose"><i></i>Chosen for the quote</span></div></div>
+      <div class="m"><div class="hd"><b>F115XB2 · White</b>&nbsp;</div><div class="pr fig">$17,535</div><div class="fig">115 hp · 176 kg</div><div>25″ shaft</div><div><span class="choose"><i></i>Choose</span></div></div>
+      <div class="m"><div class="hd"><b>F130XA</b>&nbsp;</div><div class="pr fig">$18,009</div><div class="fig">130 hp · 178 kg</div><div>25″ shaft</div><div><span class="choose"><i></i>Choose</span></div></div>
+      <div class="m"><div class="hd"><b>F150XC</b>&nbsp;</div><div class="pr fig">$22,461</div><div class="fig">150 hp · 228 kg</div><div>25″ shaft</div><div><span class="choose"><i></i>Choose</span></div></div>
+      <div class="m"><div class="hd"><b>F150XCB</b>&nbsp;</div><div class="pr fig">$26,003</div><div class="fig">150 hp · 228 kg</div><div>25″ shaft</div><div><span class="choose"><i></i>Choose</span></div></div>
+    </div>
+        <div class="whyb">
+      <h4>Why the other 204 do not go on it</h4>
+      <div class="stack" aria-hidden="true"><span class="s1" style="width:29.4%"></span><span class="s2" style="width:35.3%"></span><span class="s3" style="width:4.9%"></span><span class="s4" style="width:0.5%"></span><span class="s5" style="width:6.9%"></span><span class="s6" style="width:23%"></span></div>
+      <ul class="keyl">
+        <li><i class="s1" style="background:var(--color-blue-600)"></i><b>60</b>Under 115 hp, the least it takes.<small>Nearest: Yamaha VF90XA-FO, 90 hp</small><a class="lk">Show them</a></li>
+        <li><i style="background:var(--color-blue-400)"></i><b>72</b>Over 150 hp, the most it takes.<small>Nearest: Yamaha F175LB, 175 hp</small><a class="lk">Show them</a></li>
+        <li><i style="background:var(--color-blue-300)"></i><b>10</b>In range, but a 20″ shaft; this transom takes 25″.<small>Such as Yamaha F115LB</small><a class="lk">Show them</a></li>
+        <li><i style="background:var(--color-blue-200)"></i><b>1</b>In range, but a tiller motor; this boat is steered from the helm.<small>Yamaha F115XB · Tiller</small><a class="lk">Show it</a></li>
+        <li><i style="background:var(--color-neutral-300)"></i><b>14</b>In range, but the price list does not pair it with this boat.<small>Such as Yamaha LF115XB</small><a class="lk">Show them</a></li>
+        <li><i style="background:var(--color-neutral-200)"></i><b>47</b>Twin and triple rigs; the Patrol 600 takes one motor.<small>Such as F115XB + LF115XB</small><a class="lk">Show them</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 4 · CHANGING -->
+<div class="cap"><b>4 · Changing Northside's offer</b><span><code>&amp;change=1</code>. The bar turns amber and says what it changes. The columns trade Choose for Take it off, and a column taken off stays where it was.</span></div>
+<div class="frame">
+  <div class="bar changing"><div class="bar-in">
+    <div class="bar-name"><b>Highfield Patrol 600</b><span>Changing what Northside offers, on all 10 versions</span></div>
+    <ul class="tabs"><li>Overview</li><li class="on">Motor<small>5</small></li><li>Trailer<small>none paired</small></li><li>Fit-out<small>7</small></li><li class="sel">Motor ▾</li></ul>
+    <div class="bar-acts"><span class="btn">1 change · Undo</span><span class="btn dark">Done</span></div>
+  </div></div>
+  <div class="wrap cmp-wrap">
+    <div class="cmp">
+      <div class="m"><div class="hd"><b>F115XB</b><em>★ The price list's pick</em></div><div class="pr fig">$16,869</div><div class="fig">115 hp · 176 kg</div><div>25″ shaft</div><div><span class="btn">Take it off</span></div></div>
+      <div class="m"><div class="hd"><b>F115XB2 · White</b>&nbsp;</div><div class="pr fig">$17,535</div><div class="fig">115 hp · 176 kg</div><div>25″ shaft</div><div><span class="btn">Take it off</span></div></div>
+      <div class="m"><div class="hd"><b>F130XA</b>&nbsp;</div><div class="pr fig">$18,009</div><div class="fig">130 hp · 178 kg</div><div>25″ shaft</div><div><span class="btn">Take it off</span></div></div>
+      <div class="m gone"><div class="hd"><b>F150XC</b><em>Taken off today</em></div><div class="pr fig">$22,461</div><div class="fig">150 hp · 228 kg</div><div>25″ shaft</div><div><span class="btn">Put it back</span></div></div>
+      <div class="m"><div class="hd"><b>F150XCB</b>&nbsp;</div><div class="pr fig">$26,003</div><div class="fig">150 hp · 228 kg</div><div>25″ shaft</div><div><span class="btn">Take it off</span></div></div>
+    </div>
+    <p class="say">On the Trailer tab the same mode offers <b>Pair it with the Patrol 600</b> on the GFAB Tandem Axel Trailer t/s Highfield Patrol 600. On a selling tab no change control is drawn.</p>
+    <div class="pad"></div>
+  </div>
+</div>
+
+<!-- 5 · FIT-OUT, SPORT 560 -->
+<div class="cap"><b>5 · Fit-out, and quoting it</b><span>The Highfield Sport 560, <code>&amp;on=fitout</code>: a catalogue that keeps the boat's name, with a price on every card. The bar's Quote it counts the lines it carries.</span></div>
+<div class="frame">
+  <div class="bar"><div class="bar-in">
+    <div class="bar-name"><b>Highfield Sport 560</b><span>PVC · White / White / White-Blue · 1 of 15 ▾</span></div>
+    <ul class="tabs"><li>Overview</li><li>Motor<small>4</small></li><li>Trailer<small>1</small></li><li class="on">Fit-out<small>7</small></li><li class="sel">Fit-out ▾</li></ul>
+    <div class="bar-acts"><span class="btn q2">Change Northside's offer</span><span class="btn act">Quote it · 4 lines · <span class="fig">$66,982</span></span></div>
+  </div></div>
+  <div class="wrap">
+    <div class="filters"><span class="on">All 7</span><span>Dealer fit 4</span><span>Parts &amp; Accessories 3</span><span>Named for it, not paired 17</span></div>
+    <div class="grid">
+      <div class="it on"><span class="k">Parts &amp; Accessories</span><span class="n">2 x MFM50 Batteries</span><span class="p"><b class="fig">$398</b> at Cash</span><span class="btn a">✓ On the quote this starts</span></div>
+      <div class="it"><span class="k">Parts &amp; Accessories</span><span class="n">Battery Terminals · 2 pairs</span><span class="p"><b class="fig">$36</b> at Cash</span><span class="btn a">Add</span></div>
+      <div class="it"><span class="k">Parts &amp; Accessories</span><span class="n">Battery Box · Small</span><span class="p"><b class="fig">$18</b> at Cash</span><span class="btn a">Add</span></div>
+      <div class="it"><span class="k">Dealer fit</span><span class="n">Tube Covers to suit PVC Boat · 5.6 m</span><span class="p">No price set yet</span><span class="btn a">Add</span></div>
+      <div class="it"><span class="k">Dealer fit</span><span class="n">VHF Radio · GME GX750B Hideaway with 1.8 m Aerial</span><span class="p">No price set yet</span><span class="btn a">Add</span></div>
+      <div class="it"><span class="k">Dealer fit</span><span class="n">Fusion Apollo RA670 Stereo with 2 Pairs of XS 6.5″ Speakers + 1.8 m Aerial</span><span class="p">No price set yet</span><span class="btn a">Add</span></div>
+      <div class="it"><span class="k">Dealer fit</span><span class="n">Garmin EchoMap Ultra 2 125sv with GT56 UHD Tducer (AUS/NZ Navionics) &amp; Spray Deflector Cover</span><span class="p">No price set yet</span><span class="btn a">Add</span></div>
+      <div class="it named"><span class="k">Named for it, not paired</span><span class="n">Boat Cover · SP560</span><span class="p"><b class="fig">$1,840</b>. The price list does not pair it with this boat.</span></div>
+    </div>
+    <p class="band-note">The quote Quote it starts: the Sport 560, $41,340 · Yamaha F90XB and its rigging kit, $14,531 · REDCO Custom / Highfield Sport 560 Aluminium · TA600-MOB, $10,713 · 2 x MFM50 Batteries, $398. That is <b class="fig">$66,982</b> at Cash, before the rigging kit.</p>
+    <div class="pad"></div>
+  </div>
+  <div class="phone-nav"><span>Home</span><span>Quotes</span><span>Customers</span><span>Data</span><span>History</span></div>
+</div>
+
+<div class="notes">
+  <section class="wide">
+    <h2>Every confusion the walk found, answered</h2>
+    <table class="answers">
+      <tr><th>Home's boats only quote <small>door · blocker</small></th><td>Pressing the card opens the boat's page, and the corner pill quotes it. Both are one press (frame 1).</td></tr>
+      <tr><th>Find's "What fits" belongs to the first hit; "motors for PA 600" answers for 30 boats <small>door · major</small></th><td>Each boat row opens its own page and has its own Quote it. An exact name ranks first. A boat's motors are read on its Motor tab, never merged across the EW and the ST.</td></tr>
+      <tr><th>"Stabicraft PA 600" is a dead end; All makers wipes the words <small>door · major</small></th><td>The near miss is named ("The PA600 on the price list is Highfield's Patrol 600"), and the typed words survive a maker change.</td></tr>
+      <tr><th>The nav lights Data on Fitment <small>door · major</small></th><td><code>from=home</code> lights Home, and the bar carries the boat's name, so the page always says where you are.</td></tr>
+      <tr><th>Find speaks keyboard on a phone <small>door · minor</small></th><td>No key hints below 760px.</td></tr>
+      <tr><th>A trailer named for the boat is "not made for it"; 40 PA600 packages are "Not made for this boat" <small>fitment · blockers</small></th><td>Both are counted in their own group, <b>Named for it, not paired</b>: on Overview's tiles, as a Fit-out filter, and on the Trailer tab, each with the reason. The change mode offers "Pair it".</td></tr>
+      <tr><th>"Take it off" looks like "Quote this one" <small>fitment · major</small></th><td>Take it off exists only when the bar is amber ("Changing what Northside offers, on all 10 versions"), never on a selling tab.</td></tr>
+      <tr><th>A taken-off motor is filed as "not made for it"; the footer says no rule is on <small>fitment · major</small></th><td>Its column stays where it was, tagged "Taken off today", with Put it back. The bar counts "1 change · Undo".</td></tr>
+      <tr><th>"On the quote" before any quote exists <small>fitment · major</small></th><td>"Chosen for the quote" on the column, and "Quote it · $47,059" in the bar. Nothing says a quote exists until it does.</td></tr>
+      <tr><th>No Add for a part, codes with no price; the added part is not on the started quote <small>fitment · majors</small></th><td>Every card on Fit-out has Add and a price, or "No price set yet". The bar counts the lines ("4 lines"), and the note under the grid lists them.</td></tr>
+      <tr><th>A row opens off-screen on a phone; rows below the fold at 844×390; Start the quote far down <small>fitment · majors</small></th><td>A tab replaces the page under the bar, so the answer is always at the top. Quote it is in the bar, which is always on screen.</td></tr>
+      <tr><th>Tables crush names at 834 and 844×390 <small>fitment · major</small></th><td>Motor is five equal columns at desk width and one card per motor on a phone. Fit-out is a card grid with no empty columns.</td></tr>
+      <tr><th>Struck names; the slider; the words <small>fitment · minors</small></th><td>Nothing is struck. The range is a figure in the spec list ("115–150 hp, one motor"). The same plain words as in direction A, with "1 of 10 ▾" for the version.</td></tr>
+      <tr><th>The list moves under the pointer; Undo reads as the opposite; toasts over rows <small>fitment · major / minor</small></th><td>Columns never move. The change and its Undo live in the bar, not in a toast.</td></tr>
+      <tr><th>The popover covers the nav at 844×390; the title says "Open"; the trailer line says "built for Highfield" <small>fitment · major / minors</small></th><td>Another boat is the bar's name, pressed, which opens Find. The name is the model, and the version sits under it. Trailers are always named.</td></tr>
+    </table>
+  </section>
+  <section>
+    <h2>How it reflows at six sizes</h2>
+    <ul>
+      <li><b>1920 and 1440:</b> the bar is one line of name, tabs centred and two acts. Overview is the photograph at 60% beside the spec list, and Motor is five columns.</li>
+      <li><b>1280 × 800:</b> the same at a 1280 column, with the photograph shortened to 16:10 so the tiles start inside the fold.</li>
+      <li><b>834 × 1112:</b> the bar takes two lines, the name and Quote it, then the tabs. Overview stacks the photograph over the spec list, and Fit-out runs two cards across.</li>
+      <li><b>844 × 390:</b> the bar is one 52px line: the name, a <code>Motor ▾</code> select and Quote it. "Change Northside's offer" moves to the end of each tab. The bar is the only chrome above the content.</li>
+      <li><b>390 × 844:</b> as at 844 × 390, with the select under the name. Motor becomes one card per motor and Fit-out a single column.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Type, motion, keyboard</h2>
+    <div class="spec">
+      <span class="s11">Tile kicker · 11px caps</span>
+      <span class="s22">Bar name · 22px regular</span>
+      <span class="s16">Tab · 14px, the chosen one 600 with a 2px accent rule</span>
+      <span class="s13">Reasons · 13px with the count at 20px light</span>
+    </div>
+    <p><b>Motion.</b> The bar slides down from under the nav when the page head scrolls away (Apple's local nav), in 200ms. A tab change swaps the panel with no slide. <b>Reduced motion:</b> the bar is simply pinned.</p>
+    <p><b>Keyboard.</b> The tabs are a tablist (arrow keys), and each tab is a URL param. Quote it is the bar's last stop, and the corner pill on a card is its own button.</p>
+  </section>
+  <section>
+    <h2>Honest constraints, and what a dealer replaces</h2>
+    <ul>
+      <li>No Stabicraft PA 600 exists. The Patrol 600 is drawn and named as the near miss.</li>
+      <li>Dealer-fit packages show "No price set yet"; the rigging kit is outside every total and says so.</li>
+      <li>"Named for it, not paired" is counted from names, never offered on a quote.</li>
+      <li>No cost and no margin anywhere.</li>
+      <li>A dealer replaces the photograph (Overview closes to the spec list), the accent and the act's amber.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Against the simplest</h2>
+    <p>It is more machinery than A: tabs, a sticky bar, a select on the phone, and a corner pill on every Home card that a salesperson must notice. It reads like a car maker's site, which customers know. But a person must press a tab to see the trailer, which is one press more than A's single scroll.</p>
+  </section>
+</div>
+</body>
+</html>

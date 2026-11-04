@@ -1,0 +1,412 @@
+[
+  {
+    "id": "apple-macbookair",
+    "url": "https://www.apple.com/au/macbook-air/",
+    "wait": 2500,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.apple.com/au/macbook-air/",
+    "title": "MacBook Air 13‑inch and MacBook Air 15‑inch - Apple (AU)",
+    "file": "apple-macbookair.png"
+  },
+  {
+    "id": "apple-macbookair-scrolled",
+    "url": "https://www.apple.com/au/macbook-air/",
+    "steps": [
+      {
+        "scroll": 2400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.apple.com/au/macbook-air/",
+    "title": "MacBook Air 13‑inch and MacBook Air 15‑inch - Apple (AU)",
+    "file": "apple-macbookair-scrolled.png"
+  },
+  {
+    "id": "apple-iphone-accessories",
+    "url": "https://www.apple.com/au/shop/iphone/accessories",
+    "wait": 2500,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.apple.com/au/shop/iphone/accessories",
+    "title": "Shop iPhone accessories - Apple (AU)",
+    "file": "apple-iphone-accessories.png"
+  },
+  {
+    "id": "kia-sportage",
+    "url": "https://www.kia.com/au/cars/sportage.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.kia.com/au/cars/sportage/features.html",
+    "title": "2027 Sportage | Luxury Midsize SUV | Kia Australia",
+    "file": "kia-sportage.png"
+  },
+  {
+    "id": "kia-sportage-scrolled",
+    "url": "https://www.kia.com/au/cars/sportage.html",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.kia.com/au/cars/sportage/features.html",
+    "title": "2027 Sportage | Luxury Midsize SUV | Kia Australia",
+    "file": "kia-sportage-scrolled.png"
+  },
+  {
+    "id": "mazda-cx5",
+    "url": "https://www.mazda.com.au/cars/cx-5/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.mazda.com.au/cars/cx-5/",
+    "title": "2026 Mazda CX-5 | Next-Gen Medium SUV | Mazda Australia",
+    "file": "mazda-cx5.png"
+  },
+  {
+    "id": "mazda-cx5-scrolled",
+    "url": "https://www.mazda.com.au/cars/cx-5/",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.mazda.com.au/cars/cx-5/#overview",
+    "title": "2026 Mazda CX-5 | Next-Gen Medium SUV | Mazda Australia",
+    "file": "mazda-cx5-scrolled.png"
+  },
+  {
+    "id": "subaru-outback",
+    "url": "https://www.subaru.com.au/outback",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.subaru.com.au/outback",
+    "title": "2025 Subaru Outback - All-Wheel Drive, Large SUV | Subaru Australia",
+    "file": "subaru-outback.png"
+  },
+  {
+    "id": "rhinorack-fit",
+    "url": "https://www.rhinorack.com.au/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://rhinorack.com/en-au",
+    "title": "Rhino-Rack AU | Make Space For Adventure",
+    "file": "rhinorack-fit.png"
+  },
+  {
+    "id": "thule-fitguide",
+    "url": "https://www.thule.com/en-au/roof-rack/fit-guide",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.thule.com/en-au/roof-rack/fit-guide",
+    "title": "Page not found | Thule | Australia",
+    "file": "thule-fitguide.png"
+  },
+  {
+    "id": "arb-vehicle",
+    "url": "https://www.arb.com.au/vehicle/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.arb.com.au/vehicle",
+    "title": "404",
+    "file": "arb-vehicle.png"
+  },
+  {
+    "id": "brig-eagle6",
+    "url": "https://brig.com.ua/en/boats/eagle-6",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://brig.com.ua/en/boats/eagle-6",
+    "title": "",
+    "file": "brig-eagle6.png",
+    "error": "page.goto: net::ERR_CONNECTION_TIMED_OUT at https://brig.com.ua/en/boats/eagle-6"
+  },
+  {
+    "id": "brig-eagle6-scrolled",
+    "url": "https://brig.com.ua/en/boats/eagle-6",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://brig.com.ua/en/boats/eagle-6",
+    "title": "",
+    "file": "brig-eagle6-scrolled.png",
+    "error": "page.goto: net::ERR_CONNECTION_TIMED_OUT at https://brig.com.ua/en/boats/eagle-6"
+  },
+  {
+    "id": "regulator-23",
+    "url": "https://www.regulatormarine.com/models/23/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.regulatormarine.com/models/23/",
+    "title": "",
+    "file": "regulator-23.png"
+  },
+  {
+    "id": "regulator-23-scrolled",
+    "url": "https://www.regulatormarine.com/models/23/",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.regulatormarine.com/models/23/",
+    "title": "",
+    "file": "regulator-23-scrolled.png"
+  },
+  {
+    "id": "quintrex-model",
+    "url": "https://www.quintrex.com.au/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.quintrex.com.au/siteinfo/erroroccurred?aspxerrorpath=/default.aspx",
+    "title": "Runtime Error",
+    "file": "quintrex-model.png"
+  },
+  {
+    "id": "specialized-tarmac",
+    "url": "https://www.specialized.com/au/en/s-works-tarmac-sl8/p/216953",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.specialized.com/au/en/s-works-tarmac-sl8-shimano-dura-ace-di2/p/216953?color=349995-216953",
+    "title": "S-Works Tarmac SL8 - Shimano Dura-Ace Di2",
+    "file": "specialized-tarmac.png"
+  },
+  {
+    "id": "dyson-parts",
+    "url": "https://www.dyson.com.au/support/replacement-parts",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.dyson.com.au/support/spare-parts",
+    "title": "Shop genuine Dyson spare parts | Dyson",
+    "file": "dyson-parts.png"
+  },
+  {
+    "id": "weber-genesis",
+    "url": "https://www.weber.com/AU/en/barbecues/gas-barbecues/genesis-series/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.weber.com/AU/en/barbecues/gas-barbecues/genesis-series/",
+    "title": "401 - Authorization Required.",
+    "file": "weber-genesis.png"
+  },
+  {
+    "id": "arb-hilux",
+    "url": "https://www.arb.com.au/toyota/hilux",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.arb.com.au/Vehicles/Toyota/hilux",
+    "title": "Toyota HiLux Accessories | All-Terrain Essentials",
+    "file": "arb-hilux.png"
+  },
+  {
+    "id": "arb-hilux-scrolled",
+    "url": "https://www.arb.com.au/toyota/hilux",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.arb.com.au/Vehicles/Toyota/hilux",
+    "title": "Toyota HiLux Accessories | All-Terrain Essentials",
+    "file": "arb-hilux-scrolled.png"
+  },
+  {
+    "id": "thule-roofrack",
+    "url": "https://www.thule.com/en-au/roof-rack",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.thule.com/en-au/roof-rack",
+    "title": "Buy Reliable Roof Thule Rack Solutions for All Your Gear | Thule | Australia",
+    "file": "thule-roofrack.png"
+  },
+  {
+    "id": "hunts-quintrex570",
+    "url": "https://huntsmarine.com.au/products/quintrex-570-top-ender-side-or-centre-console",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.huntsmarine.com.au/products/quintrex-570-top-ender-side-or-centre-console",
+    "title": "Quintrex 590 Top Ender Side Console – Hunts Marine",
+    "file": "hunts-quintrex570.png"
+  },
+  {
+    "id": "hunts-quintrex570-scrolled",
+    "url": "https://huntsmarine.com.au/products/quintrex-570-top-ender-side-or-centre-console",
+    "steps": [
+      {
+        "scroll": 1000
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.huntsmarine.com.au/products/quintrex-570-top-ender-side-or-centre-console",
+    "title": "Quintrex 590 Top Ender Side Console – Hunts Marine",
+    "file": "hunts-quintrex570-scrolled.png"
+  },
+  {
+    "id": "scout-build-235",
+    "url": "https://build.scoutboats.com/boats/235-xsf",
+    "wait": 4000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://build.scoutboats.com/boats/240-xsf/",
+    "title": "240 XSF – Build Your Scout",
+    "file": "scout-build-235.png"
+  },
+  {
+    "id": "dyson-parts-vac",
+    "url": "https://www.dyson.com.au/support/replacement-parts/vacuum-cleaners",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.dyson.com.au/support/replacement-parts/vacuum-cleaners",
+    "title": "Attention Required! | Cloudflare",
+    "file": "dyson-parts-vac.png"
+  },
+  {
+    "id": "apple-iphone17pro",
+    "url": "https://www.apple.com/au/iphone-17-pro/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.apple.com/au/iphone/",
+    "title": "iPhone - Apple (AU)",
+    "file": "apple-iphone17pro.png"
+  },
+  {
+    "id": "apple-iphone17pro-buy",
+    "url": "https://www.apple.com/au/shop/buy-iphone/iphone-17-pro",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.apple.com/au/shop/buy-iphone",
+    "title": "Buy or Trade In iPhone - Apple (AU)",
+    "file": "apple-iphone17pro-buy.png"
+  },
+  {
+    "id": "kia-sportage-accessories",
+    "url": "https://www.kia.com/au/cars/sportage/accessories.html",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.kia.com/au/cars/sportage/accessories.html",
+    "title": "Sportage Accessories | Seat Covers, Roof Racks, Floor Mats & More | Kia Australia",
+    "file": "kia-sportage-accessories.png"
+  },
+  {
+    "id": "mazda-cx5-accessories",
+    "url": "https://www.mazda.com.au/cars/cx-5/accessories/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.mazda.com.au/accessories",
+    "title": "Genuine Mazda Accessories | Mazda Australia",
+    "file": "mazda-cx5-accessories.png"
+  },
+  {
+    "id": "mazda-cx5-specs",
+    "url": "https://www.mazda.com.au/cars/cx-5/specs/",
+    "wait": 3000,
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.mazda.com.au/cars/cx-5/specs/",
+    "title": "404",
+    "file": "mazda-cx5-specs.png"
+  },
+  {
+    "id": "rhinorack-simple-fitment",
+    "url": "https://www.rhinorack.com.au/",
+    "steps": [
+      {
+        "text": "Simple Fitment Tool"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://rhinorack.com/en-au",
+    "title": "Rhino-Rack AU | Make Space For Adventure",
+    "file": "rhinorack-simple-fitment.png"
+  },
+  {
+    "id": "rhinorack-fitmyvehicle",
+    "url": "https://www.rhinorack.com.au/",
+    "steps": [
+      {
+        "text": "Fit My Vehicle"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://rhinorack.com/en-au",
+    "title": "Rhino-Rack AU | Make Space For Adventure",
+    "file": "rhinorack-fitmyvehicle.png"
+  },
+  {
+    "id": "rhinorack-crossbars",
+    "url": "https://www.rhinorack.com.au/",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://rhinorack.com/en-au",
+    "title": "Rhino-Rack AU | Make Space For Adventure",
+    "file": "rhinorack-crossbars.png"
+  },
+  {
+    "id": "subaru-outback-scrolled",
+    "url": "https://www.subaru.com.au/outback",
+    "steps": [
+      {
+        "scroll": 1000
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.subaru.com.au/outback",
+    "title": "2025 Subaru Outback - All-Wheel Drive, Large SUV | Subaru Australia",
+    "file": "subaru-outback-scrolled.png"
+  },
+  {
+    "id": "mazda-accessories",
+    "url": "https://www.mazda.com.au/cars/cx-5/accessories/",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-11-04",
+    "finalUrl": "https://www.mazda.com.au/accessories",
+    "title": "Genuine Mazda Accessories | Mazda Australia",
+    "file": "mazda-accessories.png"
+  }
+]

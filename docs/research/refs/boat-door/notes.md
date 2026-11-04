@@ -1,0 +1,62 @@
+# The boat's door: the sweep
+
+Swept 2026-11-05 for one question the owner asked on 2026-11-04: from one boat, how does a person reach both *quote it* and *what goes on it* in one press, and then read what fits, why the rest do not, change it, and quote it with what fits?
+
+**What was captured.** 36 frames at 1440 × 900 in `live/` and 6 at 390 × 844 in `hand/`, all with `tools/research/capture.ts`. Every frame cited below was opened and read. Ledgers: `live/sources.json`, `hand/sources.json`. The frames are mirrored to `C:\Users\Asaf\dev\hl-refs\hl2\boat-door\`. Seven captures came back empty or wrong, and none of them is cited: Thule's fit guide and ARB's `/vehicle/` returned 404s, Brig timed out, Regulator's model page was "Page not found", Quintrex's own site returned "Runtime Error", Weber returned 401, Dyson's vacuum finder showed a Cloudflare wall, and Mazda's `/specs/` page was a 404. **Stock read:** `hl-refs/ref/boats/highfield-sp560-2.png` and `stabicraft-2.png`. **Gallery mining was not run in this pass.** The time went on live model pages, because the question is about how makers' own pages hand over the build. This is said here and not hidden.
+
+**The sources:** 13 makers and dealers across five kinds. Car makers are Mazda, Kia and Subaru. Boats are Scout's builder and Hunts Marine's Quintrex page; Hunts is an Australian dealer like Northside. Apple supplied the MacBook Air page, the iPhone buy panel and the accessories page. Fit finders are Rhino-Rack, ARB and Dyson, plus Thule's catalogue as a failure. For gear there is Specialized. Porsche is not among them.
+
+## 1. What is genuinely best, and why
+
+**The buy door travels with the product.** Mazda's CX-5 page (`live/mazda-cx5.png`) has a second bar under the site nav. It carries the model's name (`CX-5`), its sections (`Overview · Specs · Performance · Design · Technology · Practicality · Safety · Accessories`) and two boxed acts on the right, `BUILD & PRICE` and `COMPARE`. Scrolled 1,800 px (`live/mazda-cx5-scrolled.png`), the bar is still there with *Overview* underlined. Apple does the same in a quieter voice (`live/apple-macbookair-scrolled.png`): `MacBook Air · Overview · Tech Specs · Compare · Switch from PC to Mac · [Buy]`, with Buy as the one filled pill. At 390 (`hand/apple-macbookair-390.png`) the bar folds to the name, a chevron and *Buy*. At 390 Mazda folds it to `Explore ▾ · BUILD & PRICE · COMPARE` (`hand/mazda-cx5-390.png`). The person never has to leave the product to start buying it. **Our failure is the opposite.** The boat's page lights *Data* in the nav, and *Start the quote* sits about 1,000 px down on a phone (walk `p-05`).
+
+**Two doors on one tile, at equal weight.** Rhino-Rack's home (`live/rhinorack-crossbars.png`) gives every product family (`CROSSBARS`, `PLATFORMS`, `PICKUP TUBS`) two buttons side by side, `Explore →` and `Fit My Vehicle →`, same size and same ink. The site also names two fitment tools for two audiences, `Simple Fitment Tool` and `Dealership Fitment Tool` (`live/rhinorack-fit.png`). This is the direct answer to the owner's "we should be able to do the what fits from the home boats thing not just open quote". Each Home card today carries one door, "quote it" (walk `d-40`, `d-41`).
+
+**What it takes, stated beside the act.** Subaru's Outback hero (`live/subaru-outback.png`) has one row: `Symmetrical All-Wheel Drive | 2,400 kg Braked Towing Capacity | 213 mm Ground Clearance | [Build your own]`. The capability figure is a peer of the build door, not a page away. Hunts Marine's dealer page for the Quintrex 590 Top Ender (`live/hunts-quintrex570.png`) lists `People rating: 6 · Hull length (metres): 6.19 · Width (metres): 2.30 · Maximum HP: 150` beside the photograph. The envelope is a plain fact on the model page, where a salesperson reads it to a customer.
+
+**Accessories that keep the model.** Kia's Sportage page has two tabs top right, `Features | Accessories` (`live/kia-sportage.png`). Accessories opens as *Sportage Accessories* (`live/kia-sportage-accessories.png`), with filters `All · Interior · Exterior · Towing & Lifestyle`, a search box, and on every card a price with what it covers: `$285.00 Part & Fitment`. The model is never lost. Mazda's accessories link does the reverse (`live/mazda-accessories.png`): it lands on a generic *Accessories* site whose bar reads `Why Mazda · Premium Car Care · Models · Next Steps`, and the CX-5 is gone. That is the failure our Fitment repeats when it says "Data".
+
+**Choose the exact one first, then everything is for it.** ARB's Hilux page (`live/arb-hilux-scrolled.png`) asks first, as *Find Your Toyota HiLux Fit*, with one photographed tile per generation (`HiLux 2026 · HiLux 2020-2025 · HiLux 2018-2020 …`). Above it is a *START YOUR BUILD* panel (`live/arb-hilux.png`), and the header keeps a `My Garage`. Dyson does it with line drawings: *Find your machine to get started* (`live/dyson-parts.png`). Our boat has 10 or 15 versions, and the version picker already exists. These frames say it belongs at the top and that its answer should be stated, not tucked into "Version, of 10".
+
+**The running total next to the choices.** Scout's builder (`live/scout-build-235.png`) lists the engines with their deltas (`+$0`, `+$2,267`, `+$6,920`, `+$9,189`, `+$14,172`). Beside them is `Estimated Total w/ selected options $166,006` and a *Summary* that names each chosen line. What is chosen and what it adds up to are never apart. This answers the walk's "I added the dealer-fit part … and it isn't on the quote" (`d-24`, `d-25`).
+
+## 2. Interaction patterns worth taking, named
+
+- **The product bar** (`live/mazda-cx5.png`, `live/apple-macbookair-scrolled.png`). A sticky band under the nav: the boat's name, its places (Motor · Trailer · Fit-out), and *Quote it* as the one filled act. Each place is a URL search param (`?boat=PA600&on=trailer`). At 390 it folds to the name plus one act (`hand/apple-macbookair-390.png`).
+- **Two doors per tile** (`live/rhinorack-crossbars.png`). A Home card with *What fits* and *Quote it* side by side. The card body itself does one of them, said in its label.
+- **The capability row** (`live/subaru-outback.png`, `live/hunts-quintrex570.png`). Before any list, the boat's envelope as figures: 115–150 hp · 25″ shaft · remote · 694 kg. Each figure is read from the file, and the act sits at the row's end.
+- **Model-keeping tabs** (`live/kia-sportage-accessories.png`). Fit-out opens under the boat's own name, filtered and searchable, never in a room called Data.
+- **The fit drawer** (`live/rhinorack-simple-fitment.png`). A side drawer titled `SELECT MAKE` with a four-step progress rule, *Popular* makes first, then *All makes*, and a search. The page underneath stays. It answers a dealer who misremembers the maker: "Stabicraft PA 600" is answered in the drawer by the Highfield Patrol 600, whose model is PA600.
+- **The running receipt** (`live/scout-build-235.png`). The chosen lines with a total, beside the list they come from.
+- **The refusal on the option** (`live/specialized-tarmac.png`). *Ship to Home* is drawn faded with the word `Unavailable` inside it, and *Ship to store* carries "This item is not eligible for pickup in store". The sentence stands where the choice is refused. The same frame also has a greyed `Call Now` with no reason, which is what to avoid.
+
+## 3. Type and motion seen
+
+Mazda sets the model name in a light, wide-tracked caps face (`CX-5`, `MAZDA CX-5`) and its acts in small tracked caps inside boxes. The acts read as instruments, not links. Apple's local bar uses about 21px for the name and 12px for the sections, with one blue pill for *Buy*. That contrast is what lets a person find the act without hunting. Subaru's capability figures run about 28px bold over 15px labels (`2,400 kg` over *Braked Towing Capacity*), so the figure is read first. Kia prices at about 13px bold with `Part & Fitment` in regular: the price and what it covers sit in one line. Scout's total is about 48px over 18px *Estimated Total*. The disclaimers under it, in about 11px italic, are what to avoid.
+
+Motion: Rhino-Rack's drawer slides in from the right over a dimmed page (`live/rhinorack-simple-fitment.png`, caught mid-state). Apple's and Mazda's bars appear as the hero scrolls away. No other frame showed motion worth taking. Our only licensed motion stays the one the Fitment sweep named: a line that changed says so once.
+
+## 4. What to avoid, with the frame
+
+- **The accessories page that drops the product.** `live/mazda-accessories.png`. Ours: the nav lights *Data* on a boat (walk `d-09`).
+- **A consent or chat layer over the act.** Kia's consent box covers the lower third at 1440 and at 390 (`live/kia-sportage.png`, `hand/kia-accessories-390.png`). Thule's cookie wall weights *Allow all* (`live/thule-roofrack.png`). Hunts Marine's floating `BUILD MY BOAT` badge covers the photo thumbnails (`live/hunts-quintrex570.png`). Our phone toast covers list rows (walk `p-10`).
+- **A catalogue with no vehicle.** Thule lists `57 products` of roof racks before it knows the car (`live/thule-roofrack.png`). Ours: *Show all 1,576* dealer-fit lines, 1,572 of them "Not made for this boat".
+- **Enquiry in place of a price.** Hunts: `CUSTOMISED QUOTE ENQUIRY / TEST DRIVE` and "CLICK HERE for the 590 Top Ender Specifications" in red (`live/hunts-quintrex570-scrolled.png`).
+- **A narrow option column that wraps names to six lines.** Scout's engine names wrap to 4–6 lines in a 300px column (`live/scout-build-235.png`). Ours does the same at 834 (walk `tab-05`).
+- **A disabled act with no sentence.** Specialized's `Call Now` (`live/specialized-tarmac.png`).
+
+## 5. What informs each direction
+
+The plan names no axes for this flow, so the sweep names three structures. Each one's fresh references were checked against every host cited in `docs/directions/` and `docs/research/refs/*/sources-index.md`, and none had been used.
+
+- **A, "Two doors, one page"**: one scroll per boat, with Home's card split in two. Informed by Rhino-Rack's two doors per tile (`live/rhinorack-crossbars.png`) and Subaru's capability row (`live/subaru-outback.png`). Fresh references: **rhinorack.com.au**, **subaru.com.au**. The stock Stabicraft frame (`hl-refs/ref/boats/stabicraft-2.png`), with *Explore by size range* and *Explore by style series* as two equal doors, is the boat world's own version.
+- **B, "The boat's own bar"**: a sticky product bar with tabs and *Quote it*. Informed by Mazda's model bar (`live/mazda-cx5.png`, `-scrolled`, `hand/mazda-cx5-390.png`), Kia's `Features | Accessories` (`live/kia-sportage-accessories.png`), and Apple's local nav as the quiet version. Fresh references: **mazda.com.au**, **kia.com.au**.
+- **C, "Menu and receipt"**: what fits on the left, the quote it makes on the right. Informed by Scout's builder (`live/scout-build-235.png`), ARB's choose-your-fit-then-build (`live/arb-hilux.png`, `-scrolled`) and Rhino-Rack's drawer (`live/rhinorack-simple-fitment.png`). Fresh references: **build.scoutboats.com**, **arb.com.au**.
+
+The sweep suggests no fourth direction. Dyson's *find your machine* is A's search door. Hunts Marine's dealer page belongs to all three, and it shows that a dealership's own model page in Australia already joins the envelope, the packs and the build.
+
+## 6. The imagery question
+
+The seed has a photograph on the water for both boats, from Highfield's own media library. `public/hero-images/highfield-pa600-3cc4d240.webp` is a Patrol 600, rows 298–307, with no differences recorded. `public/hero-images/highfield-sp560-84445423.webp` is a Sport 560, rows 483–497. Its ledger records that the outboard in the picture is a Mercury 115 and that the colourway is not any SP560 row's, so wherever it is drawn its caption must read "your boat's finish and motor are as quoted". The Sport 560 also has eight colourway renders (`public/seed-images/sp560-*.webp`). The board may draw the W-W-WB render only for that exact version, if its ledger row marks it exact. Motors and trailers are drawn as type, because no exact photograph of a Yamaha F115XB or of REDCO's TA600-MOB is held for these rows.
+
+When makers have only renders, they let the render sit on a plain ground and put the figures beside it: Mazda's 360° render with `Drag to view 360°` (`live/mazda-cx5-scrolled.png`), Scout's single photo above the total, and Kia's grey placeholder tiles for parts with no photo. Kia's is the one honest empty to copy: an empty tile is drawn empty, never filled.

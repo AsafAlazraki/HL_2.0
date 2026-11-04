@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fit flow C · Menu and receipt</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* ===== Direction C's own mock styles ===== */
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 40px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-pill); padding: 7px 14px; font-size: var(--text-sm); font-weight: 600; border: 1px solid var(--color-control-edge); background: var(--color-plate); color: var(--color-ink-file); white-space: nowrap; }
+.btn.act { background: var(--color-act); color: var(--color-ink-on-act); border-color: transparent; padding: 11px 20px; font-size: var(--text-base); justify-content: center; }
+.btn.dark { background: var(--color-blue-700); color: var(--color-white); border-color: transparent; }
+.lk { color: var(--color-ink-file); font-weight: 600; text-decoration: none; }
+.kick { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); font-weight: 600; }
+
+/* --- frame 1: Home with the drawer open --- */
+.stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 500px; min-height: 860px; }
+.under { padding: 18px 28px; opacity: 0.45; filter: saturate(0.6); }
+.under h3 { margin: 0 0 10px; font-size: var(--text-lg); }
+.under ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.under li { background: var(--color-plate); border-radius: var(--radius-tile); overflow: hidden; font-size: var(--text-sm); font-weight: 600; }
+.under li span { display: block; padding: 6px 10px 10px; }
+.under li small { display: block; font-weight: 400; color: var(--color-ink-3); }
+.under img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.under li.pressed { outline: 3px solid var(--color-accent); opacity: 1; }
+.drawer { background: var(--color-plate); box-shadow: -18px 0 40px -18px oklch(18.9% 0.0309 231.6 / 45%); display: flex; flex-direction: column; }
+.dr-head { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--color-rule); }
+.dr-head img { width: 120px; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 10px; }
+.dr-head b { display: block; font-size: var(--text-2xl); font-weight: 400; letter-spacing: var(--tracking-display); line-height: 1.15; }
+.dr-head small { display: block; color: var(--color-ink-3); font-size: var(--text-xs); }
+.x { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--color-rule-strong); display: grid; place-items: center; font-size: var(--text-lg); color: var(--color-ink-2); }
+.dr-body { padding: 4px 18px 10px; flex: 1; }
+.grp { padding: 12px 0 6px; border-bottom: 1px solid var(--color-rule); }
+.grp h4 { margin: 0 0 6px; display: flex; justify-content: space-between; font-size: var(--text-base); font-weight: 600; }
+.grp h4 small { font-weight: 400; color: var(--color-ink-3); font-size: var(--text-xs); }
+.opt { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 6px 0; font-size: var(--text-sm); }
+.opt i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--color-control-edge); }
+.opt.box i { border-radius: 4px; }
+.opt.on i { border: 5px solid var(--color-accent); }
+.opt.box.on i { background: var(--color-accent); border: 2px solid var(--color-accent); }
+.opt b { font-weight: 600; }
+.opt em { font-style: normal; color: var(--color-act-ink); font-size: var(--text-xs); margin-left: 6px; }
+.opt .p { font-variant-numeric: tabular-nums; }
+.opt .p.none { color: var(--color-ink-3); font-size: var(--text-xs); }
+.opt small { grid-column: 2; color: var(--color-ink-3); font-size: var(--text-xs); }
+.named { margin: 6px 0 4px; padding: 8px 10px; border-radius: var(--radius-field); background: var(--named-wash); border-left: 3px solid var(--accent-ochre); font-size: var(--text-sm); }
+.named b:first-child { display: block; font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ochre-600); }
+.whyline { font-size: var(--text-sm); color: var(--color-ink-file); font-weight: 600; padding: 4px 0 6px; }
+.receipt { border-top: 1px solid var(--color-rule-strong); background: var(--color-plate-tint); padding: 14px 18px 16px; display: grid; gap: 6px; }
+.receipt .rl { display: flex; justify-content: space-between; gap: 12px; font-size: var(--text-sm); }
+.receipt .rl span:last-child { font-variant-numeric: tabular-nums; }
+.receipt .rl.muted { color: var(--color-ink-3); }
+.receipt .tot { display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; border-top: 1px solid var(--color-rule); }
+.receipt .tot b { font-size: var(--text-3xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+.receipt .tot small { color: var(--color-ink-3); font-size: var(--text-xs); }
+.receipt .rk { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); font-weight: 600; }
+.receipt .whole { font-size: var(--text-sm); text-align: center; }
+
+/* --- frame 2: the full page, two panes --- */
+.page { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; padding: 18px 0 30px; align-items: start; }
+.crumbs { display: flex; justify-content: space-between; align-items: center; padding: 16px 0 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+.phead { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 22px; align-items: center; margin-bottom: 14px; }
+.phead img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius-plate); }
+.phead h2 { margin: 4px 0 8px; font-size: var(--text-6xl); font-weight: 300; letter-spacing: var(--tracking-display); line-height: 1.05; }
+.phead .ver { display: inline-block; padding: 6px 12px; border: 1px solid var(--color-control-edge); border-radius: var(--radius-field); background: var(--color-plate); font-size: var(--text-sm); }
+.phead .figs { margin: 10px 0 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+.phead .figs b { color: var(--color-ink-file); }
+.menu { display: grid; gap: 14px; }
+.panel { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); padding: 16px 20px; }
+.panel h3 { margin: 0 0 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: var(--text-2xl); font-weight: 600; }
+.panel h3 small { font-size: var(--text-sm); font-weight: 400; color: var(--color-ink-2); }
+.panel .opt { font-size: var(--text-base); padding: 8px 0; border-top: 1px solid var(--color-rule); }
+.why { margin-top: 8px; padding: 10px 12px; border-radius: var(--radius-field); background: var(--color-wash); }
+.why h5 { margin: 0 0 6px; font-size: var(--text-sm); font-weight: 600; }
+.why ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 20px; }
+.why li { font-size: var(--text-sm); color: var(--color-ink-2); display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 8px; }
+.why li b { font-weight: 600; color: var(--color-ink); text-align: right; font-variant-numeric: tabular-nums; }
+.side { position: relative; display: grid; gap: 12px; }
+.side .receipt { border: 0; border-radius: var(--radius-plate); background: var(--color-plate); box-shadow: var(--shadow-plate); }
+.side .decides { font-size: var(--text-sm); color: var(--color-ink-2); padding: 0 6px; }
+.ledger { border-radius: var(--radius-plate); background: var(--change-wash); border: 1px solid var(--color-amber-500); padding: 14px 18px; display: grid; gap: 8px; font-size: var(--text-sm); }
+.ledger h4 { margin: 0; font-size: var(--text-lg); }
+.ledger .row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--color-rule); }
+.panel .opt .btn { padding: 5px 12px; }
+.opt.off { background: var(--change-wash); border-radius: 8px; padding-left: 8px; padding-right: 8px; }
+.tag { display: inline-block; font-size: var(--text-2xs); font-weight: 600; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--color-amber-400); color: var(--color-ink-on-act); margin-left: 6px; }
+
+/* --- frame 4, the phone's receipt as a sheet --- */
+.sheet-demo { display: grid; grid-template-columns: repeat(2, minmax(0, 360px)); gap: 28px; justify-content: center; padding: 22px 0 30px; }
+.phone { background: var(--color-ground); border-radius: 28px; border: 8px solid var(--color-neutral-900); overflow: hidden; display: flex; flex-direction: column; min-height: 640px; }
+.phone .ph-body { padding: 14px; flex: 1; display: grid; gap: 10px; align-content: start; }
+.phone .ph-body img { border-radius: 12px; aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
+.phone h5 { margin: 0; font-size: var(--text-2xl); font-weight: 300; }
+.phone .cap2 { font-size: var(--text-2xs); color: var(--color-ink-3); }
+.collapsed { margin: 0 8px 8px; padding: 10px 12px 10px 16px; border-radius: var(--radius-plate); background: var(--color-blue-900); color: var(--color-white); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.collapsed b { font-size: var(--text-xl); }
+.collapsed small { display: block; color: var(--color-blue-200); font-size: var(--text-2xs); }
+.phone .receipt { border-radius: 18px 18px 0 0; background: var(--color-plate); box-shadow: 0 -12px 30px -12px oklch(18.9% 0.0309 231.6 / 40%); }
+.grab { width: 40px; height: 4px; border-radius: 2px; background: var(--color-rule-strong); justify-self: center; margin-bottom: 4px; }
+.pnav { display: flex; justify-content: space-around; padding: 8px 4px 10px; background: var(--color-plate); font-size: var(--text-2xs); color: var(--color-ink-2); border-top: 1px solid var(--color-rule); }
+
+/* ===== reflow ===== */
+@media (max-width: 1100px) {
+  .stage { grid-template-columns: minmax(0, 1fr) 440px; }
+  .under ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page { grid-template-columns: 1fr; }
+  .phead { grid-template-columns: 200px minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .wrap { padding: 0 16px; }
+  .pill { display: none; }
+  .stage { grid-template-columns: 1fr; min-height: 0; }
+  .under { display: none; }
+  .drawer { box-shadow: none; }
+  .dr-head { grid-template-columns: 84px minmax(0, 1fr) auto; padding: 12px 14px; }
+  .dr-head img { width: 84px; }
+  .dr-head b { font-size: var(--text-xl); }
+  .dr-body { padding: 0 14px 8px; }
+  .phead { grid-template-columns: 1fr; }
+  .phead h2 { font-size: var(--text-4xl); }
+  .why ul { grid-template-columns: 1fr; }
+  .panel { padding: 14px; }
+  .sheet-demo { grid-template-columns: 1fr; }
+}
+/* the sideways phone: the drawer takes the whole window */
+@media (max-height: 500px) and (orientation: landscape) {
+  .stage { grid-template-columns: 1fr; min-height: 0; }
+  .under { display: none; }
+  .drawer { box-shadow: none; }
+  .page { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="board-head">
+  <div>
+    <p class="board-kicker">Fit flow · direction C of three · drawn 2026-11-05</p>
+    <h1 class="board-title">Menu and receipt</h1>
+    <p class="board-lede">What fits is a menu, and the quote is its receipt. Pressing a boat on Home slides out a drawer over Home, with what goes on the boat as choices and the quote those choices make pinned at its foot, so one press gives both. The drawer's last line opens the full page, which uses the same two panes at full width and adds why the rest do not go on it. In change mode the receipt pane becomes Northside's ledger of changes.</p>
+  </div>
+  <dl class="board-facts">
+    <dt>The one job</dt><dd>From one boat, see what goes on it and why, and quote it with what fits.</dd>
+    <dt>What only this screen does</dt><dd>What fits and the quote are one act. Every choice on the menu is a line on the receipt the moment it is made, so a salesperson builds the quote by reading what fits.</dd>
+    <dt>New references</dt><dd>build.scoutboats.com, engines with deltas beside "Estimated Total w/ selected options $166,006" and a Summary (<code>live/scout-build-235.png</code>). arb.com.au, "START YOUR BUILD" and "Find Your Toyota HiLux Fit" (<code>live/arb-hilux.png</code>, <code>live/arb-hilux-scrolled.png</code>). Also Rhino-Rack's drawer over the page (<code>live/rhinorack-simple-fitment.png</code>).</dd>
+    <dt>Drawn on</dt><dd>The Highfield Patrol 600 (PA600), which a customer may call "Stabicraft PA 600", and the Highfield Sport 560, counted by <code>readBoatFit</code> and <code>readWhole</code> on this tree.</dd>
+  </dl>
+</header>
+
+<!-- 1 · THE DOOR -->
+<div class="cap"><b>1 · The door: one press, a drawer with both</b><span><code>/?boat=PA600</code>. Home stays underneath, and Escape or ✕ returns to it. The card has one target, as today, and it now opens what fits and the quote together.</span></div>
+<div class="frame">
+  <nav class="pill" aria-label="App"><ul><li class="mark"></li><li class="f">Find</li><li class="on">Home</li><li>Quotes 0</li><li>Customers</li><li>Data</li><li>History</li></ul></nav>
+  <div class="stage" style="margin-top:10px">
+    <div class="under">
+      <h3>Find · "Stabicraft PA 600"</h3>
+      <p style="margin:0 0 14px;font-size:var(--text-sm)">No Stabicraft is called PA 600. The PA600 on the price list is Highfield's Patrol 600. <b>Highfield Patrol 600</b> · 10 versions · $30,190 – $40,670 (pressed)</p>
+      <h3>Start from the boat</h3>
+      <ul>
+        <li><img src="../../../../public/hero-images/formosa-grt-425-tiller-214e2c0b-640.webp" alt=""><span>GRT 425 · Tiller<small>Formosa</small></span></li>
+        <li><img src="../../../../public/hero-images/haines-signature-fisher-525f-83a3f46b-640.webp" alt=""><span>Signature Fisher 525F<small>Haines Signature</small></span></li>
+        <li><img src="../../../../public/hero-images/highfield-adv9-39562a49-640.webp" alt=""><span>ADV9<small>Highfield</small></span></li>
+        <li><img src="../../../../public/hero-images/stabicraft-1550-frontier-494ed2ae-640.webp" alt=""><span>1550 Frontier<small>Stabicraft</small></span></li>
+        <li><img src="../../../../public/hero-images/stacer-409-assault-pro-332a13ae-640.webp" alt=""><span>409 Assault Pro<small>Stacer</small></span></li>
+        <li><img src="../../../../public/hero-images/surtees-575-workmate-0bd40c38-640.webp" alt=""><span>575 Workmate<small>Surtees</small></span></li>
+        <li><img src="../../../../public/hero-images/formosa-grt-455-side-console-08af54a9-640.webp" alt=""><span>GRT 455 · Side Console<small>Formosa</small></span></li>
+        <li><img src="../../../../public/hero-images/highfield-cl260-7ac388dd-640.webp" alt=""><span>Classic 260<small>Highfield</small></span></li>
+      </ul>
+    </div>
+    <aside class="drawer" aria-label="Highfield Patrol 600">
+      <div class="dr-head"><img src="../../../../public/hero-images/highfield-pa600-3cc4d240-640.webp" alt="Highfield Patrol 600 on the water"><div><b>Highfield Patrol 600</b><small>Open · PVC · Light Grey / White / Dark Grey</small><small>Version 1 of 10 ▾ · $30,190 at Cash · takes 115–150 hp, one motor, 25″ shaft</small></div><span class="x">✕</span></div>
+      <div class="dr-body">
+        <div class="grp"><h4>Motor <small>5 go on it</small></h4>
+          <div class="opt on"><i></i><span><b>Yamaha F115XB</b><em>★ the price list's pick</em></span><span class="p">$16,869</span></div>
+          <div class="opt"><i></i><span>Yamaha F115XB2 · White</span><span class="p">$17,535</span></div>
+          <div class="opt"><i></i><span>Yamaha F130XA</span><span class="p">$18,009</span></div>
+          <div class="opt"><i></i><span>Yamaha F150XC</span><span class="p">$22,461</span></div>
+          <div class="opt"><i></i><span>Yamaha F150XCB</span><span class="p">$26,003</span></div>
+        </div>
+        <div class="grp"><h4>Trailer <small>none paired</small></h4>
+          <div class="named"><b>Named for it, not paired</b>GFAB Tandem Axel Trailer t/s Highfield Patrol 600, $23,063. The price list does not pair it with this boat, so it cannot go on the quote yet.</div>
+        </div>
+        <div class="grp"><h4>Fit-out <small>4 dealer fit · 3 parts</small></h4>
+          <div class="opt box"><i></i><span>2 x MFM70 Batteries</span><span class="p">$418</span></div>
+          <div class="opt box"><i></i><span>Battery Terminals · 2 pairs</span><span class="p">$36</span></div>
+          <div class="opt box"><i></i><span>Battery Box · Large</span><span class="p">$24</span></div>
+          <div class="whyline">and 4 dealer-fit packages, no price set yet ›</div>
+        </div>
+      </div>
+      <div class="receipt">
+        <span class="rk">The quote these make · not started</span>
+        <div class="rl"><span>Highfield Patrol 600</span><span>$30,190</span></div>
+        <div class="rl"><span>Yamaha F115XB</span><span>$16,869</span></div>
+        <div class="rl muted"><span>Its rigging kit</span><span>price not set</span></div>
+        <div class="tot"><span><b>$47,059</b> <small>at Cash, before the rigging kit</small></span></div>
+        <span class="btn act">Start the quote</span>
+        <a class="lk whole">The whole page: why the rest do not go on it ›</a>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- 2 · THE FULL PAGE -->
+<div class="cap"><b>2 · The full page: menu left, receipt right</b><span><code>/fitment?boat=PA600&amp;v=HBP181&amp;from=home</code>. Each place's why-not opens in place under its choices (<code>&amp;why=motor</code>), and the receipt stays pinned beside the menu.</span></div>
+<div class="frame">
+  <nav class="pill" aria-label="App"><ul><li class="mark"></li><li class="f">Find</li><li class="on">Home</li><li>Quotes 0</li><li>Customers</li><li>Data</li><li>History</li></ul></nav>
+  <div class="wrap">
+    <div class="crumbs"><span>Home › <b>Highfield Patrol 600</b></span><span class="btn">Another boat</span></div>
+    <div class="page">
+      <div class="menu">
+        <div class="phead">
+          <img src="../../../../public/hero-images/highfield-pa600-3cc4d240-640.webp" alt="Highfield Patrol 600 on the water">
+          <div><div class="kick">Highfield · Patrol · PA600</div><h2>Highfield Patrol 600</h2><span class="ver">Open · PVC · Light Grey / White / Dark Grey · version 1 of 10 ▾</span>
+          <p class="figs">Takes <b>115–150 hp, one motor</b> · 25″ extra-long shaft · remote steering · 6.16 m · 14 people · 694 kg hull · 140 L fuel</p></div>
+        </div>
+        <section class="panel"><h3>Motor <small>5 of the 209 Yamahas go on it</small></h3>
+          <div class="opt on"><i></i><span><b>Yamaha F115XB</b><em>★ the price list's pick</em></span><span class="p">$16,869</span><small>115 hp · 176 kg · 25″ shaft</small></div>
+          <div class="opt"><i></i><span>Yamaha F115XB2 · White</span><span class="p">$17,535</span><small>115 hp · 176 kg · 25″ shaft</small></div>
+          <div class="opt"><i></i><span>Yamaha F130XA</span><span class="p">$18,009</span><small>130 hp · 178 kg · 25″ shaft</small></div>
+          <div class="opt"><i></i><span>Yamaha F150XC</span><span class="p">$22,461</span><small>150 hp · 228 kg · 25″ shaft</small></div>
+          <div class="opt"><i></i><span>Yamaha F150XCB</span><span class="p">$26,003</span><small>150 hp · 228 kg · 25″ shaft</small></div>
+          <div class="why"><h5>Why the other 204 do not ▾</h5><ul>
+            <li><b>60</b>under 115 hp · nearest Yamaha VF90XA-FO, 90 hp</li>
+            <li><b>72</b>over 150 hp · nearest Yamaha F175LB, 175 hp</li>
+            <li><b>10</b>a 20″ shaft; this transom takes 25″</li>
+            <li><b>1</b>a tiller motor; this boat is steered from the helm</li>
+            <li><b>14</b>in range, not paired with this boat by the price list</li>
+            <li><b>47</b>twin and triple rigs; it takes one motor</li>
+          </ul></div>
+        </section>
+        <section class="panel"><h3>Trailer <small>none paired with the Patrol 600</small></h3>
+          <div class="named"><b>Named for it, not paired</b>GFAB Tandem Axel Trailer t/s Highfield Patrol 600, $23,063. Its name says Patrol 600, but the price list's trailer pairings do not list it for this boat.</div>
+          <div class="whyline">Why the other 433 do not ▸</div>
+        </section>
+        <section class="panel"><h3>Fit-out <small>4 dealer fit · 3 parts go on it</small></h3>
+          <div class="opt box"><i></i><span>Tube Covers to suit PVC Boat · 6.0 m</span><span class="p none">no price yet</span></div>
+          <div class="opt box"><i></i><span>VHF Radio · GME GX750B Hideaway with 1.8 m Aerial</span><span class="p none">no price yet</span></div>
+          <div class="opt box"><i></i><span>Fusion Apollo RA670 Stereo with 2 Pairs of XS 6.5″ Speakers + 1.8 m Aerial</span><span class="p none">no price yet</span></div>
+          <div class="opt box"><i></i><span>Garmin EchoMap Ultra 2 125sv with GT56 UHD Tducer (AUS/NZ Navionics) &amp; Spray Deflector Cover</span><span class="p none">no price yet</span></div>
+          <div class="opt box"><i></i><span>2 x MFM70 Batteries</span><span class="p">$418</span></div>
+          <div class="opt box"><i></i><span>Battery Terminals · 2 pairs</span><span class="p">$36</span></div>
+          <div class="opt box"><i></i><span>Battery Box · Large</span><span class="p">$24</span></div>
+          <div class="named"><b>Named for it, not paired</b>40 dealer-fit packages carry PA600 in their name (4 in this version's PVC · LG-W-DG), and Sundeck for PA600 is $1,750. None is paired with this boat.</div>
+        </section>
+      </div>
+      <div class="side">
+        <div class="receipt">
+          <span class="rk">The quote these make · not started</span>
+          <div class="rl"><span>Highfield Patrol 600 · Open · PVC</span><span>$30,190</span></div>
+          <div class="rl"><span>Yamaha F115XB</span><span>$16,869</span></div>
+          <div class="rl muted"><span>Its rigging kit</span><span>price not set</span></div>
+          <div class="rl muted"><span>Trailer</span><span>none paired</span></div>
+          <div class="rl muted"><span>Fit-out</span><span>none ticked</span></div>
+          <div class="tot"><span><b>$47,059</b> <small>at Cash, before the rigging kit</small></span></div>
+          <span class="btn act">Start the quote</span>
+        </div>
+        <p class="decides">What decides this page: the price list's pairings. None of Northside's rules is on, and nothing has been changed on this boat. <a class="lk">Change what Northside offers</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3 · CHANGING -->
+<div class="cap"><b>3 · Changing what Northside offers</b><span><code>&amp;change=1</code>. The receipt pane becomes Northside's ledger, so the right side always holds the result of what the left side does.</span></div>
+<div class="frame">
+  <div class="wrap">
+    <div class="page">
+      <div class="menu">
+        <section class="panel"><h3>Motor <small>take one off, or put one of the other 204 on</small></h3>
+          <div class="opt"><span></span><span><b>Yamaha F115XB</b><em>★ the price list's pick</em></span><span class="btn">Take it off</span></div>
+          <div class="opt"><span></span><span>Yamaha F115XB2 · White</span><span class="btn">Take it off</span></div>
+          <div class="opt"><span></span><span>Yamaha F130XA</span><span class="btn">Take it off</span></div>
+          <div class="opt off"><span></span><span>Yamaha F150XC<span class="tag">Taken off today</span></span><span class="btn">Put it back</span></div>
+          <div class="opt"><span></span><span>Yamaha F150XCB</span><span class="btn">Take it off</span></div>
+        </section>
+        <section class="panel"><h3>Trailer</h3>
+          <div class="opt"><span></span><span>GFAB Tandem Axel Trailer t/s Highfield Patrol 600<small style="display:block">named for it, not paired · $23,063</small></span><span class="btn">Pair it with the Patrol 600</span></div>
+        </section>
+      </div>
+      <div class="side">
+        <div class="ledger">
+          <h4>Changing what Northside offers</h4>
+          <span>On the Highfield Patrol 600, all 10 versions. Quotes already made keep their lines.</span>
+          <div class="row"><span>Yamaha F150XC taken off</span><a class="lk">Undo</a></div>
+          <span class="btn dark" style="justify-self:start">Done</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4 · QUOTING, PHONE -->
+<div class="cap"><b>4 · Quoting it, in a hand</b><span>The Highfield Sport 560 at 390 wide. The receipt is a bar above the nav; pressed, it rises as a sheet listing every line.</span></div>
+<div class="frame">
+  <div class="sheet-demo">
+    <div class="phone">
+      <div class="ph-body">
+        <img src="../../../../public/hero-images/highfield-sp560-84445423-640.webp" alt="Highfield Sport 560 on the water">
+        <span class="cap2">Highfield's photograph of a Sport 560. Your boat's finish and motor are as quoted.</span>
+        <h5>Highfield Sport 560</h5>
+        <div class="grp"><h4>Trailer <small>1 paired</small></h4><div class="opt on"><i></i><span>REDCO Custom / Highfield Sport 560 Aluminium · TA600-MOB</span><span class="p">$10,713</span></div></div>
+        <div class="grp"><h4>Fit-out</h4><div class="opt box on"><i></i><span>2 x MFM50 Batteries</span><span class="p">$398</span></div><div class="opt box"><i></i><span>Battery Terminals · 2 pairs</span><span class="p">$36</span></div></div>
+      </div>
+      <div class="collapsed"><span><small>The quote these make · 4 lines</small><b>$66,982</b></span><span class="btn act" style="padding:9px 14px">Start the quote</span></div>
+      <div class="pnav"><span>Home</span><span>Quotes</span><span>Customers</span><span>Data</span><span>History</span></div>
+    </div>
+    <div class="phone">
+      <div class="ph-body" style="opacity:.4"><h5>Highfield Sport 560</h5></div>
+      <div class="receipt">
+        <span class="grab"></span>
+        <span class="rk">The quote these make · not started</span>
+        <div class="rl"><span>Highfield Sport 560 · PVC · W/W/WB</span><span>$41,340</span></div>
+        <div class="rl"><span>Yamaha F90XB</span><span>$14,531</span></div>
+        <div class="rl muted"><span>Its rigging kit</span><span>price not set</span></div>
+        <div class="rl"><span>REDCO TA600-MOB</span><span>$10,713</span></div>
+        <div class="rl"><span>2 x MFM50 Batteries</span><span>$398</span></div>
+        <div class="tot"><span><b>$66,982</b> <small>at Cash, before the rigging kit</small></span></div>
+        <span class="btn act">Start the quote</span>
+      </div>
+      <div class="pnav"><span>Home</span><span>Quotes</span><span>Customers</span><span>Data</span><span>History</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="notes">
+  <section class="wide">
+    <h2>Every confusion the walk found, answered</h2>
+    <table class="answers">
+      <tr><th>Home's boats only quote <small>door · blocker</small></th><td>One press opens a drawer holding both what fits and the quote it makes, with Start the quote at its foot (frame 1). The card stays a single target.</td></tr>
+      <tr><th>Find's "What fits" belongs to the first hit; "motors for PA 600" answers for 30 boats <small>door · major</small></th><td>Every boat row opens its own drawer, and the exact name ranks first. A boat's motors are only ever that boat's.</td></tr>
+      <tr><th>"Stabicraft PA 600" is a dead end; All makers wipes the words <small>door · major</small></th><td>Find names the near miss ("The PA600 on the price list is Highfield's Patrol 600") and keeps the typed words.</td></tr>
+      <tr><th>The nav lights Data on Fitment <small>door · major</small></th><td>The drawer belongs to Home, so Home stays lit. The full page reads <code>from=home</code> and its crumb says "Home › Highfield Patrol 600".</td></tr>
+      <tr><th>Find speaks keyboard on a phone <small>door · minor</small></th><td>No key hints below 760px.</td></tr>
+      <tr><th>A trailer named for the boat is "not made for it"; 40 PA600 packages are "Not made for this boat" <small>fitment · blockers</small></th><td><b>Named for it, not paired</b> sits in the menu where the line would be, with its reason. In change mode the act is "Pair it with the Patrol 600" (frame 3).</td></tr>
+      <tr><th>"Take it off" looks like "Quote this one" <small>fitment · major</small></th><td>The menu only chooses. Take it off appears only in change mode, where the right pane has become an amber ledger.</td></tr>
+      <tr><th>A taken-off motor is filed as "not made for it"; the footer says no rule is on <small>fitment · major</small></th><td>It stays in place, tagged "Taken off today". The ledger lists the change with Undo. "What decides this page" counts Northside's changes.</td></tr>
+      <tr><th>"On the quote" before any quote exists <small>fitment · major</small></th><td>The receipt is headed "The quote these make · not started".</td></tr>
+      <tr><th>No Add for a part; the added part is not on the started quote <small>fitment · majors</small></th><td>A part is a tick in the menu, and it shows on the receipt the moment it is ticked. Start the quote takes the receipt's lines, no more and no fewer.</td></tr>
+      <tr><th>A row opens off-screen on a phone; Start the quote far down <small>fitment · majors</small></th><td>The receipt bar sits above the phone's nav, and why-not opens in place under the choices it explains (frame 4).</td></tr>
+      <tr><th>Tables crush names at 834 and 844×390 <small>fitment · major</small></th><td>There are no tables. A line is a name with its price at the right edge, and its facts under it.</td></tr>
+      <tr><th>Struck names; the slider; the words <small>fitment · minors</small></th><td>Nothing is struck. The range is a sentence ("Takes 115–150 hp, one motor"), and the plain words are the same as in A.</td></tr>
+      <tr><th>The list moves under the pointer; Undo reads as the opposite; toasts <small>fitment · major / minor</small></th><td>Rows never move. Changes live in the ledger, each with its own Undo.</td></tr>
+      <tr><th>The popover covers the nav at 844×390; the title says "Open"; the trailer line says "built for Highfield" <small>fitment · major / minors</small></th><td>Another boat opens Find. The title is the model with the version under it, and the trailer is named in full.</td></tr>
+    </table>
+  </section>
+  <section>
+    <h2>How it reflows at six sizes</h2>
+    <ul>
+      <li><b>1920 × 1080:</b> the drawer is 500px over Home's right side. The full page is a 1320px column, the menu at about 900px and the receipt at 380px.</li>
+      <li><b>1440 × 900 and 1280 × 800:</b> as drawn. At 1280 the drawer narrows to 460px.</li>
+      <li><b>834 × 1112:</b> the drawer is 440px, with Home's cards two across beside it. On the full page the receipt drops under the menu as a bar pinned to the window's foot.</li>
+      <li><b>844 × 390:</b> the drawer is full-screen. The receipt is the one-line bar, which rises as a sheet capped at 80% of the height so the menu stays visible above it.</li>
+      <li><b>390 × 844:</b> the drawer is full-screen. The receipt bar sits over the nav and rises as a sheet (frame 4).</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Type, motion, keyboard</h2>
+    <div class="spec">
+      <span class="s40">Page title · 40px light</span>
+      <span class="s22">Place · 22px semibold</span>
+      <span class="s16">Choice · 14–16px, price tabular at the right</span>
+      <span class="s13">Receipt line · 13px; total 26px semibold</span>
+    </div>
+    <p><b>Motion.</b> The drawer slides in from the right over 260ms while Home dims, and Escape slides it out. A ticked line's row appears on the receipt over 120ms. The phone sheet rises over 240ms. <b>Reduced motion:</b> the drawer and sheet appear without sliding and the line is simply there.</p>
+    <p><b>Keyboard.</b> The drawer is a dialog: focus enters at its title, Tab moves through the choices and on to Start the quote, and Escape closes it. Each place is a radio group or a set of checkboxes.</p>
+  </section>
+  <section>
+    <h2>Honest constraints, and what a dealer replaces</h2>
+    <ul>
+      <li>No Stabicraft PA 600 exists. The Patrol 600 is the named near miss.</li>
+      <li>Dealer-fit packages and the rigging kit have no price set, and the receipt says so line by line.</li>
+      <li>"Named for it, not paired" is counted from names and never goes on the receipt.</li>
+      <li>No cost and no margin anywhere.</li>
+      <li>A dealer replaces the photograph (the drawer's head closes to text without it), the accent and the act's amber.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Against the simplest</h2>
+    <p>It is the strongest picture of "choose, and see the quote", but it builds two surfaces for one boat: a drawer on Home and a full page. It also comes close to a second configurator beside the build at <code>/quote/$id</code>, which does the choosing again. That is the duplication A avoids.</p>
+  </section>
+</div>
+</body>
+</html>
