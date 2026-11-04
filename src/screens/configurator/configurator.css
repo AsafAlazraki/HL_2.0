@@ -1657,21 +1657,26 @@
   align-items: baseline;
   margin-inline-start: calc(-1 * var(--cfg-dot));
 }
+/* THE DOT'S ROOM IS EACH BOX'S OWN PADDING, so every line of a box that wraps starts inside the
+   clip, not only its first (the walk, 390: "VHF Radio · GME GX750B / …deaway with 1.8 m Aerial
+   and / …other" — the room was an inline box before the first word, the answer's second and third
+   lines began 16px left of the head's edge, and the clip cut their first letters) */
 .cfg-head__said,
 .cfg-head__rest {
+  position: relative;
   flex: 0 1 auto;
   min-inline-size: 0;
-}
-.cfg-head__said::before,
-.cfg-head__rest::before {
-  content: '' / '';
-  display: inline-block;
-  inline-size: var(--cfg-dot);
+  padding-inline-start: var(--cfg-dot);
 }
 /* the dot itself is generated with no words of its own (the `/ ''`): the head's text and a
-   reader's ear take it from `.cfg-head__heard` instead, so it is said once */
+   reader's ear take it from `.cfg-head__heard` instead, so it is said once. It stands in the
+   room on the box's first line. */
 .cfg-head__rest[data-after]::before {
   content: '·' / '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: var(--cfg-dot);
   text-align: center;
   font-weight: 400;
   color: var(--color-ink-2);
@@ -1942,6 +1947,12 @@
   line-height: var(--text-xs--line-height);
   font-weight: 600;
   color: var(--color-ink-2);
+}
+/* A GROUP THE BOAT'S OWN FIGURES RULE OUT says so after its reason, in the ink this app spends on a
+   sentence that stops a press (`OptionRow.misfit`) */
+.cfg-group__shut {
+  font-weight: 600;
+  color: var(--color-ink-reason-paper);
 }
 
 /* THE FILE'S OWN PICK, NAMED IN TEXT ABOVE THE ROWS, and it replaced
@@ -2767,11 +2778,14 @@
   color: var(--color-ink-3);
 }
 
+/* the way into the whole range, and beside it where what goes on this boat is decided
+   (`FitsLink`): one row of quiet presses that wraps */
 .cfg-all {
   margin-block-start: --spacing(4);
-  display: grid;
-  justify-items: start;
-  gap: --spacing(2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
 }
 .cfg-all__say {
   margin: 0;
@@ -4354,6 +4368,53 @@
   .cfg-sheet__find {
     flex-basis: 100%;
     max-inline-size: none;
+  }
+}
+/* WHAT THE SHEET IS, AT THE HEAD OF WHAT SCROLLS, and the door to What fits after it (fit flow,
+   round 2: the sentence stood over the list in the dialog's head and, on a phone turned sideways,
+   left one row of motors in sight) */
+.cfg-sheet__say {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+}
+.cfg-sheet__say > p {
+  flex: 1 1 --spacing(80);
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+/* A WINDOW WITH LITTLE HEIGHT (a phone turned sideways, 390px) GIVES THE LIST ITS ROWS: the find
+   field's word is said by the field to a reader and stands aside, and the total is one line */
+@media (max-height: 520px) {
+  .cfg-sheet__bar {
+    align-items: center;
+    gap: --spacing(2) --spacing(4);
+  }
+  .cfg-sheet__find {
+    gap: 0;
+  }
+  .cfg-sheet__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .cfg-sheet__total {
+    grid-auto-flow: column;
+    align-items: baseline;
+    gap: --spacing(2);
+    padding-block: --spacing(1.5);
+  }
+  .cfg-sheet__fig {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
   }
 }
 /* the tiles take the sheet's width: three across at a desk, two on a tablet, one in a hand */

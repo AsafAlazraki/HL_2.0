@@ -190,6 +190,11 @@ describe('Needs Northside, the state above the inventory', () => {
     const lines = lone.reduce((n, t) => n + pack.rowsByEntity[t.id]!.length, 0)
     const u = need('unnamed')
     expect(u.querySelector('.dt-need__fig')).toHaveTextContent(grouped(lines))
+    /* FIT FLOW, ROUND 2: What fits recommends REDCO trailers while this said no boat is fitted with
+       REDCO / Tinka's; it says where the REDCO trailers What fits offers are */
+    expect(u).toHaveTextContent(
+      'The REDCO and Tinka trailers What fits offers for a boat are in NSM Custom Trailers.',
+    )
     await userEvent.click(within(u).getByRole('button', { name: /Largest first/ }))
     const largest = lone.toSorted(
       (a, b) => pack.rowsByEntity[b.id]!.length - pack.rowsByEntity[a.id]!.length,
@@ -250,7 +255,7 @@ describe('the rooms of the price list, as counted doors', () => {
     const door = await screen.findByRole('link', { name: `Review — ${said}` })
     expect(door).toHaveTextContent(`${grouped(wrong)} to settle`)
     const models = countBoats(boats(), pack.rowsByEntity).boats
-    expect(screen.getByRole('link', { name: `Fitment — ${grouped(models)} models` })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: `What fits — ${grouped(models)} models` })).toBeInTheDocument()
   })
 })
 
@@ -447,7 +452,7 @@ describe('a maker, opened', () => {
     const spread = within(screen.getByTestId('data-page'))
     const prices = spread.getByRole('link', { name: /: set on Prices$/ })
     expect(prices).toHaveAttribute('href', '/levels?list=boat_highfield')
-    const fits = spread.getByRole('link', { name: 'Choose its model on Fitment' })
+    const fits = spread.getByRole('link', { name: 'Choose its model on What fits' })
     expect(fits).toHaveAttribute('href', '/fitment?maker=Highfield')
     await userEvent.click(fits)
     expect(went).toEqual(['/fitment?maker=Highfield'])

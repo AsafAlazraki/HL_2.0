@@ -928,7 +928,9 @@ function readTrailers(
     groups.push({
       id: 'unnamed',
       count: unnamed.length,
-      head: `${NAMES_NO_MAKER.replace(/\.$/, '')}: not ruled out, and the price list does not list it for this boat.`,
+      /* THE ANSWER FIRST (walk 2, F13: "is that a yes or a no?"): it is not offered, and why
+         nothing else is said against it follows */
+      head: `Not offered: the price list does not list it for this boat. ${NAMES_NO_MAKER.replace(/\.$/, '')}, so it is not ruled out either.`,
       members: unnamed.map((v) => member(v, NAMES_NO_MAKER)),
       makers: [],
     })

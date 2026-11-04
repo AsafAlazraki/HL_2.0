@@ -96,7 +96,10 @@ describe('one boat, one page', () => {
   it('names the model, its version under it, and what it takes in one row', () => {
     draw()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Highfield Patrol 600$/)
-    expect(screen.getByText(/^version \d+ of 10$/)).toBeInTheDocument()
+    /* never an ordinal (walk 2, F12): what the versions cost, and that this one is the lowest */
+    expect(screen.getByText(/^10 versions,/)).toHaveTextContent(
+      '10 versions, $30,190 to $40,670. This one is the lowest.',
+    )
     const takes = screen.getByLabelText('What the boat takes, and its own figures')
     expect(takes).toHaveTextContent('Motor115–150 hpone motor')
     expect(takes).toHaveTextContent('ShaftExtra-long (25″)')
@@ -111,7 +114,7 @@ describe('one boat, one page', () => {
     expect(radios).toHaveLength(6)
     expect(radios[0]).toBeChecked()
     expect(motors).toHaveTextContent(
-      /^Yamaha F115XBRecommended115 hp · 176 kg · 25″ shaft · with its rigging kit\$16,869Chosen for the quote/,
+      /^Yamaha F115XBRecommended115 hp · 176 kg · 25″ shaft · with its rigging kitEngine Colour: Grey\$16,869Chosen for the quote/,
     )
     expect(document.body.textContent).not.toMatch(/On the quote|Take it off|Show these/)
     expect(
@@ -163,7 +166,11 @@ describe('change mode', () => {
     expect(
       screen.getByRole('button', { name: 'Take the Yamaha F150XC off the Patrol 600' }),
     ).toBeInTheDocument()
-    expect(ledger).toHaveTextContent('No change made here yet')
+    /* what is so again, said as what is so (walk 2, F7), and no change counted as standing */
+    expect(ledger).toHaveTextContent(
+      'Undone: the Yamaha F150XC goes on the Highfield Patrol 600 again, on all 10 of its versions.',
+    )
+    expect(ledger).toHaveTextContent('No change stands')
   })
 
   it('offers only the motors the boat takes by its own figures to put on', () => {

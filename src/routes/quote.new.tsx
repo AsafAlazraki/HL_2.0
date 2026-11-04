@@ -118,6 +118,11 @@ function PickerRoute() {
          prop — a component test with no router — the act still writes
          the quote and names it, and claims to go nowhere. */
       openQuote={(quoteId) => void navigate({ to: '/quote/$id', params: { id: quoteId } })}
+      /* WHAT FITS THE BOAT ON THE PLATE (fit flow, round 2): its own page, reached from Quotes,
+         which the shell keeps lit and the page's crumb says */
+      openFits={(rowId) =>
+        void navigate({ to: '/fitment', search: { boat: rowId, from: 'quotes' } })
+      }
     />
   )
 }

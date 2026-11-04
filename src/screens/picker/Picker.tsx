@@ -16,6 +16,7 @@ import {
   FolderOpenIcon,
   MagnifyingGlassIcon,
   WarningCircleIcon,
+  WrenchIcon,
 } from '@phosphor-icons/react'
 import {
   Button,
@@ -146,6 +147,10 @@ export interface PickerProps {
    *  says so where it was pressed; it never claims to have gone
    *  anywhere and never says a screen is missing. */
   openQuote?: (quoteId: string) => void
+  /** WHAT GOES ON THE BOAT ON THE PLATE, by the version the quote would open on: the plate's
+   *  What fits (fit flow, round 2, walk 1: "The picker's side panel only has Start the quote and
+   *  never shows what fits"). A boat only; a shelf's motor, trailer or part has no such page. */
+  openFits?: (rowId: string) => void
   /** the clock, injected so a test can say which instant it is asking
    *  about; a quote's reference is stamped from it */
   now?: () => Date
@@ -236,7 +241,7 @@ function shelfFleets(
   return out
 }
 
-export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: PickerProps) {
+export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, openFits, now }: PickerProps) {
   const status = useCatalogue((s) => s.status)
   const problem = useCatalogue((s) => s.problem)
   const tables = useCatalogue((s) => s.tables)
@@ -553,6 +558,11 @@ export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: Pick
                   goes={openQuote !== undefined}
                   noun={noun}
                   opens={shelf !== null && shelf.refusal !== '' ? shelf.name : null}
+                  fits={
+                    openFits && shelf === null && subject
+                      ? () => openFits(subject.rowId)
+                      : undefined
+                  }
                 />
               ) : null}
             </>
@@ -1639,6 +1649,7 @@ function Plate({
   goes,
   noun,
   opens,
+  fits,
 }: {
   model: Model
   /** the version the quote opens on (`openingOf`), or the one the address names */
@@ -1655,6 +1666,8 @@ function Plate({
   /** the place the act sells on its own as it starts the quote, where Northside still sells it
    *  only with a boat; null where it already sells on its own */
   opens: string | null
+  /** the boat's own page of what goes on it, where a way there was handed in */
+  fits?: (() => void) | undefined
 }) {
   const sayId = useId()
   /* THE ACT AND ITS SENTENCE, as one block the window can be brought to. */
@@ -1843,6 +1856,15 @@ function Plate({
               ? `A draft for this ${noun} is already started with nobody named on it, so this reopens it rather than starting a second.`
               : [sells, later].filter((said) => said !== '').join(' ')}
           </p>
+          {/* THE BOAT'S OTHER DOOR, as on Home's cards and Find's rows (fit flow, direction A):
+              what goes on it and why the rest do not, one press from the boat being quoted */}
+          {fits ? (
+            <p className="picker-fits">
+              <Button intent="secondary" size="sm" icon={WrenchIcon} onClick={fits}>
+                {`What fits the ${model.said}`}
+              </Button>
+            </p>
+          ) : null}
           {reviewSays.map((said) => (
             <p className="picker-review" key={said}>
               <span className="picker-review__glyph" aria-hidden="true">

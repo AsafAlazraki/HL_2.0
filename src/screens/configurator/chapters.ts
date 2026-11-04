@@ -39,6 +39,7 @@
    fitted row's figure is negative. The sign is what the press does.
    ============================================================ */
 
+import { isDiscontinued, rowLabel } from '@/domain/model'
 import type { CatalogueCtx, QuoteDef, QuoteLine, TableKind } from '@/domain/model'
 import {
   OFFER_CAP,
@@ -93,6 +94,8 @@ import { readBoatChoices, type DrawnChoices } from './boat'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
 import { copyOf, creditOf, itemOf, srcSetOf, type Item } from '@/data/pictures'
 import { measureMotorOnBoat } from '@/domain/fitment/envelope'
+import { nameOnPaper } from '@/domain/quote/paperWords'
+import { boatCodeOf, motorFitOf, namedForBoat, saidAs } from './fits'
 import { ONE_TRAILER, sayVerdict } from '@/domain/fitment/say'
 import {
   chargeSay,
@@ -181,6 +184,11 @@ export interface OptionRow {
   outside: boolean
   /** why it is off the shortlist, in the engine's own words */
   why: string
+  /** THE BOAT'S OWN FIGURES RULE IT OUT (fit flow, round 2, the walk's blocker): a motor under or
+   *  over the horsepower the boat takes, on a shaft its transom does not take, with controls it is
+   *  not steered by, or a rig its figures cannot place. `why` is What fits' own sentence, and the
+   *  press is refused with it; one already on the quote says it and keeps its way off. */
+  misfit: boolean
   /** the pairing's own columns, reduced to what tells these rows
    *  apart — the rigging kit, the prop, the engine hole */
   facts: ShownFact[]
@@ -302,6 +310,11 @@ export interface ChapterTable {
    *  price and holds sell figures, so Prices is where it is settled, once. The list's id there
    *  (the door's `list`), or '' for a list that names its price or holds no sell figure. */
   unchosen: string
+  /** THE LINES OF THIS LIST NAMED FOR THE BOAT THAT THE PRICE LIST DOES NOT LIST FOR IT (fit
+   *  flow, round 2: the trailer chapter said nothing from GFAB was made for the Patrol 600, while
+   *  its whole range held "GFAB Tandem Axel Trailer t/s Highfield Patrol 600" and What fits called
+   *  it named for it). Their names as the tiles say them; empty on every list but a trailer's. */
+  named: string[]
 }
 
 /** One of the dealer's rules, speaking where it bites. */
@@ -539,6 +552,40 @@ function outsideSaid(why: string, noun = 'boat'): string {
     : why
 }
 
+/** A LINE NAMED FOR THE BOAT THAT THE PRICE LIST DOES NOT LIST FOR IT, said as What fits says it
+ *  and with what the build may still do with it: What fits offers it on no quote until Northside
+ *  lists it there, and the build's whole range reaches past the list, as it reaches past any. */
+export const NAMED_NOT_LISTED =
+  'Named for this boat. What fits does not offer it, because the price list does not list it for this boat, but it can still go on this quote.'
+
+/** THE SAME, SAID ONCE UNDER LISTS THAT LIST NOTHING FOR THE BOAT (`ChapterTable.named`), naming
+ *  the lines and the lists whose whole range holds them: "Nothing from GFAB Trailers or NSM Custom
+ *  Trailers is listed for this boat. One is named for it, the GFAB Tandem Axel Trailer t/s
+ *  Highfield Patrol 600: …". '' where none is named for it. */
+export function namedSay(tables: readonly Pick<ChapterTable, 'title' | 'named'>[]): string {
+  const names = tables.flatMap((t) => t.named)
+  if (names.length === 0) return ''
+  const where = joinOr(
+    tables.filter((t) => t.named.length > 0).map((t) => t.title),
+    'and',
+  )
+  const one = names.length === 1
+  const listed = `Nothing from ${joinOr(
+    tables.map((t) => t.title),
+    'or',
+  )} is listed for this boat.`
+  return one
+    ? `${listed} One is named for it, the ${names[0]!}: What fits does not offer it, because the price list does not list it, but it can still go on this quote from the whole range of ${where}.`
+    : `${listed} ${names.length.toLocaleString('en-AU')} are named for it: What fits does not offer them, because the price list does not list them, but they can still go on this quote from the whole range of ${where}.`
+}
+
+/** How many lines of these lists are named for the boat and not listed for it. */
+export const namedIn = (tables: readonly Pick<ChapterTable, 'named'>[]): number =>
+  tables.reduce((n, t) => n + t.named.length, 0)
+
+const joinOr = (names: readonly string[], word: 'or' | 'and'): string =>
+  names.length < 2 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} ${word} ${names.at(-1)!}`
+
 /** A LIST THE PRICE FILE PAIRED NOTHING INTO, said of what the quote is for: "made for this boat"
  *  on a boat's, and on a motor's own quote what goes with that motor — a boat is not made for a
  *  motor, it takes one. */
@@ -601,11 +648,71 @@ function readTable(
   const showingAll = options.showAll?.has(step.id) === true
   const query = (options.query ?? '').trim()
   const searching = query.length >= SEARCH_MIN
-  const counts = stepOffer(ctx, quote, step.section, {
-    ...(searching ? { query } : {}),
-    ...(showingAll ? { all: true } : {}),
-    ...(showingAll && options.cap !== undefined ? { cap: options.cap } : {}),
-  })
+  const asked = (q: string): StepOffer =>
+    stepOffer(ctx, quote, step.section, {
+      ...(q !== '' ? { query: q } : {}),
+      ...(showingAll ? { all: true } : {}),
+      ...(showingAll && options.cap !== undefined ? { cap: options.cap } : {}),
+    })
+  let counts = asked(searching ? query : '')
+
+  /* A MODEL'S NAME TYPED WHERE THE LIST WRITES ITS CODE (`saidAs`): "Patrol 600" is asked again
+     as "PA600", and only the rows whose own name carries that code as a word are added to what
+     the words found, so the tile the build says as "…Highfield Patrol 600" is found by those
+     words (the walk: GFAB said "Nothing … is called that" to "Patrol" and "Patrol 600") */
+  if (searching) {
+    const have = new Set(counts.candidates.map((c) => c.key))
+    const more: StepOffer['candidates'] = []
+    for (const said of saidAs(ctx, step.section.tableId, query)) {
+      for (const c of asked(said.query).candidates) {
+        if (have.has(c.key) || !namedForBoat(c.line.label, said.code)) continue
+        have.add(c.key)
+        more.push(c)
+      }
+    }
+    if (more.length > 0) {
+      counts = {
+        ...counts,
+        candidates: [...counts.candidates, ...more],
+        matched: counts.matched + more.length,
+        beyond: counts.beyond + more.filter((c) => c.outside === true).length,
+      }
+    }
+  }
+
+  /* A LINE ON THE QUOTE IS THE ROW IT WAS MINTED FROM, WHICHEVER PAIRING NAMED IT (the walk: What
+     fits put the F130XA on with its rigging kit, minted through the F130XA's own pairing, and the
+     build offers that one kit once, under the F150XC's — so the kit stood under "not offered with
+     this boat", in the hull chapter, against What fits). A line no candidate carries by its
+     pairing is the candidate for its own row, where one is offered and not already on. */
+  {
+    const carried = new Set(counts.candidates.flatMap((c) => c.alreadyLineId ?? []))
+    const taken = new Set<number>()
+    const on = new Map<number, QuoteLine>()
+    for (const line of step.lines) {
+      if (carried.has(line.id)) continue
+      const at = counts.candidates.findIndex(
+        (c, i) =>
+          c.alreadyLineId === undefined &&
+          !taken.has(i) &&
+          c.line.entityId === line.entityId &&
+          c.line.rowId === line.rowId,
+      )
+      if (at < 0) continue
+      taken.add(at)
+      on.set(at, line)
+    }
+    if (on.size > 0) {
+      counts = {
+        ...counts,
+        candidates: counts.candidates.map((c, i) => {
+          const line = on.get(i)
+          return line ? { ...c, line, alreadyLineId: line.id } : c
+        }),
+      }
+    }
+  }
+  const code = sells.boat && kind === 'trailer' ? boatCodeOf(ctx, quote) : ''
 
   /* COMPUTED OVER THE WHOLE SHELF AT ONCE, because "does this fact
      tell these rows apart" is not a question one card can answer
@@ -636,6 +743,12 @@ function readTable(
     const weighed = weighPick(quote, line, candidate.alreadyLineId)
     const split = splitOnSharedStem(labels, i)
     const { name, ...own } = found[i]!
+    /* WHAT FITS' OWN SENTENCE for a motor this boat does not take, and its refusal where the
+       boat's own figures rule it out (`motorFitOf`); asked only of a row off the list */
+    const fits =
+      candidate.outside === true && kind === 'motor' && sells.boat
+        ? motorFitOf(ctx, quote, { tableId: line.entityId, rowId: line.rowId })
+        : null
     return {
       ...own,
       key: candidate.key,
@@ -655,10 +768,15 @@ function readTable(
          with Highfield - ADV7 (HYP) B-G-B"); the build says the boat as
          every other line of it does, and says the engine's curated case
          in the dealer's words (`outsideSaid`) */
-      why: outsideSaid(
-        (candidate.outsideWhy ?? '').split(quote.subjectLabel).join(boatOfQuote(quote).say),
-        sells.noun,
-      ),
+      why: fits
+        ? fits.why
+        : candidate.outside === true && code !== '' && namedForBoat(line.label, code)
+          ? NAMED_NOT_LISTED
+          : outsideSaid(
+              (candidate.outsideWhy ?? '').split(quote.subjectLabel).join(boatOfQuote(quote).say),
+              sells.noun,
+            ),
+      misfit: fits?.refuses === true,
       facts: (shown[i] ?? []).map(saidFact),
       contains: containsSay(line),
       source: line.sourceNote ?? '',
@@ -721,6 +839,12 @@ function readTable(
     .map((line) => {
       const { name, ...own } = goods(ctx, line, step.title, quote)
       const weighed = weighPick(quote, line, line.id)
+      /* A MOTOR ON THE QUOTE THAT THIS BOAT DOES NOT TAKE SAYS WHY, in What fits' words, and
+         keeps its way off (the walk: the hull chapter said "Motor says why, with the way off",
+         and the motor chapter gave no why and no press) */
+      const fits = sells.boat
+        ? motorFitOf(ctx, quote, { tableId: line.entityId, rowId: line.rowId })
+        : null
       return {
         ...own,
         key: line.id,
@@ -739,7 +863,8 @@ function readTable(
         /* WHERE IT SITS ON THE QUOTE, the engine's own reason (refine-critique-2.md, 11): a
            motor put on from Show all that is outside the horsepower this boat's own row
            states says so here too, from `@/domain/fitment`, never "nothing wrong" */
-        why: envelopeWhy(ctx, quote, line),
+        why: fits ? fits.why : envelopeWhy(ctx, quote, line),
+        misfit: fits?.refuses === true,
         facts: shelfFacts(line).map((f) => saidFact({ ...f, full: f.value, reduced: false })),
         contains: containsSay(line),
         source: line.sourceNote ?? '',
@@ -771,7 +896,9 @@ function readTable(
      so under Show all a list carries two or three reasons rather than one, and the old test —
      every row identical — lifted none of them: the curated sentence stood on every tile again.
      The reason most rows give is said above them; a row with another keeps its own. */
-  const off = rows.filter((r) => r.outside && r.why !== '')
+  /* A REFUSAL IS NEVER LIFTED OFF THE TILE IT REFUSES: a motor the boat's figures rule out keeps
+     its own sentence under it, where its press is refused (`OptionRow.misfit`) */
+  const off = rows.filter((r) => r.outside && r.why !== '' && !r.misfit)
   const tally = new Map<string, number>()
   for (const r of off) tally.set(r.why, (tally.get(r.why) ?? 0) + 1)
   const [commonest, times] = [...tally].reduce<[string, number]>(
@@ -779,7 +906,8 @@ function readTable(
     ['', 0],
   )
   const shared = times > 1 ? commonest : ''
-  if (shared !== '') for (const row of rows) if (row.outside && row.why === shared) row.why = ''
+  if (shared !== '')
+    for (const row of rows) if (row.outside && !row.misfit && row.why === shared) row.why = ''
 
   /* THE FILE'S OWN PICK, NAMED RATHER THAN STARRED. §4 of the sweep
      counted what the best references do with a recommendation:
@@ -839,7 +967,38 @@ function readTable(
     ruled,
     oneTrailer: '',
     unchosen: unchosenList(ctx, step.section.tableId),
+    named:
+      code === ''
+        ? []
+        : namedHere(
+            ctx,
+            step.section.tableId,
+            step.title,
+            code,
+            new Set(counts.candidates.filter((c) => c.outside !== true).map((c) => c.line.rowId)),
+          ),
   }
+}
+
+/**
+ * THE LINES OF A LIST NAMED FOR THE BOAT, WHICH THE PRICE LIST DOES NOT LIST FOR IT: still sold,
+ * carrying the boat's model code as a word of their own, and not on the list the tiles show. By
+ * the names the build says them in.
+ */
+function namedHere(
+  ctx: CatalogueCtx,
+  tableId: string,
+  title: string,
+  code: string,
+  listed: ReadonlySet<string>,
+): string[] {
+  const entity = ctx.entities[tableId]
+  if (!entity) return []
+  return (ctx.rowsByEntity[tableId] ?? [])
+    .filter(
+      (r) => !isDiscontinued(r) && !listed.has(r.id) && namedForBoat(rowLabel(entity, r), code),
+    )
+    .map((r) => nameOnPaper(lineSaid(rowLabel(entity, r), title)))
 }
 
 /** The list's id on Prices where it names no price and holds sell figures to choose from; ''
@@ -1605,9 +1764,13 @@ function answerOf(
           ? `${au(held)} no longer sold`
           : unknown > 0
             ? 'not chosen'
-            : sells.boat
-              ? 'nothing made for this boat yet'
-              : `nothing goes with this ${sells.noun}`
+            : sells.boat && namedIn(tables) > 0
+              ? /* WHAT FITS' OWN WORDS where a line is named for the boat and not listed for it
+                   (fit flow, round 2): "made for" beside "named for" read as a contradiction */
+                `nothing listed for this boat, ${au(namedIn(tables))} named for it`
+              : sells.boat
+                ? 'nothing made for this boat yet'
+                : `nothing goes with this ${sells.noun}`
   /* NOTHING ON IT AND NOTHING THE PRICE LIST OFFERS FOR IT: a list with nothing to wait for */
   const bare = offered === 0 && ruledOut === 0 && held === 0 && unknown === 0
   return bare ? { said: '', rest, picture: null, bare: true } : { said: '', rest, picture: null }

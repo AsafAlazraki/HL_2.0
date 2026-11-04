@@ -1530,6 +1530,13 @@
   display: none;
 }
 
+/* THE BOAT'S OTHER DOOR (fit flow, direction A): What fits, under the act and its sentence, at
+   its own width, so the one loud press stays the act and this reads as the way to look first */
+.picker-fits {
+  margin: 0;
+  display: flex;
+}
+
 /* WHAT REVIEW FINDS ON THIS LINE (onPick.ts): evidence beside the act, never a refusal of it, in
    the ink this app spends on a sentence that stops a press — the build's finale says the same */
 .picker-review {

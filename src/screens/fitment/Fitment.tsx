@@ -14,7 +14,7 @@
    (`Chooser.tsx`), as it did.
    ============================================================ */
 import { useMemo, type ReactNode } from 'react'
-import { DatabaseIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
+import { DatabaseIcon } from '@phosphor-icons/react'
 import { Button, Icon } from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
@@ -23,7 +23,6 @@ import { makeCtx, rowLabel } from '@/domain/model'
 import { readBoatFit, type BoatFound } from '@/domain/fitment/boat'
 import { versionsOf } from '@/domain/fitment/versions'
 import { spokenBoat } from '@/domain/quote/spoken'
-import { useFinder } from '@/screens/shell/scope'
 import { BoatPage, type At, type BoatChoice, type From } from './Boat'
 import { useStart } from './useStart'
 import { AnotherBoat, ChooseABoat } from './Chooser'
@@ -40,6 +39,8 @@ export interface FitmentPosition {
   at?: string
   /** 1 while changing what Northside offers; 0 leaves it */
   change?: number
+  /** in change mode, the words typed to find something else to offer */
+  offer?: string
 }
 
 export interface FitmentProps {
@@ -59,6 +60,8 @@ export interface FitmentProps {
   at?: At
   /** changing what Northside offers, rather than choosing for a quote */
   changing?: boolean
+  /** in change mode, the words typed to find something else to offer */
+  offer?: string
   onPosition: (next: FitmentPosition) => void
   openBoat: (rowId: string) => void
   openTheFile: () => void
@@ -86,6 +89,7 @@ export function Fitment({
   fit: ticked = NONE_TICKED,
   at = '',
   changing = false,
+  offer = '',
   onPosition,
   openBoat,
   openTheFile,
@@ -113,7 +117,6 @@ export function Fitment({
     [ctx, open, place],
   )
   const { start, refused } = useStart(openQuote)
-  const shellFinder = useFinder()
 
   /* THE BOATS ALREADY ON QUOTES, most recent first, offered before a word is typed */
   const recent = useMemo<BoatFound[]>(() => {
@@ -184,15 +187,10 @@ export function Fitment({
     )
   }
 
-  /* ANOTHER BOAT IS FIND ITSELF, the same dialog as Home's (direction A); a screen drawn with no
-     shell above it keeps the chooser in a popover */
-  const another: ReactNode = shellFinder ? (
-    <Button intent="secondary" icon={MagnifyingGlassIcon} onClick={() => shellFinder('')}>
-      Another boat
-    </Button>
-  ) : (
-    <AnotherBoat world={ctx} onChoose={openBoat} recent={recent} />
-  )
+  /* ANOTHER BOAT IS A BOAT (walk 2, F11: "I wanted another boat and got the app's whole Find:
+     'Back to Home', 'Go: Home, Settings, Quotes, Rules…'"). The chooser's own finder, boats alone,
+     in a popover under the press. */
+  const another: ReactNode = <AnotherBoat world={ctx} onChoose={openBoat} recent={recent} />
 
   const choice: BoatChoice = { motor, trailer, fit: ticked }
 
@@ -221,11 +219,10 @@ export function Fitment({
         at={at}
         onAt={(next) => onPosition({ at: next })}
         changing={changing}
-        onChanging={(on) => {
-          onPosition({ change: on ? 1 : 0 })
-          window.scrollTo({ top: 0 })
-        }}
-        onVersion={(rowId) => onPosition({ boat: rowId, motor: '', trailer: '', fit: '' })}
+        onChanging={(on) => onPosition({ change: on ? 1 : 0, offer: '' })}
+        offer={offer}
+        onOffer={(words) => onPosition({ offer: words })}
+        onVersion={(rowId) => onPosition({ boat: rowId, motor: '', trailer: '', fit: '', at: '' })}
         another={another}
         openHref={openHref}
         start={start}

@@ -175,7 +175,12 @@ export function needsOf(facts: FileFacts, seams: NeedsSeams): Need[] {
           done: false,
           fig: uLines,
           say: `${uLines === 1 ? 'line sits' : 'lines sit'} in ${plural(u.length, 'list', 'lists')} no list of what fits names`,
-          sub: `${u.map((row) => `${row.name} ${n(row.rows)}`).join(' · ')}. No boat on the price list is fitted with them.`,
+          sub: [
+            `${u.map((row) => `${row.name} ${n(row.rows)}`).join(' · ')}. No boat on the price list is fitted with them.`,
+            facts.unnamedElsewhere,
+          ]
+            .filter((said) => said !== '')
+            .join(' '),
           of: `in ${n(u.length)} of the ${n(sellable)} lists you sell from`,
           door: { word: 'Largest first', press: () => seams.openSpread(largest.id) },
         },
@@ -407,11 +412,19 @@ export function Fresh({
       <header className="dt-sec-head">
         <h2 id="dt-fresh-h">{packed ? `New since ${packedOn(packed, 'long')}` : 'New on this computer'}</h2>
       </header>
-      {c ? (
+      {/* NET OF A CHANGE TAKEN BACK (`netChanged`): a line taken off and put back reads as the
+          file has it, and is not counted. While the comparison runs it says so rather than show a
+          figure that may fall; where the file could not be fetched, it says what was written. */}
+      {c && facts.changedBy === 'counting' ? (
+        <p className="dt-zero">
+          <span>Comparing what was written here with the price list as it came…</span>
+        </p>
+      ) : c ? (
         <p className="dt-zero">
           <b>{n(c.lines)}</b>
           <span>
-            {c.lines === 1 ? 'line' : 'lines'} changed on this computer, of {n(lines)}
+            {c.lines === 1 ? 'line' : 'lines'}{' '}
+            {facts.changedBy === 'written' ? 'written' : 'changed'} on this computer, of {n(lines)}
           </span>
         </p>
       ) : (
@@ -420,7 +433,7 @@ export function Fresh({
           against it.
         </p>
       )}
-      {c && c.byList.length > 0 ? (
+      {c && facts.changedBy !== 'counting' && c.byList.length > 0 ? (
         <ul className="dt-fresh__lists" aria-label="Changed, by list">
           {c.byList.map((l) => (
             <li key={l.tableId}>
@@ -541,7 +554,7 @@ function roomSay(href: string, facts: FileFacts): RoomSay | null {
           </>
         ),
         sub: `from ${plural(b.makers, 'maker', 'makers')}, ${plural(facts.matrix.lists, 'list', 'lists')} of what fits`,
-        label: `Fitment — ${n(b.models)} models`,
+        label: `What fits — ${n(b.models)} models`,
       }
     }
     case '/catalogue': {
@@ -610,6 +623,12 @@ function useBackToRoom(nav: RefObject<HTMLElement | null>): void {
   }, [nav])
 }
 
+/** A ROOM AS DATA NAMES IT: what goes on a boat is "What fits" on every surface a salesperson
+ *  meets it (Home's boats, Find, the picker, the build), so Data says it so too (fit flow, round 2:
+ *  "Data calls it Fitment while everything else says What fits"). */
+const roomWord = (room: { href: string; word: string }): string =>
+  room.href === '/fitment' ? 'What fits' : room.word
+
 export function Rooms({ facts, go }: { facts: FileFacts; go?: (href: string) => void }) {
   const nav = useRef<HTMLElement>(null)
   useBackToRoom(nav)
@@ -627,7 +646,7 @@ export function Rooms({ facts, go }: { facts: FileFacts; go?: (href: string) => 
               <a
                 className="dt-room"
                 href={room.href}
-                aria-label={said?.label ?? room.word}
+                aria-label={said?.label ?? roomWord(room)}
                 title={room.say}
                 data-ground="plate"
                 data-room={room.href.slice(1)}
@@ -646,7 +665,7 @@ export function Rooms({ facts, go }: { facts: FileFacts; go?: (href: string) => 
                 <span className="dt-room__glyph" aria-hidden="true">
                   {glyph ? <Icon glyph={glyph} /> : null}
                 </span>
-                <span className="dt-room__name">{room.word}</span>
+                <span className="dt-room__name">{roomWord(room)}</span>
                 {said ? (
                   <>
                     <span className="dt-room__fig" data-testid={said.testId}>

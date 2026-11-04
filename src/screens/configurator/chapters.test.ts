@@ -9,8 +9,16 @@
 import { describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
-import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/model'
-import { isDone, mintQuoteFromView, quoteTotals } from '@/domain/quote'
+import {
+  rowLabel,
+  type EntityDef,
+  type QuoteDef,
+  type QuoteLine,
+  type RowData,
+} from '@/domain/model'
+import { isDone, mintQuote, mintQuoteFromView, quoteTotals } from '@/domain/quote'
+import { addLine } from '@/domain/quote/commands'
+import { pickedLines, riggedOf } from '@/domain/fitment/rigged'
 import { hullTakesTwo, swapLines } from '@/domain/quote/swap'
 import { lineSaid } from '@/domain/quote/spoken'
 import { readBoatFit } from '@/domain/fitment/boat'
@@ -18,6 +26,7 @@ import { pairColumns, pairRule } from '@/domain/rules/constraints/pairRules'
 import {
   bareListsSay,
   matchesFinish,
+  namedSay,
   offeredHere,
   readRail,
   SEARCH_MIN,
@@ -250,17 +259,24 @@ describe('the narrowing explains itself, is searched past and is switched off', 
        It names the hull as the dealer does — "this boat", never by the file's key
        (m2-last-critique.md, major 4), nor by the pairing list's name and "the price file"
        (docs/WORDS.md) */
-    expect(motor.sharedWhy).toBe('Over the 90–115 hp this boat takes.')
-    expect(motor.sharedWhy).not.toContain(sp560.subjectLabel)
-    /* the shared reason is said once and on no row; a twin F250 rig is not measured against a
-       single-motor envelope the boat's row states, so it keeps the reason that is true of it */
-    const own = motor.rows.filter((r) => r.why !== '')
-    expect(own.every((r) => r.why !== motor.sharedWhy)).toBe(true)
+    /* FIT FLOW, ROUND 2: A MOTOR THE BOAT CANNOT TAKE IS REFUSED ON ITS OWN TILE, in What fits'
+       words, and the refusal is never lifted off the tile it refuses. The twin F250 rigs said
+       "Nothing is wrong with it" on a boat whose own figures name one motor; What fits says they
+       are not placed on it, and so does the build now. */
+    expect(motor.sharedWhy).toBe('')
+    expect(motor.rows.every((r) => r.misfit)).toBe(true)
+    const said = new Set(motor.rows.map((r) => r.why))
+    expect(said).toContain('Over the 90–115 hp this boat takes.')
     expect(
-      own.every(
-        (r) => r.why === 'The price list does not list it for this boat. Nothing is wrong with it.',
+      [...said].every(
+        (why) =>
+          why === 'Over the 90–115 hp this boat takes.' ||
+          why ===
+            'Twin and triple rigs. This boat’s own figures name one motor, so they are not placed on it.',
       ),
     ).toBe(true)
+    expect(motor.rows.some((r) => r.why.includes('Nothing is wrong with it'))).toBe(false)
+    expect([...said].some((why) => why.includes(sp560.subjectLabel))).toBe(false)
     expect(rail.beyond).toBeGreaterThan(0)
     expect(rail.searching).toBe(true)
   })
@@ -941,5 +957,91 @@ describe('a motor, a trailer or a part sold on its own', () => {
     expect(hull.subject).toBe(true)
     expect(hull.goods).toBe('boat')
     expect(hull.optional).toBeUndefined()
+  })
+})
+
+/* ============================================================
+   FIT FLOW, ROUND 2: THE BUILD AND WHAT FITS SAY ONE THING.
+   ============================================================ */
+/** Every line a pick hands back, put on the quote one step each, as What fits puts them on. */
+const put = (quote: QuoteDef, adds: ReturnType<typeof pickedLines>['adds']): QuoteDef =>
+  adds.reduce((q, a) => {
+    const out = addLine(a.blockId, a.line)(q, '2026-11-05T00:00:00.000Z')
+    return 'next' in out && out.next ? out.next : q
+  }, quote)
+
+describe('the build says what What fits says, on the Patrol 600', () => {
+  const highfield = pack.byKey('boat_highfield')
+  const pa600Row = (pack.rowsByEntity[highfield.id] ?? []).find(
+    (r: RowData) => rowLabel(highfield, r) === 'Highfield - PA600 Open (PVC) LG-W-DG',
+  )!
+  const bare = (): QuoteDef =>
+    mintQuote(ctx, {
+      viewId: createViewFor(ctx, highfield.id).id,
+      rowId: pa600Row.id,
+      reference: 'NSM-TEST',
+      hullAlone: true,
+    })!.quote
+  it('draws the F130XA’s rigging kit, put on from What fits, on its own row and not as left out', () => {
+    const fit = readBoatFit(ctx, { tableId: highfield.id, rowId: pa600Row.id })!
+    const rig = riggedOf(ctx, fit).find((r) => r.model === 'F130XA')!
+    const { adds } = pickedLines(ctx, bare(), [
+      { tableId: rig.motor.place.tableId, key: rig.key },
+      {
+        tableId: rig.kit!.place.tableId,
+        key: rig.key,
+        rowId: rig.kit!.place.rowId,
+        pairing: rig.motor.pairing,
+      },
+    ])
+    const quote = put(bare(), adds)
+    const kits = readRail(ctx, quote)
+      .chapters.flatMap((c) => c.tables)
+      .find((t) => t.title === 'Rigging Kits')!
+    expect(kits.also).toEqual([])
+    expect(kits.rows.filter((r) => r.fitted).map((r) => `${r.stem} ${r.tail}`.trim())).toEqual([
+      'Rigging kit for the F130XA',
+    ])
+  })
+
+  it('finds the GFAB trailer named for the Patrol 600 by "Patrol 600" and by "Patrol"', () => {
+    for (const typed of ['Patrol 600', 'Patrol']) {
+      const gfab = readRail(ctx, bare(), { query: typed })
+        .chapters.flatMap((c) => c.tables)
+        .find((t) => t.title === 'GFAB Trailers')!
+      expect(gfab.rows.map((r) => r.tail)).toContain(
+        'GFAB Tandem Axel Trailer t/s Highfield Patrol 600',
+      )
+    }
+  })
+
+  it('says the trailer named for it, which no trailer list lists for it', () => {
+    const trailer = readRail(ctx, bare()).chapters.find((c) => c.id === 'trailer')!
+    expect(trailer.tables.flatMap((t) => t.named)).toEqual([
+      'GFAB Tandem Axel Trailer t/s Highfield Patrol 600',
+    ])
+    expect(namedSay(trailer.tables)).toBe(
+      'Nothing from NSM Custom Trailers or GFAB Trailers is listed for this boat. One is named for it, the GFAB Tandem Axel Trailer t/s Highfield Patrol 600: What fits does not offer it, because the price list does not list it, but it can still go on this quote from the whole range of GFAB Trailers.',
+    )
+    expect(trailer.rest).toBe('nothing listed for this boat, 1 named for it')
+  })
+
+  it('says why a motor on the quote this boat cannot take stands where it does, with its way off', () => {
+    const yamaha = pack.byKey('mot_yamaha')
+    const f115lb = (pack.rowsByEntity[yamaha.id] ?? []).find(
+      (r: RowData) => rowLabel(yamaha, r) === 'Yamaha - F115LB',
+    )!
+    const quote = bare()
+    const motors = readRail(ctx, quote, { query: 'F115LB' }).chapters.find((c) => c.id === 'motor')!
+      .tables[0]!
+    const row = motors.rows.find((r) => r.act.do === 'add' && r.act.line.rowId === f115lb.id)!
+    expect(row.misfit).toBe(true)
+    expect(row.why).toBe(
+      'Inside the 115–150 hp this boat takes, but its shaft is not the extra-long (25″) this boat’s transom takes.',
+    )
+    /* one already on the quote (put there before this round) keeps its reason and its way off */
+    const on = put(quote, [{ blockId: motors.id, line: (row.act as { line: QuoteLine }).line }])
+    const also = readRail(ctx, on).chapters.find((c) => c.id === 'motor')!.tables[0]!.also
+    expect(also.map((r) => [r.misfit, r.why, r.act.do])).toEqual([[true, row.why, 'remove']])
   })
 })

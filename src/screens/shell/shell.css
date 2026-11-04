@@ -1141,8 +1141,10 @@
 
 /* A NARROW WINDOW IS A HAND (fit-flow, 2026-11-05: the walk's phone showed "Enter opens it."
    and an Esc key on a touch screen). Under 760px neither is drawn, whatever pointer the
-   browser reports: the keys still work the moment a keyboard is there. */
-@media (max-width: 759.98px) {
+   browser reports: the keys still work the moment a keyboard is there. AND SO IS A SHORT ONE
+   (round 2: the phone held sideways, 844 x 390, still showed both): no laptop's window is under
+   500px tall, and a phone on its side always is. */
+@media (max-width: 759.98px), (max-height: 499.98px) {
   .way-say__keys,
   .way-finder__esc {
     display: none;

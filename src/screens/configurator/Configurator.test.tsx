@@ -469,9 +469,13 @@ describe('the search is the navigation', () => {
     const outside = rail.chapters.find((c) => c.id === 'motor')!.tables[0].rows[0]
     expect(outside.outside).toBe(true)
     expect(screen.getAllByText(outside.why).length).toBeGreaterThan(0)
-    /* AND THE CONTROL IS LIVE. Nothing is greyed, nothing is hidden. */
+    /* FIT FLOW, ROUND 2: A MOTOR THE BOAT'S OWN FIGURES RULE OUT IS REFUSED, WITH ITS REASON. A
+       250 hp motor on a boat that takes 90–115 hp went on under "nothing is wrong with it"; now
+       its tile stays in sight, refused, and its reason is the sentence the tile is described by. */
+    expect(outside.misfit).toBe(true)
     const row = screen.getByRole('button', { name: new RegExp(escape(outside.tail)) })
-    expect(row).not.toHaveAttribute('aria-disabled', 'true')
+    expect(row).toHaveAttribute('aria-disabled', 'true')
+    expect(row).toHaveAccessibleDescription(outside.why)
   })
 
   it('says so, once, when nothing anywhere carries the word', async () => {
@@ -784,6 +788,29 @@ describe('who it is for, and the finale', () => {
 
     await userEvent.click(within(step).getByRole('button'))
     await waitFor(() => expect(quotes.getState().get(quote.id)!.customer.name).toBe(''))
+  })
+
+  /* FIT FLOW, ROUND 2, THE COLD WALK: the panel opened with the caret on Close, so the space in
+     "R. Kelleher" pressed Close and the name was lost; and "Put their name on it" with the box empty
+     closed the panel without a word. */
+  it('opens on the name field, and refuses an empty name with its reason, where it was pressed', async () => {
+    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    render(<Configurator quoteId={quote.id} at="motor" />)
+    await userEvent.click(screen.getByRole('button', { name: 'Name the customer' }))
+    const field = await screen.findByLabelText(/Who the quote is for/)
+    await waitFor(() => expect(field).toHaveFocus())
+    await userEvent.click(screen.getByRole('button', { name: 'Put their name on it' }))
+    expect(screen.getByLabelText(/Who the quote is for/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Nothing is typed yet, so there is no name to put on it. Type who the quote is for.',
+      ),
+    ).toBeInTheDocument()
+    expect(quotes.getState().get(quote.id)!.customer.name).toBe('')
+    await userEvent.keyboard('R. Kelleher')
+    expect(screen.getByLabelText(/Who the quote is for/)).toHaveValue('R. Kelleher')
+    await userEvent.click(screen.getByRole('button', { name: 'Put their name on it' }))
+    await waitFor(() => expect(quotes.getState().get(quote.id)!.customer.name).toBe('R. Kelleher'))
   })
 
   it('puts it on at Enter, keeps its line of contact, and writes nothing that did not change', async () => {
@@ -2124,5 +2151,53 @@ describe('the quote round’s audit, closed', () => {
       1,
     )
     expect(screen.queryByText(/^Nothing from Rigging Kits goes with this motor\.$/)).toBeNull()
+  })
+})
+
+/* FIT FLOW, ROUND 2, THE COLD WALK: with the 20″ F115LB on the Patrol 600, the hull chapter said
+   "Motor says why, with the way off", and the motor chapter gave no why and no press. A motor
+   already on the quote that the boat's own figures rule out (put there before the build refused
+   one) says What fits' reason under it, and a plain Take it off. */
+describe('a motor on the quote that the boat cannot take', () => {
+  it('says why under it, keeps its way off, and the hull chapter says where', async () => {
+    const sheet = catalogue.getState()
+    const ctx = makeCtx({
+      entities: sheet.tables as Record<string, EntityDef>,
+      rowsByEntity: sheet.rows as Record<string, RowData[]>,
+      views: { ...sheet.views },
+      modules: pack.ctx.modules,
+      priceLevels: pack.ctx.priceLevels,
+      orgId: 'northside',
+    })
+    /* the boat alone, as the picker and What fits start it */
+    const table = pack.byKey('boat_highfield')
+    const boat = (pack.rowsByEntity[table.id] ?? []).find(
+      (r) => rowLabel(table, r) === 'Highfield - PA600 Open (PVC) LG-W-DG',
+    )!
+    const minted = mintQuote(ctx, {
+      viewId: createViewFor(ctx, table.id).id,
+      rowId: boat.id,
+      reference: 'NSM-TEST',
+      hullAlone: true,
+    })!
+    quotes.getState().file(minted.quote, minted.event)
+    const quote = minted.quote
+    const motors = readRail(ctx, quotes.getState().get(quote.id)!, {
+      query: 'F115LB',
+    }).chapters.find((c) => c.id === 'motor')!.tables[0]!
+    const row = motors.rows.find((r) => r.misfit && r.act.do === 'add')!
+    const line = (row.act as { line: Parameters<typeof addLine>[1] }).line
+    expect('refused' in quotes.getState().apply(quote.id, addLine(motors.id, line))).toBe(false)
+
+    render(<Configurator quoteId={quote.id} />)
+    expect(
+      screen.getByText(
+        /is on this quote, and this boat’s own figures rule it out\. Motor says why, with Take it off\./,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText(row.why).length).toBeGreaterThan(0)
+    const before = quotes.getState().get(quote.id)!.lines.length
+    await userEvent.click(screen.getByRole('button', { name: 'Take it off' }))
+    await waitFor(() => expect(quotes.getState().get(quote.id)!.lines.length).toBe(before - 1))
   })
 })

@@ -633,6 +633,23 @@ describe("the plate's foot", () => {
     ).not.toBeNull()
   })
 
+  /* FIT FLOW, ROUND 2, WALK 1: "The picker's side panel only has Start the quote and never shows
+     what fits." A boat on the plate carries its other door, under the act, and it opens what goes
+     on the very version the quote would open on. */
+  it('carries What fits under the act for a boat, opening the version the quote opens on', async () => {
+    const model = manyMaterials()
+    const openFits = vi.fn<(rowId: string) => void>()
+    render(<Picker at={{ brand: model.tableId, model: model.key }} openFits={openFits} />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    const fits = within(panel).getByRole('button', { name: `What fits the ${model.said}` })
+    const act = within(panel).getByRole('button', { name: /Start the quote|Open the draft/ })
+    expect(act.compareDocumentPosition(fits) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    await userEvent.click(fits)
+    const opening = model.variants.find((v) => v.rowId === openFits.mock.calls[0]?.[0])
+    expect(opening).toBeDefined()
+    expect(openFits).toHaveBeenCalledTimes(1)
+  })
+
   /* THE M2-CLOSE CRITIQUE, FINDING 11: Home sells the Stacer 519 Sea
      Ranger SDF with its photograph on the water, and this plate drew
      "No photograph of the 519 Sea Ranger SDF … is held yet" for both of

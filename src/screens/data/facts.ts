@@ -22,9 +22,10 @@
    other figure is a pure function of the store, memoised on the store.
    ============================================================ */
 import { useEffect, useMemo, useState } from 'react'
-import { makeCtx, type TableKind } from '@/domain/model'
+import { makeCtx, type RowData, type TableKind } from '@/domain/model'
 import { catalogue as catalogueStore, ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
+import { loadTable } from '@/data/pack/load'
 import { useCatalogue, usePrefs } from '@/app/useStores'
 import { readTableRegister, type RegisterRow, type TableRegister } from '@/domain/modules/register'
 import { fitsMatrixOf, type FitsMatrix } from '@/domain/modules/fitsMatrix'
@@ -42,6 +43,8 @@ import { useLeftAlone } from '@/screens/review/left'
 import { hasPicture, shelfOf } from '@/screens/catalogue/shelf'
 import { LAST_COPY_PREF } from '@/screens/shelf/acts'
 import { provenanceOfSheet, type FileProvenance } from './file'
+import { elsewhereSay } from './unnamed'
+import { netChanged } from './net'
 
 export interface ReviewFacts {
   cases: number
@@ -64,10 +67,16 @@ export interface FileFacts {
   madeHere: RegisterRow[]
   /** a list you sell from that no list of what fits names, and that can be fitted to a boat */
   unnamed: RegisterRow[]
+  /** WHERE THOSE LISTS' MAKERS HAVE LINES A LIST OF WHAT FITS DOES NAME (`elsewhereSay`): the REDCO
+   *  trailers What fits offers are NSM Custom's, not REDCO / Tinka's. '' where none are. */
+  unnamedElsewhere: string
   dated: DatedReport
   datedByList: Map<string, number>
   /** null where the file's packing instant is not known, so nothing can be said to be new */
   changed: ChangedReport | null
+  /** HOW THAT FIGURE WAS READ: compared with the price list as it came, line by line; still being
+   *  compared; or, where the file could not be fetched, the lines written since it landed */
+  changedBy: 'compared' | 'counting' | 'written'
   matrix: FitsMatrix
   prices: { open: Column[]; openLines: number; settled: number }
   rules: { kept: number; written: number; noticed: number }
@@ -81,7 +90,10 @@ export interface FileFacts {
 
 const FITTABLE: ReadonlySet<TableKind> = new Set(['motor', 'trailer', 'package', 'accessory'])
 
-export function useFileFacts(open: boolean): FileFacts {
+export function useFileFacts(
+  open: boolean,
+  fileOf: (tableId: string) => Promise<readonly RowData[]> = loadTable,
+): FileFacts {
   const version = useCatalogue((s) => s.version)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
@@ -117,6 +129,13 @@ export function useFileFacts(open: boolean): FileFacts {
     }
   }, [register])
 
+  const unnamedElsewhere = useMemo(() => {
+    const fitted = lists.sellFrom.filter(
+      (r) => !r.retired && FITTABLE.has(r.kind) && r.namedBy.models > 0,
+    )
+    return elsewhereSay({ entities: tables, rowsByEntity: rows }, lists.unnamed, fitted)
+  }, [lists, tables, rows])
+
   const dated = useMemo(() => datedSections(tables, rows), [tables, rows])
   const datedByList = useMemo(() => {
     const out = new Map<string, number>()
@@ -125,7 +144,7 @@ export function useFileFacts(open: boolean): FileFacts {
   }, [dated])
 
   const packedAt = provenance.known ? provenance.file.packedAt : null
-  const changed = useMemo(() => {
+  const written = useMemo(() => {
     if (packedAt === null) return null
     return changedSince(
       tables,
@@ -134,6 +153,39 @@ export function useFileFacts(open: boolean): FileFacts {
       (id) => register.facts[id] !== undefined && register.facts[id].provenance.kind !== 'desk',
     )
   }, [tables, rows, packedAt, register])
+
+  /* WHAT STILL DIFFERS, NET (`netChanged`): the lists a stamp names, compared with the same lists
+     as the Master Price File carries them, fetched after the first paint as the sheet fetches one
+     (`fileOf`). A line taken off and put back is not a change. Until the comparison is in, the
+     figure is being counted; where the file cannot be fetched, it is what was written. */
+  const [compared, setCompared] = useState<{
+    of: ChangedReport
+    net: ChangedReport | null
+  } | null>(null)
+  useEffect(() => {
+    if (!open || written === null || written.lines === 0) return
+    let dropped = false
+    Promise.all(
+      written.byList.map(async (list) => [list.tableId, await fileOf(list.tableId)] as const),
+    )
+      .then((files) => {
+        if (dropped) return
+        setCompared({ of: written, net: netChanged(written, tables, rows, new Map(files)) })
+      })
+      .catch(() => {
+        if (!dropped) setCompared({ of: written, net: null })
+      })
+    return () => {
+      dropped = true
+    }
+  }, [open, written, tables, rows, fileOf])
+  const settled = written === null || written.lines === 0 || compared?.of === written
+  const changed = written === null || written.lines === 0 ? written : (compared?.net ?? written)
+  const changedBy: FileFacts['changedBy'] = !settled
+    ? 'counting'
+    : written !== null && written.lines > 0 && compared?.net === null
+      ? 'written'
+      : 'compared'
 
   const matrix = useMemo(() => fitsMatrixOf(register.plates, register.pairings), [register])
 
@@ -211,9 +263,11 @@ export function useFileFacts(open: boolean): FileFacts {
     models,
     boats: { models: boatCount.boats, makers: boatCount.makers, lines: boatCount.lines },
     ...lists,
+    unnamedElsewhere,
     dated,
     datedByList,
     changed,
+    changedBy,
     matrix,
     prices,
     rules,

@@ -151,6 +151,7 @@ import {
   kitsForMotors,
   kitsNone,
   matchesFinish,
+  namedSay,
   readRail,
   type Act,
   type OrphanFix,
@@ -214,6 +215,7 @@ import { Chandlery, type ChandleryFitting } from '@/screens/catalogue/Chandlery'
 import { PartDrag, QUOTE_DROP, useQuoteDrop } from '@/screens/catalogue/drag'
 import { PARTS_TABLE } from '@/screens/catalogue/shelf'
 import { fitmentOf } from '@/app/ways'
+import { boatTitleOf, type BoatTitle } from './fits'
 import { boatTravel, levelGlyph } from './glyphs'
 import { acrossTheSheet } from './sheet'
 import { coverArt, coverAskAct, coverAskSay } from '@/screens/document/art'
@@ -1236,6 +1238,7 @@ function Build({
           quote={quote}
           quoteId={quoteId}
           register={ctx.entities[quote.rootTableId]?.name ?? ''}
+          title={boatTitleOf(ctx, quote)}
           preparer={quote.preparer ?? preparerNow(sheet, quote.preparedBy ?? who)}
           kept={kept}
           asking={asking}
@@ -1636,6 +1639,22 @@ function RangeSheet({
   const shown = read?.chapters.flatMap((c) => c.tables).find((t) => t.id === tableId)
   const shutId = 'cfg-sheet-shut'
   const all = shown?.counts.catalogue ?? 0
+  /* WHAT THE SHEET IS, SAID AT THE HEAD OF WHAT SCROLLS (the walk, 844 × 390: the title, this
+     sentence, the find field and the total stood over the list and left one row of motors in
+     sight). On a boat's motors it says too that a motor the boat cannot take is refused, and where
+     that is decided, one press away. */
+  const door =
+    shown && (shown.kind === 'motor' || shown.kind === 'trailer')
+      ? fitsDoorOf(ctx, quote, shown.kind)
+      : null
+  const sheetSay = [
+    `Every one the price list holds, whether it ${read?.sells.boat === false ? `goes with this ${read.sells.noun}` : 'is made for this boat'} or not. A press puts it on the quote, and another takes it off.`,
+    door && shown?.kind === 'motor'
+      ? 'A motor this boat’s own figures rule out says why, and does not go on.'
+      : '',
+  ]
+    .filter((s) => s !== '')
+    .join(' ')
   return (
     <Dialog
       open={open}
@@ -1646,7 +1665,6 @@ function RangeSheet({
       }}
       size="xl"
       title={shown ? `All ${all.toLocaleString('en-AU')} in ${shown.title}` : chapter}
-      description={`Every one the price list holds, whether it ${read?.sells.boat === false ? `goes with this ${read.sells.noun}` : 'is made for this boat'} or not. A press puts it on the quote, and another takes it off.`}
       bar={
         <div className="cfg-sheet__bar">
           <div className="cfg-sheet__find">
@@ -1668,6 +1686,10 @@ function RangeSheet({
       }
     >
       <div className="cfg-sheet" data-testid="range-sheet">
+        <div className="cfg-sheet__say">
+          <p>{sheetSay}</p>
+          {door ? <FitsLink door={door} go={go} /> : null}
+        </div>
         {refusal === undefined ? null : (
           <Said className="cfg-shut" id={shutId} glyph={LockSimpleIcon}>
             {refusal}
@@ -2325,6 +2347,7 @@ function Mast({
   quote,
   quoteId,
   register,
+  title,
   preparer,
   kept,
   asking,
@@ -2336,6 +2359,9 @@ function Mast({
   quoteId: string
   /** the maker's register, by the dealer's name for it ("Stacer"), for its mark */
   register: string
+  /** THE BOAT AS WHAT FITS TITLES IT (`boatTitleOf`): the model, with the version under it — the
+   *  walk chose the Highfield Patrol 600 and the build was titled "Highfield Patrol 600 Open" */
+  title: BoatTitle
   /** who prepared it, with the title and number the paper prints (carried finding 2) */
   preparer: FrozenPreparer | undefined
   /** whether the last write was kept (`savedSay`) */
@@ -2392,11 +2418,11 @@ function Mast({
               side of it */}
           <span className="cfg-mast__rule" aria-hidden="true" />
           <div className="cfg-mast__words">
-            <h1 className="cfg-mast__name">{boat.name}</h1>
-            {boat.detail === '' ? null : (
+            <h1 className="cfg-mast__name">{title.name}</h1>
+            {title.detail === '' ? null : (
               <p className="cfg-mast__detail">
                 <Swatches colour={boat.colour} />
-                <span>{slashed(boat.detail)}</span>
+                <span>{slashed(title.detail)}</span>
               </p>
             )}
           </div>
@@ -2530,6 +2556,7 @@ function Customer({
         onDone={() => onOpen(false)}
         setStep={setStep}
         setRefused={setRefused}
+        focusName
       />
     </Dialog>
   )
@@ -2541,7 +2568,10 @@ function CustomerForm({
   onDone,
   setStep,
   setRefused,
+  focusName = false,
 }: {
+  /** the caret starts in the name: the bar's own panel, opened to name them */
+  focusName?: boolean
   quote: QuoteDef
   quoteId: string
   onDone: () => void
@@ -2577,7 +2607,16 @@ function CustomerForm({
   }
   const onClose = useEffectEvent(commit)
   useEffect(() => () => onClose(), [])
+  /* AN EMPTY NAME IS REFUSED WHERE IT WAS PRESSED, WITH ITS REASON (the walk: "Put their name on
+     it" with the box empty closed the panel without a word, and the customer stayed unnamed) */
+  const [unnamed, setUnnamed] = useState(false)
+  const nameField = useRef<HTMLElement>(null)
   const put = (): void => {
+    if (name.trim() === '') {
+      setUnnamed(true)
+      nameField.current?.focus()
+      return
+    }
     commit()
     onDone()
   }
@@ -2590,15 +2629,30 @@ function CustomerForm({
   return (
     <div className="cfg-whoform">
       <Field label="Who the quote is for">
+        {/* THE CARET STARTS IN THE NAME (the walk: the panel opened on Close, so the space in
+            "R. Kelleher" pressed Close and the name was lost) */}
         <Input
           id="cfg-customer"
+          ref={nameField}
+          autoFocus={focusName}
           value={name}
-          onValueChange={setName}
+          onValueChange={(next) => {
+            setName(next)
+            if (next.trim() !== '') setUnnamed(false)
+          }}
           onKeyDown={onEnter}
           autoComplete="name"
           placeholder="Their name, as it should print"
+          aria-describedby={unnamed ? 'cfg-customer-unnamed' : undefined}
         />
       </Field>
+      {unnamed ? (
+        <Refusal id="cfg-customer-unnamed">
+          {named
+            ? 'A quote keeps its customer’s name, so it cannot be left empty. Type the name, or close to keep the one it has.'
+            : 'Nothing is typed yet, so there is no name to put on it. Type who the quote is for.'}
+        </Refusal>
+      ) : null}
       <Field label="One line of contact, as it should print">
         <Input
           id="cfg-contact"
@@ -3751,6 +3805,16 @@ function ChapterCard({
   const empties = bareTables.length >= 2 ? bareTables : []
   const full = chapter.tables.filter((t) => !empties.includes(t))
 
+  /* WHAT FITS THIS BOAT, ONCE A CHAPTER, at the foot of its motors or its trailers (fit flow,
+     round 2, task 5): beside the last list's whole range, or under the lists with nothing */
+  const fitsDoor = useMemo(
+    () =>
+      chapter.id === 'motor' || chapter.id === 'trailer'
+        ? fitsDoorOf(ctx, quote, chapter.id)
+        : null,
+    [ctx, quote, chapter.id],
+  )
+
   /* WHAT THE OPEN CHAPTER HOLDS, drawn once and either animated or not */
   const inside = (
     <div className="cfg-body__in">
@@ -3789,7 +3853,9 @@ function ChapterCard({
           carried={rail.chapters
             .filter((c) => c.kind === 'band' && !c.subject)
             .flatMap((c) =>
-              c.tables.flatMap((t) => t.also.map((row) => ({ name: row.tail, section: c.name }))),
+              c.tables.flatMap((t) =>
+                t.also.map((row) => ({ name: row.tail, section: c.name, misfit: row.misfit })),
+              ),
             )}
           onPress={onPress}
           refusedBy={refusedBy}
@@ -3820,7 +3886,7 @@ function ChapterCard({
             Number(!searching && a.rows.length + a.also.length === 0) -
             Number(!searching && b.rows.length + b.also.length === 0),
         )
-        .map((table) => (
+        .map((table, i, drawn) => (
           <TableBlock
             key={table.id}
             table={table}
@@ -3841,13 +3907,20 @@ function ChapterCard({
             shop={shop}
             go={go}
             noun={rail.sells.noun}
+            fits={empties.length === 0 && i === drawn.length - 1 ? fitsDoor : null}
           />
         ))}
       {/* SEVERAL LISTS WITH NOTHING FOR WHAT THIS QUOTE IS FOR ARE ONE SENTENCE AT THE FOOT, with
           the way into each (a motor's own quote drew five makers' headings, five "Nothing from …"
           and five buttons, 600px of nothing, 2026-10-31) */}
       {empties.length === 0 ? null : (
-        <BareLists tables={empties} sells={rail.sells} onShowAll={onShowAll} />
+        <BareLists
+          tables={empties}
+          sells={rail.sells}
+          onShowAll={onShowAll}
+          fits={fitsDoor}
+          go={go}
+        />
       )}
       {/* WHAT THE WORKSHOP FITS AND ORDERS, OPEN AT THE CHAPTER'S FOOT (`ShopList`) */}
       {shopped.length === 0 ? null : <ShopList rows={shopped} />}
@@ -4235,7 +4308,7 @@ function BoatChooser({
   noun?: string
   /** the lines on the quote the price list does not offer with this boat, and the section each
    *  stands in, by its own name ("Motor") */
-  carried: readonly { name: string; section: string }[]
+  carried: readonly Carried[]
   onPress: (act: Act) => void
   refusedBy: string | undefined
 }) {
@@ -4385,16 +4458,46 @@ function ModelLine({
   )
 }
 
+/** A line on the quote the price list does not offer with what the quote is for, by the name its
+ *  tile says, the section it stands in, and whether the boat's own figures rule it out. */
+interface Carried {
+  name: string
+  section: string
+  misfit: boolean
+}
+
 /** "The Yamaha F90XB stays on this quote, though the price list does not offer it with this boat.
  *  Motor says why, with the way off." — each section named as the build names it. */
-function carriedSay(carried: readonly { name: string; section: string }[], noun = 'boat'): string {
-  const one = carried.length === 1
-  const sections = [...new Set(carried.map((c) => c.section))]
-  const where =
-    sections.length === 1
-      ? sections[0]!
-      : `${sections.slice(0, -1).join(', ')} and ${sections.at(-1)!}`
-  return `${upper(namesSay(carried.map((c) => c.name)))} ${one ? 'stays' : 'stay'} on this quote, though the price list does not offer ${one ? 'it' : 'them'} with this ${noun}. ${where} ${sections.length === 1 ? 'says' : 'say'} why, with the way off.`
+function carriedSay(carried: readonly Carried[], noun = 'boat'): string {
+  /* A MOTOR THE BOAT CANNOT TAKE IS SAID AS THAT, never as one the list merely leaves out (the
+     walk: the F115LB's 20″ shaft on a 25″ transom read "stays on this quote, though the price list
+     does not offer it", and the motor chapter said nothing more) */
+  const said = (group: readonly Carried[], misfit: boolean): string => {
+    if (group.length === 0) return ''
+    const one = group.length === 1
+    const sections = [...new Set(group.map((c) => c.section))]
+    const where =
+      sections.length === 1
+        ? sections[0]!
+        : `${sections.slice(0, -1).join(', ')} and ${sections.at(-1)!}`
+    const names = upper(namesSay(group.map((c) => c.name)))
+    const says = sections.length === 1 ? 'says' : 'say'
+    return misfit
+      ? `${names} ${one ? 'is' : 'are'} on this quote, and this ${noun}’s own figures rule ${one ? 'it' : 'them'} out. ${where} ${says} why, with Take it off.`
+      : `${names} ${one ? 'stays' : 'stay'} on this quote, though the price list does not offer ${one ? 'it' : 'them'} with this ${noun}. ${where} ${says} why, with the way off.`
+  }
+  return [
+    said(
+      carried.filter((c) => c.misfit),
+      true,
+    ),
+    said(
+      carried.filter((c) => !c.misfit),
+      false,
+    ),
+  ]
+    .filter((s) => s !== '')
+    .join(' ')
 }
 
 /**
@@ -4819,19 +4922,30 @@ function BareLists({
   tables,
   sells,
   onShowAll,
+  fits = null,
+  go,
 }: {
   tables: readonly ChapterTable[]
   sells: Rail['sells']
   onShowAll: (id: string) => void
+  /** where what goes on the boat is decided, under the lists (`FitsDoor`) */
+  fits?: FitsDoor | null
+  go?: ((href: string) => void) | undefined
 }) {
   const wide = tables.filter((t) => t.counts.catalogue > 0)
+  /* A LINE NAMED FOR THE BOAT IN ONE OF THEM IS SAID, with what may still be done with it (fit
+     flow, round 2: "Nothing from GFAB Trailers … is made for this boat" stood over a whole range
+     holding the trailer named for the Patrol 600, which What fits called named for it) */
+  const named = namedSay(tables)
   return (
     <div className="cfg-table cfg-bare" data-bare="">
       <p className="cfg-table__none">
-        {bareListsSay(
-          tables.map((t) => t.title),
-          sells,
-        )}
+        {named !== ''
+          ? named
+          : bareListsSay(
+              tables.map((t) => t.title),
+              sells,
+            )}
       </p>
       {wide.length === 0 ? null : (
         <ul className="cfg-bare__all" aria-label="Their whole ranges">
@@ -4851,6 +4965,11 @@ function BareLists({
           ))}
         </ul>
       )}
+      {fits ? (
+        <div className="cfg-all">
+          <FitsLink door={fits} go={go} />
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -4872,7 +4991,11 @@ function TableBlock({
   motors,
   entire = false,
   noun = 'boat',
+  fits = null,
 }: {
+  /** WHERE WHAT GOES ON THE BOAT IS DECIDED, one press from the list (`FitsDoor`): on a boat's
+   *  motor and trailer lists only */
+  fits?: FitsDoor | null
   /** what the quote is for, as a person says it (`quoteSells`): "this boat", "this motor" */
   noun?: string
   /** the codes of the motors on this quote, which a rigging kit is offered for */
@@ -4979,6 +5102,7 @@ function TableBlock({
      made for come first, under their own heading, and every other reason is a heading said once
      over its rows — never the same sentence under two hundred tiles */
   const groups = entire && query === '' ? rangeGroups(rows, table.sharedWhy, noun) : null
+  const groupsId = useId()
   return (
     <div className="cfg-table" data-bare={bare ? '' : undefined}>
       {head ? (
@@ -5042,24 +5166,33 @@ function TableBlock({
       (table.rows.length === 0 && kitsSay !== '') ? null : table.rows.length === 0 ? (
         bare ? (
           <p className="cfg-table__none">
-            {table.why !== '' ? table.why : bareSay(table.title, { boat: noun === 'boat', noun })}
+            {namedSay([table]) ||
+              (table.why !== ''
+                ? table.why
+                : bareSay(table.title, { boat: noun === 'boat', noun }))}
           </p>
         ) : (
           <Said className="cfg-why" glyph={InfoIcon}>
             {query !== ''
               ? `Nothing in ${table.title} is called that.`
-              : table.why !== ''
-                ? table.why
-                : noun === 'boat'
-                  ? `Nothing more from ${table.title} is made for this boat.`
-                  : `Nothing more from ${table.title} goes with this ${noun}.`}
+              : namedSay([table]) ||
+                (table.why !== ''
+                  ? table.why
+                  : noun === 'boat'
+                    ? `Nothing more from ${table.title} is made for this boat.`
+                    : `Nothing more from ${table.title} goes with this ${noun}.`)}
           </Said>
         )
       ) : groups ? (
-        groups.map((group) => (
+        groups.map((group, i) => (
           <section className="cfg-group" key={group.head} aria-label={group.head}>
-            <h4 className="cfg-group__head">
-              <span>{group.head}</span>
+            {/* A GROUP THE BOAT'S OWN FIGURES RULE OUT SAYS SO IN ITS HEAD, and every tile under it
+                is refused with that sentence (`OptionRow.misfit`) */}
+            <h4 className="cfg-group__head" id={`${groupsId}-${i}`}>
+              <span>
+                {group.head}
+                {group.shut ? <span className="cfg-group__shut"> {MISFIT_SHUT}</span> : null}
+              </span>
               <span className="cfg-group__count">{group.rows.length.toLocaleString('en-AU')}</span>
             </h4>
             <ul
@@ -5082,6 +5215,7 @@ function TableBlock({
                     shop={shop}
                     insteadSaid={instead}
                     grouped
+                    groupedBy={`${groupsId}-${i}`}
                   />
                 </li>
               ))}
@@ -5188,19 +5322,24 @@ function TableBlock({
 
       {/* THE WHOLE RANGE OPENS OVER THE PAGE (`RangeSheet`, `ChandlerySheet`), never pushed into
           the column under what is made for this boat: the column stays the build */}
-      {counts.catalogue > counts.narrowed && !kits && !entire ? (
+      {/* AND BESIDE IT, WHERE WHAT GOES ON THIS BOAT IS DECIDED (fit flow, round 2, task 5: "why
+          can't I pick this motor?" had no way off the build): What fits, at this list's place */}
+      {(counts.catalogue > counts.narrowed && !kits && !entire) || (fits && !entire) ? (
         <div className="cfg-all">
-          <Button
-            intent="veiled"
-            size="sm"
-            icon={ArrowsOutSimpleIcon}
-            aria-haspopup="dialog"
-            onClick={() => onShowAll(table.id)}
-          >
-            {table.tableId === PARTS_TABLE
-              ? `Browse all ${counts.catalogue.toLocaleString('en-AU')} in the chandlery`
-              : `Show all ${counts.catalogue.toLocaleString('en-AU')} in ${table.title}`}
-          </Button>
+          {counts.catalogue > counts.narrowed && !kits ? (
+            <Button
+              intent="veiled"
+              size="sm"
+              icon={ArrowsOutSimpleIcon}
+              aria-haspopup="dialog"
+              onClick={() => onShowAll(table.id)}
+            >
+              {table.tableId === PARTS_TABLE
+                ? `Browse all ${counts.catalogue.toLocaleString('en-AU')} in the chandlery`
+                : `Show all ${counts.catalogue.toLocaleString('en-AU')} in ${table.title}`}
+            </Button>
+          ) : null}
+          {fits ? <FitsLink door={fits} go={go} /> : null}
         </div>
       ) : null}
       {whole === '' ? null : <p className="cfg-all__say">{whole}</p>}
@@ -5224,7 +5363,7 @@ function rangeGroups(
   rows: readonly OptionRow[],
   shared: string,
   noun = 'boat',
-): { head: string; rows: OptionRow[] }[] {
+): { head: string; rows: OptionRow[]; shut: boolean }[] {
   const by = new Map<string, OptionRow[]>()
   for (const row of rows) {
     if (!row.outside) continue
@@ -5234,14 +5373,25 @@ function rangeGroups(
   const fits = rows.filter((row) => !row.outside)
   return [
     ...(fits.length > 0
-      ? [{ head: noun === 'boat' ? 'Made for this boat' : `Goes with this ${noun}`, rows: fits }]
+      ? [
+          {
+            head: noun === 'boat' ? 'Made for this boat' : `Goes with this ${noun}`,
+            rows: fits,
+            shut: false,
+          },
+        ]
       : []),
     ...[...by].map(([head, list]) => ({
       head,
       rows: /^Under\b/.test(head) ? list.toReversed() : list,
+      /* every one of them refused by the boat's own figures, none of them on the quote */
+      shut: list.every((row) => row.misfit && !row.fitted),
     })),
   ]
 }
+
+/** What a group's head adds where the boat's own figures rule every one under it out. */
+const MISFIT_SHUT = 'None of these goes on this boat.'
 
 /* ---------------------------------------------------------- */
 /* One option                                                   */
@@ -5276,10 +5426,13 @@ function OptionCard({
   insteadSaid,
   onGallery,
   grouped = false,
+  groupedBy,
 }: {
   /** under a heading that says why it is where it is (`rangeGroups`): its own sentence is that
    *  heading's, and is not said again under it */
   grouped?: boolean
+  /** that heading's own id, which a tile refused for the reason it says points at */
+  groupedBy?: string | undefined
   /** opens its own gallery large, the cover first (`RowLarge`) */
   onGallery: (open: GalleryOpen) => void
   row: OptionRow
@@ -5343,6 +5496,23 @@ function OptionCard({
      tile, and the dealer's code */
   const shop = shopOf(row)
 
+  /* A MOTOR THIS BOAT DOES NOT TAKE IS REFUSED, WITH WHAT FITS' OWN SENTENCE (fit flow, round 2:
+     the 20″ F115LB went on a 25″ transom under "Nothing is wrong with it"). The tile stays, dimmed
+     and focusable, its reason said under it or by the heading it stands under; one already on the
+     quote says its reason and keeps a plain way off. */
+  const refusedHere = row.misfit && !row.fitted
+  const refusedBecause = refusedHere && !grouped && refusedBy === undefined ? row.why : undefined
+  const refusedAt = refusedBy ?? (refusedHere && grouped ? groupedBy : undefined)
+  const why = refusedHere || grouped ? '' : row.why
+  const takeOff =
+    row.misfit && row.fitted && refusedBy === undefined ? (
+      <div className="cfg-opt__beside">
+        <Button intent="secondary" size="sm" icon={MinusIcon} onClick={() => onPress(row.act)}>
+          Take it off
+        </Button>
+      </div>
+    ) : null
+
   /* WHAT THE PRESS DOES TO THE TOTAL, and it never moves. On the quote, the figure is the price
      it stands on the quote at — the kit's filled pill — and not the minus the press would take
      off it. Off it, the figure is `weighPick`'s change to the total, signed. AT THE PRICE THE
@@ -5352,7 +5522,9 @@ function OptionCard({
      empty, it says it has no price at that one by its name ("No Cash price"); where the list has
      no price at all, its head says so once and the tile carries no pill. */
   const at = row.column === null || row.column === level ? '' : `at ${row.column}`
-  const figure: ReactNode = row.fitted ? (
+  /* A REFUSED TILE CARRIES NO FIGURE: "−$1,342" is what a press would do to the total, and its
+     press does nothing; its sentence says why instead */
+  const figure: ReactNode = refusedHere ? null : row.fitted ? (
     row.amount === null ? null : (
       <PriceFigure amount={row.amount} />
     )
@@ -5361,21 +5533,23 @@ function OptionCard({
   )
   /* A MOTOR THAT GOES ON IN PLACE OF THE ONE THERE SAYS SO beside what the step does to the
      total, which is the whole step's: the new motor on, the old one off, and its kit */
-  const figureSay = row.fitted
-    ? row.amount === null && row.column !== null
-      ? `No ${row.column} price · on the quote`
-      : 'on the quote'
-    : row.instead !== '' && row.instead !== insteadSaid
-      ? `instead of the ${row.instead}`
-      : row.amount === null
-        ? row.column === null
-          ? ''
-          : `No ${row.column} price`
-        : row.delta === row.amount || row.instead !== ''
-          ? /* a motor going on in place of one the list names once says only its difference:
+  const figureSay = refusedHere
+    ? ''
+    : row.fitted
+      ? row.amount === null && row.column !== null
+        ? `No ${row.column} price · on the quote`
+        : 'on the quote'
+      : row.instead !== '' && row.instead !== insteadSaid
+        ? `instead of the ${row.instead}`
+        : row.amount === null
+          ? row.column === null
+            ? ''
+            : `No ${row.column} price`
+          : row.delta === row.amount || row.instead !== ''
+            ? /* a motor going on in place of one the list names once says only its difference:
                its own price beside it was a second figure on the tile */
-            at
-          : `${money(row.amount)} ${at}`.trim()
+              at
+            : `${money(row.amount)} ${at}`.trim()
   /* ON A HULL WHOSE OWN ROW SAYS IT TAKES TWO MOTORS, putting this one on beside the one there
      is one quiet press away under the tile — never the press itself */
   const beside = row.beside ? (
@@ -5401,7 +5575,8 @@ function OptionCard({
           shape="row"
           selected={row.fitted}
           onSelect={() => onPress(row.act)}
-          refusedBy={refusedBy}
+          refusedBecause={refusedBecause}
+          refusedBy={refusedAt}
           label={label}
         >
           <RowFace
@@ -5449,7 +5624,8 @@ function OptionCard({
             ) : null}
           </span>
         ) : null}
-        {row.why === '' || grouped ? null : <p className="cfg-opt__why">{row.why}</p>}
+        {why === '' ? null : <p className="cfg-opt__why">{why}</p>}
+        {takeOff}
         {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
       </div>
     )
@@ -5477,9 +5653,10 @@ function OptionCard({
         figureSay={figureSay === '' ? undefined : figureSay}
         selected={row.fitted}
         onSelect={() => onPress(row.act)}
-        refusedBy={refusedBy}
+        refusedBecause={refusedBecause}
+        refusedBy={refusedAt}
         label={label}
-        recommended={row.starred && !row.fitted}
+        recommended={row.starred && !row.fitted && !refusedHere}
         /* ITS PICTURE, LARGE, FROM ITS OWN WELL AT THE SAME PLACE ON EVERY TILE (the owner,
            2026-10-31: "its picture-open at the same place on every row"); and a tile with no
            picture offers one from the same well (the galleries, 2026-11-02): the dealer's own
@@ -5496,8 +5673,9 @@ function OptionCard({
           onOpenChange={setAdding}
         />
       )}
-      {row.why === '' || grouped ? null : <p className="cfg-opt__why">{row.why}</p>}
-      {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}
+      {why === '' ? null : <p className="cfg-opt__why">{why}</p>}
+      {takeOff}
+      {beside === null || refusedHere ? null : <div className="cfg-opt__beside">{beside}</div>}
       {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
     </div>
   )
@@ -6954,6 +7132,39 @@ function LineMoved({
         {`Price it at ${money(moved.reads)}`}
       </Button>
     </div>
+  )
+}
+
+/** WHERE WHAT GOES ON THE BOAT IS DECIDED: What fits, opened on the boat this quote is for, at one
+ *  of its places, lighting Quotes as the place it was reached from. */
+interface FitsDoor {
+  /** "What fits the Patrol 600" */
+  label: string
+  href: string
+}
+
+/** The door from a boat's quote to its What fits, at the motor or the trailer. Null on a quote
+ *  that is not for a boat, which has no such page. */
+function fitsDoorOf(ctx: CatalogueCtx, quote: QuoteDef, at: 'motor' | 'trailer'): FitsDoor | null {
+  if (ctx.entities[quote.rootTableId]?.kind !== 'boat') return null
+  return {
+    label: `What fits the ${boatTitleOf(ctx, quote).short}`,
+    href: `${fitmentOf(quote.rootRowId, 'quotes')}&at=${at}`,
+  }
+}
+
+/** The door itself, a quiet press with What fits' own glyph (the picker's and Home's). */
+function FitsLink({ door, go }: { door: FitsDoor; go?: ((href: string) => void) | undefined }) {
+  return (
+    <Button
+      intent="quiet"
+      size="sm"
+      icon={WrenchIcon}
+      href={door.href}
+      onClick={go ? () => go(door.href) : undefined}
+    >
+      {door.label}
+    </Button>
   )
 }
 

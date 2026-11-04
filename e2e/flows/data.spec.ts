@@ -147,6 +147,48 @@ test('what is new says the zero as a figure, out of every line', async ({ page }
   )
 })
 
+/* FIT FLOW, ROUND 2, THE COLD WALK: "I took the F150XC off and put it back, and Data says
+   'Highfield × Yamaha — Motor Fitment 10 lines changed'", while What fits said Northside had
+   changed nothing on the boat. A line put back as the file has it is not a change; one taken off
+   and left off is, and Data counts it. */
+test('a motor taken off and put back is no change, and one left off is', async ({ page }) => {
+  await throughTheDoor(page)
+  await page.goto('/fitment?boat=boat_highfield%3A298&from=home')
+  await page.getByRole('button', { name: 'Change what Northside offers' }).last().click()
+  await page
+    .getByRole('button', { name: /^Take the Yamaha F150XC off/ })
+    .first()
+    .click()
+  await page
+    .getByRole('button', { name: /^Put the Yamaha F150XC back/ })
+    .first()
+    .click()
+  await page.getByRole('button', { name: /^Done/ }).first().click()
+  await expect(page.locator('.fp-decides__say')).toContainText('Northside has changed nothing')
+
+  await page.getByRole('navigation').getByRole('link', { name: 'Data' }).first().click()
+  const fresh = page.getByTestId('data-new')
+  await expect(fresh.locator('.dt-zero')).toContainText(
+    `0lines changed on this computer, of ${ROWS}`,
+    { timeout: 15_000 },
+  )
+
+  await page.goto('/fitment?boat=boat_highfield%3A298&from=home')
+  await page.getByRole('button', { name: 'Change what Northside offers' }).last().click()
+  await page
+    .getByRole('button', { name: /^Take the Yamaha F150XC off/ })
+    .first()
+    .click()
+  await page.getByRole('button', { name: /^Done/ }).first().click()
+  await page.getByRole('navigation').getByRole('link', { name: 'Data' }).first().click()
+  await expect(fresh.locator('.dt-zero')).toContainText('10lines changed on this computer', {
+    timeout: 15_000,
+  })
+  await expect(
+    fresh.getByRole('button', { name: /Highfield × Yamaha — Motor Fitment: 10 lines/ }),
+  ).toBeVisible()
+})
+
 test('the makers are the file’s own seven and every maker, each mark once', async ({ page }) => {
   await onData(page)
   await expect(page.getByTestId('plate')).toHaveCount(MAKERS)
@@ -484,7 +526,10 @@ test('every room behind Data is one press from its state, and lands with Data li
     timeout: 15_000,
   })
   const pill = page.getByTestId('shell-pill')
-  for (const { word, href } of PRICE_LIST_ROOMS) {
+  for (const { word: filed, href } of PRICE_LIST_ROOMS) {
+    /* WHAT GOES ON A BOAT IS "WHAT FITS" ON DATA, as on every surface a salesperson meets it (fit
+       flow, round 2: "Data calls it Fitment while everything else says What fits") */
+    const word = href === '/fitment' ? 'What fits' : filed
     await rooms.getByRole('link', { name: new RegExp(`^${word} — `) }).click()
     await expect(page.locator(LANDS[href]!), word).toBeVisible({ timeout: 15_000 })
     await expect(pill.getByRole('link', { name: /^Data( |$)/ }), word).toHaveAttribute(
@@ -497,7 +542,7 @@ test('every room behind Data is one press from its state, and lands with Data li
   }
 })
 
-test('a maker’s prices open Prices at it, and Fitment opens its models to choose', async ({
+test('a maker’s prices open Prices at it, and What fits opens its models to choose', async ({
   page,
 }) => {
   test.setTimeout(120_000)
@@ -512,7 +557,7 @@ test('a maker’s prices open Prices at it, and Fitment opens its models to choo
   /* A CHOICE, NOT A BOAT THIS SCREEN PICKED (the judge, L15) */
   await page
     .getByTestId('data-page')
-    .getByRole('link', { name: 'Choose its model on Fitment' })
+    .getByRole('link', { name: 'Choose its model on What fits' })
     .click()
   await expect(page).toHaveURL(/\/fitment\?maker=Stacer$/)
   await expect(page.locator('[data-testid="fitment"][data-read]')).toBeVisible({ timeout: 15_000 })

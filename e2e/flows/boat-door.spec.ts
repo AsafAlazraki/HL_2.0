@@ -1,3 +1,5 @@
+import { mkdirSync } from 'node:fs'
+import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { HOME_READY } from '../routes'
@@ -14,6 +16,21 @@ import { HOME_READY } from '../routes'
    beside an Esc key. Each is walked here, through the real door on the real price list, at
    every size. Nothing is planted.
    ============================================================ */
+
+const OUT = path.join('docs', 'directions', 'fit-flow', 'fix-2')
+mkdirSync(OUT, { recursive: true })
+const PA600 = 'boat_highfield:298'
+
+/** Every transition at rest, then the window. */
+async function shot(page: Page, name: string, project: string): Promise<void> {
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+      new Promise((done) => setTimeout(done, 1000)),
+    ]),
+  )
+  await page.screenshot({ path: path.join(OUT, `${name}-${project}.png`) })
+}
 
 const boats = (page: Page) => page.getByRole('region', { name: 'Start from the boat' })
 const pill = (page: Page) => page.getByTestId('shell-pill')
@@ -165,16 +182,143 @@ test('a maker misremembered is named as the near miss, in Find and in the picker
   await expect(index).toContainText('Patrol 600')
 })
 
-test('a narrow window is not told about keys', async ({ page }) => {
+/* REWRITTEN FOR ROUND 2 (walk 2-2, land-02-find.png): a phone held sideways, 844 x 390, is wider
+   than 760 and was still told "Enter opens it." beside an Esc key. A window under 500px tall is a
+   hand too, so it is told no key either; a laptop's window is never that short. */
+test('a narrow or a short window is not told about keys', async ({ page }, info) => {
   test.setTimeout(120_000)
   await home(page)
   const finder = await find(page, 'Patrol 600')
-  const narrow = (page.viewportSize()?.width ?? 0) < 760
+  const size = page.viewportSize() ?? { width: 0, height: 0 }
+  const narrow = size.width < 760 || size.height < 500
   const esc = finder.locator('.way-finder__esc')
+  await shot(page, '05-find-from-home', info.project.name)
   if (narrow) {
     await expect(esc).toBeHidden()
     await expect(finder.getByText('Enter opens it.', { exact: false })).toBeHidden()
   }
   /* the doors are words, never an engine's capitals */
   await expect(finder).not.toContainText(/OPEN FITMENT|Open Fitment/)
+})
+
+/* ============================================================
+   ROUND 2 (docs/directions/fit-flow/walk-2-1.md, the door): a second
+   Start the quote reopened the earlier draft and ignored what the bar
+   named; the maker logos, New quote and Quote it led to a plate that
+   only quoted. Screenshots under docs/directions/fit-flow/fix-2/.
+   ============================================================ */
+
+const quoteIdOf = (url: string): string => /\/quote\/([^/?#]+)/.exec(url)?.[1] ?? ''
+
+async function onThePatrol(page: Page): Promise<void> {
+  await page.goto(`/fitment?boat=${encodeURIComponent(PA600)}&from=home`)
+  await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
+    timeout: 15_000,
+  })
+}
+
+test('a second Start the quote quotes what the bar names, and keeps the earlier draft as it was', async ({
+  page,
+}, info) => {
+  test.setTimeout(150_000)
+  await throughTheDoor(page)
+
+  /* the first visit: the F130XA chosen, and the quote started */
+  await onThePatrol(page)
+  const motors = page.getByRole('radiogroup', { name: 'The motor for the quote' })
+  await motors.getByRole('radio', { name: /Yamaha F130XA\b/ }).check()
+  const bar = page.getByRole('region', { name: 'The quote this starts' })
+  await expect(bar).toContainText('F130XA')
+  await bar.getByRole('button', { name: 'Start the quote' }).click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+/, { timeout: 15_000 })
+  const first = quoteIdOf(page.url())
+  await expect(page.getByText(/F130XA/).first()).toBeVisible({ timeout: 15_000 })
+
+  /* the second visit, in the app as the walk made it (Back, not a reload: the store writes a
+     moment after a change, and a reload inside that moment is not a person's walk): the F115XB,
+     as the bar names it */
+  await page.goBack()
+  await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
+    timeout: 15_000,
+  })
+  await motors.getByRole('radio', { name: /Yamaha F115XB\b(?! ?2)/ }).check()
+  await expect(bar).toContainText('F115XB')
+  await expect(bar).not.toContainText('F130XA')
+  await shot(page, '01-fitment-second-visit', info.project.name)
+  await bar.getByRole('button', { name: 'Start the quote' }).click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+/, { timeout: 15_000 })
+  const second = quoteIdOf(page.url())
+  expect(second, 'the second press makes a new quote').not.toBe(first)
+  /* said on the build, where it stands long enough to read */
+  await expect(
+    page
+      .locator('[data-sonner-toast]')
+      .filter({
+        hasText: /Quote \d+-\d+ for this boat already holds work, so it is kept as it was\./,
+      })
+      .first(),
+  ).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(/F115XB/).first()).toBeVisible({ timeout: 15_000 })
+  await shot(page, '02-second-start-quote', info.project.name)
+
+  /* and the earlier draft is still its own, with the F130XA */
+  await page.goto(`/quote/${first}`)
+  await expect(page.getByText(/F130XA/).first()).toBeVisible({ timeout: 15_000 })
+})
+
+test('a maker’s logo leads to the picker, whose plate opens what fits the boat, reached from Quotes', async ({
+  page,
+}, info) => {
+  test.setTimeout(150_000)
+  await home(page)
+
+  /* Stabicraft's logo: its boats in the picker, then one of them on the plate */
+  await page
+    .getByRole('region', { name: /^What .* sells$/ })
+    .getByRole('button', { name: /^Stabicraft \d/ })
+    .click()
+  await expect(page).toHaveURL(/\/quote\/new\?brand=boat_stabicraft/)
+  await page.locator('.picker-card').first().click()
+  const plate = page.getByRole('complementary', { name: 'What is chosen' })
+  const name = ((await plate.getByRole('heading', { level: 2 }).textContent()) ?? '').trim()
+  const fits = plate.getByRole('button', { name: `What fits the ${name}` })
+  await fits.scrollIntoViewIfNeeded()
+  await expect(fits).toBeVisible()
+  await expect(plate.getByRole('button', { name: /Start the quote|Open the draft/ })).toBeVisible()
+  await shot(page, '03-picker-plate-what-fits', info.project.name)
+
+  /* the press opens the boat's own page: Quotes stays lit, and the crumb says New quote */
+  await fits.click()
+  await expect(page).toHaveURL(/\/fitment\?boat=[^&]+&from=quotes$/)
+  await expect(page.locator('[data-testid="fitment"][data-read][data-boat]')).toBeVisible({
+    timeout: 15_000,
+  })
+  await expect(lit(page, 'Quotes')).toHaveAttribute('aria-current', 'page')
+  await expect(lit(page, 'Data')).not.toHaveAttribute('aria-current', 'page')
+  const crumb = page.getByRole('link', { name: 'New quote', exact: true }).first()
+  await expect(crumb).toBeVisible()
+  await shot(page, '04-fitment-from-the-picker', info.project.name)
+
+  /* the crumb goes back to the maker's boats in New quote */
+  await crumb.click()
+  await expect(page).toHaveURL(/\/quote\/new\?brand=boat_stabicraft$/)
+})
+
+test('Quote it on a Home card reaches a plate that carries What fits as well', async ({
+  page,
+}, info) => {
+  test.setTimeout(120_000)
+  await home(page)
+  /* the ADV9, built in five colours: its plate says the colour is chosen in the hull section */
+  await boats(page)
+    .getByRole('button', { name: /^Quote it: ADV9, / })
+    .click()
+  await expect(page).toHaveURL(/\/quote\/new\?brand=[^&]+&model=/)
+  const plate = page.getByRole('complementary', { name: 'What is chosen' })
+  const fits = plate.getByRole('button', { name: 'What fits the ADV9' })
+  await fits.scrollIntoViewIfNeeded()
+  await expect(fits).toBeVisible()
+  /* the act's own sentence stands between the act and What fits */
+  await expect(plate.locator('.picker-act__say')).toHaveText(/chosen in the hull section/)
+  await shot(page, '06-picker-quote-it', info.project.name)
 })

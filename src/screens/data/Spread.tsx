@@ -393,7 +393,7 @@ export function Spread({
                 href={fits.href}
                 onClick={go ? () => go(fits.href) : undefined}
               >
-                Choose its model on Fitment
+                Choose its model on What fits
               </Button>
             </p>
           ) : null}

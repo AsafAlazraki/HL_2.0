@@ -66,7 +66,11 @@ import { atmRefusal } from './atm'
 
 export type FitWay = 'on' | 'off'
 
-export type FitChange = { command: CatalogueCommand; said: string } | { refused: string }
+/** `back` is what the step's way back says, in the plain present: "The Yamaha F150XC goes on the
+ *  Highfield Patrol 600 again, …". The ledger says it after Undo, never the catalogue's
+ *  "Undone. No longer so: …", which read at a glance as the change it had undone (walk 2, F7). */
+export type FitChange =
+  { command: CatalogueCommand; said: string; back: string } | { refused: string }
 
 const AU = new Intl.NumberFormat('en-AU')
 
@@ -201,7 +205,7 @@ export function changeFit(
         ? `The ${thing} goes on the ${fit.name} again${scope}.`
         : `The ${thing} now goes on the ${fit.name}.`
   const command = steps.length === 1 ? steps[0]! : batch(steps, { said })
-  return { command: saying(command, said, back), said }
+  return { command: saying(command, said, back), said, back }
 }
 
 /** The pairing lists of one of the boat's places: the motor's, or every trailer list's. */
@@ -285,7 +289,7 @@ export function starFit(
         : `, on the ${AU.format(reached)} of its ${AU.format(every.length)} versions it is made for`
   const said = `The ${thing} is now the recommended ${place} for the ${fit.name}${scope}: a new quote starts with it.`
   const back = `The recommended ${place} for the ${fit.name} is as it was${scope}.`
-  return { command: saying(batch(steps, { said }), said, back), said }
+  return { command: saying(batch(steps, { said }), said, back), said, back }
 }
 
 /** A step that says the boat's own sentence, and whose way back says the opposite one. */

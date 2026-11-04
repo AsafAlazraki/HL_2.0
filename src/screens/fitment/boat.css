@@ -106,6 +106,28 @@
 .fp-crumb__sep {
   color: var(--color-ink-3);
 }
+/* a sentence that names a place is the press to it (walk 2): drawn as the link it is */
+.fp-say__link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+/* THE MODE'S SLOT AND EACH PLACE ARE WHERE A PRESS LANDS (walk 2, F3 and F5): brought to the
+   window's top, clear of the nav, and handed the keyboard without drawing a ring round a region */
+.fp-jump,
+.fp-band {
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
+}
+.fp-jump:focus,
+.fp-band:focus,
+.fp-place:focus {
+  outline: none;
+}
 
 /* ---- the head ---- */
 
@@ -347,6 +369,9 @@
 }
 .fp-lines[data-change] .fp-line__press {
   grid-template-columns: minmax(0, 1fr) auto;
+  /* a line's presses stand at its top, so a press that turns into another (Take it off into Put
+     it back) stays where the finger was, whatever the line's words wrap to */
+  align-items: start;
 }
 label.fp-line__press {
   cursor: pointer;
@@ -405,6 +430,12 @@ label.fp-line__press {
 .fp-line__facts {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+/* how it differs from another of its rating, in the price list's own columns (walk 2, F10) */
+.fp-line__tells {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
 .fp-line__rule {
@@ -475,6 +506,7 @@ label.fp-line__press {
 .fp-note,
 .fp-rest {
   display: flex;
+  box-sizing: border-box;
   flex-wrap: wrap;
   align-items: baseline;
   gap: --spacing(1) --spacing(3);
@@ -515,7 +547,7 @@ label.fp-line__press {
 }
 .fp-named__list {
   display: grid;
-  gap: --spacing(1);
+  gap: --spacing(2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -529,9 +561,20 @@ label.fp-line__press {
   line-height: var(--text-base--line-height);
   font-weight: 600;
 }
+.fp-named__what {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
 .fp-named__name {
   min-inline-size: 0;
   overflow-wrap: anywhere;
+}
+.fp-named__facts {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 400;
+  color: var(--color-ink-2);
 }
 .fp-named__price {
   white-space: nowrap;
@@ -627,6 +670,19 @@ label.fp-line__press {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
+}
+
+/* ---- something else to offer, in change mode ---- */
+
+.fp-offer {
+  display: grid;
+  gap: --spacing(3);
+  margin-block-start: --spacing(2);
+  padding-block-start: --spacing(5);
+  border-block-start: 1px solid var(--color-rule);
+}
+.fp-offer__field {
+  max-inline-size: 32rem;
 }
 
 /* ---- change mode's band ---- */
@@ -759,24 +815,64 @@ label.fp-line__press {
   }
 }
 
-/* A PHONE TURNED OVER, OR A LOW WINDOW: the photograph beside the title, the bar one line */
+/* A PHONE TURNED OVER, OR A LOW WINDOW: the photograph beside the title, and the quote's bar a
+   rail at the window's end.
+
+   THE RAIL (walk 2, F8: "on the sideways phone the nav and the quote bar leave about 240px, so I
+   see one motor card at a time"; a bar across the foot, however slim, took a fifth of a 390px
+   window). Beside the page instead of under it, the bar takes no height at all: the lines run the
+   whole window under the nav, and the rail keeps what the bar says, its figure and its press, in a
+   column the page leaves free. Change mode's rail keeps its sentence, which the slim bar had to
+   drop ("I can't see what I changed"). */
 @media (min-width: 600px) and (max-height: 520px) {
   .ft[data-mode='page'],
   .ft[data-mode='change'] {
-    --fp-room: --spacing(22);
+    --fp-room: --spacing(6);
+  }
+  .fp {
+    --gutter: --spacing(6);
+    --fp-rail: 212px;
+    padding-inline-end: calc(2 * var(--gutter) + var(--fp-rail));
   }
   .fp-head[data-picture] {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 240px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 220px);
+    gap: --spacing(5);
   }
   .fp-photo {
-    max-block-size: 180px;
+    max-block-size: 160px;
   }
   .fp-bar {
-    inset-block-end: calc(var(--shell-foot) + --spacing(2));
-    padding-block: --spacing(2);
+    inset-inline: auto var(--gutter);
+    inset-block: auto calc(var(--shell-foot) + --spacing(3));
+    inline-size: var(--fp-rail);
+    max-block-size: calc(100dvh - var(--shell-inset) - var(--shell-foot) - --spacing(6));
+    overflow-y: auto;
+    margin-inline: 0;
+    padding: --spacing(4);
   }
-  .fp-bar__names {
-    display: none;
+  .fp-bar__in,
+  .fp-bar[data-tone='change'] .fp-bar__in {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(3);
+  }
+  .fp-bar__sum {
+    justify-items: start;
+    text-align: start;
+  }
+  .fp-bar__go {
+    display: grid;
+    justify-content: stretch;
+  }
+  .fp-line__press {
+    padding-block: --spacing(2.5);
+  }
+  .fp-line__name,
+  .fp-line__price {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .fp-line__words {
+    gap: --spacing(0.5);
   }
 }
 

@@ -24,7 +24,7 @@
    Pure: no React, no store. Every count is off the price list and
    Northside's own changes to it.
    ============================================================ */
-import { isDiscontinued, isRetired, rowLabel } from '@/domain/model'
+import { isDiscontinued, isRetired, readCell, rowLabel } from '@/domain/model'
 import type { CatalogueCtx, EntityDef, RowData } from '@/domain/model'
 import { readPairs } from '@/domain/catalogue/views'
 import { goodsFacts } from '@/domain/quote/goodsFacts'
@@ -74,9 +74,32 @@ function lineOf(
     slot,
     place: { tableId: table.id, rowId: row.id },
     name: nameOnPaper(lineSaid(rowLabel(table, row), table.name)),
-    facts: goodsFacts(table, row),
+    facts: goodsFacts(table, row) || packageSaid(table, row),
     price: price(table, row),
   }
+}
+
+/** The text of one of a row's cells by its column's name on the price list; '' where none. */
+const cellNamed = (table: EntityDef, row: RowData, name: string): string => {
+  const out: string[] = []
+  for (const f of table.fields) {
+    if (f.name.trim().toLowerCase() !== name.toLowerCase()) continue
+    const v = readCell(row, f.id)
+    if (typeof v === 'string' && v.trim() !== '') out.push(v.trim())
+  }
+  return out.join(' ')
+}
+
+/**
+ * WHAT A DEALER-FIT PACKAGE IS, as the price list says it (walk 2, F6: "Which of these 40
+ * 'Patrol · PA600 OB PVC · LG-W-DG' do I want? They have no description"). A package's own
+ * column "Accessory (Primary)" names the thing it is built round: "Pre Delivery Allowance (8
+ * hrs)", "GX750B - Black Box VHF Marine Radio - Black". Read by the column's name, as
+ * `goodsFacts` reads a motor's; no figure of the row is read. '' for anything not a package.
+ */
+export function packageSaid(table: EntityDef, row: RowData): string {
+  if (table.kind !== 'package') return ''
+  return cellNamed(table, row, 'Accessory (Primary)')
 }
 
 /* ---------------------------------------------------------- */
@@ -355,4 +378,81 @@ export function quoteStartSaid(q: QuoteStart, priceName: string): string {
   if (q.kitOut) parts.push('before the rigging kit')
   if (q.unpriced > 0) parts.push(`and ${count(q.unpriced)} with no price yet`)
   return parts.join(', ')
+}
+
+/* ---------------------------------------------------------- */
+/* The model's versions, priced                                */
+/* ---------------------------------------------------------- */
+
+export interface VersionSpan {
+  /** the model's versions still sold */
+  count: number
+  /** the lowest and the highest of their prices at the boat's own level */
+  low: number
+  high: number
+  /** this version is priced at the lowest */
+  lowest: boolean
+}
+
+/**
+ * WHAT THE VERSION PICKER STANDS AMONG (walk 2, F12: "the Patrol 600 opens on 'version 9 of 10'
+ * and the Sport 560 on 'version 1 of 15'. Nothing says why it picked version 9"). An ordinal says
+ * nothing a dealer can use; the span of the versions' prices does, and whether this one is the
+ * lowest. Read at the boat's own price level. Null for a model of one version, or where no version
+ * has a price.
+ */
+export function versionSpanOf(
+  ctx: CatalogueCtx,
+  fit: BoatFit,
+  versions: readonly Place[],
+): VersionSpan | null {
+  if (versions.length < 2) return null
+  const price = pricer(ctx, fit)
+  const prices: number[] = []
+  for (const v of versions) {
+    const table = ctx.entities[v.tableId]
+    const row = rowOf(ctx, v)
+    const p = table && row ? price(table, row) : null
+    if (p !== null) prices.push(p)
+  }
+  if (prices.length === 0) return null
+  const low = Math.min(...prices)
+  return {
+    count: versions.length,
+    low,
+    high: Math.max(...prices),
+    lowest: fit.price !== null && fit.price === low,
+  }
+}
+
+/* ---------------------------------------------------------- */
+/* The changes made here, net                                  */
+/* ---------------------------------------------------------- */
+
+export interface StepMade {
+  /** the line the step changed, by its row */
+  target: string
+  act: 'on' | 'off' | 'star'
+}
+
+/**
+ * HOW MANY CHANGES STILL STAND of the steps made here (walk 2, F9: "I took the F150XC off and put
+ * it back, a net change of nothing, and the bar says '2 changes made here'"). A line put on and
+ * taken off again, either way round, is no change; a recommendation stands as one.
+ */
+export function standingChanges(steps: readonly StepMade[]): number {
+  const standing: StepMade[] = []
+  for (const step of steps) {
+    if (step.act !== 'star') {
+      const at = standing.findLastIndex(
+        (s) => s.target === step.target && s.act !== 'star' && s.act !== step.act,
+      )
+      if (at >= 0) {
+        standing.splice(at, 1)
+        continue
+      }
+    }
+    standing.push(step)
+  }
+  return standing.length
 }

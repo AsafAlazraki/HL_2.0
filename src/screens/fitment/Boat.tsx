@@ -32,6 +32,7 @@ import {
 import {
   ArrowCounterClockwiseIcon,
   CheckIcon,
+  MagnifyingGlassIcon,
   MinusCircleIcon,
   NotePencilIcon,
   PlusCircleIcon,
@@ -39,7 +40,7 @@ import {
   StarIcon,
   WarningIcon,
 } from '@phosphor-icons/react'
-import { Button, ExpandPicture, Icon, Picture, PriceFigure, Select } from '@/ui'
+import { Button, ExpandPicture, Field, Icon, Input, Picture, PriceFigure, Select } from '@/ui'
 import { pricesOf } from '@/app/ways'
 import { copyOf, itemOf, pictureOf, placeIn, srcSetOf } from '@/data/pictures'
 import { useGallery } from '@/app/optionPicture'
@@ -81,17 +82,28 @@ import {
   quoteStartSaid,
   takenOffOf,
   takenOffSaid,
+  versionSpanOf,
   type ModelWords,
   type PageLine,
   type TakenOff,
+  type VersionSpan,
 } from '@/domain/fitment/page'
+import {
+  namedApartSaid,
+  namedFactsSaid,
+  namedSplitOf,
+  offerableOf,
+  type NamedSplit,
+  type ShownNamed,
+} from '@/domain/fitment/named'
+import { differsOf } from '@/domain/fitment/differs'
 import { useFitChange, type FitAct, type FitRefusal, type Made as Change } from './useFitChange'
 
 const AU = new Intl.NumberFormat('en-AU')
 const count = (n: number): string => AU.format(n)
 
 /** Where the page was reached from, as its crumb says it. */
-export type From = 'home' | 'data' | ''
+export type From = 'home' | 'quotes' | 'data' | ''
 
 export type At = 'motor' | 'trailer' | 'fitout' | ''
 
@@ -115,6 +127,9 @@ export interface BoatPageProps {
   onAt: (at: At) => void
   changing: boolean
   onChanging: (on: boolean) => void
+  /** in change mode, the words typed to find something else to offer, and their writer */
+  offer: string
+  onOffer: (words: string) => void
   onVersion: (rowId: string) => void
   /** Another boat: the finder, or the chooser where no shell stands */
   another: ReactNode
@@ -179,6 +194,8 @@ export function BoatPage({
   onAt,
   changing,
   onChanging,
+  offer,
+  onOffer,
   onVersion,
   another,
   openHref,
@@ -203,11 +220,34 @@ export function BoatPage({
     () => new Set([...taken, ...named].map((l) => l.place.rowId)),
     [taken, named],
   )
+  /* WHICH VERSION EACH LINE NAMED FOR THE MODEL IS MADE FOR (walk 2, F6): this one's own, the
+     model's, and the rest counted apart (`named.ts`) */
+  const split = useMemo(() => {
+    const of = (lines: PageLine[]): NamedSplit =>
+      namedSplitOf(ctx, lines, model?.versions ?? [], fit.place)
+    return {
+      trailer: of(named.filter((n) => n.slot === 'trailer')),
+      fitOut: of(named.filter((n) => n.slot !== 'trailer')),
+    }
+  }, [ctx, named, model, fit.place])
+  const span = useMemo(() => versionSpanOf(ctx, fit, versions), [ctx, fit, versions])
   const motorHeld = useMemo(() => heldBack(ctx, fit, 'motor', apart), [ctx, fit, apart])
   const trailerHeld = useMemo(() => heldBack(ctx, fit, 'trailer', apart), [ctx, fit, apart])
 
   /* THE CHOICES FOR THE QUOTE */
   const rigs = useMemo(() => riggedOf(ctx, fit).filter((r) => !refusedByRule(r.motor)), [ctx, fit])
+  /* TWO MOTORS OF ONE RATING, TOLD APART by the price list's own columns (walk 2, F10: "the F150XC
+     and F150XCB both go on it, with nothing to say how they differ"): among the motors that go on
+     it and the ones Northside took off, the same reading on both pages. The motors only the
+     boat's figures allow are not read against them: nineteen lines of columns told nothing. */
+  const differs = useMemo(
+    () =>
+      differsOf(ctx, [
+        ...rigs.map((r) => r.motor.place),
+        ...taken.filter((t) => t.slot === 'motor').map((t) => t.place),
+      ]),
+    [ctx, rigs, taken],
+  )
   const motorPick: Rigged | null =
     choice.motor === 'none'
       ? null
@@ -262,7 +302,7 @@ export function BoatPage({
   ]
 
   /* CHANGE MODE'S ONE HOOK: every press there, its refusal, and the changes made here */
-  const { change, refusal, refuse, ledger, undoLast, undone } = useFitChange(
+  const { change, refusal, refuse, ledger, standing, undoLast, undone } = useFitChange(
     ctx,
     fit,
     versions,
@@ -279,6 +319,19 @@ export function BoatPage({
     document.getElementById(`fp-${at}`)?.scrollIntoView({ block: 'start' })
   }, [at])
 
+  /* A CHANGE OF MODE LANDS ON THE MODE (walk 2, F5: "I pressed Change what Northside offers and
+     got thrown to the top, to the photo", 2,231 px to 0). The band of change mode and the selling
+     page's places stand in one slot under the boat's head; either press brings that slot to the
+     window's top, under the nav, and puts the keyboard there. */
+  const modeWas = useRef(changing)
+  useLayoutEffect(() => {
+    if (modeWas.current === changing) return
+    modeWas.current = changing
+    const slot = document.getElementById('fp-mode')
+    slot?.focus({ preventScroll: true })
+    slot?.scrollIntoView({ block: 'start' })
+  }, [changing])
+
   /* THE ROOM UNDER THE LAST LINE IS THE BAR'S OWN HEIGHT, measured: its names wrap to two lines
      at 834 and one at 1440, so a figure written into the stylesheet left the last press under the
      bar at one size or a band of empty page at another (the overlap ruler, 2026-11-05) */
@@ -286,6 +339,8 @@ export function BoatPage({
   const room = useRoomUnder(bar)
 
   const motorMaker = motorTiles(ctx, fit)?.maker ?? ''
+  /* the way back to New quote, at this boat's maker, for a page reached from its plate */
+  const picker = `/quote/new?brand=${encodeURIComponent(fit.place.tableId)}`
   const fitOutOffered = lists.reduce((n, l) => n + offeredIn(l.made).length, 0)
 
   return (
@@ -295,6 +350,12 @@ export function BoatPage({
           {from === 'home' ? (
             <a className="fp-crumb__link" href="/" onClick={(e) => go(e, '/', openHref)}>
               Home
+            </a>
+          ) : from === 'quotes' ? (
+            /* REACHED FROM THE PICKER'S PLATE (fit flow, round 2): the way back is the boat's maker
+               in New quote, where its What fits was pressed */
+            <a className="fp-crumb__link" href={picker} onClick={(e) => go(e, picker, openHref)}>
+              New quote
             </a>
           ) : (
             <a className="fp-crumb__link" href="/data" onClick={(e) => go(e, '/data', openHref)}>
@@ -309,13 +370,14 @@ export function BoatPage({
         <span className="fp-crumb__another">{another}</span>
       </div>
 
-      <Head fit={fit} model={model} words={words} onVersion={onVersion} />
-      <Takes ctx={ctx} fit={fit} />
+      <Head fit={fit} model={model} span={span} words={words} onVersion={onVersion} />
 
+      {/* THE MODE'S SLOT, under the head and above what the boat takes (walk 2: on a phone the
+          places' chips stood under the quote bar on first view, behind the nine figures) */}
       {changing ? (
         <ChangeBand words={words} versions={versions.length} onDone={() => onChanging(false)} />
       ) : (
-        <nav className="fp-jump" aria-label="Places on this page">
+        <nav className="fp-jump" id="fp-mode" tabIndex={-1} aria-label="Places on this page">
           {fit.motor ? (
             <JumpTo to="motor" onAt={onAt}>
               <span className="fp-jump__word">Motor</span>
@@ -338,6 +400,7 @@ export function BoatPage({
           ) : null}
         </nav>
       )}
+      <Takes ctx={ctx} fit={fit} />
 
       {changing ? (
         <ChangePlaces
@@ -347,11 +410,15 @@ export function BoatPage({
           rigs={rigs}
           trailers={trailers}
           taken={taken}
-          named={named}
+          split={split}
+          differs={differs}
           motorMaker={motorMaker}
           change={change}
           refuse={refuse}
           refusal={refusal}
+          offer={offer}
+          onOffer={onOffer}
+          apart={apart}
           today={today ?? new Date()}
         />
       ) : (
@@ -363,9 +430,11 @@ export function BoatPage({
               motorMaker={motorMaker}
               chosen={motorPick?.key ?? null}
               onChoose={(key) => onChoice({ motor: key })}
+              differs={differs}
               held={motorHeld}
               taken={taken.filter((t) => t.slot === 'motor')}
               openHref={openHref}
+              onChange={() => onChanging(true)}
             />
           ) : null}
           {fit.trailer ? (
@@ -379,7 +448,8 @@ export function BoatPage({
               onChoose={(key) => onChoice({ trailer: key })}
               held={trailerHeld}
               taken={taken.filter((t) => t.slot === 'trailer')}
-              named={named.filter((n) => n.slot === 'trailer')}
+              named={split.trailer}
+              onChange={() => onChanging(true)}
             />
           ) : null}
           {lists.length > 0 ? (
@@ -393,8 +463,10 @@ export function BoatPage({
                 })
               }
               taken={taken.filter((t) => t.slot !== 'motor' && t.slot !== 'trailer')}
-              named={named.filter((n) => n.slot !== 'trailer')}
+              named={split.fitOut}
+              allNamed={named.filter((n) => n.slot !== 'trailer')}
               openHref={openHref}
+              onChange={() => onChanging(true)}
             />
           ) : null}
           <div className="fp-decides">
@@ -413,6 +485,7 @@ export function BoatPage({
           anchor={bar}
           words={words}
           ledger={ledger}
+          standing={standing}
           undone={undone}
           onUndo={undoLast}
           onDone={() => onChanging(false)}
@@ -444,8 +517,11 @@ function useRoomUnder(bar: RefObject<HTMLElement | null>): number | null {
     const el = bar.current
     if (!el || typeof ResizeObserver === 'undefined') return
     const measure = (): void => {
-      const top = el.getBoundingClientRect().top
-      setRoom(Math.max(0, Math.ceil(window.innerHeight - top)) + 24)
+      const box = el.getBoundingClientRect()
+      /* a low window draws the bar as a rail beside the page (boat.css), which covers no line:
+         the page keeps only its air */
+      const rail = box.left > window.innerWidth / 2
+      setRoom(rail ? 24 : Math.max(0, Math.ceil(window.innerHeight - box.top)) + 24)
     }
     measure()
     const seen = new ResizeObserver(measure)
@@ -477,11 +553,13 @@ function go(
 function Head({
   fit,
   model,
+  span,
   words,
   onVersion,
 }: {
   fit: BoatFit
   model: BoatVersions | null
+  span: VersionSpan | null
   words: ModelWords
   onVersion: (rowId: string) => void
 }) {
@@ -519,8 +597,26 @@ function Head({
                 }}
               />
             </span>
+            {/* WHAT THE PICKER STANDS AMONG, never an ordinal (walk 2, F12: "version 9 of 10, and
+                nothing says why"): how many versions, what they cost, and whether this is the
+                lowest */}
             <span className="fp-version__of">
-              {`version ${count(model.at + 1)} of ${count(model.versions.length)}`}
+              {span === null ? (
+                `${count(model.versions.length)} versions`
+              ) : span.low === span.high ? (
+                <>
+                  {`${count(span.count)} versions, all at `}
+                  <PriceFigure amount={span.low} />
+                </>
+              ) : (
+                <>
+                  {`${count(span.count)} versions, `}
+                  <PriceFigure amount={span.low} />
+                  {' to '}
+                  <PriceFigure amount={span.high} />
+                  {span.lowest ? '. This one is the lowest.' : ''}
+                </>
+              )}
             </span>
           </div>
         ) : version || fit.detail !== '' ? (
@@ -610,6 +706,10 @@ function Takes({ ctx, fit }: { ctx: CatalogueCtx; fit: BoatFit }) {
   )
 }
 
+/** A CHIP THAT GOES WHERE IT SAYS (walk 2, F3: "I pressed Trailer and nothing happened", the
+ *  window at 0 before and after with the trailer at 1,538 px). The place is brought to the
+ *  window's top, under the nav, smoothly unless motion is reduced, and the keyboard goes with it;
+ *  the address says it, so a reload lands there too. */
 function JumpTo({ to, onAt, children }: { to: At; onAt: (at: At) => void; children: ReactNode }) {
   return (
     <a
@@ -619,13 +719,23 @@ function JumpTo({ to, onAt, children }: { to: At; onAt: (at: At) => void; childr
         e.preventDefault()
         onAt(to)
         const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? true
-        document
-          .getElementById(`fp-${to}`)
-          ?.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' })
+        const place = document.getElementById(`fp-${to}`)
+        place?.focus({ preventScroll: true })
+        place?.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' })
       }}
     >
       {children}
     </a>
+  )
+}
+
+/** "Change what Northside offers", pressable where a sentence names it (walk 2: the sentences
+ *  that name the place "look like directions, but I can't press them"). */
+function ChangeLink({ onChange, children }: { onChange: () => void; children: ReactNode }) {
+  return (
+    <button type="button" className="fp-note__link fp-say__link" onClick={onChange}>
+      {children}
+    </button>
   )
 }
 
@@ -645,7 +755,7 @@ function Place({
   children: ReactNode
 }) {
   return (
-    <section className="fp-place" id={`fp-${id}`} aria-labelledby={`fp-${id}-title`}>
+    <section className="fp-place" id={`fp-${id}`} tabIndex={-1} aria-labelledby={`fp-${id}-title`}>
       <div className="fp-place__head">
         <h2 className="fp-place__title" id={`fp-${id}-title`}>
           {title}
@@ -667,6 +777,7 @@ function Choice({
   title,
   tag,
   facts,
+  tells = '',
   price,
   state,
   note,
@@ -679,6 +790,8 @@ function Choice({
   title: string
   tag?: ReactNode
   facts: string
+  /** how it differs from another of its rating (`differsOf`) */
+  tells?: string
   price: ReactNode
   state: string
   note?: ReactNode
@@ -703,6 +816,7 @@ function Choice({
             {tag}
           </span>
           {facts === '' ? null : <span className="fp-line__facts">{facts}</span>}
+          {tells === '' ? null : <span className="fp-line__tells">{tells}</span>}
           {note}
         </span>
         <span className="fp-line__end">
@@ -734,18 +848,22 @@ function MotorPlace({
   motorMaker,
   chosen,
   onChoose,
+  differs,
   held,
   taken,
   openHref,
+  onChange,
 }: {
   words: ModelWords
   rigs: Rigged[]
   motorMaker: string
   chosen: string | null
   onChoose: (key: string) => void
+  differs: ReadonlyMap<string, string>
   held: HeldBack
   taken: TakenOff[]
   openHref: (href: string) => void
+  onChange: () => void
 }) {
   const many = `${motorMaker}s`.trim()
   const lead =
@@ -771,6 +889,7 @@ function MotorPlace({
               facts={[r.motor.facts, r.kit && !r.kit.retired ? 'with its rigging kit' : '']
                 .filter((s) => s !== '')
                 .join(' · ')}
+              tells={differs.get(r.motor.place.rowId) ?? ''}
               price={priceOf(r.motor.price)}
               state={chosen === r.key ? 'Chosen for the quote' : 'Choose'}
               note={
@@ -813,6 +932,7 @@ function MotorPlace({
         title={`Why the other ${plural(held.others + taken.length, motorMaker, many)} do not go on it`}
         held={held}
         taken={taken}
+        onChange={onChange}
       />
     </Place>
   )
@@ -833,6 +953,7 @@ function TrailerPlace({
   held,
   taken,
   named,
+  onChange,
 }: {
   ctx: CatalogueCtx
   fit: BoatFit
@@ -843,7 +964,8 @@ function TrailerPlace({
   onChoose: (key: string) => void
   held: HeldBack
   taken: TakenOff[]
-  named: PageLine[]
+  named: NamedSplit
+  onChange: () => void
 }) {
   const trailer = fit.trailer!
   const load = useMemo(() => loadOf(ctx, fit), [ctx, fit])
@@ -918,11 +1040,12 @@ function TrailerPlace({
           )}
         </>
       ) : null}
-      <NamedFor words={words} named={named} kind="trailer" />
+      <NamedFor words={words} split={named} onChange={onChange} />
       <Reasons
         title={`Why the other ${plural(held.others + taken.length, 'trailer', 'trailers')} do not go on it`}
         held={held}
         taken={taken}
+        onChange={onChange}
       />
       {trailer.heldSays === '' ? null : <p className="fp-note">{trailer.heldSays}</p>}
     </Place>
@@ -940,15 +1063,20 @@ function FitOutPlace({
   onTick,
   taken,
   named,
+  allNamed,
   openHref,
+  onChange,
 }: {
   words: ModelWords
   lists: BoatFit['lists']
   ticked: ReadonlySet<string>
   onTick: (key: string, on: boolean) => void
   taken: TakenOff[]
-  named: PageLine[]
+  named: NamedSplit
+  /** every line named for it, whatever version it is made for: what the counts subtract */
+  allNamed: PageLine[]
   openHref: (href: string) => void
+  onChange: () => void
 }) {
   const offered = lists.map((l) => ({ list: l, lines: offeredIn(l.made) }))
   const going = offered.filter((o) => o.lines.length > 0)
@@ -967,7 +1095,7 @@ function FitOutPlace({
       n:
         l.live -
         l.made.length -
-        named.filter((x) => x.slot === l.tableId).length -
+        allNamed.filter((x) => x.slot === l.tableId).length -
         taken.filter((x) => x.slot === l.tableId).length,
     }))
     .filter((r) => r.n > 0)
@@ -1026,13 +1154,17 @@ function FitOutPlace({
           ))}
         </ul>
       ) : null}
-      <NamedFor words={words} named={named} kind="fit-out" lists={lists} />
+      <NamedFor words={words} split={named} all={allNamed} lists={lists} onChange={onChange} />
       {taken.length > 0 ? (
         <div className="fp-taken">
           <p className="fp-taken__head">
             {`Northside took ${plural(taken.length, 'line', 'lines')} off this boat`}
           </p>
           <p className="fp-taken__names">{taken.map((t) => t.name).join(' · ')}</p>
+          <p className="fp-taken__names">
+            {`${taken.length === 1 ? 'It goes' : 'They go'} back on in `}
+            <ChangeLink onChange={onChange}>Change what Northside offers</ChangeLink>.
+          </p>
         </div>
       ) : null}
       {rest.length === 0 ? null : (
@@ -1048,44 +1180,68 @@ function FitOutPlace({
 /* Named for it, not listed for it                             */
 /* ---------------------------------------------------------- */
 
+/**
+ * WHAT IS NAMED FOR THE BOAT AND NOT LISTED FOR IT, said by the version each line is made for
+ * (walk 2, F6). The lines made for this version, or for the model alone, are shown with what they
+ * are; the ones made for another version, or for a version the price list does not carry, are
+ * counted in one sentence, never drawn as a wall of codes.
+ */
 function NamedFor({
   words,
-  named,
-  kind,
+  split,
+  all = NO_LINES,
   lists = NO_LISTS,
+  onChange,
 }: {
   words: ModelWords
-  named: PageLine[]
-  kind: 'trailer' | 'fit-out'
+  split: NamedSplit
+  all?: PageLine[]
   lists?: BoatFit['lists']
+  onChange: () => void
 }) {
-  if (named.length === 0) return null
-  const one = named.length === 1
+  const n = split.shown.length + split.otherVersions + split.unlisted.length
+  if (n === 0) return null
+  const one = n === 1
   const byList = lists
-    .map((l) => ({ name: l.name, n: named.filter((x) => x.slot === l.tableId).length }))
+    .map((l) => ({ name: l.name, n: all.filter((x) => x.slot === l.tableId).length }))
     .filter((l) => l.n > 0)
-  const examples =
-    byList.length > 0
-      ? lists.flatMap((l) => named.filter((x) => x.slot === l.tableId).slice(0, 2))
-      : named.slice(0, 3)
+  const apartSaid = namedApartSaid(split, words.short)
+  const shown = split.shown.length
+  const them =
+    shown === 1 ? (one ? 'it' : 'the one above') : n === shown ? 'them' : 'the ones above'
   return (
     <aside className="fp-named" aria-label="Named for it, not listed for it">
       <p className="fp-named__head">Named for it, not listed for it</p>
-      {kind === 'fit-out' && byList.length > 0 ? (
+      {byList.length > 0 && !one ? (
         <p className="fp-named__count">
-          {`${byList.map((l) => `${count(l.n)} in ${l.name}`).join(' and ')} carry ${words.code} in their name, such as:`}
+          {`${byList.map((l) => `${count(l.n)} in ${l.name}`).join(' and ')} carry ${words.code} in their name.`}
         </p>
       ) : null}
-      <ul className="fp-named__list">
-        {examples.map((n) => (
-          <li key={n.place.rowId} className="fp-named__one">
-            <span className="fp-named__name">{n.name}</span>
-            <span className="fp-named__price">{priceOf(n.price)}</span>
-          </li>
-        ))}
-      </ul>
+      {shown > 0 ? (
+        <ul className="fp-named__list">
+          {split.shown.map((l) => {
+            const facts = namedFactsSaid(l)
+            return (
+              <li key={l.place.rowId} className="fp-named__one">
+                <span className="fp-named__what">
+                  <span className="fp-named__name">{l.name}</span>
+                  {facts === '' ? null : <span className="fp-named__facts">{facts}</span>}
+                </span>
+                <span className="fp-named__price">{priceOf(l.price)}</span>
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
+      {apartSaid === '' ? null : <p className="fp-named__count">{apartSaid}</p>}
       <p className="fp-named__say">
-        {`${one ? 'Its name says' : 'Their names say'} ${words.code}, but the price list does not list ${one ? 'it' : 'them'} for the ${words.short}, so ${one ? 'it is' : 'they are'} not offered on a quote. Northside can offer ${one ? 'it' : 'them'} in Change what Northside offers.`}
+        {`${one ? 'Its name says' : 'Their names say'} ${words.code}, but the price list does not list ${one ? 'it' : 'them'} for the ${words.short}, so ${one ? 'it is' : 'they are'} not offered on a quote.`}
+        {shown > 0 ? (
+          <>
+            {` Northside can offer ${them} in `}
+            <ChangeLink onChange={onChange}>Change what Northside offers</ChangeLink>.
+          </>
+        ) : null}
       </p>
     </aside>
   )
@@ -1095,14 +1251,30 @@ function NamedFor({
 /* The reasons                                                 */
 /* ---------------------------------------------------------- */
 
-function Reasons({ title, held, taken }: { title: string; held: HeldBack; taken: TakenOff[] }) {
-  const cards: Array<HeldShare | { id: 'taken'; count: number; because: string; eg: string }> = [
+function Reasons({
+  title,
+  held,
+  taken,
+  onChange,
+}: {
+  title: string
+  held: HeldBack
+  taken: TakenOff[]
+  onChange: () => void
+}) {
+  const cards: Array<HeldShare | { id: 'taken'; count: number; because: ReactNode; eg: string }> = [
     ...(taken.length > 0
       ? [
           {
             id: 'taken' as const,
             count: taken.length,
-            because: `Northside took ${taken.length === 1 ? 'it' : 'them'} off this boat. Change what Northside offers puts ${taken.length === 1 ? 'it' : 'them'} back.`,
+            because: (
+              <>
+                {`Northside took ${taken.length === 1 ? 'it' : 'them'} off this boat. `}
+                <ChangeLink onChange={onChange}>Change what Northside offers</ChangeLink>
+                {` puts ${taken.length === 1 ? 'it' : 'them'} back.`}
+              </>
+            ),
             eg: taken.map((t) => t.name).join(' · '),
           },
         ]
@@ -1225,7 +1397,12 @@ function ChangeBand({
   onDone: () => void
 }) {
   return (
-    <section className="fp-band" aria-label="Changing what Northside offers">
+    <section
+      className="fp-band"
+      id="fp-mode"
+      tabIndex={-1}
+      aria-label="Changing what Northside offers"
+    >
       <p className="fp-band__say">
         <strong>Changing what Northside offers</strong>
         {` on the ${words.name}${versions > 1 ? `, on all ${count(versions)} of its versions` : ''}. Quotes already made keep their lines.`}
@@ -1240,28 +1417,42 @@ function ChangeBand({
 }
 
 const NO_LISTS: BoatFit['lists'] = []
+const NO_LINES: PageLine[] = []
 
 interface ChangeLine {
   key: string
   place: Place
   name: string
   facts: string
+  /** how it differs from another of its rating (`differsOf`); '' where none does */
+  tells: string
   price: number | null
-  /** on: goes on it · off: Northside took it off · can: the boat takes it, not listed · named */
-  state: 'on' | 'off' | 'can' | 'named'
+  /** on: goes on it · off: Northside took it off · can: the boat takes it, not listed ·
+   *  named: named for it · found: found by the words typed */
+  state: 'on' | 'off' | 'can' | 'named' | 'found'
+  /** offered on this version alone: a line made for this very version */
+  only: boolean
   starred: boolean
   taken: string
 }
 
-const pageLine = (l: PageLine, state: 'can' | 'named'): ChangeLine => ({
+const pageLine = (l: PageLine, state: 'can' | 'named' | 'found'): ChangeLine => ({
   key: `${state}:${l.place.rowId}`,
   place: l.place,
   name: l.name,
   facts: l.facts,
+  tells: '',
   price: l.price,
   state,
+  only: false,
   starred: false,
   taken: '',
+})
+
+const namedLine = (l: ShownNamed): ChangeLine => ({
+  ...pageLine(l, 'named'),
+  facts: namedFactsSaid(l),
+  only: l.scope.kind === 'this',
 })
 
 const madeLine = (m: Made): ChangeLine => ({
@@ -1269,11 +1460,20 @@ const madeLine = (m: Made): ChangeLine => ({
   place: m.place,
   name: m.name,
   facts: m.facts,
+  tells: '',
   price: m.price,
   state: 'on',
+  only: false,
   starred: m.starred,
   taken: '',
 })
+
+type ChangeAct = (
+  target: Place,
+  act: FitAct,
+  place?: 'motor' | 'trailer',
+  only?: readonly Place[],
+) => void
 
 function ChangePlaces({
   ctx,
@@ -1282,11 +1482,15 @@ function ChangePlaces({
   rigs,
   trailers,
   taken,
-  named,
+  split,
+  differs,
   motorMaker,
   change,
   refuse,
   refusal,
+  offer,
+  onOffer,
+  apart,
   today,
 }: {
   ctx: CatalogueCtx
@@ -1295,11 +1499,15 @@ function ChangePlaces({
   rigs: Rigged[]
   trailers: TrailerMade[]
   taken: TakenOff[]
-  named: PageLine[]
+  split: { trailer: NamedSplit; fitOut: NamedSplit }
+  differs: ReadonlyMap<string, string>
   motorMaker: string
-  change: (target: Place, act: FitAct, place?: 'motor' | 'trailer') => void
+  change: ChangeAct
   refuse: (rowId: string, why: string) => void
   refusal: FitRefusal | null
+  offer: string
+  onOffer: (words: string) => void
+  apart: ReadonlySet<string>
   today: Date
 }) {
   const order = useMemo(() => orderIn(ctx), [ctx])
@@ -1311,8 +1519,10 @@ function ChangePlaces({
     place: t.place,
     name: t.name,
     facts: t.facts,
+    tells: '',
     price: t.price,
     state: 'off',
+    only: false,
     starred: false,
     taken: takenOffSaid(t.on, today),
   })
@@ -1321,18 +1531,23 @@ function ChangePlaces({
     ...rigs.map((r) => madeLine(r.motor)),
     ...taken.filter((t) => t.slot === 'motor').map(offLine),
     ...can.map((l) => pageLine(l, 'can')),
-  ].toSorted(byOrder)
+  ]
+    .toSorted(byOrder)
+    /* the F150XC and the F150XCB, told apart as the selling page tells them (walk 2, F10) */
+    .map((m) => ({ ...m, tells: differs.get(m.place.rowId) ?? '' }))
   const trailerLines: ChangeLine[] = [
     ...trailers.map(madeLine),
     ...taken.filter((t) => t.slot === 'trailer').map(offLine),
-    ...named.filter((n) => n.slot === 'trailer').map((l) => pageLine(l, 'named')),
+    ...split.trailer.shown.map(namedLine),
   ].toSorted(byOrder)
   const lists = fit.lists.filter((l) => l.live > 0)
   const fitLines: ChangeLine[] = [
     ...lists.flatMap((l) => offeredIn(l.made).map(madeLine)),
     ...taken.filter((t) => t.slot !== 'motor' && t.slot !== 'trailer').map(offLine),
-    ...named.filter((n) => n.slot !== 'trailer').map((l) => pageLine(l, 'named')),
+    ...split.fitOut.shown.map(namedLine),
   ].toSorted(byOrder)
+  const fitApart = namedApartSaid(split.fitOut, words.short)
+  const trailerApart = namedApartSaid(split.trailer, words.short)
 
   const onMotors = motors.filter((m) => m.state === 'on').length
   const canMotors = motors.filter((m) => m.state === 'can').length
@@ -1351,6 +1566,7 @@ function ChangePlaces({
           <ChangeList
             lines={motors}
             words={words}
+            here={fit.place}
             place="motor"
             change={change}
             refusal={refusal}
@@ -1371,6 +1587,7 @@ function ChangePlaces({
           <ChangeList
             lines={trailerLines}
             words={words}
+            here={fit.place}
             place="trailer"
             change={change}
             refusal={refusal}
@@ -1383,6 +1600,7 @@ function ChangePlaces({
                 : change(l.place, 'star', 'trailer')
             }
           />
+          {trailerApart === '' ? null : <p className="fp-rest">{trailerApart}</p>}
         </Place>
       ) : null}
       {lists.length > 0 ? (
@@ -1394,7 +1612,20 @@ function ChangePlaces({
           <ChangeList
             lines={fitLines}
             words={words}
+            here={fit.place}
             place="motor"
+            change={change}
+            refusal={refusal}
+          />
+          {fitApart === '' ? null : <p className="fp-rest">{fitApart}</p>}
+          <OfferMore
+            ctx={ctx}
+            fit={fit}
+            words={words}
+            lists={lists}
+            offer={offer}
+            onOffer={onOffer}
+            apart={apart}
             change={change}
             refusal={refusal}
           />
@@ -1404,9 +1635,88 @@ function ChangePlaces({
   )
 }
 
+/**
+ * SOMETHING ELSE TO OFFER ON THE BOAT, found by its words (walk 2: "there is no way to offer a
+ * part the file lists for other boats, so 'add a dealer-fit part to this boat' only works for the
+ * 4 already listed"). The words are the screen's position (`?offer=`); what they find is
+ * `offerableOf`'s, and a press offers it on every version.
+ */
+function OfferMore({
+  ctx,
+  fit,
+  words,
+  lists,
+  offer,
+  onOffer,
+  apart,
+  change,
+  refusal,
+}: {
+  ctx: CatalogueCtx
+  fit: BoatFit
+  words: ModelWords
+  lists: BoatFit['lists']
+  offer: string
+  onOffer: (words: string) => void
+  apart: ReadonlySet<string>
+  change: ChangeAct
+  refusal: FitRefusal | null
+}) {
+  /* what is typed is held here and written to the address, so a letter is never lost to a
+     navigation still on its way */
+  const [typed, setTyped] = useState(offer)
+  const found = useMemo(() => offerableOf(ctx, fit, typed, apart), [ctx, fit, typed, apart])
+  const names = lists.map((l) => l.name).join(' or ')
+  const asked = typed.trim().length >= 2
+  return (
+    <div className="fp-offer">
+      <div className="fp-offer__field">
+        <Field
+          label={`Offer something else on the ${words.short}`}
+          description={`Find it in ${names} by its name or its code.`}
+        >
+          <Input
+            type="search"
+            icon={MagnifyingGlassIcon}
+            value={typed}
+            autoComplete="off"
+            onValueChange={(next) => {
+              setTyped(next)
+              onOffer(next.trim())
+            }}
+          />
+        </Field>
+      </div>
+      {asked && found.found === 0 ? (
+        <output className="fp-rest">
+          {`Nothing in ${names} that is not already above is called “${typed.trim()}”.`}
+        </output>
+      ) : null}
+      {found.lines.length > 0 ? (
+        <>
+          <output className="fp-rest">
+            {found.found > found.lines.length
+              ? `${count(found.found)} found. The first ${count(found.lines.length)} are here; another word finds fewer.`
+              : `${plural(found.found, 'line', 'lines')} found.`}
+          </output>
+          <ChangeList
+            lines={found.lines.map((l) => pageLine(l, 'found'))}
+            words={words}
+            here={fit.place}
+            place="motor"
+            change={change}
+            refusal={refusal}
+          />
+        </>
+      ) : null}
+    </div>
+  )
+}
+
 function ChangeList({
   lines,
   words,
+  here,
   place,
   change,
   refusal,
@@ -1414,8 +1724,9 @@ function ChangeList({
 }: {
   lines: ChangeLine[]
   words: ModelWords
+  here: Place
   place: 'motor' | 'trailer'
-  change: (target: Place, act: FitAct, place?: 'motor' | 'trailer') => void
+  change: ChangeAct
   refusal: FitRefusal | null
   star?: (l: ChangeLine) => void
 }) {
@@ -1440,6 +1751,7 @@ function ChangeList({
                 ) : null}
               </span>
               {l.facts === '' ? null : <span className="fp-line__facts">{l.facts}</span>}
+              {l.tells === '' ? null : <span className="fp-line__tells">{l.tells}</span>}
               {refusal?.rowId === l.place.rowId ? (
                 <span className="fp-line__rule" role="alert">
                   {refusal.why}
@@ -1487,10 +1799,18 @@ function ChangeList({
                     intent="quiet"
                     size="sm"
                     icon={PlusCircleIcon}
-                    onClick={() => change(l.place, 'on', place)}
-                    aria-label={`Offer the ${l.name} on the ${words.short}`}
+                    onClick={() => change(l.place, 'on', place, l.only ? [here] : undefined)}
+                    aria-label={
+                      l.only
+                        ? `Offer the ${l.name} on this version of the ${words.short}`
+                        : `Offer the ${l.name} on the ${words.short}`
+                    }
                   >
-                    {l.state === 'can' ? 'Put it on' : `Offer it on the ${words.short}`}
+                    {l.state === 'can'
+                      ? 'Put it on'
+                      : l.only
+                        ? 'Offer it on this version'
+                        : `Offer it on the ${words.short}`}
                   </Button>
                 )}
               </span>
@@ -1507,6 +1827,7 @@ function Ledger({
   anchor,
   words,
   ledger,
+  standing,
   undone,
   onUndo,
   onDone,
@@ -1514,11 +1835,19 @@ function Ledger({
   anchor: RefObject<HTMLElement | null>
   words: ModelWords
   ledger: readonly Change[]
+  /** the changes that still stand: off and back on is none */
+  standing: number
   undone: string
   onUndo: () => void
   onDone: () => void
 }) {
   const last = ledger.at(-1)
+  const kicker =
+    ledger.length === 0 && undone === ''
+      ? 'No change made here yet'
+      : standing === 0
+        ? 'No change stands'
+        : `${plural(standing, 'change', 'changes')} made here`
   return (
     <section
       ref={anchor}
@@ -1529,17 +1858,13 @@ function Ledger({
     >
       <div className="fp-bar__in">
         <div className="fp-bar__what">
-          <p className="fp-bar__kicker">
-            {ledger.length === 0
-              ? 'No change made here yet'
-              : `${plural(ledger.length, 'change', 'changes')} made here`}
-          </p>
+          <p className="fp-bar__kicker">{kicker}</p>
           <p className="fp-bar__names" aria-live="polite">
-            {last
-              ? last.said
-              : undone !== ''
-                ? undone
-                : `Each change is made on every version of the ${words.short}.`}
+            {undone !== ''
+              ? undone
+              : last
+                ? last.said
+                : `A change reaches every version of the ${words.short}, unless the line is made for one.`}
           </p>
         </div>
         <div className="fp-bar__go">
