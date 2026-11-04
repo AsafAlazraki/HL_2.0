@@ -13,9 +13,10 @@ import { packedOn } from '@/screens/data/file'
 import type { QuoteDef, RowData } from '@/domain/model'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { priceListsBeside, quotesBeside } from '@/domain/io/beside'
-import { bringBack, forgetEverything } from './acts'
+import { bringBack, forgetEverything, holding } from './acts'
 import {
   count,
+  forgetOwnSaid,
   forgetRefusal,
   hasOwnWork,
   inventoryOfCopy,
@@ -35,6 +36,10 @@ import {
    each puts "Save a copy first" beside it as the amber one: the loud
    button on a page that takes things away is the one that keeps them.
    The act itself names its consequence in its own words.
+
+   WHILE AN ACT RUNS THE PAGE IS HELD (verify-2.md, gap 1): a wipe or a
+   bringing back cannot be stopped half way, so Back says why it waits,
+   and the route holds every other way out until the page opens again.
 
    EACH ACT ANSWERS A SENTENCE OR GOES AHEAD. A person Northside set
    apart from changing prices and settings is told so under the act
@@ -65,6 +70,7 @@ function Frame({
   back,
   testid,
   tone,
+  busySay,
   refused = null,
   beside = null,
 }: {
@@ -83,6 +89,8 @@ function Frame({
   back: () => void
   testid: string
   tone: 'away' | 'back'
+  /** what the page says while the act runs, under Back: why it waits, and where it lands */
+  busySay: string
   /** what is set beside this computer before the act, drawn above Goes and Stays */
   beside?: ReactNode
 }) {
@@ -92,7 +100,7 @@ function Frame({
     setBusy(true)
     setFailed(null)
     try {
-      const said = await act()
+      const said = await holding(busySay, act)
       if (said) {
         setBusy(false)
         setFailed(said)
@@ -113,7 +121,12 @@ function Frame({
       data-tone={tone}
     >
       <nav className="sf-crumb" aria-label="The shelf">
-        <Button intent="quiet" icon={ArrowLeftIcon} onClick={back}>
+        <Button
+          intent="quiet"
+          icon={ArrowLeftIcon}
+          onClick={back}
+          refusedBecause={busy ? busySay : undefined}
+        >
           Back to the shelf
         </Button>
       </nav>
@@ -179,6 +192,7 @@ export function ClearPage({
     <Frame
       testid="clear"
       tone="away"
+      busySay="Clearing the price list is under way. This page stays until it is done, then the shelf opens again."
       title="Clear the price list from this computer"
       say="The price list goes back to the Master Price File as it came with the app. Use it when the price list here has gone wrong in ways Undo cannot reach."
       goes={
@@ -218,19 +232,13 @@ export function ClearPage({
 
 export function ForgetPage({ here, lastCopy, save, saved, back }: PageProps) {
   /* what goes, without its noughts: a kind with none is not said (verify-1.md, gap 9) */
-  const own = listSaid(
-    [
-      here.quotes > 0
-        ? `${plural(here.quotes, 'quote', 'quotes')}${here.given > 0 ? ` (${count(here.given)} given)` : ''}`
-        : null,
-      here.customers > 0 ? plural(here.customers, 'customer', 'customers') : null,
-      here.rules > 0 ? plural(here.rules, 'rule Northside wrote', 'rules Northside wrote') : null,
-    ].filter((x): x is string => x !== null),
-  )
+  const own = forgetOwnSaid(here)
+  const copied = Boolean(saved || lastCopy)
   return (
     <Frame
       testid="forget"
       tone="away"
+      busySay="Forgetting is under way. This page stays until it is done, then the app opens at the start and asks who is at the desk."
       title="Forget everything on this computer"
       say="This computer keeps nothing of Northside’s afterwards, and asks who is at the desk again. Use it before a computer is handed on."
       goes={
@@ -245,21 +253,26 @@ export function ForgetPage({ here, lastCopy, save, saved, back }: PageProps) {
         </>
       }
       stays={
-        saved || lastCopy ? (
+        copied ? (
           <>
             Copies saved from this computer
             {lastCopy ? `, the last ${whenSaid(lastCopy, new Date())}` : ''}. Bring one back on any
             computer to have all of it again.
           </>
         ) : (
-          <>Copies saved from this computer.</>
+          /* NONE IS SAID AS NONE (verify-2.md, gap 1): "Copies saved from this computer." stood
+             here when no copy had ever been saved */
+          <>
+            <strong>Nothing yet</strong>: no copy has been saved from this computer. Save one first,
+            and it stays wherever the browser puts it.
+          </>
         )
       }
       saved={saved}
       lastCopy={lastCopy}
       save={save}
       act={forgetEverything}
-      refused={forgetRefusal(here, Boolean(saved || lastCopy))}
+      refused={forgetRefusal(copied)}
       actSay="Forget everything on this computer"
       back={back}
     />
@@ -307,6 +320,7 @@ export function BringBack({
     <Frame
       testid="restore"
       tone="back"
+      busySay="Bringing the copy back is under way. This page stays until it is done, then the shelf opens again."
       title={`Bring back ${fileName}`}
       say={`${saidOn ? `Saved ${saidOn}. ` : ''}It is set beside this computer below, kind by kind. Nothing is replaced until you bring it back.`}
       beside={

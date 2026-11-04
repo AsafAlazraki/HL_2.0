@@ -17,10 +17,12 @@ import {
 } from '@phosphor-icons/react'
 import { Button, Icon, Plate, Refusal } from '@/ui'
 import { useCatalogue, usePrefs, useQuotes } from '@/app/useStores'
-import { catalogue } from '@/state/catalogue'
+import { catalogue, ctxFrom, dataOf } from '@/state/catalogue'
 import { prefs, type PrefValue } from '@/state/prefs'
 import { session } from '@/state/session'
 import { isDone } from '@/domain/catalogue/commands'
+import { makeCtx, type QuoteDef } from '@/domain/model'
+import { draftsBehind, quoteName, type DraftBehind } from '@/domain/quote/listMoved'
 import { WorkbookRefusal, readWorkbook, type Workbook } from '@/domain/io/workbook'
 import { planNewFile, sheetsOnThePriceList, type NewFilePlan } from '@/domain/io/newFile'
 import {
@@ -53,7 +55,16 @@ import { PACK_ORG_ID } from '@/data/pack/boot'
 import { packedOn, provenanceOfSheet, shippedFile } from '@/screens/data/file'
 import { BROUGHT_PREF, LAST_COPY_PREF, apartRefusal, clearThePriceList, saveACopy } from './acts'
 import { bytesOf, inflateRaw, sizeOf } from './files'
-import { count, inventoryOf, kindsSaid, plural, whenSaid, type Inventory } from './read'
+import {
+  count,
+  dollars,
+  forgetOwnSaid,
+  inventoryOf,
+  kindsSaid,
+  plural,
+  whenSaid,
+  type Inventory,
+} from './read'
 import { Changes } from './Changes'
 import { useDrop } from './drop'
 import { Paste } from './Paste'
@@ -102,6 +113,8 @@ export interface ShelfProps {
   onSee: (see: ShelfSee | undefined) => void
   narrow?: Narrow
   onNarrow?: (next: Narrow) => void
+  /** opens a quote being written, from the shelf's word on what the price list moved under it */
+  openQuote?: (id: string) => void
 }
 
 export { BROUGHT_PREF }
@@ -159,7 +172,7 @@ const readNotes = (): BroughtNote[] => notesOf(prefs.getState().values[BROUGHT_P
 const WIDE: Narrow = {}
 const NOWHERE = (): void => {}
 
-export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfProps) {
+export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE, openQuote }: ShelfProps) {
   const status = useCatalogue((s) => s.status)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
@@ -167,6 +180,7 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
   const constraintDefs = useCatalogue((s) => s.constraintDefs)
   const org = useCatalogue((s) => s.org)
   const version = useCatalogue((s) => s.version)
+  const priceLevels = useCatalogue((s) => s.priceLevels)
   const quoteList = useQuotes((s) => s.quotes)
   const quotesRead = useQuotes((s) => s.loaded)
   const lastCopy = usePrefs((s) => s.values[LAST_COPY_PREF])
@@ -212,10 +226,31 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
     () => (applied ? { plan: applied.plan, set: applied.set } : fresh),
     [applied, fresh],
   )
-  const drafts = useMemo(
-    () => (sheet ? draftsMoved(quoteList, sheet.set, applied?.choices ?? choices) : []),
-    [sheet, quoteList, applied, choices],
-  )
+  /* THE DRAFTS A WORKBOOK WOULD MOVE, each named as the quote heads itself (verify-2.md, gap 3:
+     "20261104-01 Highfield SP660 (PVC) W-W-WB", where the quote reads "Highfield Sport 660 ·
+     PVC · White / White / White/Blue") */
+  const drafts = useMemo(() => {
+    if (!sheet) return []
+    const byId = new Map(quoteList.map((q) => [q.id, q]))
+    return draftsMoved(quoteList, sheet.set, applied?.choices ?? choices).map((d) => {
+      const q = byId.get(d.quoteId)
+      return { ...d, name: q ? quoteName(q) : d.subject }
+    })
+  }, [sheet, quoteList, applied, choices])
+  /* AND THE DRAFTS THE PRICE LIST HAS ALREADY MOVED UNDER, read off the quotes and the price list
+     as they are, so the shelf still says it after a reload (verify-2.md, gap 2) */
+  const behind = useMemo<DraftBehind[]>(() => {
+    if (status !== 'ready') return []
+    const writing = quoteList.filter((q: QuoteDef) => q.state === 'draft')
+    if (writing.length === 0) return []
+    const data = dataOf(catalogue.getState())
+    return draftsBehind(
+      makeCtx({ ...ctxFrom(data), views: { ...data.views }, orgId: PACK_ORG_ID }),
+      writing,
+    )
+    // the price list is read whole off the store; these are what move it
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, quoteList, rows, tables, priceLevels])
   const edition = provenanceOfSheet(version)
 
   /* a page reached with nothing to show — a reload on the change sheet — goes back to the shelf */
@@ -225,8 +260,17 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
     if (see === 'restore' && !copy) onSee('uncopied')
   }, [read, see, sheet, copy, onSee])
 
+  /* A REFUSAL STANDS WHERE IT WAS REFUSED, AND ONLY UNTIL THE PERSON MOVES ON (verify-2.md, gap 8:
+     "Dealer_Fit_Module.xlsx is a workbook, not a saved copy" still stood after a workbook was
+     read, applied, undone and left) */
+  useEffect(() => {
+    setDoorSaid(null)
+    setCopySaid(null)
+  }, [see])
+
   async function bringIn(file: File): Promise<void> {
     setDoorSaid(null)
+    setCopySaid(null)
     setPutBack(null)
     if (!/\.xlsx$/i.test(file.name)) {
       setDoorSaid(
@@ -300,6 +344,7 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
 
   async function openCopy(file: File): Promise<void> {
     setCopySaid(null)
+    setDoorSaid(null)
     if (!/\.json$/i.test(file.name)) {
       setCopySaid(
         /\.xlsx$/i.test(file.name)
@@ -530,6 +575,8 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
         lists={inventory.lists}
         drafts={inventory.quotes - inventory.given}
         moved={drafts.length}
+        behind={behind}
+        openQuote={openQuote}
         bringIn={(f) => void bringIn(f)}
         see={() => onSee('changes')}
         paste={() => onSee('paste')}
@@ -570,10 +617,15 @@ export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE }: ShelfPr
           <AwayCard
             title="Forget everything on this computer"
             goes={
+              /* without its noughts, as its own page says it (verify-2.md, gap 7) */
               <>
-                The price list, <strong>{plural(inventory.quotes, 'quote', 'quotes')}</strong>,{' '}
-                <strong>{plural(inventory.customers, 'customer', 'customers')}</strong>, the rules,
-                the settings, and the name given at the start.
+                The price list
+                {forgetOwnSaid(inventory) ? (
+                  <>
+                    , <strong>{forgetOwnSaid(inventory)}</strong>
+                  </>
+                ) : null}
+                , its settings and pictures, and the name given at the start.
               </>
             }
             stays={
@@ -695,6 +747,8 @@ function FilesBroughtIn({
   lists,
   drafts,
   moved,
+  behind,
+  openQuote,
   bringIn,
   see,
   paste,
@@ -712,6 +766,9 @@ function FilesBroughtIn({
   lists: number
   drafts: number
   moved: number
+  /** the quotes being written whose lines the price list now reads differently */
+  behind: DraftBehind[]
+  openQuote: ((id: string) => void) | undefined
   bringIn: (file: File) => void
   see: () => void
   paste: () => void
@@ -905,6 +962,45 @@ function FilesBroughtIn({
         </tbody>
       </table>
 
+      <DraftsHere
+        drafts={drafts}
+        moved={moved}
+        open={open !== null}
+        behind={behind}
+        openQuote={openQuote}
+      />
+    </section>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* the quotes being written, and what the price list did to them */
+/* ---------------------------------------------------------- */
+
+const SAID_ONCE =
+  'A line on a quote keeps the price it had when it was chosen; a line chosen after Apply reads the new one. A quote already given never moves.'
+
+/**
+ * THE QUOTES BEING WRITTEN, AS THE PRICE LIST STANDS UNDER THEM. Before Apply, the lines a workbook
+ * would move are counted on its changes; otherwise the drafts whose lines the price list now reads
+ * differently are named, read off the quotes and the price list themselves, so a reload does not
+ * forget them (verify-2.md, gap 2), each named as it heads itself and opened in one press.
+ */
+function DraftsHere({
+  drafts,
+  moved,
+  open,
+  behind,
+  openQuote,
+}: {
+  drafts: number
+  moved: number
+  open: boolean
+  behind: DraftBehind[]
+  openQuote: ((id: string) => void) | undefined
+}) {
+  if (drafts === 0 || open || behind.length === 0) {
+    return (
       <p className="sf-drafts">
         <Icon glyph={ReceiptIcon} />
         <span>
@@ -913,14 +1009,12 @@ function FilesBroughtIn({
               <strong>No quote is being written on this computer</strong>, so no workbook would move
               one.
             </>
-          ) : open || applied ? (
+          ) : open ? (
             moved === 0 ? (
-              <>
-                <strong>
-                  {plural(drafts, 'quote is', 'quotes are')} being written, and this workbook moves
-                  no line of {drafts === 1 ? 'it' : 'them'}.
-                </strong>
-              </>
+              <strong>
+                {plural(drafts, 'quote is', 'quotes are')} being written, and this workbook moves no
+                line of {drafts === 1 ? 'it' : 'them'}.
+              </strong>
             ) : (
               <>
                 <strong>
@@ -932,15 +1026,65 @@ function FilesBroughtIn({
             )
           ) : (
             <>
-              <strong>{plural(drafts, 'quote is', 'quotes are')} being written.</strong> When a
-              workbook is read, the lines of them it would move are counted before Apply.
+              <strong>
+                {plural(drafts, 'quote is', 'quotes are')} being written, and the price list reads
+                every line of {drafts === 1 ? 'it' : 'them'} at the price it keeps.
+              </strong>{' '}
+              When a workbook is read, the lines of them it would move are counted before Apply.
             </>
           )}{' '}
-          A line on a quote keeps the price it had when it was chosen; a line chosen after Apply
-          reads the new one. A quote already given never moves.
+          {SAID_ONCE}
         </span>
       </p>
-    </section>
+    )
+  }
+  const lines = behind.reduce((n, d) => n + d.lines.length, 0)
+  return (
+    <div className="sf-drafts sf-drafts--behind">
+      <Icon glyph={ReceiptIcon} />
+      <div className="sf-drafts__in">
+        <p>
+          <strong>
+            {plural(behind.length, 'quote being written carries', 'quotes being written carry')}{' '}
+            {plural(lines, 'line', 'lines')} the price list now reads differently.
+          </strong>{' '}
+          Each line keeps the price it had when it was chosen. The quote says so under its total,
+          with today’s price one press away; a quote already given never moves.
+        </p>
+        <ul className="sf-drafts__list">
+          {behind.map((d) => (
+            <li key={d.quoteId} className="sf-drafts__quote">
+              <span className="sf-drafts__words">
+                <strong className="sf-drafts__name">{d.name}</strong>
+                <span className="sf-drafts__ref">
+                  quote {d.reference}
+                  {d.customer ? ` for ${d.customer}` : ''}
+                </span>
+                {d.lines.map((l) => (
+                  <span key={l.lineId} className="sf-drafts__line">
+                    {l.name === d.name ? 'The boat' : l.name} keeps{' '}
+                    <span className="sf-fig">{dollars(l.keeps)}</span>; the price list reads{' '}
+                    <strong className="sf-fig">{dollars(l.reads)}</strong>
+                  </span>
+                ))}
+              </span>
+              {openQuote ? (
+                <span className="sf-drafts__open">
+                  <Button
+                    intent="secondary"
+                    size="sm"
+                    icon={ArrowRightIcon}
+                    onClick={() => openQuote(d.quoteId)}
+                  >
+                    Open the quote
+                  </Button>
+                </span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   )
 }
 

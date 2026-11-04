@@ -254,3 +254,23 @@ test('Settings on a real draft: the quote’s own pages, the line being set lit 
   console.log(`[${size}] tab title on Settings with the pages drawn: ${title}`)
   expect(errors).toEqual([])
 })
+
+test('the route the rulers walk with a line open, on a real draft, photographed', async ({
+  page,
+}) => {
+  test.setTimeout(240_000)
+  await startAQuote(page)
+  await written(page)
+  await to(page, '?line=abn')
+  await page.waitForTimeout(1200)
+  await page.screenshot({ path: `${OUT}/25-line-open-on-a-draft-${sizeOf(page)}.png` })
+  const at = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => x.textContent === 'Legal name')
+    const r = b?.getBoundingClientRect()
+    return {
+      scrollY: Math.round(window.scrollY),
+      legal: r ? `${Math.round(r.top)}-${Math.round(r.bottom)}` : '',
+    }
+  })
+  console.log(`[${sizeOf(page)}] line open: ${JSON.stringify(at)}`)
+})

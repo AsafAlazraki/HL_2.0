@@ -1,11 +1,12 @@
 import { useCallback, useEffect } from 'react'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect, useBlocker, useNavigate } from '@tanstack/react-router'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { repositories } from '@/data'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Shelf, type ShelfSee } from '@/screens/shelf/Shelf'
+import { actUnderWay } from '@/screens/shelf/acts'
 import type { Narrow, Way } from '@/domain/io/changeSet'
 
 /* ============================================================
@@ -105,6 +106,14 @@ function ShelfRoute() {
   const navigate = useNavigate()
   const { see, ...narrow } = Route.useSearch()
 
+  /* WHILE A WIPE OR A BRINGING BACK RUNS, NOTHING LEAVES THE PAGE (the shelf's verify-2.md, gap 1):
+     the bar, the browser's Back and a reload all wait for it, and the page's own Back says why
+     (`holding`, src/screens/shelf/acts.ts). The act opens the page again itself when it is done. */
+  useBlocker({
+    shouldBlockFn: () => actUnderWay() !== null,
+    enableBeforeUnload: () => actUnderWay() !== null,
+  })
+
   useEffect(() => {
     if (catalogue.getState().status === 'empty') {
       void catalogue.getState().load(repositories(PACK_ORG_ID).catalogue)
@@ -133,5 +142,12 @@ function ShelfRoute() {
     [navigate],
   )
 
-  return <Shelf see={see} onSee={onSee} narrow={narrow} onNarrow={onNarrow} />
+  const openQuote = useCallback(
+    (id: string) => void navigate({ to: '/quote/$id', params: { id } }),
+    [navigate],
+  )
+
+  return (
+    <Shelf see={see} onSee={onSee} narrow={narrow} onNarrow={onNarrow} openQuote={openQuote} />
+  )
 }

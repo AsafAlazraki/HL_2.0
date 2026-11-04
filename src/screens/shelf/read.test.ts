@@ -4,8 +4,10 @@ import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { loadPack } from '@/test/fixtures/pack'
 import {
   copyFileName,
+  forgetOwnSaid,
   forgetRefusal,
   inventoryOf,
+  keepUnits,
   dollars,
   figureSaid,
   keptThroughAClear,
@@ -96,17 +98,31 @@ describe('the customers, counted as the pill counts them', () => {
     )
     expect(n.customers).toBe(1)
     expect(n.kept).toBe(0)
-    expect(forgetRefusal(n, false)).toMatch(/^Save a copy first: /)
-    expect(forgetRefusal(n, true)).toBeNull()
+    expect(forgetRefusal(false)).toMatch(/^Save a copy first: /)
+    expect(forgetRefusal(true)).toBeNull()
+    expect(forgetOwnSaid(n)).toBe('1 quote (1 given) and 1 customer')
   })
 
-  it('lets a computer with nothing of Northside’s own be forgotten without a copy', async () => {
+  it('refuses a computer with no quote, customer or rule as well, until a copy is saved (verify-2.md, gap 1)', async () => {
     const { pack, tables } = await world()
     const n = inventoryOf(
       { tables, rows: pack.rowsByEntity, modules: pack.ctx.modules, constraintDefs: [] },
       [],
     )
-    expect(forgetRefusal(n, false)).toBeNull()
+    expect(forgetRefusal(false)).toMatch(/^Save a copy first: /)
+    /* and says no nought: with none of any, there is nothing of Northside's own to name */
+    expect(forgetOwnSaid(n)).toBeNull()
+  })
+
+  it('keeps a figure with its unit, so a wrapping name never breaks "1.8 m" (verify-2.md, gap 10)', () => {
+    expect(keepUnits('GME GX750W Hideaway with 1.8 m Aerial')).toBe(
+      'GME GX750W Hideaway with 1.8 m Aerial',
+    )
+    expect(keepUnits('Tube Covers to suit PVC Boat - 2.0 Mtr')).toBe(
+      'Tube Covers to suit PVC Boat - 2.0 Mtr',
+    )
+    /* a figure followed by a word is left alone */
+    expect(keepUnits('Stacer 509 Assault Pro')).toBe('Stacer 509 Assault Pro')
   })
 })
 

@@ -219,12 +219,47 @@ export const hasOwnWork = (n: Inventory): boolean =>
  * WHY EVERYTHING MAY NOT BE FORGOTTEN YET, or null. Forgetting everything with no copy ever saved
  * took every quote with it, guarded only by a sentence that said "save a copy first" and then let
  * the press through (built-critique-m4.md, major 9). It is refused until a copy has been saved on
- * this computer — the sentence's own advice, and the amber act beside it. A computer that holds
- * nothing of Northside's own but the price list as it came has nothing a copy would keep.
+ * this computer — the sentence's own advice, and the amber act beside it.
+ *
+ * ON EVERY COMPUTER, DAY ONE TOO (the shelf's verify-2.md, gap 1). A computer with no quote,
+ * customer or rule was let through with no copy, under a page that still offered "Save a copy
+ * first": but a price typed on the sheet, a workbook applied or a detail set on Settings is
+ * Northside's work as well, and none of it is counted here. One rule, said once: no copy, no
+ * forgetting.
  */
-export function forgetRefusal(here: Inventory, copySaved: boolean): string | null {
-  if (copySaved || !hasOwnWork(here)) return null
-  return 'Save a copy first: none has been saved on this computer, so nothing of this could come back.'
+export function forgetRefusal(copySaved: boolean): string | null {
+  if (copySaved) return null
+  return 'Save a copy first: none has been saved from this computer, so nothing done on it could come back.'
+}
+
+/**
+ * WHAT FORGETTING TAKES OF NORTHSIDE'S OWN, WITHOUT ITS NOUGHTS: "1 quote (1 given), 2 customers
+ * and 3 rules Northside wrote", or null with none of any. The rest page's card read "0 quotes, 0
+ * customers" where its own page did not (verify-2.md, gap 7): both say it from here.
+ */
+export function forgetOwnSaid(
+  n: Pick<Inventory, 'quotes' | 'given' | 'customers' | 'rules'>,
+): string | null {
+  const said = [
+    n.quotes > 0
+      ? `${plural(n.quotes, 'quote', 'quotes')}${n.given > 0 ? ` (${count(n.given)} given)` : ''}`
+      : null,
+    n.customers > 0 ? plural(n.customers, 'customer', 'customers') : null,
+    n.rules > 0 ? plural(n.rules, 'rule Northside wrote', 'rules Northside wrote') : null,
+  ].filter((x): x is string => x !== null)
+  return said.length === 0 ? null : listSaid(said)
+}
+
+/**
+ * A FIGURE KEPT WITH ITS UNIT. A name wrapping in its column broke "1.8 m Aerial" into "1.8 / m
+ * Aerial" (verify-2.md, gap 10): the space between a figure and the unit after it is one that
+ * does not break.
+ */
+export function keepUnits(name: string): string {
+  return name.replace(
+    /(\d)\s+(mm|cm|m|km|kg|g|lb|lbs|hp|kw|kW|l|L|ltr|litre|litres|ft|in|V|v|A|Ah|W|mtr|Mtr|knots?)\b/g,
+    '$1 $2',
+  )
 }
 
 /* ------------------------------------------------------------ */

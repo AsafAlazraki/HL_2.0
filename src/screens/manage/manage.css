@@ -61,6 +61,13 @@
    leaves what it covers to a scroll, and the page's end keeps room for the dock.
    ============================================================ */
 
+/* THE STAGE'S AND THE DOCK'S OWN HEIGHTS, nothing until they stand: each writes its own on the root
+   while it does (`useHeightOnRoot`), so the toaster and a part's landing margin keep clear of it */
+:root {
+  --mg-stage: 0px;
+  --mg-dock: 0px;
+}
+
 .mg {
   --gutter: --spacing(4);
   --measure: 46rem;
@@ -373,8 +380,9 @@
     0 0 0 1px var(--day-rule),
     var(--shadow-plate);
   /* an editor opened scrolls itself clear of the foot, where the tab bar and the last step's
-     Undo stand (the judge, P3) */
-  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(20));
+     Undo stand in a hand (the judge, P3); wider, the Undo stands in a corner or beside the pill,
+     and the editor only clears the window's edge */
+  scroll-margin-block-end: --spacing(4);
   scroll-margin-block-start: calc(var(--shell-inset) + --spacing(16));
 }
 .mg-editor--person {
@@ -552,7 +560,7 @@
   padding: --spacing(5);
   border-radius: var(--radius-plate);
   /* a dashed frame prints nothing, as the letterhead's empty lines do */
-  border: 1.5px dashed var(--day-rule-strong);
+  border: 1px dashed var(--day-rule-strong);
 }
 .mg-proof-door {
   border-style: solid;
@@ -605,7 +613,7 @@
     .doc-cover__valid
   ) {
   border-radius: var(--radius-glyph);
-  outline-offset: 6px;
+  outline-offset: --spacing(1.5);
 }
 .mg-proof[data-lit='letterhead'] .doc-page:first-of-type .doc-cover__mast,
 .mg-proof[data-lit='valid'] .doc-page:first-of-type .doc-cover__valid,
@@ -614,7 +622,7 @@
 .mg-proof[data-lit='by'] .doc-page:first-of-type .doc-money__by,
 .mg-proof[data-lit='terms'] .doc-page:last-of-type .doc-terms,
 .mg-proof[data-lit='name'] .doc-page:last-of-type .doc-page__house {
-  outline: 5px solid var(--color-act);
+  outline: --spacing(1) solid var(--color-act);
 }
 
 /* ---- the stage: Home or the sign-in page, drawn small, wearing what was tried ---- */
@@ -1288,6 +1296,11 @@
   margin-block-start: auto;
   padding-block-start: --spacing(2);
 }
+@media (max-width: 599.98px) {
+  .mg-editor {
+    scroll-margin-block-end: calc(var(--shell-foot) + --spacing(20));
+  }
+}
 /* IN A HAND EACH DECISION IS A ROW, its count beside its name and its door under, so the six
    stand in about a screen rather than two */
 @media (max-width: 639.98px) {
@@ -1439,7 +1452,7 @@
   }
   .mg-index__to:hover {
     color: var(--color-white);
-    background: oklch(from var(--color-white) l c h / 12%);
+    background: var(--color-blue-700);
   }
   .mg-apart,
   .mg-halves,
@@ -1491,6 +1504,10 @@
   .mg-stage-wrap .mg-mini__maker {
     block-size: --spacing(8);
   }
+  /* the seven makers on one row at every desk */
+  .mg-stage-wrap .mg-mini__makers {
+    grid-template-columns: repeat(auto-fit, minmax(--spacing(15), 1fr));
+  }
   /* A PART OF THE WATER THE INDEX LANDS, AND ANY CONTROL A CARET OR A PRESS BRINGS INTO VIEW,
      stands under the stage and over the dock, never behind either */
   .mg-water .mg-group,
@@ -1498,10 +1515,11 @@
     scroll-margin-block-start: calc(var(--shell-inset) + var(--mg-stage, 0px) + --spacing(6));
     scroll-margin-block-end: calc(var(--mg-dock, 0px) + --spacing(8));
   }
-  /* WITH NO DRAFT, THE PAGES' PLACE IS DRAWN AS A SHEET OF A4, dashed, as an empty line is */
+  /* WITH NO DRAFT, THE PAGES' PLACE IS DRAWN AS THE SHEET OF A4 THE FIRST PAGE WILL BE, at the
+     size it will be drawn (Proof.tsx, two thirds of 210 mm), dashed, as an empty line is */
   .mg-proof-none {
     aspect-ratio: 210 / 297;
-    inline-size: min(100%, 26rem);
+    inline-size: min(100%, calc(210mm * 0.66));
     align-content: center;
     justify-items: center;
     text-align: center;

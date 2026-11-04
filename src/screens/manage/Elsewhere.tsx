@@ -41,6 +41,7 @@ export function Elsewhere({ go }: { go?: (href: string) => void }) {
   return (
     <section
       className="mg-elsewhere"
+      data-ground="plate"
       id="mg-elsewhere"
       aria-labelledby="mg-elsewhere-title"
       data-testid="manage-elsewhere"
@@ -50,7 +51,8 @@ export function Elsewhere({ go }: { go?: (href: string) => void }) {
           Decided elsewhere
         </h2>
         <p className="mg-head__say">
-          What Northside has decided in the price list’s rooms, counted from its own records.
+          What Northside has decided in the price list’s rooms, each counted from what Northside
+          kept.
         </p>
       </div>
       <ul className="mg-elsewhere__list">

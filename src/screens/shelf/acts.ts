@@ -46,7 +46,7 @@ import { catalogue, ctxFrom, dataOf } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { prefs } from '@/state/prefs'
 import { session } from '@/state/session'
-import { copyFileName, forgetRefusal, inventoryOf, keptThroughAClear } from './read'
+import { copyFileName, forgetRefusal, keptThroughAClear } from './read'
 import { download } from './files'
 
 /** Where the day of the last copy saved on this computer is remembered. */
@@ -59,8 +59,34 @@ export const BROUGHT_PREF = 'shelf.brought'
 export const apartRefusal = (): string | null =>
   changeRefusal(catalogue.getState().org, session.getState().name)
 
+/* ------------------------------------------------------------ */
+/* the act under way, which holds the page until it is done       */
+/* ------------------------------------------------------------ */
+
+/* A WIPE CANNOT BE STOPPED HALF WAY, SO THE PAGE IS HELD UNTIL IT ENDS (verify-2.md, gap 1).
+   "Back to the shelf" stayed live while forgetting was "Working on it", the press left the page,
+   and 2.6 s later the app landed on the door with no word, taking with it a workbook read in
+   between. While one of these acts runs, the page's own Back is refused with this sentence, and
+   the route holds every other way out (`useBlocker` in src/routes/shelf.tsx, which asks here). */
+let underWay: string | null = null
+
+/** The sentence of the act under way on this computer's keeping, or null when none is. */
+export const actUnderWay = (): string | null => underWay
+
+/** Runs an act that takes or replaces this computer's keeping, holding the page while it runs. */
+export async function holding<T>(said: string, act: () => Promise<T>): Promise<T> {
+  underWay = said
+  try {
+    return await act()
+  } finally {
+    underWay = null
+  }
+}
+
 /** The page, opened again at an address under the app's own base, so every store reads afresh. */
 function reopen(path: string): void {
+  /* the act is done: nothing holds the page now, so the browser is not asked whether to leave it */
+  underWay = null
   const base = import.meta.env.BASE_URL
   const root = base.endsWith('/') ? base : `${base}/`
   window.location.assign(`${root}${path.replace(/^\//, '')}`)
@@ -192,18 +218,19 @@ export async function clearThePriceList(): Promise<string | null> {
 export async function forgetEverything(): Promise<string | null> {
   const apart = apartRefusal()
   if (apart) return apart
-  const state = catalogue.getState()
-  const unsaved = forgetRefusal(
-    inventoryOf(dataOf(state), quotes.getState().quotes),
-    typeof prefs.getState().values[LAST_COPY_PREF] === 'string',
-  )
+  const unsaved = forgetRefusal(typeof prefs.getState().values[LAST_COPY_PREF] === 'string')
   if (unsaved) return unsaved
+  /* nothing more is written behind the wipe: what waits to be filed goes first */
+  await catalogue.getState().flush()
+  await quotes.getState().flush()
   const repos = repositories(PACK_ORG_ID)
-  await repos.catalogue.wipe()
-  await repos.org.clear()
-  await repos.pictures.saveAll([])
-  await repos.galleries.saveAll([])
-  for (const q of await repos.quotes.list()) await repos.quotes.delete(q.id)
+  await Promise.all([
+    repos.catalogue.wipe(),
+    repos.org.clear(),
+    repos.pictures.saveAll([]),
+    repos.galleries.saveAll([]),
+    repos.quotes.list().then((all) => Promise.all(all.map((q) => repos.quotes.delete(q.id)))),
+  ])
   prefs.getState().forgetAll()
   reopen('/sign-in')
   return null
