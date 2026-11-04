@@ -138,8 +138,27 @@ function useClearOfTheFoot<T extends HTMLElement>(): RefObject<T | null> {
   useEffect(() => {
     const el = box.current
     if (!el || typeof el.scrollIntoView !== 'function') return
-    const frame = requestAnimationFrame(() => el.scrollIntoView({ block: 'nearest' }))
-    return () => cancelAnimationFrame(frame)
+    let frame = requestAnimationFrame(() => el.scrollIntoView({ block: 'nearest' }))
+    /* AND STAYS CLEAR AS IT GROWS: a deposit's share opens a field and a worked sentence under
+       the way, which ran 44px under the quote's pages standing at the window's foot at 1280 */
+    let was = el.offsetHeight
+    const watch =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            if (el.offsetHeight <= was) {
+              was = el.offsetHeight
+              return
+            }
+            was = el.offsetHeight
+            cancelAnimationFrame(frame)
+            frame = requestAnimationFrame(() => el.scrollIntoView({ block: 'nearest' }))
+          })
+    watch?.observe(el)
+    return () => {
+      cancelAnimationFrame(frame)
+      watch?.disconnect()
+    }
   }, [])
   return box
 }

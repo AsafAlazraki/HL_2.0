@@ -176,7 +176,7 @@
    window's */
 @media (max-height: 520px) and (max-width: 1199.98px) {
   .mg-index {
-    position: relative;
+    position: static;
   }
 }
 .mg-index__to {
@@ -1710,6 +1710,7 @@
      `--mg-lens` onto them, slid to the part the line lands in, on a white plate of its own, as
      "Changed, not kept" docks on the water. The open field scrolls itself clear above it. */
   .mg-paper:has(.mg-proof-lens[data-lens]) .mg-editor {
+    scroll-margin-block-start: calc(var(--shell-inset) + --spacing(2));
     scroll-margin-block-end: calc(var(--mg-lens) + --spacing(20));
   }
   .mg-proof-lens[data-lens] {
@@ -1726,6 +1727,8 @@
   .mg-proof-lens[data-lens] .mg-proof {
     block-size: var(--mg-lens);
     overflow: hidden;
+    /* the page in the middle of its window, wherever the window is wider than two thirds of A4 */
+    justify-items: center;
     border-radius: var(--radius-glyph);
     background: var(--color-neutral-100);
   }

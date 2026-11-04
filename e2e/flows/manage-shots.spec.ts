@@ -263,6 +263,10 @@ test('Settings on a real draft: the quote’s own pages, the line being set lit 
     await expect(page.getByTestId('manage-editor')).toBeInViewport()
     await expect(sum).toBeInViewport({ ratio: 1 })
     await where('deposit open')
+    /* the field, its Keep included, stands above the pages, never under them */
+    const field = await page.getByTestId('manage-editor').boundingBox()
+    const pages = await page.locator('.mg-proof-lens[data-lens]').boundingBox()
+    expect((field?.y ?? 0) + (field?.height ?? 0)).toBeLessThanOrEqual(pages?.y ?? 0)
   }
   await page.getByTestId('manage-editor').getByRole('button', { name: 'Keep' }).click()
   if (desk) {

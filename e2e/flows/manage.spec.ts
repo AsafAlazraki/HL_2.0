@@ -244,7 +244,8 @@ test('a decision kept in another room is counted under Decided elsewhere, with w
 }) => {
   test.setTimeout(120_000)
   await throughTheDoor(page)
-  /* Review's own press, as a person makes it: one case of the real file left alone */
+  /* Review's own press, as a person makes it: one case of the real file left alone, which is
+     four findings, one on each of its four lines ("1 case is left alone, on 4 lines") */
   await page.goto(
     `/review?case=${encodeURIComponent('none:parts:TRAILER PARTS - Trailer Plugs:zero')}`,
   )
@@ -260,7 +261,7 @@ test('a decision kept in another room is counted under Decided elsewhere, with w
     .getByTestId('manage-elsewhere')
     .locator('.mg-decided')
     .filter({ hasText: 'Left alone on Review' })
-  await expect(left.locator('.mg-decided__count')).toHaveText('1 finding')
+  await expect(left.locator('.mg-decided__count')).toHaveText('4 findings')
   await expect(left.locator('.mg-decided__last')).toHaveText(
     /^Last by Asaf, today at \d{1,2}:\d{2}\s?[ap]m$/,
   )

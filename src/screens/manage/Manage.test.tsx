@@ -155,6 +155,13 @@ describe('who prepares it', () => {
       'Somebody has to be able to change prices and settings, and this is the last person who may.',
     )
     expect(catalogue.getState().org?.people?.[0]?.mayChange).toBeUndefined()
+    /* said on the card whose switch it refuses, under that switch, never at the head of People */
+    const alert = screen.getByRole('alert')
+    const card = screen
+      .getByRole('switch', { name: 'May change prices and settings' })
+      .closest('.mg-person')
+    expect(card).not.toBeNull()
+    expect(card?.contains(alert)).toBe(true)
   })
 })
 
