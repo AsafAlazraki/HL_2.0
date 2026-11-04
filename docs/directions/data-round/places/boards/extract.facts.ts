@@ -198,15 +198,13 @@ test('extract', async () => {
                 .map((x) => ({ name: x.name, facts: x.facts, price: x.price, starred: x.starred })),
               trailers: trailers.length,
               trailerOne: fit.trailer?.oneTrailer ?? null,
-              trailerList: trailers
-                .slice(0, 6)
-                .map((x) => ({
-                  name: x.name,
-                  facts: x.facts,
-                  price: x.price,
-                  capacity: x.capacity,
-                  starred: x.starred,
-                })),
+              trailerList: trailers.slice(0, 6).map((x) => ({
+                name: x.name,
+                facts: x.facts,
+                price: x.price,
+                capacity: x.capacity,
+                starred: x.starred,
+              })),
               trailerOnSale: fit.trailer?.onSale ?? null,
               boatWeight: fit.trailer?.boatWeight ?? null,
               lists: fit.lists.map((l) => ({

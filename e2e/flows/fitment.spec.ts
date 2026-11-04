@@ -233,10 +233,16 @@ test('a motor the dealer’s rule refuses is said with the rule’s because, and
   await expect(page.locator('[data-testid="rules"][data-read]')).toBeVisible({ timeout: 30_000 })
   /* the rule goes where what the customer is buying is: under Motors (`rules.spec.ts`'s walk) */
   await page.getByRole('button', { name: 'Write a rule about motors' }).click()
+  /* A list opened from a word: every listbox but the field's strips of marks, which stand on
+     the page. CHANGED 2026-11-05 with the Data round: Rules draws each maker's models as a
+     strip of marks (role listbox, `.hr-field__marks`), so "every listbox is hidden" could no
+     longer hold; the opened list closing is what this ever asserted (`rules.spec.ts` reads
+     it the same way). */
+  const openList = page.locator('[role="listbox"]:not(.hr-field__marks)')
   const choose = async (word: string, choice: RegExp): Promise<void> => {
     await page.getByRole('combobox', { name: word }).click()
-    await page.getByRole('option', { name: choice }).click()
-    await expect(page.getByRole('listbox')).toBeHidden()
+    await openList.getByRole('option', { name: choice }).click()
+    await expect(page.getByRole('listbox').and(openList)).toBeHidden()
   }
   await choose('Which of the boat’s specs', /^steering$/)
   await choose('The boat’s steering', /^tiller\b/)

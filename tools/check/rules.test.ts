@@ -279,6 +279,34 @@ describe('no-ui-selector-outside-ui', () => {
   })
 })
 
+describe('a copy of the built stylesheet is the output of src/ui', () => {
+  const banner = '/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n'
+  test('the copy of the build beside a board is silent, by its banner', () => {
+    expect(
+      noUiSelectorOutsideUi.check({
+        path: 'docs/directions/data-round/data/boards/kit.css',
+        text: banner + '.ui-button{padding:0}',
+      }),
+    ).toHaveLength(0)
+  })
+  test('the same banner inside src/ is still read', () => {
+    expect(
+      noUiSelectorOutsideUi.check({
+        path: 'src/screens/home/home.css',
+        text: banner + '.home .ui-button { padding: 0; }',
+      }),
+    ).toHaveLength(1)
+  })
+  test('a hand-written board stylesheet, with no banner, still fires', () => {
+    expect(
+      noUiSelectorOutsideUi.check({
+        path: 'docs/directions/data-round/places/boards/board.css',
+        text: '.find .ui-kbd { flex: none; }',
+      }),
+    ).toHaveLength(1)
+  })
+})
+
 /** The lines `movement-is-asked-for` refuses in a kit stylesheet. */
 const kit = (text: string) =>
   movementIsAskedFor.check({ path: 'src/ui/button.css', text }).map((f) => f.line)

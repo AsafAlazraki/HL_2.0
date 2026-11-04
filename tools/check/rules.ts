@@ -412,6 +412,20 @@ function propOf(f: SourceFile, d: { line: number }): string {
 // ---- 4. no .ui- selector outside src/ui --------------------------------------------
 
 /**
+ * A COPY OF THE APP'S OWN BUILT STYLESHEET IS src/ui'S OUTPUT, NOT A SCREEN REACHING IN.
+ *
+ * The Data round's direction boards draw in the kit's real classes by linking the built
+ * stylesheet, copied beside them as `docs/directions/data-round/<room>/boards/kit.css`. Every
+ * `.ui-` selector in it was written in src/ui and compiled; measured 2026-11-05, those copies
+ * were 1,821 of the gate's 1,822 failures and none of them was a screen styling a primitive.
+ * Recognised by the compiler's own banner on the first line, and never inside src/, so a
+ * hand-written board stylesheet or a screen's own CSS is read exactly as before.
+ */
+const BUILT_BANNER = /^\/\*! tailwindcss /
+export const isBuiltCopy = (f: SourceFile): boolean =>
+  !f.path.startsWith('src/') && BUILT_BANNER.test(f.text)
+
+/**
  * The mechanical half of "a primitive refuses className and style". The TypeScript half is
  * each primitive's props; this is the one the old app needed and did not have — ten feature
  * stylesheets reached into primitive internals through parent selectors, so a primitive
@@ -421,12 +435,14 @@ export const noUiSelectorOutsideUi: Rule = {
   name: 'no-ui-selector-outside-ui',
   applies: (p) => styles(p) && !under('src/ui/')(p),
   check: (f) =>
-    eachLine(
-      stripCssCommentsFile(f),
-      /\.ui-[a-zA-Z0-9-]+/,
-      'no-ui-selector-outside-ui',
-      'only src/ui styles the primitives; a screen draws its own layout around them',
-    ),
+    isBuiltCopy(f)
+      ? []
+      : eachLine(
+          stripCssCommentsFile(f),
+          /\.ui-[a-zA-Z0-9-]+/,
+          'no-ui-selector-outside-ui',
+          'only src/ui styles the primitives; a screen draws its own layout around them',
+        ),
 }
 
 function stripCssCommentsFile(f: SourceFile): SourceFile {

@@ -222,9 +222,6 @@ body {
 .find input::placeholder {
   color: var(--color-ink-3);
 }
-.ui-kbd {
-  flex: none;
-}
 .said {
   font-size: var(--text-sm);
   color: var(--color-ink-reason);
