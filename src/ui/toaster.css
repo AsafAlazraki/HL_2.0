@@ -115,3 +115,18 @@
     line-height: var(--text-xs--line-height);
   }
 }
+
+/* A CARD A SCREEN PUTS BESIDE THE PILL UNDER 1440 (`ToastOptions.position`; Settings at a desk,
+   src/screens/manage/step.ts). The band is the window's half less the pill's (about 337px), so
+   at 1280 it is about 300px: the card is held inside it, 24px clear of the pill and the edge
+   together, in the kit's small size, and stands 8px from the window's top, level with the pill. */
+@media (min-width: 1200px) and (max-width: 1439.98px) {
+  [data-sonner-toaster][data-y-position='top'] {
+    --offset-top: --spacing(2) !important;
+  }
+  [data-sonner-toaster][data-y-position='top'] .ui-toast {
+    max-inline-size: calc(50vw - --spacing(85) - --spacing(6));
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+}

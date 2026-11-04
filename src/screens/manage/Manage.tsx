@@ -16,11 +16,10 @@ import {
   UserIcon,
   UserSwitchIcon,
 } from '@phosphor-icons/react'
-import { Button, Field, Input, Plate, Refusal, Segmented, Toggle, say, undo } from '@/ui'
+import { Button, Field, Input, Plate, Refusal, Segmented, Toggle } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { heldPaperMark, letterheadNow } from '@/app/northside'
 import { Letterhead, type LetterheadLine } from '@/screens/document/Document'
-import { isDone, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { changeOrg, withKey } from '@/domain/catalogue/orgCommands'
 import { newId } from '@/domain/id'
 import type { OrgPerson, OrgProfile, QuoteDef } from '@/domain/model'
@@ -50,10 +49,10 @@ import { MARK_FLOOR } from '@/domain/northside/pixels'
 import { saidRatio } from '@/domain/northside/colour'
 import { quoteTotals } from '@/domain/quote/totals'
 import { money } from '@/domain/money'
-import { catalogue } from '@/state/catalogue'
 import { readMark } from './measure'
 import { DESK, clearOfTheToast, useMedia, useReading, useStuck } from './hooks'
-import { LANDS, Proof, litOf, type Lit } from './Proof'
+import { keep } from './step'
+import { HandLens, LANDS, Proof, litOf, type Lit } from './Proof'
 import { Elsewhere } from './Elsewhere'
 import { Water } from './Water'
 import './manage.css'
@@ -112,24 +111,6 @@ export interface ManageProps {
 /** Said where no price list is open: there is no business to keep details for. */
 export const NOTHING_OPEN =
   'No price list is open on this computer, so there is no business to set details for. Open the Master Price File first.'
-
-/** Apply a settings change; a refusal comes back as its sentence, a kept change as a toast. */
-function keep(command: CatalogueCommand): string | null {
-  const outcome = catalogue.getState().apply(command)
-  if (!isDone(outcome)) return outcome.refused === '' ? null : outcome.refused
-  const eventId = outcome.event.id
-  undo(
-    outcome.said,
-    () => {
-      const back = catalogue.getState().undo(eventId)
-      if (isDone(back)) say(back.said, { id: 'manage-step' })
-      else if (back.refused !== '') say(back.refused, { id: 'manage-step' })
-    },
-    { id: 'manage-step', testId: 'manage-step' },
-  )
-  clearOfTheToast()
-  return null
-}
 
 /** AN EDITOR OPENED STANDS CLEAR OF THE FOOT, where the Undo of the last step may still stand (the
  *  judge, P3: at 390 it covered the person editor's Email field) */
@@ -205,6 +186,7 @@ export function Manage({ place = NOWHERE, onPlace, onChangeDesk, go }: ManagePro
   const given = useMemo(() => quotes.filter((q) => q.state !== 'draft').length, [quotes])
   const last = lastSaid(stamps, new Date())
   const reading = useReading(PART_IDS, '.mg-index', open && !desk)
+  useClearOnEveryPress(desk)
 
   return (
     <main
@@ -280,6 +262,26 @@ export function Manage({ place = NOWHERE, onPlace, onChangeDesk, go }: ManagePro
       {open ? <Elsewhere {...(go ? { go } : {})} /> : null}
     </main>
   )
+}
+
+/**
+ * IN A HAND, ANY PRESS WHILE A STEP'S UNDO STANDS IS BROUGHT CLEAR OF IT, with the controls of its
+ * own part, not only the press that kept the step (the verifier of Settings, round 2: a photograph
+ * staged right after a kept colour left the Undo over the third row of photographs at 390, and
+ * over the colour field and Pick at 834). At a desk the Undo stands beside the pill, over nothing.
+ */
+function useClearOnEveryPress(desk: boolean): void {
+  useEffect(() => {
+    if (desk || typeof document === 'undefined') return
+    const pressed = (e: Event): void => {
+      if (!document.querySelector('[data-sonner-toast]')) return
+      const at = e.target instanceof Element ? e.target : null
+      const control = at?.closest('.mg button, .mg a[href], .mg input, .mg textarea, .mg label')
+      if (control) clearOfTheToast(control)
+    }
+    document.addEventListener('click', pressed)
+    return () => document.removeEventListener('click', pressed)
+  }, [desk])
 }
 
 /**
@@ -457,6 +459,8 @@ function Paper({
   const lit = setting ?? kept
   /* where the line being set lands on the pages, said under its field where the pages are drawn */
   const lands = draft && desk && setting ? LANDS[setting] : null
+  /* in a hand, the same line seen where it lands, under its own field (the verifier, round 2) */
+  const lens = draft && !desk && setting ? <HandLens draft={draft} lit={setting} /> : null
   const done = (): void => {
     setKept(setting)
     move({})
@@ -514,7 +518,13 @@ function Paper({
         </div>
         {inStrip && opened ? (
           opened === 'mark' ? (
-            <MarkEditor org={org} held={held !== null} close={() => move({})} done={done} />
+            <MarkEditor
+              org={org}
+              held={held !== null}
+              close={() => move({})}
+              done={done}
+              lens={lens}
+            />
           ) : (
             <LineEditor
               key={opened}
@@ -522,6 +532,7 @@ function Paper({
               org={org}
               business={business}
               lands={lands}
+              lens={lens}
               close={() => move({})}
               done={done}
             />
@@ -573,6 +584,7 @@ function Paper({
                       org={org}
                       draft={draft}
                       lands={lands}
+                      lens={lens}
                       close={() => move({})}
                       done={done}
                     />
@@ -583,6 +595,7 @@ function Paper({
                       org={org}
                       business={business}
                       lands={lands}
+                      lens={lens}
                       close={() => move({})}
                       done={done}
                     />
@@ -601,6 +614,7 @@ function Paper({
         place={place}
         move={move}
         lands={lands}
+        lens={lens}
         done={done}
         {...(changeDesk ? { changeDesk } : {})}
       />
@@ -729,6 +743,7 @@ function LineEditor({
   lands,
   close,
   done,
+  lens,
 }: {
   which: DetailKey
   org: OrgProfile | undefined
@@ -737,6 +752,8 @@ function LineEditor({
   close: () => void
   /** closes it once a change is kept */
   done: () => void
+  /** in a hand, the pages’ lens onto the line being set, drawn under the field (Proof.tsx) */
+  lens?: ReactNode
 }) {
   const line = DETAIL_LINES[which]
   const was = which === 'name' ? (org?.name ?? business ?? '') : detailText(org, which)
@@ -820,6 +837,7 @@ function LineEditor({
           Close
         </Button>
       </div>
+      {lens}
     </form>
   )
 }
@@ -845,12 +863,15 @@ function DepositEditor({
   lands,
   close,
   done,
+  lens,
 }: {
   org: OrgProfile | undefined
   draft: QuoteDef | null
   lands: string | null
   close: () => void
   done: () => void
+  /** in a hand, the pages’ lens onto the line being set, drawn under the field (Proof.tsx) */
+  lens?: ReactNode
 }) {
   const rule = org?.depositRule
   const [way, setWay] = useState<DepositWay>(depositWayOf(rule))
@@ -961,6 +982,7 @@ function DepositEditor({
           Close
         </Button>
       </div>
+      {lens}
     </form>
   )
 }
@@ -974,11 +996,14 @@ function MarkEditor({
   held,
   close,
   done,
+  lens,
 }: {
   org: OrgProfile | undefined
   held: boolean
   close: () => void
   done: () => void
+  /** in a hand, the pages’ lens onto the line being set, drawn under the field (Proof.tsx) */
+  lens?: ReactNode
 }) {
   const [refused, setRefused] = useState<string | null>(null)
   const [reading, setReading] = useState(false)
@@ -1093,6 +1118,7 @@ function MarkEditor({
           Close
         </Button>
       </div>
+      {lens}
     </fieldset>
   )
 }
@@ -1108,10 +1134,12 @@ function People({
   place,
   move,
   lands,
+  lens,
   done,
   changeDesk,
 }: {
   changeDesk?: () => void
+  lens?: ReactNode
   org: OrgProfile | undefined
   who: string | null
   quotes: readonly QuoteDef[]
@@ -1160,6 +1188,7 @@ function People({
                 person={person}
                 people={people}
                 lands={lands}
+                lens={lens}
                 close={() => move({})}
                 done={done}
               />
@@ -1238,6 +1267,7 @@ function People({
               start={atDoor ?? ''}
               people={people}
               lands={lands}
+              lens={lens}
               close={() => move({})}
               done={done}
             />
@@ -1300,17 +1330,33 @@ function PersonCard({
           Change
         </Button>
       </div>
-      {refused ? (
-        <p className="mg-editor__refused mg-person__refused" role="alert">
-          <Refusal>{refused}</Refusal>
-        </p>
-      ) : null}
+      {refused ? <SaidInView key={refused}>{refused}</SaidInView> : null}
       <p className="mg-person__may">
         {may
           ? 'Writes and gives quotes, and may change a price, the price list and these settings.'
           : 'Writes and gives quotes; changes no price and no setting.'}
       </p>
     </Plate>
+  )
+}
+
+/**
+ * A SWITCH'S REFUSAL, BROUGHT WHOLLY INTO VIEW WHERE IT IS SAID: it stands under the switch it
+ * refuses, and a switch near the window's foot left it cut there (the verifier of Settings, round
+ * 2: at 1440 the switch at 771-801 and its sentence at 845-903 in a window 900 tall).
+ */
+function SaidInView({ children }: { children: string }) {
+  const box = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    const el = box.current
+    if (!el || typeof el.scrollIntoView !== 'function') return
+    const frame = requestAnimationFrame(() => el.scrollIntoView({ block: 'nearest' }))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+  return (
+    <p ref={box} className="mg-editor__refused mg-person__refused" role="alert">
+      <Refusal>{children}</Refusal>
+    </p>
   )
 }
 
@@ -1321,6 +1367,7 @@ function PersonEditor({
   lands,
   close,
   done,
+  lens,
 }: {
   person: OrgPerson | null
   start?: string
@@ -1328,6 +1375,8 @@ function PersonEditor({
   lands: string | null
   close: () => void
   done: () => void
+  /** in a hand, the pages’ lens onto the line being set, drawn under the field (Proof.tsx) */
+  lens?: ReactNode
 }) {
   const [name, setName] = useState(person?.name ?? start)
   const [title, setTitle] = useState(person?.title ?? '')
@@ -1459,6 +1508,7 @@ function PersonEditor({
           Close
         </Button>
       </div>
+      {lens}
     </form>
   )
 }

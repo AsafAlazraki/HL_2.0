@@ -589,6 +589,9 @@
 }
 .mg-person__refused {
   margin-block-start: --spacing(2);
+  /* brought into view clear of the pill or the tab bar (Manage.tsx, `SaidInView`) */
+  scroll-margin-block: calc(var(--shell-inset) + --spacing(4))
+    calc(var(--shell-foot) + --spacing(6));
 }
 .mg-person__may {
   margin: --spacing(2) 0 0;
@@ -645,6 +648,47 @@
   font-weight: 700;
   color: var(--color-neutral-950);
 }
+/* A LENS: a window onto the pages, magnified onto the lit part (Proof.tsx, `Pages`); the slide is
+   placed and scaled from its own top-left corner, and the window keeps the paper's grey round a
+   page smaller than it */
+.mg-proof-lens[data-lens] .mg-proof {
+  overflow: hidden;
+  justify-items: start;
+  border-radius: var(--radius-glyph);
+  background: var(--color-neutral-100);
+}
+.mg-proof-lens[data-lens] .mg-proof__slide {
+  transform-origin: 0 0;
+}
+/* A LENS SHOWS THE PAGE THE LINE LANDS ON, and the other page is not drawn at all: magnified, it
+   ran far past the window, unseen but still standing over the photographs below the paper */
+.mg-proof-lens[data-lens]
+  .mg-proof:is(
+    [data-lit='letterhead'],
+    [data-lit='valid'],
+    [data-lit='gst'],
+    [data-lit='deposit'],
+    [data-lit='by']
+  )
+  .doc-page:not(:first-of-type),
+.mg-proof-lens[data-lens]
+  .mg-proof:is([data-lit='terms'], [data-lit='name'])
+  .doc-page:not(:last-of-type) {
+  visibility: hidden;
+}
+/* IN A HAND, UNDER THE FIELD THAT SETS IT, a window about a quarter of the window's height */
+.mg-proof-lens--hand {
+  padding-block-start: --spacing(1);
+}
+.mg-proof-lens--hand .mg-proof {
+  block-size: clamp(--spacing(36), 24dvh, --spacing(56));
+  box-shadow: inset 0 0 0 1px var(--day-rule);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mg-proof-lens--hand .mg-proof__slide {
+    transition: transform var(--duration-sheet) var(--ease-out);
+  }
+}
 /* THE PAGES THEMSELVES: the document's own sheaf, small (its zoom is worked from this frame's
    width in Proof.tsx), with its room, chrome and margins taken away and its middle pages left out */
 .mg-proof {
@@ -677,7 +721,7 @@
 /* THE LINE BEING SET, LIT WHERE IT LANDS: an amber ring around the part of the page it prints in */
 .mg-proof[data-lit]
   :is(
-    .doc-cover__mast,
+    .doc-cover__who,
     .doc-money__sum,
     .doc-money__by,
     .doc-terms,
@@ -687,7 +731,7 @@
   border-radius: var(--radius-glyph);
   outline-offset: --spacing(1.5);
 }
-.mg-proof[data-lit='letterhead'] .doc-page:first-of-type .doc-cover__mast,
+.mg-proof[data-lit='letterhead'] .doc-page:first-of-type .doc-cover__who,
 .mg-proof[data-lit='valid'] .doc-page:first-of-type .doc-cover__valid,
 .mg-proof[data-lit='gst'] .doc-page:first-of-type .doc-money__sum,
 .mg-proof[data-lit='deposit'] .doc-page:first-of-type .doc-money__sum,
@@ -1345,10 +1389,12 @@
 }
 
 /* ---- decided elsewhere: the rest of the index, at the page's end ---- */
+/* THE PAGE'S END KEEPS ROOM FOR A STEP'S UNDO (48px over 16px of air) above the foot, so the last
+   doors can always be scrolled clear of it (the verifier of Settings, round 2) */
 .mg-elsewhere {
   display: grid;
   gap: --spacing(4);
-  padding: --spacing(8) var(--gutter) max(--spacing(10), calc(var(--shell-foot) + --spacing(6)));
+  padding: --spacing(8) var(--gutter) calc(var(--shell-foot) + --spacing(20));
   background: var(--color-paper);
   border-block-start: 1px solid var(--day-rule);
   scroll-margin-block-start: calc(var(--shell-inset) + --spacing(14));
@@ -1527,9 +1573,10 @@
 /* A DESK: THE TWO HALVES SIDE BY SIDE, THE SEAM FROM HEAD TO FOOT, AND THE PILL ON IT */
 @media (min-width: 1200px) {
   /* THE SEAM FROM THE PAGE'S HEAD TO ITS FOOT: "Decided elsewhere" ends the paper's column, and the
-     water runs beside it to the page's end, so the stage stands at the window's head until the
-     very foot and is never left cut under the pill there (the verifier, 1280: the stage rested at
-     y −37 to 330 at the foot while "Decided elsewhere" spanned both halves under it) */
+     water runs beside it to the page's end, so the stage is never left cut under the pill there
+     (the verifier, 1280: the stage rested at y −37 to 330 at the foot while "Decided elsewhere"
+     spanned both halves under it); it stands while its choices pass and leaves once they have
+     (`data-rest`, below) */
   .mg {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1576,15 +1623,24 @@
   }
   /* FIVE AND FIVE: the ten words in two even rows at every desk, never eight and a lonely two
      (the verifier, 1440: Shape and Elsewhere alone on the second row) */
+  /* EACH COLUMN SHARES THE ROW EVENLY AND EACH WORD FILLS ITS COLUMN, so the gaps between the words
+     are one gap in both rows (the verifier, round 2: columns sized by the first row left Mark to
+     Home 104 px apart at 1440, against 4 px elsewhere) */
   .mg-index__list {
     display: grid;
-    grid-template-columns: repeat(5, max-content);
+    grid-template-columns: repeat(5, minmax(max-content, 1fr));
+    gap: --spacing(2);
     max-inline-size: var(--measure);
     padding: 0;
     overflow: visible;
     mask-image: none;
   }
+  .mg-index__list > li {
+    display: grid;
+  }
   .mg-index__to {
+    justify-content: center;
+    padding-inline: --spacing(2.5);
     color: var(--color-neutral-100);
     box-shadow: inset 0 0 0 1px var(--color-rule);
   }
@@ -1635,6 +1691,24 @@
   .mg-stage-wrap[data-stuck] {
     border-start-start-radius: 0;
     border-start-end-radius: 0;
+    /* a shoulder of its own navy round it, so a chosen card's ring passing under it never shows
+       beside its rounded foot */
+    box-shadow:
+      0 0 0 1px var(--color-rule),
+      0 0 0 --spacing(2) var(--color-blue-950),
+      var(--shadow-toast);
+  }
+  /* ITS LOWER EDGE FADES INTO THE WATER WHILE IT STANDS, so a choice passing under it dissolves
+     rather than standing sliced at the plate's edge (the verifier, round 2: headings and cards cut
+     hard at y 447-460) */
+  .mg-stage-wrap[data-stuck]::after {
+    content: '';
+    position: absolute;
+    inset-inline: calc(-1 * --spacing(2));
+    inset-block-start: 100%;
+    block-size: --spacing(8);
+    pointer-events: none;
+    background: linear-gradient(to bottom, var(--color-blue-950), transparent);
   }
   .mg-stage-wrap[data-stuck]::before {
     content: '';
@@ -1683,14 +1757,21 @@
   .mg-dock[data-docks] {
     inset-block-end: --spacing(4);
   }
-  /* WHERE THE STAGE COMES TO REST: a standing element stays inside its half, so at the half's end
-     it would stand over the last choices and the dock; the half keeps the stage's own height
-     after them, and the stage rests there, under everything it stood beside */
-  .mg-water::after {
-    content: '';
-    flex: none;
-    block-size: var(--mg-stage, 0px);
-    margin-block-start: calc(-1 * --spacing(4));
+  /* WHERE THE STAGE COMES TO REST (the verifier, round 2: the half kept the stage's own height
+     after its choices for it to rest on, but the page never scrolled that far, so at the foot it
+     stood over Shape with 353 to 460 px of empty navy under it). It stands beside its choices,
+     Colour to Home; once Home has passed wholly under it (`useRest`, hooks.ts) it leaves the
+     window's head upward and Shape, which draws its own specimen, is read whole. It comes back
+     the moment any of Home is under it again. */
+  .mg-stage-wrap[data-rest] {
+    translate: 0 calc(-100% - var(--shell-inset) - --spacing(6));
+    opacity: 0;
+    visibility: hidden;
+  }
+  /* SHAPE IS LANDED UNDER THE PILL ALONE: the stage has left by the time it is read */
+  .mg-water #mg-shape-g,
+  .mg-water #mg-shape-g * {
+    scroll-margin-block-start: calc(var(--shell-inset) + --spacing(6));
   }
   /* "Decided elsewhere" ends the paper's column, its content against the seam as the paper's is */
   .mg-elsewhere {
@@ -1726,16 +1807,26 @@
   }
   .mg-proof-lens[data-lens] .mg-proof {
     block-size: var(--mg-lens);
-    overflow: hidden;
-    /* the page in the middle of its window, wherever the window is wider than two thirds of A4 */
-    justify-items: center;
-    border-radius: var(--radius-glyph);
-    background: var(--color-neutral-100);
   }
 }
 @media (min-width: 1200px) and (prefers-reduced-motion: no-preference) {
   .mg-proof__slide {
     transition: transform var(--duration-sheet) var(--ease-out);
+  }
+  /* THE STAGE LEAVES QUICKLY AND COMES BACK AT AN ENTRANCE'S PACE: it slides up over what it stood
+     beside as it goes, so it is gone inside an exit's 140ms rather than a sheet's 300ms; with
+     reduced motion it is simply gone and back */
+  .mg-stage-wrap {
+    transition:
+      translate var(--duration-enter) var(--ease-out),
+      opacity var(--duration-enter) var(--ease-out),
+      visibility 0s linear 0s;
+  }
+  .mg-stage-wrap[data-rest] {
+    transition:
+      translate var(--duration-exit) var(--ease-out),
+      opacity var(--duration-press) var(--ease-out),
+      visibility 0s linear var(--duration-exit);
   }
 }
 @media (min-width: 1680px) {

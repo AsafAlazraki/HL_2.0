@@ -129,6 +129,12 @@ export interface ToastOptions {
   id?: string
   /** a handle a test finds the card by */
   testId?: string
+  /**
+   * WHERE THIS CARD STANDS, where a screen knows a better place than the toaster's own: Settings
+   * at a desk puts its steps' cards in the band beside the pill, because the corner stands over
+   * the live controls of whichever half was not pressed (the verifier of Settings, round 2).
+   */
+  position?: 'top-right' | 'bottom-right'
 }
 
 /* ============================================================
@@ -223,6 +229,7 @@ function show(said: Said, duration: number, options?: ToastOptions): string | nu
     onAutoClose: forget,
     ...(ownId === undefined ? {} : { id: ownId }),
     ...(options?.testId === undefined ? {} : { testId: options.testId }),
+    ...(options?.position === undefined ? {} : { position: options.position }),
   })
   raisedAt.set(id, { where: hereNow(), saying })
   return id

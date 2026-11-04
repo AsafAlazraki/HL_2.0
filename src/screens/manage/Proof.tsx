@@ -3,6 +3,7 @@ import { FileTextIcon, PlusIcon } from '@phosphor-icons/react'
 import { Button } from '@/ui'
 import type { QuoteDef } from '@/domain/model'
 import { Document } from '@/screens/document/Document'
+import { lensPlace, type Placed } from '@/domain/northside/lens'
 
 /* ============================================================
    THE QUOTE THESE PRINT ON — the judge of Settings, 2026-11-04, L1:
@@ -19,9 +20,12 @@ import { Document } from '@/screens/document/Document'
    between carry the items, which are not Settings', so they are left
    out and said. The line being set is lit where it lands.
 
-   IN A HAND, A DOOR. An A4 page drawn at a phone's width is type at
-   five pixels (the document's own reason for its column under 826px),
-   so the same pages open on their own address, full size.
+   IN A HAND, A DOOR, AND A LENS WHILE A LINE IS SET. An A4 page drawn
+   at a phone's width is type at five pixels (the document's own reason
+   for its column under 826px), so the whole pages open on their own
+   address, full size; but the line being set is seen where it lands
+   without leaving Settings, through a lens under its own field onto
+   the lit part alone (`HandLens`, the verifier of Settings, round 2).
 
    WHILE A LINE IS SET, THE PAGES STAND AT THE WINDOW'S FOOT (the verifier
    of Settings, 2026-11-04, J12: with the deposit open at 1440 the lit sum
@@ -42,10 +46,15 @@ const PAGE_PX = 793.7
 /** THE LARGEST THE PAGES ARE DRAWN AT: about two thirds, where the cover's type still reads and two
  *  pages stand about as tall as the water beside them (measured at 1440 × 900) */
 const MOST = 0.66
+/** the air a lens keeps round the lit part, on each side, in the window's pixels */
+const AIR = 16
+/** the least of its printed size a lens draws a part wider than its window at, as a share */
+const LEGIBLE = 0.75
 
 /** Where on the pages each lit line is, as the document draws it. */
 const LIT_AT: Record<Lit, string> = {
-  letterhead: '.doc-page:first-of-type .doc-cover__mast',
+  /* the mark and the contact line under it, not the stamp across from them */
+  letterhead: '.doc-page:first-of-type .doc-cover__who',
   valid: '.doc-page:first-of-type .doc-cover__valid',
   gst: '.doc-page:first-of-type .doc-money__sum',
   deposit: '.doc-page:first-of-type .doc-money__sum',
@@ -182,15 +191,35 @@ export function Proof({
 }
 
 /**
+ * IN A HAND, THE LINE BEING SET IS SEEN WHERE IT LANDS WITHOUT LEAVING SETTINGS (the verifier of
+ * Settings, round 2: in a hand the pages were only a door). A whole A4 page at a phone's width is
+ * type at five pixels, so the lens draws the lit part alone, as large as its window holds it and
+ * never larger than it prints, under the field that sets it.
+ */
+export function HandLens({ draft, lit }: { draft: QuoteDef; lit: Lit }) {
+  return (
+    <div className="mg-proof-lens mg-proof-lens--hand" data-lens="" data-testid="manage-hand-lens">
+      <p className="mg-proof-lens__say">
+        <b>{draft.reference}</b> {LANDS[lit]}
+      </p>
+      <Pages quoteId={draft.id} lit={lit} lens />
+    </div>
+  )
+}
+
+/**
  * The pages, drawn by the document, at the width of the paper's half. As a lens, a window of a
- * fixed height (manage.css, `--mg-lens`) onto them, slid so the lit part stands in its middle, as
- * near as the pages' own ends allow.
+ * fixed height onto them that MAGNIFIES (the verifier of Settings, round 2: drawn at 0.66 the lit
+ * Prepared by, the terms and the deposit read at about 7 px, and at 1920 the page stood 524 px
+ * wide in a 736 px plate): the lit part is drawn as large as the window holds it with air round
+ * it, never larger than it prints and never smaller than the pages are drawn, and slid to the
+ * window's middle, as near as the pages' own edges allow.
  */
 function Pages({ quoteId, lit, lens }: { quoteId: string; lit: Lit | null; lens: boolean }) {
   const frame = useRef<HTMLDivElement>(null)
   const slide = useRef<HTMLDivElement>(null)
   const [k, setK] = useState(MOST)
-  const [y, setY] = useState(0)
+  const [at, setAt] = useState<Placed>({ x: 0, y: 0, s: 1 })
   useEffect(() => {
     const el = frame.current
     if (!el || typeof ResizeObserver === 'undefined') return
@@ -210,19 +239,39 @@ function Pages({ quoteId, lit, lens }: { quoteId: string; lit: Lit | null; lens:
          head of its page */
       const own = pages.querySelector(LIT_AT[lit])
       const part = own ?? pages.querySelector(LIT_AT[lit].split(' ')[0] ?? '.doc-page')
-      if (!part) return
+      if (!part || pages.offsetWidth === 0) return
       const whole = pages.getBoundingClientRect()
-      const at = part.getBoundingClientRect()
-      const room = port.clientHeight
-      const want = own ? at.top - whole.top - (room - at.height) / 2 : at.top - whole.top
-      setY(Math.round(Math.max(0, Math.min(whole.height - room, want))))
+      /* measured in the slide's own pixels, whatever it is scaled to now */
+      const now = whole.width / pages.offsetWidth || 1
+      const box = part.getBoundingClientRect()
+      /* THE PAGE IT LANDS ON IS THE LENS'S WHOLE: the other is not drawn (manage.css), so the
+         window never runs on past this page's foot into the grey */
+      const sheet = (part.closest('.doc-page') ?? pages).getBoundingClientRect()
+      const top = (sheet.top - whole.top) / now
+      const placed = lensPlace({
+        part: {
+          x: (box.left - whole.left) / now,
+          y: (box.top - sheet.top) / now,
+          w: box.width / now,
+          h: box.height / now,
+        },
+        own: own !== null,
+        pages: { w: pages.offsetWidth, h: sheet.height / now },
+        port: { w: port.clientWidth, h: port.clientHeight },
+        drawn: k,
+        air: AIR,
+        legible: LEGIBLE,
+      })
+      const next = { ...placed, y: Math.round(placed.y - top * placed.s) }
+      setAt((was) => (was.x === next.x && was.y === next.y && was.s === next.s ? was : next))
     }
     place()
     if (typeof ResizeObserver === 'undefined') return
     const watch = new ResizeObserver(place)
     watch.observe(pages)
+    watch.observe(port)
     return () => watch.disconnect()
-  }, [lens, lit])
+  }, [lens, lit, k])
   return (
     <div
       className="mg-proof"
@@ -235,7 +284,17 @@ function Pages({ quoteId, lit, lens }: { quoteId: string; lit: Lit | null; lens:
       <div
         className="mg-proof__slide"
         ref={slide}
-        style={lens ? { transform: `translateY(${String(-y)}px)` } : undefined}
+        /* AS A LENS IT IS A MAGNIFIED PICTURE OF ONE PART OF A PAGE, said in words above it; the
+           rest of the page runs on past the window unseen, so none of it is read as the screen's
+           own text (the document's own text is read on the document) */
+        aria-hidden={lens ? true : undefined}
+        style={
+          lens
+            ? {
+                transform: `translate(${String(at.x)}px, ${String(at.y)}px) scale(${String(at.s)})`,
+              }
+            : undefined
+        }
       >
         <div className="mg-proof__in" style={{ zoom: k }}>
           <Document quoteId={quoteId} proof />

@@ -128,14 +128,67 @@ export function useStuck(el: HTMLElement | null, on: boolean): void {
     read()
     window.addEventListener('scroll', soon, { passive: true })
     window.addEventListener('resize', soon)
+    /* AND AGAIN WHEN IT HAS MOVED BY ITSELF: coming back from rest it slides down with no scroll
+       under it, and a reading taken mid-slide left it unstuck at its top, its band and fade gone */
+    el.addEventListener('transitionend', soon)
     return () => {
       if (frame !== 0) cancelAnimationFrame(frame)
       window.removeEventListener('scroll', soon)
       window.removeEventListener('resize', soon)
+      el.removeEventListener('transitionend', soon)
       el.removeAttribute('data-stuck')
     }
   }, [el, on])
 }
+
+/**
+ * WHERE A STANDING ELEMENT COMES TO REST: once the last part it stands beside (`lastId`) has passed
+ * wholly under it, it has nothing left to stand beside, and it is written `data-rest` so it leaves
+ * the window's head (manage.css) and what follows that part is read whole (the verifier of
+ * Settings, round 2: at the page's foot the stage stood over Shape, the last part of the water,
+ * with empty navy kept for it below). Read off the part's own place, so it comes back the moment
+ * any of that part is below it again.
+ */
+export function useRest(el: HTMLElement | null, lastId: string, on: boolean): void {
+  useEffect(() => {
+    if (!el || typeof window === 'undefined') return
+    if (!on) {
+      el.removeAttribute('data-rest')
+      return
+    }
+    let frame = 0
+    const read = (): void => {
+      frame = 0
+      const last = document.getElementById(lastId)
+      const style = getComputedStyle(el)
+      if (!last || style.position !== 'sticky') {
+        el.removeAttribute('data-rest')
+        return
+      }
+      const top = parseFloat(style.top)
+      const standsTo = (Number.isFinite(top) ? top : 0) + el.offsetHeight
+      el.toggleAttribute('data-rest', last.getBoundingClientRect().bottom < standsTo)
+    }
+    const soon = (): void => {
+      if (frame === 0) frame = requestAnimationFrame(read)
+    }
+    read()
+    window.addEventListener('scroll', soon, { passive: true })
+    window.addEventListener('resize', soon)
+    const watch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(soon)
+    watch?.observe(document.body)
+    return () => {
+      if (frame !== 0) cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', soon)
+      window.removeEventListener('resize', soon)
+      watch?.disconnect()
+      el.removeAttribute('data-rest')
+    }
+  }, [el, lastId, on])
+}
+
+/** the press a clearing waits two frames to measure for, while one is on its way */
+let clearing: HTMLElement | null = null
 
 /**
  * THE CONTROL JUST PRESSED, AND THE CONTROLS OF ITS OWN PART, STAND CLEAR OF THE UNDO IT RAISED:
@@ -146,42 +199,59 @@ export function useStuck(el: HTMLElement | null, on: boolean): void {
  * window's head; nothing moves where nothing is covered. Two frames on, when the toast has its
  * place.
  */
-export function clearOfTheToast(): void {
+export function clearOfTheToast(press?: Element | null): void {
   if (typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') return
-  const pressed = document.activeElement
-  if (!(pressed instanceof HTMLElement) || pressed === document.body) return
+  const at = press ?? document.activeElement
+  if (!(at instanceof HTMLElement) || at === document.body) return
+  /* ONE CLEARING A BEAT: a press that keeps a step asks once from the step and once from the page,
+     and two measured before either scrolled would scroll twice */
+  const waiting = clearing !== null
+  clearing = at
+  if (waiting) return
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
-      if (!pressed.isConnected) return
-      const toasts = [...document.querySelectorAll('[data-sonner-toast]')].map((t) =>
-        t.getBoundingClientRect(),
-      )
-      if (toasts.length === 0) return
-      const part = pressed.closest('.mg-editor, .mg-group, .mg-person') ?? pressed
-      const controls = [
-        pressed,
-        ...part.querySelectorAll<HTMLElement>(
-          'button, input, textarea, select, a[href], [role="switch"], [role="radio"]',
-        ),
-      ]
-      let need = 0
-      for (const c of controls) {
-        const a = c.getBoundingClientRect()
-        if (a.width === 0 || a.height === 0) continue
-        for (const t of toasts)
-          if (a.right > t.left && a.left < t.right && a.bottom > t.top - 8 && a.top < t.bottom)
-            need = Math.max(need, a.bottom - t.top + 16)
-      }
-      if (need <= 0) return
-      /* what stands at the window's head: the pill, the stage or the index while it stands */
-      let roof =
-        parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shell-inset')) ||
-        0
-      for (const head of document.querySelectorAll('[data-stuck]'))
-        roof = Math.max(roof, head.getBoundingClientRect().bottom)
-      const most = pressed.getBoundingClientRect().top - roof - 16
-      const by = Math.min(need, most)
-      if (by > 0) window.scrollBy({ top: by, behavior: 'instant' })
+      const pressed = clearing
+      clearing = null
+      if (!pressed?.isConnected) return
+      clearNow(pressed)
+      /* AND ONCE THE CARD HAS ARRIVED: it rises from below its place for 400ms (Sonner's own
+         entrance), so two frames on it was measured a card's height low and missed what it would
+         cover (the verifier, round 2: Motion's steps under the Undo after a Shape step) */
+      setTimeout(() => {
+        if (pressed.isConnected) clearNow(pressed)
+      }, 450)
     }),
   )
+}
+
+/** The scroll that brings a press and its part's controls clear of the toasts standing now. */
+function clearNow(pressed: HTMLElement): void {
+  const toasts = [...document.querySelectorAll('[data-sonner-toast]')]
+    .map((t) => t.getBoundingClientRect())
+    .filter((t) => t.width > 0 && t.height > 0)
+  if (toasts.length === 0) return
+  const part = pressed.closest('.mg-editor, .mg-group, .mg-person') ?? pressed
+  const controls = [
+    pressed,
+    ...part.querySelectorAll<HTMLElement>(
+      'button, input, textarea, select, a[href], [role="switch"], [role="radio"]',
+    ),
+  ]
+  let need = 0
+  for (const c of controls) {
+    const a = c.getBoundingClientRect()
+    if (a.width === 0 || a.height === 0) continue
+    for (const t of toasts)
+      if (a.right > t.left && a.left < t.right && a.bottom > t.top - 8 && a.top < t.bottom)
+        need = Math.max(need, a.bottom - t.top + 16)
+  }
+  if (need <= 0) return
+  /* what stands at the window's head: the pill, the stage or the index while it stands */
+  let roof =
+    parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shell-inset')) || 0
+  for (const head of document.querySelectorAll('[data-stuck]'))
+    roof = Math.max(roof, head.getBoundingClientRect().bottom)
+  const most = pressed.getBoundingClientRect().top - roof - 16
+  const by = Math.min(need, most)
+  if (by > 0) window.scrollBy({ top: by, behavior: 'instant' })
 }

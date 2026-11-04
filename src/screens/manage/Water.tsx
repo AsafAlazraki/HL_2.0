@@ -6,11 +6,10 @@ import {
   CheckIcon,
   UploadSimpleIcon,
 } from '@phosphor-icons/react'
-import { Button, Field, Input, Refusal, Segmented, Tile, Toggle, say, undo } from '@/ui'
+import { Button, Field, Input, Refusal, Segmented, Tile, Toggle } from '@/ui'
 import { usePrefs, useCatalogue, useSession } from '@/app/useStores'
 import { LOOK_PREF } from '@/app/appearance'
 import { markInkOf } from '@/app/northside'
-import { isDone, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { changeOrg, withKey } from '@/domain/catalogue/orgCommands'
 import type {
   HomeSection,
@@ -54,11 +53,11 @@ import { priceFileOf } from '@/domain/catalogue/priceFile'
 import { everyPhotographed, markFor, type Photographed } from '@/screens/home/ledgers'
 import { greetingFor } from '@/screens/home/Home'
 import { packMark } from '@/screens/home/mark'
-import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
 import { boatNamed } from '@/domain/northside/boatNamed'
 import { readMark, useSourceColour, useVeils } from './measure'
-import { DESK, clearOfTheToast, useHeightOnRoot, useMedia, useStuck } from './hooks'
+import { DESK, useHeightOnRoot, useMedia, useRest, useStuck } from './hooks'
+import { keep, sayStep } from './step'
 
 /* ============================================================
    THE WATER — what shows on every screen at Northside, measured on the
@@ -81,23 +80,6 @@ interface Staged {
 
 /** The sign-in page's own photograph, as it was designed (src/screens/entry/Entry.tsx). */
 const DOOR_DESIGNED = 'stacer-481-seamaster'
-
-function keep(command: CatalogueCommand): string | null {
-  const outcome = catalogue.getState().apply(command)
-  if (!isDone(outcome)) return outcome.refused === '' ? null : outcome.refused
-  const eventId = outcome.event.id
-  undo(
-    outcome.said,
-    () => {
-      const back = catalogue.getState().undo(eventId)
-      if (isDone(back)) say(back.said, { id: 'manage-step' })
-      else if (back.refused !== '') say(back.refused, { id: 'manage-step' })
-    },
-    { id: 'manage-step', testId: 'manage-step' },
-  )
-  clearOfTheToast()
-  return null
-}
 
 const lookWith = (o: OrgProfile, patch: Partial<OrgLook>): OrgProfile => {
   const look: OrgLook = { ...o.look }
@@ -124,7 +106,11 @@ export function Water({ open }: { open: boolean }) {
   useHeightOnRoot(stageBox, '--mg-stage')
   /* at a desk the stage stands at the window's head, and while it stands there the band above it
      is the stage's own ground, never a slice of the choices passing under the pill */
-  useStuck(stageBox, useMedia(DESK))
+  const desk = useMedia(DESK)
+  useStuck(stageBox, desk)
+  /* AND IT COMES TO REST ONCE ITS LAST CHOICE, HOME'S, HAS PASSED UNDER IT: Shape draws its own
+     specimen, so it is read whole with the stage gone from the window's head */
+  useRest(stageBox, 'mg-home-arrange', desk)
 
   const boats = useMemo(() => (open ? everyPhotographed(tables, rows) : []), [open, tables, rows])
   /* the boat makers Home draws as doors, each by its own mark in dark ink where one is held and
@@ -1303,7 +1289,7 @@ function Shape({ look }: { look: OrgLook | undefined }) {
             icon={ArrowUUpLeftIcon}
             onClick={() => {
               prefs.getState().remove(LOOK_PREF)
-              say('Northside’s spacing and motion on this computer again', { id: 'manage-step' })
+              sayStep('Northside’s spacing and motion on this computer again')
             }}
           >
             Use Northside’s
