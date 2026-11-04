@@ -20,6 +20,7 @@ describe('the ways', () => {
       ['cash', 'rig_kits.k'],
       ['trade', 'rig_kits.l'],
       ['fitted', 'rig_kits.ac'],
+      ['fitted-trade', 'rig_kits.ad'],
     ])
     expect(w[1]!.rungs.map((r) => [r.key, r.fieldId])).toEqual([
       ['cash', 'rig_kits.ac'],

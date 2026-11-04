@@ -88,8 +88,8 @@ describe('naming a list’s price', () => {
     expect([cash.label, cash.value]).toEqual(['RRP + Freight Inc GST', 17643])
     /* no cell says what RRP + Freight contains, so nothing is claimed */
     expect(cash.contains).toBeUndefined()
-    /* worked from cost: Northside's only until the dealer lets it reach a customer */
-    expect(frozenMayReach(cash)).toBe(false)
+    /* the recommended retail, not worked from cost on this file (0 of 209): it reaches a customer */
+    expect(frozenMayReach(cash)).toBe(true)
 
     const toSell = run(toRrp.next, namePrice('mot_yamaha', 'cash', sell.id))
     const again = freezeLevels(toSell.next.tables.mot_yamaha!, f90xb.values)[0]!

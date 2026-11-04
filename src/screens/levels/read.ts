@@ -33,7 +33,7 @@
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 import { CASH, ladderOn, priceIn, type LineNoun } from '@/domain/catalogue/priceCommands'
 import { isCostColumn } from '@/domain/quote/pricing'
-import { mayReachCustomer, workedFromCost } from '@/domain/pricing/worked'
+import { mayBeNamed, mayReachCustomer, workedFromCost } from '@/domain/pricing/worked'
 import { checkField, meaningOf, type Checked, type Meaning } from '@/domain/pricing/meaning'
 import { linesAbove, noFigureIn, spreadOf, type Spread } from '@/domain/pricing/spread'
 import { pricedBy, wayChosen, waysFor, type Way } from '@/domain/pricing/ways'
@@ -41,7 +41,8 @@ import type { LineEntry } from '@/domain/pricing/buyers'
 import { countBoats } from '@/domain/quote/boats'
 import { factoryPackage, lineSaid, spokenBoat } from '@/domain/quote/spoken'
 import { nameOnPaper } from '@/domain/quote/paperWords'
-import { onlyToken } from '@/domain/catalogue/table/only'
+import { figureIn, onlyToken } from '@/domain/catalogue/table/only'
+import { readKitGrid, type KitGrid } from '@/domain/pricing/kitGrid'
 import {
   isRetired,
   rowLabel,
@@ -121,6 +122,10 @@ export interface Between {
   more: string
   less: string
   spread: Spread
+  /** THE LINES WHERE THE LARGER FIGURE IS UNDER THE SMALLER, with the door that opens exactly them
+   *  on the sheet (the verifier of Prices, 2026-11-04: Rigging Kits' "Sell Price is 0.02–1.65 ×
+   *  Kit Sell Price" was said with no comment and no door); null where there is none */
+  under: Door | null
 }
 
 /** A DOOR TO THE LINES BEHIND A COUNT: the sheet, asked exactly the lines counted. */
@@ -189,6 +194,9 @@ export type TradeCell =
 export interface WarrantyCell {
   label: string
   priced: number
+  /** what a priced line is, counted: "boats", or "finishes" where the list counts its boats apart
+   *  from its lines (Highfield: 588 finishes of 67 boats) */
+  unit: string
   low: number
   high: number
   /** lines whose Warranty figure is above their Cash */
@@ -224,6 +232,9 @@ export interface Column {
   sub: { label: string; held: number; sameAsTrade: number } | null
   /** the doors to the lines behind each count of no figure */
   doors: { cash: Door[]; trade: Door[]; warranty: Door[] }
+  /** RIGGING KITS' NINE FIGURES, supplied, fitting and fitted by customer, trade and sub-dealer,
+   *  read on the list's sample line (`kitGrid.ts`); null on every other list */
+  kit: KitGrid | null
   /** the cost names on the list(s), Northside's only, never a price */
   costs: string[]
   /** a sample cost column, for the engine's refusal sentence */
@@ -447,9 +458,33 @@ function betweenOf(
   if (tables.length > 1 || fa.fieldId === fb.fieldId) return null
   const ab = spreadOf(rows, fa.fieldId, fb.fieldId)
   if (!ab) return null
-  return ab.median >= 1
-    ? { more: fa.label, less: fb.label, spread: ab }
-    : { more: fb.label, less: fa.label, spread: spreadOf(rows, fb.fieldId, fa.fieldId)! }
+  const [more, less] = ab.median >= 1 ? [fa, fb] : [fb, fa]
+  const spread = ab.median >= 1 ? ab : spreadOf(rows, fb.fieldId, fa.fieldId)!
+  /* counted as the sheet's own question counts it (`only.ts`, "under"), so the door's count is the
+     count the sheet shows */
+  const count = rows.filter((r) => {
+    const x = figureIn(r.values[more.fieldId])
+    const y = figureIn(r.values[less.fieldId])
+    return x !== null && y !== null && x < y
+  }).length
+  const lead = tables[0]!
+  return {
+    more: more.label,
+    less: less.label,
+    spread,
+    under:
+      count > 0
+        ? {
+            tableId: lead.id,
+            href: sheetHref(
+              lead.id,
+              onlyToken({ kind: 'under', fieldId: more.fieldId, than: less.fieldId }),
+            ),
+            count,
+            said: `with ${more.label} under ${less.label}`,
+          }
+        : null,
+  }
 }
 
 /* ---------------------------------------------------------- */
@@ -634,6 +669,7 @@ function warrantyOf(data: Sheet, table: EntityDef): WarrantyCell | null {
   return {
     label: w.label,
     priced,
+    unit: 'boats',
     low: Number.isFinite(low) ? Math.round(low) : 0,
     high: Number.isFinite(high) ? Math.round(high) : 0,
     above: above.length,
@@ -712,7 +748,7 @@ function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
   for (const t of tables)
     for (const f of t.fields)
       /* a price worked from cost is not "never a price": the dealer may name it, above */
-      if (isCostColumn(t, f) && f.type === 'number' && workedFromCost(f) === null) {
+      if (isCostColumn(t, f) && f.type === 'number' && !mayBeNamed(f)) {
         costs.add(f.name)
         costField ??= { table: t, field: f }
       }
@@ -754,6 +790,8 @@ function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
       : null
 
   const fittedField = fittedRung ? lead.fields.find((f) => f.id === fittedRung.fieldId) : undefined
+  const leadRows = data.rows[lead.id] ?? []
+  const kitOn = cash.sample ? (leadRows.find((r) => r.id === cash.sample?.rowId) ?? null) : null
   return {
     id: tables.length > 1 ? `${shelf}:${lead.id}` : lead.id,
     tableIds: tables.map((t) => t.id),
@@ -773,8 +811,13 @@ function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
           meaning: fittedField ? meaningOf(lead, fittedField) : null,
         }
       : null,
-    warranty: shelf === 'boats' ? warrantyOf(data, lead) : null,
+    warranty: (() => {
+      const w = shelf === 'boats' ? warrantyOf(data, lead) : null
+      /* a list counted in models has lines that are its finishes, and Warranty is read per line */
+      return w && models !== null ? { ...w, unit: 'finishes' } : w
+    })(),
     sub,
+    kit: tables.length === 1 ? readKitGrid(lead, leadRows, ladder, kitOn) : null,
     doors: {
       cash: cashRung ? doorsOf(data, tables, cashRung.fieldId) : [],
       trade:
@@ -897,6 +940,8 @@ export interface KeptRange {
   tableId: string
   /** lines holding both figures */
   priced: number
+  /** what those lines are: "boats", or "finishes" */
+  unit: string
   low: number
   high: number
   above: number
@@ -1003,6 +1048,7 @@ export function readDesk(data: Sheet, columns: readonly Column[]): Desk {
         maker: makerOf(data.tables[col.tableIds[0]!]!),
         tableId: col.tableIds[0]!,
         priced: col.warranty!.priced,
+        unit: col.warranty!.unit,
         low: col.warranty!.low,
         high: col.warranty!.high,
         above: col.warranty!.above,
@@ -1167,37 +1213,4 @@ export function lineEntries(data: Sheet, columns: readonly Column[]): LineEntry[
       }
     }
   return out
-}
-
-/* ---------------------------------------------------------- */
-/* Who chose, as far as this browser holds it                  */
-/* ---------------------------------------------------------- */
-
-/** One step the catalogue kept this session: what the store's audit hands a screen. */
-interface Kept0 {
-  kind: string
-  at: string
-  by?: string
-  tableId?: string
-  events?: Kept0[]
-}
-
-const touches = (e: Kept0, ids: ReadonlySet<string>): boolean =>
-  (e.tableId !== undefined && ids.has(e.tableId)) || (e.events ?? []).some((x) => touches(x, ids))
-
-/** WHO LAST CHOSE A LIST'S PRICE AND WHEN, read off the steps this browser kept this session
- *  (the judge of Prices, 2026-11-04, L14). The store keeps a session's steps and no more
- *  (EVENTS_KEPT, src/state/catalogue.ts), so after a reload nothing is said rather than a guess. */
-export function chosenBy(
-  events: readonly Kept0[],
-  tableIds: readonly string[],
-): { by: string; at: string } | null {
-  const ids = new Set(tableIds)
-  for (let i = events.length - 1; i >= 0; i -= 1) {
-    const e = events[i]!
-    if (e.kind !== 'prices-changed' && e.kind !== 'batch' && e.kind !== 'redone') continue
-    if (!touches(e, ids)) continue
-    return { by: e.by ?? '', at: e.at }
-  }
-  return null
 }

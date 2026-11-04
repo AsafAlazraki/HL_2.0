@@ -31,16 +31,15 @@
                   "To choose" at the end, the question under them, and one line's figures
                   under that as two label-and-figure rows. Opened, its line is a 4.5rem
                   thumbnail beside its name (never a photograph above its figures), its ways
-                  stack as full-width tiles; pressed, the count is brought into sight and the
-                  act's own bar stands at the foot of the window, over the tab bar, while the
-                  panel is in sight. The well stacks:
+                  stack as full-width tiles; pressed, the count and its act under it are
+                  brought into sight together, clear of the tab bar. The well stacks:
                   words, the pictured line, the switch, the makers' scale (maker over its
                   band). Settled is one list to a line (from 480px, two across), its
                   kind and name with its count at the end and its fact under; a pressed list
                   opens under it, the list brought to the top. The pill is the tab bar at the foot; the page keeps `--shell-foot`.
      844 × 390    the same with the desk's 32px gutter; the pill at the top. The ways stand
-                  two across; pressed, the count is brought into sight with the act's bar at the
-                  window's foot. Settled three across.
+                  two across; pressed, the count and its act are brought into sight together, or
+                  the count first where both do not fit. Settled three across.
      834 × 1112   the same; the buyers read as three columns: who, figure, from where.
      1280 × 800   the measure is 1,120px. The head's deck stands at the right of its question.
                   Each question is one line: name and question, its line's two figures, tag.
@@ -60,8 +59,6 @@
 .lv {
   --gutter: --spacing(4);
   --measure: 70rem;
-  /* where a sticky count stands: over the tab bar in a hand, at the window's foot at a desk */
-  --foot: calc(var(--shell-foot) + --spacing(3));
 
   box-sizing: border-box;
   min-height: 100dvh;
@@ -97,6 +94,11 @@
 .lv-joint {
   display: inline-block;
   max-inline-size: 100%;
+}
+/* a part longer than a line breaks inside itself as prose, so what follows it runs on rather
+   than leaving its last word alone (the verifier: "Filter ·" alone before "up to 70 HP") */
+.lv-joint[data-long] {
+  display: inline;
 }
 
 /* ---- the head ---- */
@@ -264,7 +266,8 @@
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
-.lv-find__none {
+.lv-find__none,
+.lv-find__more {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
@@ -551,9 +554,18 @@
   align-items: baseline;
   gap: --spacing(3);
 }
-@media (max-width: 1199.98px) {
+@media (max-width: 639.98px) {
   .lv-task__eg {
     max-inline-size: 26rem;
+  }
+}
+/* ON A TABLET THE LINE STANDS BESIDE ITS FIGURES, across the whole row (the verifier, 2026-11-04:
+   at 834 the figures stopped at x 460 and left a third of the row empty) */
+@media (min-width: 640px) and (max-width: 1199.98px) {
+  .lv-task__eg {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    align-items: start;
+    column-gap: --spacing(8);
   }
 }
 .lv-task__label {
@@ -748,8 +760,8 @@
 .lv-ways > * {
   display: grid;
 }
-/* a way's words start at its tile's top, whatever its neighbour holds; the title clears the
-   tile's own tick disc at its corner */
+/* a way's words start at its tile's top, whatever its neighbour holds; its own disc leads its
+   title */
 .lv-way {
   display: grid;
   align-content: start;
@@ -757,8 +769,7 @@
   gap: --spacing(1);
 }
 .lv-way__title {
-  min-block-size: --spacing(5);
-  padding-inline-start: --spacing(6);
+  min-block-size: --spacing(6);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -767,6 +778,28 @@
   line-height: var(--text-sm--line-height);
   font-weight: 700;
   color: var(--color-ink);
+}
+/* THE WAY'S OWN DISC, in the title's line, so it stands on the title's centre line and inside the
+   tile's padding, clear of its rounded corner (the verifier, 2026-11-04: the tile's corner tick sat
+   2px above the label and 4px from the corner). Filled when the way is ringed. */
+.lv-way__disc {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(5);
+  block-size: --spacing(5);
+  border-radius: var(--radius-pill);
+  color: transparent;
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--color-rule-strong);
+  transition:
+    background-color var(--duration-settle) var(--ease-out),
+    color var(--duration-settle) var(--ease-out);
+}
+.lv-way__disc[data-on] {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: none;
 }
 .lv-way__today {
   padding: 0 --spacing(2);
@@ -879,6 +912,12 @@
   color: var(--color-ink);
   text-wrap: pretty;
 }
+.lv-between__under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+}
 .lv-between__lead {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
@@ -907,7 +946,10 @@
   box-shadow:
     0 0 0 1px var(--color-rule),
     var(--shadow-sm);
-  scroll-margin-block-end: calc(var(--shell-foot) + 5.5rem);
+  /* brought into sight with its act by `bringCount`: clear of the pill above, and of the tab bar
+     below where there is no act */
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(2));
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(4));
 }
 .lv-census__count {
   display: flex;
@@ -944,32 +986,17 @@
   gap: --spacing(1) --spacing(2);
   margin: 0;
 }
-/* THE ACT, a bar of its own. At a desk it stands under its count. In a hand and in a short window,
-   where a decision cannot stand whole in one look, it stands at the window's foot over the tab
-   bar while its panel is in sight, so the act is never a screen away (the judge: at 844 × 390 it
-   stood at y 772) and covers no more than its own height */
+/* THE ACT stands under its count at every size, in the page and never over it (the verifier,
+   2026-11-04: in a hand and at 844 × 390 the bar, stuck at the window's foot, covered the count's
+   second door and the ways' words as the page moved under it). A press brings the count and its
+   act into sight together (`bringCount`), so the act is never a screen away when it is offered. */
 .lv-census__acts {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: --spacing(2) --spacing(4);
-}
-@media (max-width: 639.98px), (max-height: 520px) {
-  /* the count is brought into sight clear of the act's bar, which stands over its foot */
-  .lv-census {
-    scroll-margin-block-end: calc(var(--shell-foot) + 8.5rem);
-  }
-  .lv-census__acts {
-    position: sticky;
-    inset-block-end: var(--foot);
-    z-index: 2;
-    padding: --spacing(2) --spacing(3);
-    border-radius: var(--radius-tile);
-    background: var(--color-plate);
-    box-shadow:
-      0 0 0 1px var(--color-rule),
-      var(--shadow-sm);
-  }
+  /* its foot is brought to the window's foot, clear of the tab bar */
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(3));
 }
 
 /* THE QUOTES ON THE DESK a choice touches */
@@ -1345,6 +1372,148 @@
   font-weight: 500;
   letter-spacing: normal;
   text-transform: none;
+}
+
+/* RIGGING KITS: nine figures, three ways by three buyers. A table at a desk; in a hand each way is
+   a block and each figure names its buyer */
+.lv-kits {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.lv-kits__caption {
+  caption-side: bottom;
+  padding-block-start: --spacing(2);
+  text-align: start;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.lv-kits thead th {
+  padding: 0 --spacing(3) --spacing(2);
+  text-align: start;
+  font-weight: 650;
+  color: var(--color-ink);
+}
+.lv-kits tbody tr {
+  border-block-start: 1px solid var(--color-rule);
+}
+.lv-kits__way {
+  padding: --spacing(3) --spacing(3) --spacing(3) 0;
+  text-align: start;
+  vertical-align: top;
+}
+.lv-kits__wayname {
+  display: block;
+  font-weight: 650;
+}
+.lv-kits__what {
+  display: block;
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+.lv-kits__cell {
+  padding: --spacing(3);
+  vertical-align: top;
+}
+.lv-kits__cell > span {
+  display: block;
+}
+/* at a desk the column's head names the buyer; in a hand each figure names its own */
+.lv-kits__cell > .lv-kits__who {
+  display: none;
+}
+.lv-kits__sold,
+.lv-kits__way {
+  inline-size: 10rem;
+}
+.lv-kits__figure {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lv-kits__col {
+  color: var(--color-ink);
+}
+.lv-kits__src {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-file);
+  font-variant-numeric: tabular-nums;
+}
+.lv-kits__cell[data-read] {
+  background: var(--color-chosen-wash);
+  box-shadow: inset --spacing(0.5) 0 0 var(--color-accent);
+}
+.lv-kits__read {
+  margin-block-start: --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 650;
+  color: var(--color-ink);
+}
+.lv-kits__rule {
+  margin: 0;
+  max-inline-size: 72ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+@media (max-width: 639.98px) {
+  .lv-kits thead {
+    display: none;
+  }
+  .lv-kits,
+  .lv-kits tbody,
+  .lv-kits tr,
+  .lv-kits__way {
+    display: block;
+  }
+  .lv-kits tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: --spacing(1) --spacing(2);
+    padding-block: --spacing(3);
+  }
+  .lv-kits__way {
+    grid-column: 1 / -1;
+    inline-size: auto;
+    padding: 0;
+  }
+  .lv-kits__wayname,
+  .lv-kits__what {
+    display: inline;
+  }
+  .lv-kits__what::before {
+    content: ' · ';
+  }
+  .lv-kits__cell {
+    display: block;
+    padding: --spacing(2);
+    border-radius: var(--radius-sm);
+  }
+  .lv-kits__cell > .lv-kits__who {
+    display: block;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    font-weight: 650;
+    color: var(--color-ink-2);
+  }
+  .lv-kits__figure {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  .lv-kits__col {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+  .lv-kits__caption {
+    display: block;
+  }
 }
 
 /* TRADE AS A SHARE OF CASH: typed, previewed, counted, then written */

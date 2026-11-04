@@ -16,26 +16,27 @@
    ways, each naming every price it needs in one step:
 
      Supplied, or fitted   Cash Kit Sell Price · Trade Trade Price ·
-                           Fitted Sell Price (chosen on the quote one
-                           kit at a time, as a part's is)
+                           Fitted Sell Price · Fitted, trade the
+                           kit-fitted Trade Price (Rigging Kits!AD),
+                           so a trade buyer of a fitted kit has the
+                           file's own trade figure (the verifier of
+                           Prices, 2026-11-04)
      Always fitted         Cash Sell Price · Trade the kit-fitted
                            Trade Price
 
    TWO COLUMNS THAT ARE ONE FIGURE ARE ONE WAY (L2, a blocker). The
    factory packages' RRP + Freight Inc GST equals their Sell Price on
    every line that holds either, so offering it apart was a choice
-   between one figure and itself — and the engine starts RRP + Freight
-   Inc GST as Northside's own (`worked.ts`), so choosing it would have
-   refused every factory-package quote for a reason that is not true
-   of these lines. The way names the column a quote may print, and
-   says the other names the same figure.
+   between one figure and itself. The way is named at the column the
+   cost guard does not file with the costs (Sell Price), and says the
+   other names the same figure.
 
    Pure: no React, no store.
    ============================================================ */
 
 import { CASH, priceIn } from '@/domain/catalogue/priceCommands'
 import { sellColumns } from '@/domain/pricing/unchosen'
-import { workedFromCost } from '@/domain/pricing/worked'
+import { mayBeNamed } from '@/domain/pricing/worked'
 import { sameFigure } from '@/domain/pricing/spread'
 import type { EntityDef, FieldDef, PriceLevel, RowData } from '@/domain/model'
 
@@ -65,6 +66,10 @@ const field = (table: EntityDef, name: string, after?: string): FieldDef | undef
       (after === undefined || table.fields.slice(0, i).some((x) => x.name === after)),
   )
 
+/** THE FITTED TRADE PRICE: a line's price fitted, for a trade buyer — a kit's Rigging Kits!AD. A
+ *  line's own rung, as `fitted` is. */
+export const FITTED_TRADE = 'fitted-trade'
+
 const rung = (key: string, f: FieldDef): WayRung => ({ key, fieldId: f.id, label: f.name })
 
 /** RIGGING KITS' TWO WAYS, where the list carries every column they read; null elsewhere. */
@@ -80,7 +85,12 @@ function kitWays(table: EntityDef): Way[] | null {
     {
       id: 'supplied',
       title: 'Supplied, or fitted',
-      rungs: [rung(CASH, kit), rung('trade', kitTrade), rung('fitted', both)],
+      rungs: [
+        rung(CASH, kit),
+        rung('trade', kitTrade),
+        rung('fitted', both),
+        rung(FITTED_TRADE, bothTrade),
+      ],
       alsoNamed: [],
     },
     {
@@ -111,7 +121,7 @@ export function waysFor(table: EntityDef, rows: readonly RowData[]): Way[] {
   return groups
     .map((g) => {
       /* the column a quote may print without a switch leads; the rest name the same figure */
-      const lead = g.find((f) => workedFromCost(f) === null) ?? g[0]!
+      const lead = g.find((f) => !mayBeNamed(f)) ?? g[0]!
       return {
         id: lead.id,
         title: lead.name,

@@ -33,7 +33,8 @@ import { sellFigures, type SellFigure } from '@/domain/pricing/unchosen'
 import { LEVEL_TITLE, type EntityDef, type PriceLevel, type RowData } from '@/domain/model'
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 
-export type BuyerKey = 'cash' | 'trade' | 'warranty' | 'fitted' | 'sub'
+export type BuyerKey =
+  'cash' | 'trade' | 'warranty' | 'fitted' | 'fitted-trade' | 'sub' | 'sub-fitted'
 
 /** How one buyer's figure is reached. */
 export type BuyerState =
@@ -70,7 +71,9 @@ const WHO: Record<BuyerKey, string> = {
   trade: 'A trade buyer',
   warranty: 'A warranty job',
   fitted: 'Fitted',
+  'fitted-trade': 'A trade buyer, fitted',
   sub: 'A sub-dealer',
+  'sub-fitted': 'A sub-dealer, fitted',
 }
 
 /** The data a buyer's price is read from. */
@@ -133,24 +136,25 @@ export function buyersOf(data: Sheet, table: EntityDef, row: RowData): BuyerPric
       state: customer.state === 'blank' ? 'blank' : 'falls',
     })
 
-  for (const key of ['warranty', 'fitted'] as const) {
+  for (const key of ['warranty', 'fitted', 'fitted-trade'] as const) {
     const level = ladder.find((l) => l.key === key)
     if (level) out.push(read(table, row, key, level, cash))
   }
 
-  /* the file's own sub-dealer figure, said where the list carries one, never priced */
+  /* THE FILE'S OWN SUB-DEALER FIGURES, said where the list carries them, never priced: Rigging Kits
+     carries one for the kit supplied (M) and one, after its Sell Price, for the kit fitted (AE) */
   const isSub = (name: string) => /^sub ?dealer price$/i.test(name.trim())
-  const after = trade ? table.fields.findIndex((f) => f.id === trade.fieldId) : -1
-  const sub =
-    (after >= 0 ? table.fields.slice(after + 1).find((f) => isSub(f.name)) : undefined) ??
-    table.fields.find((f) => isSub(f.name))
-  if (sub) {
-    const figure = priceIn(row, sub.id)
+  const subs = table.fields.filter((f) => isSub(f.name))
+  const sellAt = table.fields.findIndex((f) => f.name === 'Sell Price')
+  for (const sub of subs) {
+    const fitted =
+      subs.length > 1 && sellAt >= 0 && table.fields.findIndex((f) => f.id === sub.id) > sellAt
+    const key = fitted ? 'sub-fitted' : 'sub'
     out.push({
-      key: 'sub',
-      who: WHO.sub,
+      key,
+      who: WHO[key],
       state: 'said',
-      figure,
+      figure: priceIn(row, sub.id),
       column: sub.name,
       cell: cellOf(sub),
       northsideOnly: false,
@@ -193,8 +197,22 @@ const squash = (s: string): string => fold(s).replace(/\s+/g, '')
  * `limit` lines.
  */
 export function findLines(entries: readonly LineEntry[], query: string, limit = 6): LineEntry[] {
+  return searchLines(entries, query, limit).lines
+}
+
+/**
+ * THE LINES FOUND, AND HOW MANY ANSWERED. EVERY LIST ANSWERING HAS ITS BEST LINE SHOWN before any
+ * list has a second (the verifier of Prices, 2026-11-04: "Tiller Conversion Kit" filled all six
+ * places with Dealer Fit packages, and the Rigging Kit of that name could be found only by its
+ * code); the rest fill by rank, and what is shown stands in the order the ranking gives.
+ */
+export function searchLines(
+  entries: readonly LineEntry[],
+  query: string,
+  limit = 6,
+): { lines: LineEntry[]; total: number } {
   const q = fold(query)
-  if (q.length < 2) return []
+  if (q.length < 2) return { lines: [], total: 0 }
   const words = q.split(' ')
   const qs = squash(query)
   const scored: Array<{ e: LineEntry; rank: number; at: number }> = []
@@ -208,11 +226,22 @@ export function findLines(entries: readonly LineEntry[], query: string, limit = 
     else if (words.every((w) => name.includes(w) || (code !== '' && code.includes(w)))) rank = 3
     if (rank >= 0) scored.push({ e, rank, at })
   }
-  return (
-    scored
-      /* the price list's own order breaks a tie: a boat before the kit made for it */
-      .toSorted((a, b) => a.rank - b.rank || a.at - b.at)
-      .slice(0, limit)
-      .map((s) => s.e)
-  )
+  /* the price list's own order breaks a tie: a boat before the kit made for it */
+  const sorted = scored.toSorted((a, b) => a.rank - b.rank || a.at - b.at)
+  const shown = new Set<(typeof sorted)[number]>()
+  const lists = new Set<string>()
+  for (const s of sorted) {
+    if (shown.size >= limit) break
+    if (lists.has(s.e.list)) continue
+    lists.add(s.e.list)
+    shown.add(s)
+  }
+  for (const s of sorted) {
+    if (shown.size >= limit) break
+    shown.add(s)
+  }
+  return {
+    lines: sorted.filter((s) => shown.has(s)).map((s) => s.e),
+    total: sorted.length,
+  }
 }

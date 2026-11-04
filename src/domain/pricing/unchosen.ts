@@ -29,7 +29,7 @@
 
 import { cannotBePrice, priceIn } from '@/domain/catalogue/priceCommands'
 import { isCostColumn, isPriced } from '@/domain/quote/pricing'
-import { workedFromCost } from '@/domain/pricing/worked'
+import { mayBeNamed } from '@/domain/pricing/worked'
 import type { EntityDef, FieldDef, RowData } from '@/domain/model'
 
 const SELLS = /\bsell\b|\bretail\b|\brrp\b|\bprice\b/i
@@ -45,7 +45,7 @@ export function sellColumns(table: EntityDef): FieldDef[] {
       SELLS.test(f.name) &&
       !NOT_A_SELL.test(f.name) &&
       cannotBePrice(table, f) === null &&
-      !(isCostColumn(table, f) && workedFromCost(f) === null),
+      !(isCostColumn(table, f) && !mayBeNamed(f)),
   )
 }
 

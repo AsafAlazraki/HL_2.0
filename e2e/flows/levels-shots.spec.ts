@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor, withoutTheFile } from '../door'
 import { written } from '../mint'
+import { overlapsInEveryState } from '../rulers/measure/overlap'
 
 /* ============================================================
    PRICES, EVERY STATE AT EVERY SIZE — the screenshots the data round
@@ -63,8 +64,13 @@ test('every state of Prices, photographed', async ({ page }) => {
       const act = [...document.querySelectorAll('.lv-census__acts button')]
         .at(0)
         ?.getBoundingClientRect()
+      /* the act's bar against the count it acts on: negative is the bar over the count */
+      const count = document.querySelector('.lv-census')?.getBoundingClientRect()
+      const bar = document.querySelector('.lv-census__acts')?.getBoundingClientRect()
       return {
         sideways: document.documentElement.scrollWidth > window.innerWidth,
+        barClear: count && bar ? Math.round(bar.top - count.bottom) : null,
+        countTop: count ? Math.round(count.top) : null,
         small,
         scrollY: Math.round(window.scrollY),
         act: act ? `${Math.round(act.top)}-${Math.round(act.bottom)} of ${window.innerHeight}` : '',
@@ -72,6 +78,15 @@ test('every state of Prices, photographed', async ({ page }) => {
       }
     })
     console.log(`[${size}] ${label}: ${JSON.stringify(m)}`)
+  }
+
+  /** THE OVERLAP RULER, read in the states the route list cannot reach (a way pressed, a settled
+   *  list opened), at rest and scrolled, as the verifier read them */
+  const overlaps: string[] = []
+  const overlapAt = async (label: string) => {
+    for (const { state, r } of await overlapsInEveryState(page))
+      for (const p of r.pairs)
+        overlaps.push(`[${size}] ${label} [${state}] ${p.kind}: ${p.a} × ${p.b}`)
   }
 
   await throughTheDoor(page)
@@ -127,6 +142,30 @@ test('every state of Prices, photographed', async ({ page }) => {
   await expect(page.locator('.lv-census')).toBeVisible()
   await shot('08-kits-picked')
   await measure('kits picked')
+  /* the second way pressed after the first: the count and its act, the bar over none of it */
+  await pressOn(
+    page,
+    page.getByTestId('prices-open').getByRole('button', { name: /^Always fitted, / }),
+  )
+  await expect(
+    page.getByRole('button', { name: /^Price [\d,]+ kits always fitted$/ }),
+  ).toBeVisible()
+  await shot('08b-kits-fitted')
+  await measure('kits fitted')
+  await overlapAt('kits fitted')
+
+  /* a kit found by its name among the Dealer Fit packages of the same name */
+  await to(page)
+  await pressOn(page, find)
+  await page.keyboard.type('Tiller Conversion Kit')
+  await expect(page.getByRole('list', { name: 'Lines found' })).toBeVisible()
+  await shot('08c-find-tiller')
+  await to(page)
+  await pressOn(page, find)
+  await page.keyboard.type('704 Binnacle')
+  await pressOn(page, page.getByRole('list', { name: 'Lines found' }).getByRole('button').first())
+  await expect(page.getByTestId('buyers')).toBeVisible()
+  await shot('08d-find-rigkit')
 
   /* the Yamahas' two figures */
   await to(page)
@@ -174,7 +213,9 @@ test('every state of Prices, photographed', async ({ page }) => {
       await expect(page.getByTestId('census')).toBeVisible()
       await shot('14-stacer-95')
       await measure('stacer 95')
+      await overlapAt('stacer 95')
     }
+    if (file === '15-jeanneau-open') await overlapAt('jeanneau open')
   }
 
   /* every question answered */
@@ -203,12 +244,36 @@ test('every state of Prices, photographed', async ({ page }) => {
   )
   await pressOn(page, page.getByRole('button', { name: /^Price [\d,]+ at Sell Price$/ }))
   await written(page)
+  /* Dealer Fit at Sell, whose step must not say "every" over the 962 it leaves */
+  await to(page, '?list=dealer_fit')
+  await pressOn(page, page.getByTestId('prices-open').getByRole('button', { name: /^Sell, / }))
+  await pressOn(page, page.getByRole('button', { name: /^Price [\d,]+ at Sell$/ }))
+  await expect(page.getByTestId('last-step')).toBeVisible()
+  await page.getByTestId('last-step').scrollIntoViewIfNeeded()
+  await shot('18c-dealerfit-sell-written')
+  await written(page)
   await to(page)
   await shot('19-all-answered')
   await shot('19-all-answered-full', true)
   await to(page, '?list=rig_kits')
   await page.getByTestId('prices-open').scrollIntoViewIfNeeded()
   await shot('20-kits-settled-open')
+  await page.getByTestId('prices-open').getByRole('table').scrollIntoViewIfNeeded()
+  await shot('20b-kits-grid')
+  await overlapAt('kits settled')
+  /* who chose it, after a reload */
+  await page.reload()
+  await expect(page.locator(READY)).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('prices-open').getByText(/ today\. Press another/)).toBeVisible()
+  await page
+    .getByTestId('prices-open')
+    .getByText(/ today\. Press another/)
+    .evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  await shot('21-who-chose-after-reload')
 
+  console.log(
+    overlaps.length === 0 ? `[${size}] overlaps: none` : overlaps.join(String.fromCharCode(10)),
+  )
   expect(errors).toEqual([])
+  expect(overlaps).toEqual([])
 })

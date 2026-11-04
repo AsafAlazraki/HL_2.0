@@ -58,6 +58,8 @@ export function Settings({ card }: { card: PlaceCard }) {
   const inks = useMemo(() => markInks(card.name, book), [card.name, book])
   const own = useMemo(() => heroesOf(card.tableIds, book), [card.tableIds, book])
   const name = card.name
+  /* "Stacer’s", and "Highfield Inflatables’" rather than "Inflatables’s" (judge.md, J9) */
+  const whose = /s$/i.test(name) ? `${name}’` : `${name}’s`
 
   useEffect(() => () => unsay(STEP), [])
 
@@ -114,17 +116,25 @@ export function Settings({ card }: { card: PlaceCard }) {
           : card.mark.drawn
             ? card.mark.mark.on
             : 'name'
+  /* NO MARK IN EITHER INK IS ONE FACT, SAID ONCE (judge.md, J8: REDCO printed "No mark for REDCO
+     / Tinka Trailers yet." under each of the two refused answers). Then neither ink is offered,
+     and the one sentence stands where they would. */
+  const noMaker = !inks.white && !inks.dark
   const markOptions = [
-    {
-      value: 'ground' as const,
-      label: 'In white',
-      ...(inks.white ? {} : { refusedBecause: inks.noWhite }),
-    },
-    {
-      value: 'plate' as const,
-      label: 'On a plate',
-      ...(inks.dark ? {} : { refusedBecause: inks.noDark }),
-    },
+    ...(noMaker
+      ? []
+      : [
+          {
+            value: 'ground' as const,
+            label: 'In white',
+            ...(inks.white ? {} : { refusedBecause: inks.noWhite }),
+          },
+          {
+            value: 'plate' as const,
+            label: 'On a plate',
+            ...(inks.dark ? {} : { refusedBecause: inks.noDark }),
+          },
+        ]),
     ...(keptMark ? [{ value: 'own' as const, label: 'Your own' }] : []),
     { value: 'name' as const, label: 'Name in type' },
   ]
@@ -177,7 +187,7 @@ export function Settings({ card }: { card: PlaceCard }) {
     <div className="pl-pane pl-settings">
       <Selling card={card} />
       {/* ---- its line ---- */}
-      <Plate as="section" pad="md" label={`${name}’s line`}>
+      <Plate as="section" pad="md" label={`${whose} line`}>
         <h3 className="pl-set__head">Its line</h3>
         <form
           className="pl-set__line"
@@ -186,7 +196,7 @@ export function Settings({ card }: { card: PlaceCard }) {
             if (!lineChanged) return
             const kept = apply(
               { ...dress, line },
-              line.trim() === '' ? `${name}’s line is taken off.` : `${name}’s line is set.`,
+              line.trim() === '' ? `${whose} line is taken off.` : `${whose} line is set.`,
               'line',
             )
             if (kept) setDraft(null)
@@ -214,8 +224,9 @@ export function Settings({ card }: { card: PlaceCard }) {
       </Plate>
 
       {/* ---- its mark ---- */}
-      <Plate as="section" pad="md" label={`${name}’s mark`}>
+      <Plate as="section" pad="md" label={`${whose} mark`}>
         <h3 className="pl-set__head">Its mark</h3>
+        {noMaker ? <p className="pl-set__say">{inks.noWhite || inks.noDark}</p> : null}
         <div className="pl-set__marks">
           <Segmented
             label={`Which of its maker’s marks, or its name, ${name} wears`}
@@ -277,11 +288,11 @@ export function Settings({ card }: { card: PlaceCard }) {
       </Plate>
 
       {/* ---- its photograph ---- */}
-      <Plate as="section" pad="md" label={`${name}’s photograph`}>
+      <Plate as="section" pad="md" label={`${whose} photograph`}>
         <h3 className="pl-set__head">Its photograph</h3>
         <p className="pl-set__say">
           {own.length > 0
-            ? `Only ${name}’s own boats are offered, each named for the model it shows.`
+            ? `Only ${whose} own boats are offered, each named for the model it shows.`
             : `No photograph of ${name} on the water yet. Upload Northside’s own, or paste its address.`}
         </p>
         <ul className="pl-set__heroes">
@@ -395,7 +406,7 @@ export function Settings({ card }: { card: PlaceCard }) {
       </Plate>
 
       {/* ---- its colour ---- */}
-      <Plate as="section" pad="md" label={`${name}’s colour`}>
+      <Plate as="section" pad="md" label={`${whose} colour`}>
         <h3 className="pl-set__head">Its colour</h3>
         <ul className="pl-set__grounds">
           {GROUNDS.map((g) => (

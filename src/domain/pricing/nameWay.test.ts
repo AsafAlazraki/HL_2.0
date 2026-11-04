@@ -29,7 +29,7 @@ const run = (d: CatalogueData, c: CatalogueCommand) => {
   return o
 }
 
-const KIT = ['cash', 'trade', 'fitted']
+const KIT = ['cash', 'trade', 'fitted', 'fitted-trade']
 
 describe('a way named', () => {
   it('prices Rigging Kits supplied and fitted, cash and trade, in one step, and its way back', () => {
@@ -43,6 +43,7 @@ describe('a way named', () => {
               { key: 'cash', fieldId: 'rig_kits.k' },
               { key: 'trade', fieldId: 'rig_kits.l' },
               { key: 'fitted', fieldId: 'rig_kits.ac' },
+              { key: 'fitted-trade', fieldId: 'rig_kits.ad' },
             ],
           },
         ],
@@ -55,10 +56,11 @@ describe('a way named', () => {
       ['cash', 'Kit Sell Price', 'quote', true],
       ['trade', 'Trade Price', 'quote', true],
       ['fitted', 'Sell Price', 'line', true],
+      ['fitted-trade', 'Trade Price', 'line', true],
     ])
     expect(supplied.event.kind).toBe('prices-changed')
 
-    /* always fitted: the fitted price comes off, since the kit is never sold supplied */
+    /* always fitted: both fitted prices come off, since the kit is never sold supplied */
     const fitted = run(
       supplied.next,
       nameWay(

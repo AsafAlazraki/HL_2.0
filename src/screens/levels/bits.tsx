@@ -156,7 +156,13 @@ export function Joints({ text }: { text: string }) {
     // eslint-disable-next-line react/no-array-index-key -- a part's identity is its place in the name
     <Fragment key={i}>
       {i === 0 ? null : ' '}
-      <span className="lv-joint">{part}</span>
+      <span className="lv-joint" data-long={part.length > LONG_PART ? '' : undefined}>
+        {part}
+      </span>
     </Fragment>
   ))
 }
+
+/** A part of a name longer than this many characters does not fit one line in a hand, so it
+ *  breaks as prose and what follows runs on after it ("… Cables & Filter · up to 70 HP"). */
+const LONG_PART = 32

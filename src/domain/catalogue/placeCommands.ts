@@ -28,12 +28,12 @@ import type { CatalogueData } from './sheet'
 /** Said where a press finds its place gone (a module deleted underneath it). */
 export const PLACE_GONE = 'That place is no longer in the business.'
 
-/** The longest line a place may carry: one line on a card, never a paragraph. */
+/** The longest line a place may carry: one line under its name on its page, never a paragraph. */
 export const LINE_MAX = 90
 
 /** Said when a line is longer than a card can hold, with the figure it must come under. */
 export const lineTooLong = (n: number): string =>
-  `A place’s line is one line on its card: ${n} characters is ${n - LINE_MAX} over ${LINE_MAX}.`
+  `A place’s line is one line under its name: ${n} characters is ${n - LINE_MAX} over ${LINE_MAX}.`
 
 /** The livery as it should be stored: trimmed, and every empty part left out. */
 export function tidyDress(dress: PlaceDress | undefined): PlaceDress | undefined {

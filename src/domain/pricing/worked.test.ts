@@ -15,7 +15,7 @@ import { describe, expect, it } from 'vitest'
 import type { EntityDef, FrozenLevel, QuoteDef, QuoteLine } from '@/domain/model'
 import { freezeLevels, priceLevelsFor } from '@/domain/quote/pricing'
 import { issueBlockers, keptFromCustomers } from '@/domain/quote/totals'
-import { frozenMayReach, mayReachCustomer, workedFromCost } from './worked'
+import { frozenMayReach, mayBeNamed, mayReachCustomer, workedFromCost } from './worked'
 
 const boat: EntityDef = {
   id: 'boat_highfield',
@@ -62,12 +62,20 @@ const motor: EntityDef = {
 const SP560 = { 'boat_highfield.qr': 48350, 'boat_highfield.rb': 32166 }
 
 describe('which prices are worked from cost', () => {
-  it('names Warranty and RRP + Freight, each with the cell that works it, and nothing else', () => {
+  it('names Warranty with the cell that works it, and nothing else', () => {
     expect(workedFromCost({ name: 'Warranty' })?.formula).toBe('ROUNDUP((IY − IW) × 1.01 × 1.1)')
     expect(workedFromCost({ name: 'Warranty' })?.source).toContain('Boat Module!RB')
-    expect(workedFromCost({ name: 'RRP + Freight Inc GST' })?.source).toContain('Motor Library!BB')
+    /* measured on the file: ROUNDUP(AX × 1.19 × 1.1) is BB on 0 of 209 (worked.pack.test.ts) */
+    expect(workedFromCost({ name: 'RRP + Freight Inc GST' })).toBeNull()
     expect(workedFromCost({ name: 'Cash' })).toBeNull()
     expect(workedFromCost({ name: 'Sell Price' })).toBeNull()
+  })
+
+  it('lets a dealer name Warranty and RRP + Freight past the cost guard, and no cost', () => {
+    expect(mayBeNamed({ name: 'Warranty' })).toBe(true)
+    expect(mayBeNamed({ name: 'RRP + Freight Inc GST' })).toBe(true)
+    expect(mayBeNamed({ name: 'Total CTD' })).toBe(false)
+    expect(mayBeNamed({ name: 'Landed Hull Cost' })).toBe(false)
   })
 
   it('starts such a price as Northside’s only, and the dealer’s answer wins', () => {
@@ -126,9 +134,10 @@ describe('the motor’s RRP + Freight passes the cost guard only when the dealer
       priceLevels: [{ ...asked.priceLevels[0]!, named: true }],
     } satisfies EntityDef
     expect(priceLevelsFor(named).map((l) => l.fieldId)).toEqual(['mot_yamaha.bb'])
-    /* and, worked from cost, it is still Northside's only until he lets it reach a customer */
+    /* the recommended retail, not worked from cost: named, it reaches a customer as any price does */
     const fixed = freezeLevels(named, { 'mot_yamaha.bb': 17643 })
-    expect(frozenMayReach(fixed[0]!)).toBe(false)
+    expect(frozenMayReach(fixed[0]!)).toBe(true)
+    expect(mayReachCustomer(named, named.priceLevels[0]!)).toBe(true)
   })
 })
 

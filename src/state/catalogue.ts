@@ -38,6 +38,7 @@ import type {
   StampRepository,
 } from '@/data/repository'
 import { NO_STAMPS, stamped, type Stamps } from '@/domain/catalogue/table/stamps'
+import { pricesStamped } from '@/domain/pricing/chosen'
 import { holdGalleries, holdOwnPictures } from '@/data/ownPictures'
 import { standingGalleries, standingOwnPictures } from '@/domain/catalogue/pictureCommands'
 import type { GalleryOrder } from '@/domain/model/gallery'
@@ -830,7 +831,11 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
       const orgId = outcome.next.orgId
       set({
         ...outcome.next,
-        stamps: orgId === null ? state.stamps : stamped(state.stamps, event, orgId),
+        /* who wrote each cell, and who chose each list's price (`domain/pricing/chosen.ts`) */
+        stamps:
+          orgId === null
+            ? state.stamps
+            : pricesStamped(stamped(state.stamps, event, orgId), event, orgId),
       })
       keep(event)
       writeSoon(store)

@@ -120,7 +120,9 @@ describe('the boundary', () => {
     /* the gap is one phrase that never breaks: "$16,184 under", never "$16,184 ⏎ under" */
     expect(kept.getByText('$16,184 under').className).toBe('lv-nowrap')
     /* and every maker's Warranty across its list, the eight Stacer boats above Cash named */
-    expect(container.querySelector('.lv-range')?.textContent).toBe('Stacer93–110% of Cash on 91')
+    expect(container.querySelector('.lv-range')?.textContent).toBe(
+      'Stacer93–110% of Cash on 91 boats',
+    )
     expect(kept.getByText(/^Above Cash on 8 Stacer boats:/)).toBeTruthy()
     expect(
       kept.getByRole('link', { name: 'Open the 8 with Warranty above Cash' }).getAttribute('href'),
@@ -186,6 +188,8 @@ describe('a list with no price', () => {
       ['cash', 'rig_kits.k'],
       ['trade', 'rig_kits.l'],
       ['fitted', 'rig_kits.ac'],
+      /* the file's own fitted trade figure, Rigging Kits!AD (the verifier, 2026-11-04) */
+      ['fitted-trade', 'rig_kits.ad'],
     ])
     expect(onList).toHaveBeenLastCalledWith('')
 
@@ -199,10 +203,44 @@ describe('a list with no price', () => {
     const step = within(settled.getByTestId('last-step'))
     expect(
       step.getByText(
-        'Every rigging kit is priced at its Kit Sell Price, a trade buyer at Trade Price and fitted at Sell Price, from the next quote.',
+        '628 of 650 rigging kits are priced at their Kit Sell Price, a trade buyer at Trade Price, fitted at Sell Price and fitted for a trade buyer at Trade Price, from the next quote. The other 22 hold no Kit Sell Price and are still priced by hand.',
       ),
     ).toBeTruthy()
-    await user.click(step.getByRole('button', { name: 'Undo' }))
+
+    /* opened, every figure the file carries stands once, the four a quote reads marked, and who
+       chose it is kept with the price list (the verifier, 2026-11-04) */
+    again('rig_kits')
+    const grid = within(opened().getByRole('table'))
+    expect(grid.getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
+      'Sold',
+      'A customer',
+      'A trade buyer',
+      'A sub-dealer',
+    ])
+    expect(grid.getAllByText('On a quote')).toHaveLength(4)
+    expect(grid.getByText('AD · on 621')).toBeTruthy()
+    expect(grid.getByText('X · on 621')).toBeTruthy()
+    expect(grid.getByText('AE · on 621')).toBeTruthy()
+    expect(
+      opened().getByText(
+        'Fitted is supplied plus fitting: for a customer on 621 of 642, for a trade buyer on all 621, for a sub-dealer on all 621.',
+      ),
+    ).toBeTruthy()
+    expect(
+      opened().getByText(/^“Supplied, or fitted” was chosen at .* today\. Press another/),
+    ).toBeTruthy()
+    /* each way names its prices once; what each is, is the grid's */
+    expect(opened().queryAllByText(/^The kit alone, supplied and not fitted/)).toHaveLength(0)
+    /* 21 kits hold a fitted price under the kit alone, with their door */
+    expect(opened().getByText(/Sell Price is under Kit Sell Price on 21 lines\./)).toBeTruthy()
+    expect(
+      opened().getByRole('link', { name: 'Open the 21 with Sell Price under Kit Sell Price' }),
+    ).toBeTruthy()
+
+    again('')
+    await user.click(
+      within(group(/^Settled/).getByTestId('last-step')).getByRole('button', { name: 'Undo' }),
+    )
     expect(priceLevelsFor(catalogue.getState().tables.rig_kits)).toEqual([])
   })
 
@@ -292,7 +330,9 @@ describe('a list with no price', () => {
 })
 
 describe('the motor’s two figures', () => {
-  it('shows RRP + Freight on every Yamaha only when written, and then keeps it Northside’s until it may reach a customer', async () => {
+  /* the verifier of Prices, 2026-11-04, a blocker: RRP + Freight was kept from customers as worked
+     from cost, a formula that holds on 0 of 209 Yamaha lines (worked.pack.test.ts) */
+  it('shows RRP + Freight on every Yamaha only when written, and a quote at it can be given', async () => {
     const user = userEvent.setup()
     const { again } = draw('mot_yamaha')
     await user.click(opened().getByRole('button', { name: 'RRP + Freight Inc GST, $17,643' }))
@@ -311,17 +351,14 @@ describe('the motor’s two figures', () => {
     const cash = priceLevelsFor(motor).find((l) => l.key === 'cash')!
     expect([cash.label, cash.named]).toEqual(['RRP + Freight Inc GST', true])
     const f90xb = catalogue.getState().rows.mot_yamaha!.find((r) => r.id === 'mot_yamaha:56')!
-    expect(frozenMayReach(freezeLevels(motor, f90xb.values)[0]!)).toBe(false)
+    expect(frozenMayReach(freezeLevels(motor, f90xb.values)[0]!)).toBe(true)
 
-    /* it stands on Northside's ground now, beside Warranty, with its own switch */
+    /* nothing is kept from customers but Warranty, with its one switch */
     again('')
     const kept = group(/^Kept from customers/)
-    expect(kept.getByRole('heading', { name: /^RRP \+ Freight Inc GST on every Yamaha motor/ }))
-    const switches = kept.getAllByRole('switch', { name: 'May reach a customer' })
-    expect(switches).toHaveLength(2)
-    await user.click(switches[1]!)
-    const after = catalogue.getState().tables.mot_yamaha!
-    expect(frozenMayReach(freezeLevels(after, f90xb.values)[0]!)).toBe(true)
+    expect(kept.queryByRole('heading', { name: /^RRP \+ Freight Inc GST/ })).toBeNull()
+    expect(kept.getAllByRole('switch', { name: 'May reach a customer' })).toHaveLength(1)
+    expect(screen.queryByText(/Starts as Northside’s own/)).toBeNull()
   })
 })
 

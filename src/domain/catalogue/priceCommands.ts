@@ -42,7 +42,7 @@
 
 import { newId } from '@/domain/id'
 import { isCostColumn, namedLevelsFor } from '@/domain/quote/pricing'
-import { workedFromCost } from '@/domain/pricing/worked'
+import { mayBeNamed } from '@/domain/pricing/worked'
 import type { CellValue, EntityDef, FieldDef, PriceLevel, RowData } from '@/domain/model'
 import {
   COLUMN_GONE,
@@ -170,12 +170,12 @@ export const costNeverAPrice = (field: Pick<FieldDef, 'name'>): string =>
   `${field.name} is what something costs Northside, and a cost never reaches a customer, so it can never be a price.`
 
 /** Why a column cannot be a list's price, or null when it can. The one way past the cost guard
- *  is a price WORKED from cost (`worked.ts`), which a dealer may name and which then starts as
- *  Northside's only. */
+ *  is a column `mayBeNamed` lets by (`worked.ts`): a price worked from cost, which then starts as
+ *  Northside's only, or a motor's RRP + Freight, the recommended retail the guard files by name. */
 export function cannotBePrice(table: EntityDef, field: FieldDef): string | null {
   if (field.type !== 'number' && field.type !== 'formula')
     return `${field.name} holds words, not a figure, so it cannot be a price.`
-  if (isCostColumn(table, field) && workedFromCost(field) === null) return costNeverAPrice(field)
+  if (isCostColumn(table, field) && !mayBeNamed(field)) return costNeverAPrice(field)
   return null
 }
 

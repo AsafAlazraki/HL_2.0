@@ -127,6 +127,8 @@ export const LEVEL_TITLE: Record<string, string> = {
   trade: 'Trade',
   warranty: 'Warranty',
   fitted: 'Fitted',
+  /* a kit fitted, for a trade buyer: Rigging Kits!AD, named on Prices */
+  'fitted-trade': 'Fitted, trade',
 }
 
 /* ---------------------------------------------------------- */

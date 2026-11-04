@@ -16,6 +16,7 @@ import {
   ArrowLeftIcon,
   ArrowSquareOutIcon,
   CheckCircleIcon,
+  CheckIcon,
   FileTextIcon,
   InfoIcon,
   LockSimpleIcon,
@@ -48,13 +49,14 @@ import {
 } from '@/domain/catalogue/priceCommands'
 import { nameWay } from '@/domain/pricing/nameWay'
 import { standingOn, type Standing } from '@/domain/pricing/standing'
+import { chosenOf } from '@/domain/pricing/chosen'
+import { KIT_BUYERS, KIT_WAYS, type KitBuyer, type KitWay } from '@/domain/pricing/kitGrid'
 import { timesOf } from '@/domain/pricing/spread'
 import { money } from '@/domain/money'
 import type { QuoteLine } from '@/domain/model'
 import { GroupHead, Joints, KIND, LinePicture, Mark, ShareScale, n, plural, shareOf } from './bits'
 import { Lookup } from './Lookup'
 import {
-  chosenBy,
   doorsOf,
   onLine,
   plainName,
@@ -141,6 +143,28 @@ function countOf(col: Column): string {
 }
 
 const TIME = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' })
+const DAY = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/** WHEN A CHOICE WAS MADE, as a person says it: "at 8:28 am today", or "on 4 November 2026 at
+ *  8:28 am" on any other day. */
+function whenSaid(at: string): string {
+  const d = new Date(at)
+  if (Number.isNaN(d.getTime())) return ''
+  return DAY.format(d) === DAY.format(new Date())
+    ? `at ${TIME.format(d)} today`
+    : `on ${DAY.format(d)} at ${TIME.format(d)}`
+}
+
+/** WHO CHOSE A LIST'S PRICE AND WHEN, as this computer keeps it (`domain/pricing/chosen.ts`):
+ *  "Asaf chose Sell Price at 8:28 am today", kept through a reload. A choice made before it was
+ *  kept says only that it is yours. */
+function chosenSaid(label: string, chose: { by?: string; at: string } | null): string {
+  if (!chose) return `You chose ${label}.`
+  const when = whenSaid(chose.at)
+  return chose.by
+    ? `${chose.by} chose ${label}${when === '' ? '' : ` ${when}`}.`
+    : `${label} was chosen${when === '' ? ' here' : ` ${when}`}.`
+}
 
 /* ---------------------------------------------------------- */
 /* The last write, and its way back                            */
@@ -319,7 +343,7 @@ function Page({
     quote === '' ? '' : (s.quotes.find((q) => q.id === quote)?.reference ?? ''),
   )
   const allQuotes = useQuotes((s) => s.quotes)
-  const events = useCatalogue((s) => s.events)
+  const stamps = useCatalogue((s) => s.stamps)
   const columns = useMemo(() => {
     if (lineKey === '') return read
     const cut = lineKey.indexOf('|')
@@ -416,7 +440,7 @@ function Page({
     (col: Column): Standing => standingOn(allQuotes, new Set(col.tableIds)),
     [allQuotes],
   )
-  const who = useCallback((col: Column) => chosenBy(events, col.tableIds), [events])
+  const who = useCallback((col: Column) => chosenOf(stamps, col.tableIds), [stamps])
 
   const choosing = desk.choose.length
   const byYou = desk.settled.filter((c) => c.cash.state === 'reads' && c.cash.named).length
@@ -545,7 +569,8 @@ interface Ctx {
   openList: (id: string) => void
   apply: Apply
   standing: (col: Column) => Standing
-  who: (col: Column) => { by: string; at: string } | null
+  /** who last chose the list's price and when, as this computer keeps it */
+  who: (col: Column) => { by?: string; at: string } | null
   go: (href: string) => void
   /** the quote that sent the dealer here, by its id; '' from anywhere else */
   quote: string
@@ -708,7 +733,7 @@ function ChooseRow({
             </span>
             <span className="lv-task__q">{questionOf(col)}</span>
           </span>
-          {sample && ways.length > 0 ? (
+          {sample && ways.length > 0 && !open ? (
             <span className="lv-task__eg">
               <span className="lv-task__on">{sample.name}</span>
               <span className="lv-task__figs">
@@ -783,13 +808,34 @@ function wayCommand(
  *  next quote." — the page's own name for the list, never the file's table name. */
 function waySaid(col: Column, way: WayView): string {
   const [cash, ...rest] = way.figures
-  const also = rest.map((f) => `${f.key === 'trade' ? 'a trade buyer' : 'fitted'} at ${f.label}`)
+  const also = rest.map((f) => `${rungFor(f)} at ${f.label}`)
   if (col.cash.state === 'reads' && way.current)
     return `Every ${col.noun.one} keeps ${cash!.label}, now by your choice.`
-  return `Every ${col.noun.one} is priced at its ${cash!.label}${
-    also.length > 0 ? `, ${also.join(' and ')},` : ''
-  } from the next quote.`
+  const left = col.lines - way.priced
+  /* NEVER "EVERY" OVER A COUNT THAT SAYS OTHERWISE (the verifier, 2026-11-04: "Every dealer fit
+     package is priced at its Sell" stood under a tile reading "962 not priced") */
+  const priced =
+    left > 0
+      ? `${n(way.priced)} of ${n(col.lines)} ${col.noun.many} are priced at their ${cash!.label}`
+      : `Every ${col.noun.one} is priced at its ${cash!.label}`
+  return `${priced}${also.length > 0 ? `, ${joinAnd(also)},` : ''} from the next quote.${
+    left > 0 ? ` The other ${n(left)} hold no ${cash!.label} and are still priced by hand.` : ''
+  }`
 }
+
+/** Who a way's second and later prices are for, inside the step's sentence. */
+const rungFor = (f: Pick<Figure, 'key'>): string =>
+  f.key === 'trade'
+    ? 'a trade buyer'
+    : f.key === 'fitted'
+      ? 'fitted'
+      : f.key === 'fitted-trade'
+        ? 'fitted for a trade buyer'
+        : 'a customer'
+
+/** "a, b and c" */
+const joinAnd = (each: readonly string[]): string =>
+  each.length < 2 ? (each[0] ?? '') : `${each.slice(0, -1).join(', ')} and ${each.at(-1)!}`
 
 /** ONE TILE PER WAY a list could be priced, each saying what its figures are, with the rule
  *  checked and the lines it prices; a tile pressed is counted before anything is written. */
@@ -798,11 +844,15 @@ function Chooser({
   ctx,
   sample,
   onDone,
+  compact = false,
 }: {
   col: Column
   ctx: Ctx
   sample: Sample
   onDone: () => void
+  /** each way names its prices and figures only: what each figure is, its cell and its rule
+   *  stand once, in the grid under it (Rigging Kits, settled) */
+  compact?: boolean
 }) {
   const ways = waysOf(col)
   const c = col.cash
@@ -824,7 +874,7 @@ function Chooser({
               ? `Your price list names no price for a ${col.noun.one}. It holds one figure for each, under ${ways[0]!.alsoNamed.length + 1} names.`
               : `Your price list holds ${ways.length === 2 ? 'two ways' : `${n(ways.length)} ways`} to price each ${col.noun.one} and names none of them, so nothing is ringed.`
             : named
-              ? `You chose ${c.label}.${chose && chose.by !== '' ? ` ${chose.by} chose it at ${TIME.format(new Date(chose.at))} today.` : ''} Press another to change it.`
+              ? `${chosenSaid(current && current.figures.length > 1 ? `“${current.title}”` : c.label, chose)} Press another to change it.`
               : `Nobody has chosen. Until you do, a quote shows ${c.state === 'reads' ? c.label : ''}, as it always has.`}
         </p>
       </Specimen>
@@ -832,17 +882,20 @@ function Chooser({
         {ways.map((w) => (
           <Tile
             key={w.id}
+            tick="none"
             selected={ringed?.id === w.id}
             onSelect={() => setPicked(w.id === picked ? null : w.id)}
             label={`${w.title}, ${w.figures[0]!.figure === null ? 'no figure' : money(w.figures[0]!.figure)}`}
           >
-            <WayFace col={col} way={w} />
+            <WayFace col={col} way={w} compact={compact} ringed={ringed?.id === w.id} />
           </Tile>
         ))}
       </div>
-      {c.between ? <BetweenSaid col={col} /> : null}
+      {c.between ? <BetweenSaid col={col} go={ctx.go} /> : null}
       {pick && !(named && pick.current) ? (
+        /* a way pressed after another is a new count, brought into sight with its act again */
         <Census
+          key={pick.id}
           acts={
             <>
               <Button
@@ -888,12 +941,26 @@ function Chooser({
 
 /** One way's face: its name, its figure on the line, what that figure is, its cell and its rule
  *  checked, and how many lines it prices. A way that names more than one price lists each. */
-function WayFace({ col, way }: { col: Column; way: WayView }) {
+function WayFace({
+  col,
+  way,
+  compact = false,
+  ringed,
+}: {
+  col: Column
+  way: WayView
+  compact?: boolean
+  /** the way is ringed: its disc is filled */
+  ringed: boolean
+}) {
   const [cash, ...rest] = way.figures
   const multi = rest.length > 0
   return (
     <span className="lv-way">
       <span className="lv-way__title">
+        <span className="lv-way__disc" data-on={ringed ? '' : undefined} aria-hidden="true">
+          <Icon glyph={CheckIcon} weight="bold" />
+        </span>
         {way.title}
         {way.current && col.cash.state === 'reads' ? (
           <span className="lv-way__today">{col.cash.named ? 'Your choice' : 'Today'}</span>
@@ -906,8 +973,10 @@ function WayFace({ col, way }: { col: Column; way: WayView }) {
               <span className="lv-way__who">{rungWho(f)}</span>
               <span className="lv-way__amount">{f.figure === null ? 'None' : money(f.figure)}</span>
               <span className="lv-way__col">{f.label}</span>
-              {f.meaning ? <span className="lv-way__said">{f.meaning.said}</span> : null}
-              <FigureSource figure={f} />
+              {f.meaning && !compact ? (
+                <span className="lv-way__said">{f.meaning.said}</span>
+              ) : null}
+              {compact ? null : <FigureSource figure={f} />}
             </span>
           ))}
         </span>
@@ -938,8 +1007,14 @@ function WayFace({ col, way }: { col: Column; way: WayView }) {
 }
 
 /** Who a way's second and third prices are for, in the dealer's words. */
-const rungWho = (f: Figure): string =>
-  f.key === 'trade' ? 'A trade buyer' : f.key === 'fitted' ? 'Fitted' : 'A customer'
+const rungWho = (f: Pick<Figure, 'key'>): string =>
+  f.key === 'trade'
+    ? 'A trade buyer'
+    : f.key === 'fitted'
+      ? 'A customer, fitted'
+      : f.key === 'fitted-trade'
+        ? 'A trade buyer, fitted'
+        : 'A customer'
 
 /** The workbook cell a figure is read from, and its rule checked on every line. */
 function FigureSource({ figure }: { figure: Figure }) {
@@ -962,7 +1037,7 @@ function FigureSource({ figure }: { figure: Figure }) {
 }
 
 /** TWO WAYS READ AGAINST EACH OTHER OVER THE WHOLE LIST, never on one line (the judge, L1). */
-function BetweenSaid({ col }: { col: Column }) {
+function BetweenSaid({ col, go }: { col: Column; go: (href: string) => void }) {
   const b = col.cash.between
   if (!b) return null
   const s = b.spread
@@ -977,6 +1052,12 @@ function BetweenSaid({ col }: { col: Column }) {
       {s.equal === 0
         ? 'They are never the same figure.'
         : `They are the same figure on ${n(s.equal)} of ${n(s.both)}.`}
+      {b.under ? (
+        <span className="lv-between__under">
+          <span>{` ${b.more} is under ${b.less} on ${plural(b.under.count, 'line', 'lines')}.`}</span>
+          <DoorTo door={b.under} go={go} />
+        </span>
+      ) : null}
     </p>
   )
 }
@@ -1099,24 +1180,25 @@ function OnTheDesk({
   )
 }
 
-/** THE COUNT AND ITS ACT stand at the foot of the window while the panel they belong to is in
- *  it (the judge, 2026-11-04: at 844 × 390 the act was a further screen down, at y 772), so a
- *  decision, its count and its act are read in one look at every size. */
+/** THE COUNT AND ITS ACT, the act under its count in the page, brought into sight together when
+ *  a press offers them (`bringCount`), so a decision, its count and its act are read in one look
+ *  at every size, and nothing stands over the count (the verifier, 2026-11-04). */
 function Census({
   children,
   acts,
   bring = true,
 }: {
   children: ReactNode
-  /** the act and its "Leave it": a bar of their own, which stands at the window's foot in a
-   *  hand and in a short window so the act is never a screen away */
+  /** the act and its "Leave it", under the count */
   acts: ReactNode
   /** brought into sight when it appears: false when it is already there at rest */
   bring?: boolean
 }) {
   const at = useRef<HTMLDivElement>(null)
+  const bar = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (bring) bringIntoSight(at.current)
+    if (!bring) return
+    requestAnimationFrame(() => bringCount(at.current, bar.current))
   }, [bring])
   return (
     <>
@@ -1130,9 +1212,48 @@ function Census({
       >
         {children}
       </motion.div>
-      {acts ? <div className="lv-census__acts">{acts}</div> : null}
+      {acts ? (
+        <div className="lv-census__acts" ref={bar}>
+          {acts}
+        </div>
+      ) : null}
     </>
   )
+}
+
+/** A length a stylesheet gave, in pixels; 0 where it gave none. */
+const px = (value: string): number => {
+  const v = Number.parseFloat(value)
+  return Number.isFinite(v) ? v : 0
+}
+
+/**
+ * THE COUNT AND ITS ACT BROUGHT INTO SIGHT TOGETHER, the act's bar standing where it stands in the
+ * page and not over the count (the verifier, 2026-11-04: in a hand and at 844 × 390 the bar, stuck
+ * at the window's foot, covered the count's second door, and at 844 × 390 the count was out of
+ * sight). Where the two stand whole in the window clear of the pill and the tab bar, the bar's
+ * foot is brought to the window's foot; where they do not, the count's head is brought to the top,
+ * so the count is read first. What is already in sight does not move.
+ */
+function bringCount(count: HTMLElement | null, bar: HTMLElement | null): void {
+  if (!count || typeof window === 'undefined') return
+  const top = count.getBoundingClientRect().top
+  const countFoot = count.getBoundingClientRect().bottom
+  /* where the bar stands in the page, not where it is stuck: it follows the count, one gap down */
+  const gap = count.parentElement ? px(getComputedStyle(count.parentElement).rowGap) : 0
+  const foot = bar ? countFoot + gap + bar.offsetHeight : countFoot
+  const clearTop = px(getComputedStyle(count).scrollMarginBlockStart)
+  const clearFoot = bar
+    ? px(getComputedStyle(bar).scrollMarginBlockEnd)
+    : px(getComputedStyle(count).scrollMarginBlockEnd)
+  const limit = window.innerHeight - clearFoot
+  let by = 0
+  if (foot - top <= limit - clearTop) {
+    if (foot > limit) by = foot - limit
+    else if (top < clearTop) by = top - clearTop
+  } else by = top - clearTop
+  if (Math.abs(by) < 1) return
+  window.scrollBy({ top: by, behavior: reducedMotion() ? 'auto' : 'smooth' })
 }
 
 /* ---------------------------------------------------------- */
@@ -1226,11 +1347,11 @@ function KeptBar({
                     high={r.high}
                     from={from}
                     to={to}
-                    label={`${r.maker}: ${kept.label} is ${r.low}–${r.high}% of Cash on ${n(r.priced)} boats`}
+                    label={`${r.maker}: ${kept.label} is ${r.low === r.high ? `${r.low}%` : `${r.low}–${r.high}%`} of Cash on ${n(r.priced)} ${r.unit}`}
                   />
                   <span className="lv-range__said">
                     {r.low === r.high ? `${r.low}%` : `${r.low}–${r.high}%`}
-                    <span className="lv-range__of"> of Cash on {n(r.priced)}</span>
+                    <span className="lv-range__of">{` of Cash on ${n(r.priced)} ${r.unit}`}</span>
                   </span>
                 </li>
               ))}
@@ -1401,7 +1522,7 @@ function SettledOpen({
     <div className="lv-settled__open" data-ground="plate">
       <Opening label={`Prices of ${col.name}`} at={at}>
         {c.ways && sample ? (
-          <Chooser col={col} ctx={ctx} sample={sample} onDone={onDone} />
+          <Chooser col={col} ctx={ctx} sample={sample} onDone={onDone} compact={col.kit !== null} />
         ) : sample ? (
           <Specimen col={col} sample={sample} />
         ) : (
@@ -1421,6 +1542,8 @@ function SettledOpen({
               </Button>
             ) : null}
           </p>
+        ) : col.kit ? (
+          <KitPrices col={col} sample={sample} />
         ) : (
           <ListBuyers col={col} sheet={ctx.sheet} sample={sample} preview={preview} go={ctx.go} />
         )}
@@ -1563,9 +1686,9 @@ function ListBuyers({
             high={w.high}
             from={50}
             to={120}
-            label={`${w.label} is ${w.low}–${w.high}% of ${c.label}`}
+            label={`${w.label} is ${w.low === w.high ? `${w.low}%` : `${w.low}–${w.high}%`} of ${c.label}`}
           />
-          {`${w.low}–${w.high}% of ${c.label} on ${n(w.priced)}.${
+          {`${w.low === w.high ? `${w.low}%` : `${w.low}–${w.high}%`} of ${c.label} on ${plural(w.priced, w.unit.replace(/s$/, ''), w.unit)}.${
             w.above > 0 ? ` Above ${c.label} on ${n(w.above)}: ${w.aboveNames.join(', ')}.` : ''
           }${w.mayReach ? '' : ' Northside’s own, above.'}`}
         </>
@@ -1583,7 +1706,7 @@ function ListBuyers({
       said: col.fitted.meaning?.said ?? '',
       cell: col.fitted.meaning?.cell ?? '',
       figure: f === null ? 'None' : money(f),
-      rule: `A figure on ${n(col.fitted.priced)} of ${n(col.lines)}, chosen on the quote one ${col.noun.one} at a time, when it is fitted.`,
+      rule: `A figure on ${n(col.fitted.priced)} of ${n(col.lines)}: the ${col.noun.one}’s price fitted, read for a quote line priced fitted.`,
     })
   }
   if (col.sub) {
@@ -1655,6 +1778,104 @@ function ListBuyers({
           </div>
         ))}
       </dl>
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* Rigging Kits: every figure the file carries, once           */
+/* ---------------------------------------------------------- */
+
+const KIT_WAY_SAID: Record<KitWay, { head: string; what: string }> = {
+  supplied: { head: 'Supplied', what: 'the kit alone' },
+  fitting: { head: 'Fitting', what: 'the fitting alone' },
+  fitted: { head: 'Fitted', what: 'the kit and its fitting' },
+}
+const KIT_BUYER_SAID: Record<KitBuyer, string> = {
+  customer: 'A customer',
+  trade: 'A trade buyer',
+  sub: 'A sub-dealer',
+}
+
+/** "on all 621" or "on 621 of 642" */
+const heldSaid = (holds: number, of: number): string =>
+  holds === of ? `all ${n(of)}` : `${n(holds)} of ${n(of)}`
+
+/** A workbook cell said short, under a caption that names its sheet: "Rigging Kits!AD" → "AD". */
+const cellLetters = (cell: string): string => cell.slice(cell.indexOf('!') + 1)
+
+/**
+ * WHAT EACH BUYER PAYS FOR A RIGGING KIT, AS THE FILE LAYS IT (the verifier of Prices, 2026-11-04,
+ * A10): the kit supplied, the fitting alone and the kit fitted, for a customer, a trade buyer and a
+ * sub-dealer — nine figures, each said once, read on the line above and counted across the list.
+ * The cells a quote reads are marked; the grid's own arithmetic is the rule under it.
+ */
+function KitPrices({ col, sample }: { col: Column; sample: Sample | null }) {
+  const g = col.kit
+  if (!g) return null
+  const cellsTitle = g.cells.supplied.customer.cell.split('!')[0] ?? ''
+  return (
+    <div className="lv-ladder">
+      <p className="lv-ladder__head">
+        What each buyer pays
+        {sample ? (
+          <span className="lv-ladder__on">{` · the ${sample.name} beside the whole list`}</span>
+        ) : null}
+      </p>
+      <table className="lv-kits">
+        <caption className="lv-kits__caption">
+          {`Every figure is the ${col.noun.one}’s own, on ${cellsTitle} at the letter beside it, with how many ${col.noun.many} hold one. Marked “On a quote”: the figures a quote reads.`}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" className="lv-kits__sold">
+              Sold
+            </th>
+            {KIT_BUYERS.map((b) => (
+              <th key={b} scope="col">
+                {KIT_BUYER_SAID[b]}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {KIT_WAYS.map((w) => (
+            <tr key={w} data-way={w}>
+              <th scope="row" className="lv-kits__way">
+                <span className="lv-kits__wayname">{KIT_WAY_SAID[w].head}</span>
+                <span className="lv-kits__what">{KIT_WAY_SAID[w].what}</span>
+              </th>
+              {KIT_BUYERS.map((b) => {
+                const c = g.cells[w][b]
+                return (
+                  <td key={b} className="lv-kits__cell" data-read={c.key ? '' : undefined}>
+                    <span className="lv-kits__who">{KIT_BUYER_SAID[b]}</span>
+                    <span className="lv-kits__figure">
+                      {c.figure === null ? (
+                        <span className="lv-buyer__none">None</span>
+                      ) : (
+                        money(c.figure)
+                      )}
+                    </span>
+                    <span className="lv-kits__col">{c.column}</span>
+                    <span className="lv-kits__src">{`${cellLetters(c.cell)} · on ${n(c.held)}`}</span>
+                    {c.key ? <span className="lv-kits__read">On a quote</span> : null}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="lv-kits__rule">
+        {`Fitted is supplied plus fitting: for a customer on ${heldSaid(g.sums.customer.holds, g.sums.customer.of)}, for a trade buyer on ${heldSaid(g.sums.trade.holds, g.sums.trade.of)}, for a sub-dealer on ${heldSaid(g.sums.sub.holds, g.sums.sub.of)}.`}
+      </p>
+      <p className="lv-kits__rule">
+        {`A sub-dealer’s figure is a trade buyer’s: ${KIT_WAYS.map(
+          (w) =>
+            `on ${heldSaid(g.subIsTrade[w].holds, g.subIsTrade[w].of)} ${KIT_WAY_SAID[w].head.toLowerCase()}`,
+        ).join(', ')}. A quote is priced for a customer or a trade buyer, so no quote reads it.`}
+      </p>
     </div>
   )
 }

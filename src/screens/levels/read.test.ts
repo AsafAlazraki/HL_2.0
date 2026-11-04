@@ -131,8 +131,10 @@ describe('what Northside is asked, with its grounds', () => {
   })
 })
 
-describe('a motor pointed at a figure worked from cost', () => {
-  it('leaves the questions and stands beside Warranty with its own switch, read on the F90XB', () => {
+describe('a motor pointed at its RRP + Freight', () => {
+  /* the verifier of Prices, 2026-11-04, a blocker: the engine kept RRP + Freight from customers as
+     worked from cost, a formula that holds on 0 of 209 Yamaha lines (worked.pack.test.ts) */
+  it('leaves the questions, settles by your choice, and keeps nothing from customers', () => {
     const fieldId = catalogue
       .getState()
       .tables.mot_yamaha!.fields.find((f) => f.name === 'RRP + Freight Inc GST')!.id
@@ -140,17 +142,16 @@ describe('a motor pointed at a figure worked from cost', () => {
     expect(isDone(outcome)).toBe(true)
     const desk = readDesk(sheet(), readLadder(sheet()))
     expect(desk.choose.map((c) => c.name)).not.toContain('Yamaha Outboards')
-    const rrp = desk.kept.find((k) => k.id === 'mot_yamaha#reach')!
-    expect([rrp.label, rrp.on, rrp.mayReach]).toEqual([
-      'RRP + Freight Inc GST',
-      'every Yamaha motor',
-      false,
-    ])
-    expect([rrp.specimen?.sample.name, rrp.specimen?.figure, rrp.specimen?.against]).toEqual([
-      'F90XB',
-      17643,
-      14531,
-    ])
+    expect(desk.kept.map((k) => k.id)).toEqual(['warranty'])
+    const yamaha = desk.settled.find((c) => c.name === 'Yamaha Outboards')!
+    expect(
+      yamaha.cash.state === 'reads' && [
+        yamaha.cash.label,
+        yamaha.cash.figure,
+        yamaha.cash.mayReach,
+      ],
+    ).toEqual(['RRP + Freight Inc GST', 17643, true])
+    expect(yamaha.cash.state === 'reads' && yamaha.cash.ways?.every((w) => !w.kept)).toBe(true)
     if (isDone(outcome)) catalogue.getState().undo(outcome.event.id)
   })
 })

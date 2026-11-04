@@ -6,32 +6,34 @@ import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Place } from '@/screens/places/Place'
-import { PLACE_TABS, type PlaceTab } from '@/screens/places/tabs'
+import { readPlaceAt, writePlaceAt, type PlaceAt, type PlaceTab } from '@/screens/places/tabs'
 
 /* ============================================================
-   /places/$id — one place, opened: its livery at page scale, then
-   its range, its quotes, its prices and its settings, and what it
-   goes with beside them (Milestone 4, board A with board B's rail
-   and tabs grafted, as the verdict asked).
+   /places/$id — one maker as Northside sells it: its livery, then
+   its range (every model with its price, its facts and what it
+   carries), then its prices, quotes, partners and changes; and its
+   Settings (the data round's direction A, "The line-up", 2026-11-04).
 
    `$id` IS THE LIST THE PLACE STANDS FOR — `boat_highfield`,
    `registration` — the same word the sheet's own address uses, so a
    place and its list read alike (`addressOf`, livery.ts).
 
-   ONE SEARCH PARAM: `tab`, which of the four is open. Absent is the
-   range. Written with `replace`: a Back that walked back through
-   every tab pressed would be a Back that never leaves.
+   THE POSITION IS THE SEARCH: `tab=settings`, and on the range the
+   series, the order, the find, the boats set side by side, the compare
+   opened and the heading open (`readPlaceAt`). Written with `replace`:
+   a Back that walked back through every filter pressed would be a
+   Back that never leaves.
    ============================================================ */
 
-export interface PlaceSearch {
-  tab?: Exclude<PlaceTab, 'range'>
+export interface PlaceSearch extends Record<string, unknown> {
+  tab?: 'settings'
 }
 
 export const Route = createFileRoute('/places/$id')({
-  validateSearch: (search: Record<string, unknown>): PlaceSearch => {
-    const tab = PLACE_TABS.find((t) => t === search.tab)
-    return tab && tab !== 'range' ? { tab } : {}
-  },
+  validateSearch: (search: Record<string, unknown>): PlaceSearch => ({
+    ...(search.tab === 'settings' ? { tab: 'settings' as const } : {}),
+    ...writePlaceAt(readPlaceAt(search)),
+  }),
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
   },
@@ -41,7 +43,9 @@ export const Route = createFileRoute('/places/$id')({
 function PlaceRoute() {
   const navigate = useNavigate()
   const { id } = Route.useParams()
-  const { tab } = Route.useSearch()
+  const search = Route.useSearch()
+  const tab: PlaceTab = search.tab === 'settings' ? 'settings' : 'range'
+  const at = readPlaceAt(search)
 
   useEffect(() => {
     if (catalogue.getState().status === 'empty') {
@@ -59,6 +63,20 @@ function PlaceRoute() {
         search: next === 'range' ? {} : { tab: next },
         replace: true,
         viewTransition: false,
+        resetScroll: next === 'settings',
+      })
+    },
+    [navigate, id],
+  )
+
+  const onAt = useCallback(
+    (next: PlaceAt) => {
+      void navigate({
+        to: '/places/$id',
+        params: { id },
+        search: writePlaceAt(next),
+        replace: true,
+        viewTransition: false,
         resetScroll: false,
       })
     },
@@ -68,8 +86,10 @@ function PlaceRoute() {
   return (
     <Place
       address={id}
-      tab={tab ?? 'range'}
+      tab={tab}
       onTab={onTab}
+      at={at}
+      onAt={onAt}
       go={(href) => void navigate({ href })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
     />

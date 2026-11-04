@@ -8,7 +8,7 @@ import {
 } from '@phosphor-icons/react'
 import { Button, Icon, Input, Tile } from '@/ui'
 import { money } from '@/domain/money'
-import { buyersOf, findLines, type BuyerPrice } from '@/domain/pricing/buyers'
+import { buyersOf, searchLines, type BuyerPrice } from '@/domain/pricing/buyers'
 import { GroupHead, Joints, LinePicture } from './bits'
 import { lineEntries, sampleOf, type Column, type Sheet } from './read'
 
@@ -70,7 +70,8 @@ export function Lookup({
 }) {
   const [typed, setTyped] = useState('')
   const entries = useMemo(() => lineEntries(sheet, columns), [sheet, columns])
-  const found = useMemo(() => findLines(entries, typed), [entries, typed])
+  const search = useMemo(() => searchLines(entries, typed), [entries, typed])
+  const found = search.lines
   const at = readToken(line)
   const table = at ? sheet.tables[at.tableId] : undefined
   const row = at && table ? sheet.rows[at.tableId]?.find((r) => r.id === at.rowId) : undefined
@@ -100,28 +101,35 @@ export function Lookup({
         </div>
         {asking ? (
           found.length > 0 ? (
-            <ul className="lv-find__hits" aria-label="Lines found">
-              {found.map((e) => (
-                <li key={`${e.tableId}~${e.rowId}`}>
-                  <Tile
-                    shape="row"
-                    label={`${e.name}, ${e.list}${e.code !== '' ? `, ${e.code}` : ''}`}
-                    onSelect={() => {
-                      onLine(lineToken(e.tableId, e.rowId))
-                      setTyped('')
-                    }}
-                  >
-                    <span className="lv-hit">
-                      <span className="lv-hit__name">{e.name}</span>
-                      <span className="lv-hit__where">
-                        {e.list}
-                        {e.code !== '' && !e.name.includes(e.code) ? ` · ${e.code}` : ''}
+            <>
+              <ul className="lv-find__hits" aria-label="Lines found">
+                {found.map((e) => (
+                  <li key={`${e.tableId}~${e.rowId}`}>
+                    <Tile
+                      shape="row"
+                      label={`${e.name}, ${e.list}${e.code !== '' ? `, ${e.code}` : ''}`}
+                      onSelect={() => {
+                        onLine(lineToken(e.tableId, e.rowId))
+                        setTyped('')
+                      }}
+                    >
+                      <span className="lv-hit">
+                        <span className="lv-hit__name">{e.name}</span>
+                        <span className="lv-hit__where">
+                          {e.list}
+                          {e.code !== '' && !e.name.includes(e.code) ? ` · ${e.code}` : ''}
+                        </span>
                       </span>
-                    </span>
-                  </Tile>
-                </li>
-              ))}
-            </ul>
+                    </Tile>
+                  </li>
+                ))}
+              </ul>
+              {search.total > found.length ? (
+                <p className="lv-find__more">
+                  {`${found.length} of the ${search.total.toLocaleString('en-AU')} lines that answer, every list’s best first. Type more of the name, or the code, to narrow them.`}
+                </p>
+              ) : null}
+            </>
           ) : (
             <output className="lv-find__none">
               Nothing on sale is called “{typed.trim()}”. A line is found by the name the build

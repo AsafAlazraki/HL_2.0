@@ -5,7 +5,8 @@ import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { priceIn } from '@/domain/catalogue/priceCommands'
 import { freezeLevels, priceAtLevel } from '@/domain/quote/pricing'
 import type { EntityDef, PriceLevel, RowData } from '@/domain/model'
-import { buyersOf, findLines, type LineEntry, type Sheet } from './buyers'
+import { buyersOf, findLines, searchLines, type LineEntry, type Sheet } from './buyers'
+import { waysFor } from './ways'
 
 let pack: PackFixture
 let sheet: Sheet
@@ -65,6 +66,31 @@ describe('each buyer', () => {
     const k = buyersOf(sheet, table('rig_kits'), kit)
     expect(k.map((x) => [x.key, x.state])).toEqual([['cash', 'unchosen']])
   })
+
+  it('reads a kit priced supplied or fitted for every buyer, fitted trade and both sub-dealer figures', () => {
+    const kits = table('rig_kits')
+    const supplied = waysFor(kits, pack.rowsByEntity.rig_kits ?? []).find(
+      (w) => w.id === 'supplied',
+    )!
+    const ladder: PriceLevel[] = supplied.rungs.map((r) => ({
+      key: r.key,
+      label: r.label,
+      fieldId: r.fieldId,
+      scope: r.key === 'cash' || r.key === 'trade' ? 'quote' : 'line',
+      named: true,
+    }))
+    const named: Sheet = { ...sheet, priceLevels: { ...sheet.priceLevels, rig_kits: ladder } }
+    const f20g = rowOf('rig_kits', (r) => r.values['rig_kits.d'] === '9YA_TCK_F20G')
+    const b = buyersOf(named, { ...kits, priceLevels: ladder }, f20g)
+    expect(b.map((x) => [x.key, x.figure, x.cell])).toEqual([
+      ['cash', 900, 'Rigging Kits!K'],
+      ['trade', 855, 'Rigging Kits!L'],
+      ['fitted', 1060, 'Rigging Kits!AC'],
+      ['fitted-trade', 1007, 'Rigging Kits!AD'],
+      ['sub', 855, 'Rigging Kits!M'],
+      ['sub-fitted', 1007, 'Rigging Kits!AE'],
+    ])
+  })
 })
 
 describe('finding a line', () => {
@@ -79,5 +105,28 @@ describe('finding a line', () => {
     expect(findLines(entries, 'skimma').map((e) => e.rowId)).toEqual(['3'])
     expect(findLines(entries, 'sport hypalon').map((e) => e.rowId)).toEqual(['4'])
     expect(findLines(entries, 'h')).toEqual([])
+  })
+
+  it('shows every list’s best line before any list’s second, and counts every line found', () => {
+    const many: LineEntry[] = [
+      ...Array.from({ length: 8 }, (_, i) => ({
+        tableId: 'dealer_fit',
+        rowId: `d${i}`,
+        name: `Tiller Conversion Kit · Package ${i}`,
+        code: '',
+        list: 'Dealer Fit',
+      })),
+      {
+        tableId: 'rig_kits',
+        rowId: 'k1',
+        name: 'Tiller Conversion Kit · F20G',
+        code: '9YA_TCK_F20G',
+        list: 'Rigging Kits',
+      },
+    ]
+    const found = searchLines(many, 'tiller conversion kit')
+    expect(found.total).toBe(9)
+    expect(found.lines).toHaveLength(6)
+    expect(found.lines.map((e) => e.rowId)).toEqual(['d0', 'd1', 'd2', 'd3', 'd4', 'k1'])
   })
 })

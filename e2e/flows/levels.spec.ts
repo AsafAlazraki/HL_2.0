@@ -168,8 +168,19 @@ test('Rigging Kits are priced supplied or fitted, cash and trade, counted first,
     kits.getByText(/^628 of 650 rigging kits are priced at their Kit Sell Price/),
   ).toBeVisible()
   const act = kits.getByRole('button', { name: 'Price 628 kits supplied, or fitted' })
-  /* the act stands in the window once a way is pressed, at every size */
+  /* the act stands in the window once a way is pressed, at every size, and its bar covers none of
+     the count it acts on (the verifier, 2026-11-04: at 390 and 844 × 390 it covered the count's
+     second door, and the count was out of sight) */
   await expect(act).toBeInViewport({ ratio: 1 })
+  const count = kits.locator('.lv-census')
+  await expect(count.getByText(/^628 of 650 rigging kits/)).toBeInViewport({ ratio: 1 })
+  await expect
+    .poll(async () => {
+      const c = await count.boundingBox()
+      const bar = await kits.locator('.lv-census__acts').boundingBox()
+      return c && bar ? Math.round(bar.y - (c.y + c.height)) : -1
+    })
+    .toBeGreaterThanOrEqual(0)
   await act.click()
 
   await expect(page.getByRole('heading', { level: 2, name: /^Yours to choose/ })).toHaveText(
@@ -179,8 +190,18 @@ test('Rigging Kits are priced supplied or fitted, cash and trade, counted first,
     settled(page).getByRole('button', { name: /^Rigging Kits, 650 kits: .* · 22 not priced$/ }),
   ).toBeVisible()
   await expect(settled(page).getByTestId('last-step')).toContainText(
-    'Every rigging kit is priced at its Kit Sell Price, a trade buyer at Trade Price and fitted at Sell Price, from the next quote.',
+    '628 of 650 rigging kits are priced at their Kit Sell Price, a trade buyer at Trade Price, fitted at Sell Price and fitted for a trade buyer at Trade Price, from the next quote.',
   )
+
+  /* who chose it, and when, is kept with the price list: it is still said after a reload */
+  await written(page)
+  await toPrices(page, 'rig_kits')
+  await expect(
+    opened(page).getByText(
+      /(chose “Supplied, or fitted”|“Supplied, or fitted” was chosen) at .* today\./,
+    ),
+  ).toBeVisible()
+  await expect(opened(page).getByRole('table')).toContainText('Rigging Kits')
 })
 
 test('a line is looked up by its code, and each buyer’s price stands with its cell, kept in the address', async ({

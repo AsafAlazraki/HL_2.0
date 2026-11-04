@@ -67,7 +67,7 @@ import {
   type RungCharge,
   type RungContents,
 } from '@/domain/model'
-import { mayReachCustomer, workedFromCost } from '@/domain/pricing/worked'
+import { mayBeNamed, mayReachCustomer, workedFromCost } from '@/domain/pricing/worked'
 import { levelWord } from './levelSaid'
 
 /* ---------------------------------------------------------- */
@@ -295,14 +295,15 @@ export function priceLevelsFor(entity: EntityDef | undefined): PriceLevel[] {
       const f = entity.fields.find((x) => x.id === l.fieldId)
       /* a declaration pointing at a cost column is still refused —
          the exclusion is by construction, not by good manners. The one
-         way past it is a price WORKED from cost that the dealer named
-         himself on Prices (`worked.ts`): a motor's RRP + Freight is
-         filed under cost by its name, and is the figure Northside's
-         Display Sheet prints. Named, it is still Northside's only until
-         he lets it reach a customer, and a quote priced at it is refused
-         when given (`issueBlockers`). */
+         way past it is a column the dealer named himself on Prices that
+         `mayBeNamed` (`worked.ts`) lets by: a price worked from cost,
+         which then starts as Northside's only and refuses a quote priced
+         at it when given (`issueBlockers`), or a motor's RRP + Freight,
+         filed under cost by its name, the recommended retail Northside's
+         Display Sheet prints and not worked from cost on this file (0 of
+         209), which reaches a customer as any price does. */
       if (!f) return false
-      return !isCostColumn(entity, f) || (l.named === true && workedFromCost(f) !== null)
+      return !isCostColumn(entity, f) || (l.named === true && mayBeNamed(f))
     })
   }
   return namedLevelsFor(entity)
