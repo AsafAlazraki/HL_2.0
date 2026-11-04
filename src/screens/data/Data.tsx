@@ -73,9 +73,10 @@ export { fitsSay, rowId } from './Holds'
      the head      which price list, how big, and its three dates —
                    packed, its headings' own "as at" span, and the last
                    change on this computer — and one find over all of it
-     the state     NEEDS NORTHSIDE, a checklist with a figure, its
-                   numerator and denominator and a door per line; NEW
-                   SINCE the packing; the six ROOMS as counted doors
+     the state     the six ROOMS as counted doors, first and in the first
+                   window at every size; NEEDS NORTHSIDE, a checklist
+                   with a figure, its numerator and denominator and a
+                   door per line; NEW SINCE the packing
      what it holds eight maker tiles (the eighth is every maker), the
                    lists you sell from as a ledger, and the 28 lists of
                    what fits which boat as one table of maker × kind
@@ -638,17 +639,20 @@ export function Data({
         ) : null}
 
         {open && !answering ? (
+          /* THE ROOMS FIRST, IN THE FIRST WINDOW AT EVERY SIZE (the section critic, 2026-11-04,
+             major 3: they began at 1325 at 390, 1195 at 834 and 491 at 1280, under six needs and
+             New since). In a hand and on a tablet they are one strip under the head; on a desk
+             they head the column beside Needs, with New since under them. First in the reading
+             order as well, so the keyboard meets them where the eye does. */
           <div className="dt-state">
+            <Rooms facts={facts} go={go} />
             <Needs needs={needs} go={go} />
-            <div className="dt-side">
-              <Fresh
-                facts={facts}
-                openSheet={(id, row) => openIt(id, row ? { at: row } : undefined)}
-                openSpread={(id) => openPage(id, true)}
-                go={go}
-              />
-              <Rooms facts={facts} go={go} />
-            </div>
+            <Fresh
+              facts={facts}
+              openSheet={(id, row) => openIt(id, row ? { at: row } : undefined)}
+              openSpread={(id) => openPage(id, true)}
+              go={go}
+            />
           </div>
         ) : null}
 

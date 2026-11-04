@@ -230,7 +230,11 @@ export function Changes(props: ChangesProps) {
         </span>
       </p>
 
-      <Dock {...props} counted={counted} dockRef={dock} />
+      {/* the dock stands in its bay: the room's ground under it, so what scrolls beneath it fades
+          out above its edge rather than being cut by it (the section critic, 2026-10-31) */}
+      <div className="sf-bay">
+        <Dock {...props} counted={counted} dockRef={dock} />
+      </div>
     </main>
   )
 }

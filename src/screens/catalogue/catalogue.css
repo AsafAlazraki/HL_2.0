@@ -205,7 +205,9 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
-  text-wrap: pretty;
+  /* the count says its share of Data's figure in two sentences; balanced, its last line never
+     leaves "197 are pictured." alone under a full one (1440x900, 2026-11-05) */
+  text-wrap: balance;
 }
 .chd-door__count b,
 .chd-head__count b {

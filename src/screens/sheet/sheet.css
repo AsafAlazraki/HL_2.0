@@ -3469,10 +3469,18 @@
 /* ---- the record: the facts first (G13) ---------------------------------------------------- */
 
 /* THE FACTS BEFORE THE PICTURE, AT EVERY SIZE: the sections first, and the picture after them at
-   most 160px tall; from the laptop up it stands at the right at 224px beside them. A hand's record
+   most 160px tall; from the tablet up it stands at the right at 224px beside them. A hand's record
    is the screen and keeps its one column, facts first too (the sheet's verifier, 2026-11-03: on a
    phone it opened on a 330px picture and Cash stood at y=520). The record's name takes a second
-   line rather than an ellipsis ("Roll Up 230 KAM · PVC …" at 844 × 390). */
+   line rather than an ellipsis ("Roll Up 230 KAM · PVC …" at 844 × 390).
+   BY THE RECORD'S OWN WIDTH, NOT THE WINDOW'S: under 1100px of window the picture and its gallery
+   stood alone under the facts in a 288px column, with about 420 × 520 px empty to its right (the
+   section critic, 2026-11-04, the Formosa GRT 425 Tiller at 834 × 1112, a record 757px wide).
+   A record opened under a variant is narrower at the same window (Highfield's: 398px at 844), and
+   beside a picture its facts stood in 114px and broke "HBR005" in two. So the picture stands
+   beside the facts wherever the record's content is 31rem or more — measured, the narrowest
+   that does so leaves the facts 269px (Formosa at 640), and the desk already kept Highfield's at
+   276px (1200) — and under them where it is narrower. */
 .sh-record__body > .sh-record__sections {
   order: -1;
 }
@@ -3486,7 +3494,11 @@
   text-wrap: balance;
 }
 
-@media (min-width: 640px) and (max-width: 1099.98px) {
+@media (min-width: 640px) {
+  .sh-record {
+    container: sh-record / inline-size;
+  }
+
   .sh-record > .sh-record__body {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -3496,7 +3508,7 @@
   }
 }
 
-@media (min-width: 1100px) {
+@container sh-record (min-width: 31rem) {
   .sh-record > .sh-record__body:has(> :not(.sh-record__sections)) {
     grid-template-columns: minmax(0, 1fr) minmax(0, --spacing(56));
   }

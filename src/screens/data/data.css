@@ -12,7 +12,8 @@
    dot reads --accent-ochre, a done one --accent-viridian, the kinds their seven accents.
 
    THE COMPOSITION: the head (the file and its three dates, and one find), then the STATE —
-   Needs Northside beside a column of New since and the six rooms — then WHAT THE FILE HOLDS:
+   the six rooms, Needs Northside and New since; on a desk Needs beside a column of the rooms
+   over New since — then WHAT THE FILE HOLDS:
    eight maker tiles, and the lists you sell from beside the 28 lists of what fits as a matrix.
    A press opens a spread in the room the two ledgers had, under the tiles. A find answers
    under the field, the state steps aside, and the tiles and the ledger narrow.
@@ -21,25 +22,28 @@
    HOW IT REFLOWS. The rulers run at six windows; the breakpoints are on width alone.
 
      390 x 844 (phone)          One column, 16px gutter; the bar is at the foot. The head, the
-                                find, then Needs as tight rows: the figure in a 64px margin, the
-                                sentence, its "of" and its door under the words; the year strip
-                                is hidden (its sentence keeps the oldest date). The first window
-                                holds the head and the first two needs. Then New since, the
-                                rooms as six full-width doors with an edge, the makers 2-up
+                                find, the six rooms three across (a glyph, the name, a figure in
+                                a word or two), then Needs as tight rows: the figure in a 64px
+                                margin, the sentence, its "of" and its door under the words; the
+                                year strip is hidden (its sentence keeps the oldest date). The
+                                first window holds the head, the rooms and the first two needs
+                                (measured 2026-11-04: rooms 271-468 of 790). Then New since, the makers 2-up
                                 (eight tiles, four rows, no empty slot), the lists one to a
                                 card line, and the matrix as one card per maker. A spread opens
                                 under the tiles and is scrolled to.
-     844 x 390 (phone, turned)  The tablet column under the floating bar. Every spread and every
+     844 x 390 (phone, turned)  The tablet column under the floating bar, the rooms' strip a name
+                                and a figure only, so it ends at 328 of 390. Every spread and every
                                 scrolled-to thing keeps `--shell-inset` and 16px above it
                                 (`scroll-margin-block-start`), so nothing opens under the bar.
-     834 x 1112 (tablet)        One column, 24px gutter: Needs full width, then New since beside
-                                the rooms, the makers 4 x 2, the two ledgers stacked.
+     834 x 1112 (tablet)        One column, 24px gutter: the six rooms in one row, Needs full
+                                width, New since with its zero beside its facts, the makers 4 x 2,
+                                the two ledgers stacked.
      1280 x 800 (laptop)        40px gutter. The head and the find on one line; Needs beside a
-                                column of New since over the rooms, 2 : 1; makers 4 x 2; the two
-                                ledgers side by side.
+                                column of the rooms over New since, 2 : 1, the rooms whole by 605
+                                of 800; makers 4 x 2; the two ledgers stacked.
      1440 x 900 (desk)          As 1280, and the eight makers in one row.
      1920 x 1080 (showroom)     The frame caps at 1,760px with an 80px gutter; Needs and the
-                                column run 7 : 5, the rooms 2 x 3 under New since, and the
+                                column run 7 : 5, the rooms 2 x 3 over New since, and the
                                 makers one row of eight: the window holds the state and the
                                 makers, with no empty floor.
 
@@ -241,16 +245,28 @@
 
 /* ---- the state --------------------------------------------- */
 
+/* THE ROOMS, NEEDS NORTHSIDE AND NEW SINCE: one column, the rooms first, until a desk lays
+   Needs beside a column of the rooms over New since */
 .dt-state {
   display: grid;
   gap: --spacing(5);
   align-items: start;
+  grid-template-areas:
+    'rooms'
+    'needs'
+    'fresh';
 }
-.dt-side {
-  display: grid;
-  gap: --spacing(5);
-  align-items: start;
+.dt-state > * {
   min-inline-size: 0;
+}
+.dt-state > .dt-rooms {
+  grid-area: rooms;
+}
+.dt-state > .dt-needs {
+  grid-area: needs;
+}
+.dt-state > .dt-fresh {
+  grid-area: fresh;
 }
 
 /* NEEDS NORTHSIDE: the figure in a margin with its dot, the sentence and what the figure is
@@ -492,29 +508,31 @@
   text-wrap: pretty;
 }
 
-/* THE ROOMS: six counted doors. In a hand they are one plate of rows with an edge; on a desk
-   each is its own white tile. */
+/* THE ROOMS: six counted doors, each its own white tile. Under a desk they are a strip under
+   the head — three across in a hand, six in a row on a tablet or a turned phone — and each
+   says its name and its figure in a word or two, so all six stand in the first window (the
+   section critic, 2026-11-04, major 3). On a desk they head the column beside Needs, each with
+   its glyph, its figure whole and the line under it. */
 .dt-rooms {
   display: grid;
   gap: --spacing(2.5);
 }
 .dt-rooms__list {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: --spacing(2);
 }
 .dt-room {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    'glyph name'
-    'glyph fig'
-    'glyph sub';
-  column-gap: --spacing(3);
-  align-items: center;
+    'glyph'
+    'name'
+    'fig';
+  align-content: start;
   block-size: 100%;
-  padding: --spacing(2.5) --spacing(10) --spacing(2.5) --spacing(3);
+  padding: --spacing(2.5) --spacing(3);
   border-radius: var(--radius-tile);
   background: var(--color-plate);
   color: var(--color-ink);
@@ -534,21 +552,29 @@
 .dt-room:active {
   transform: scale(0.99);
 }
+/* the arrow, the line under the figure and the figure's own tail are a desk's */
+.dt-room__go,
+.dt-room__sub,
+.dt-room__more {
+  display: none;
+}
 .dt-room__glyph {
   grid-area: glyph;
-  align-self: center;
   display: grid;
+  justify-self: start;
+  align-self: center;
   place-items: center;
-  inline-size: --spacing(9);
-  block-size: --spacing(9);
+  inline-size: --spacing(7);
+  block-size: --spacing(7);
+  margin-block-end: --spacing(1.5);
   border-radius: var(--radius-glyph);
   background: var(--color-plate-tint);
   color: var(--color-ink-file);
 }
 .dt-room__name {
   grid-area: name;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   font-weight: 700;
   color: var(--color-ink-file);
 }
@@ -572,7 +598,6 @@
   inset-block-start: 50%;
   inset-inline-end: --spacing(3.5);
   translate: 0 -50%;
-  display: inline-flex;
   color: var(--color-ink-file);
   transition: transform var(--duration-enter) var(--ease-out);
 }
@@ -926,6 +951,18 @@
 /* IN A SHORT WINDOW THE SPREAD IS SCROLLED TO, its head at the bar's clearance and 16px; the
    ground above it is as tall as that, so no tile's foot shows between the bar and the spread
    (the verifier of Data, round 1: at 844 x 390 the tiles' edges peeked out at y 55-65) */
+/* A SHORT WINDOW KEEPS THE STRIP OF ROOMS TO A NAME AND A FIGURE, so all six stand over the
+   window's foot at 844 x 390 */
+@media (max-height: 520px) and (max-width: 1099px) {
+  .dt-room {
+    grid-template-areas:
+      'name'
+      'fig';
+  }
+  .dt-room__glyph {
+    display: none;
+  }
+}
 @media (max-height: 520px) {
   .dt-body[data-open] {
     padding-block-start: max(0px, calc(var(--shell-inset) + --spacing(4) - --spacing(5)));
@@ -1806,10 +1843,9 @@
   .dt-sec-head {
     padding-inline: --spacing(5);
   }
-  /* NEW SINCE OVER THE ROOMS, the rooms two across (the verifier of Data, round 1: New since
-     beside a column of six rooms left 290px of empty floor under it at 834) */
+  /* THE SIX ROOMS IN ONE ROW under the head, on a tablet and a turned phone alike */
   .dt-rooms__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
   .dt-makers {
     display: grid;
@@ -1943,6 +1979,35 @@
   }
 }
 
+/* ---- 600 to 1099: New since across the frame, its zero beside its facts ----------------
+   Under the strip of rooms it has the frame's whole width, and its facts drawn across all of it
+   left a label at one edge and its value at the other (measured at 834: 640px between "A copy of
+   Northside's work" and "None saved"). The zero stands at the left and the facts beside it. */
+@media (min-width: 600px) and (max-width: 1099px) {
+  .dt-fresh {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    column-gap: --spacing(4);
+    align-items: start;
+  }
+  .dt-fresh > .dt-sec-head,
+  .dt-fresh > .dt-fresh__say {
+    grid-column: 1 / -1;
+  }
+  .dt-fresh > .dt-zero {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+    padding-inline-start: --spacing(5);
+  }
+  .dt-fresh > .dt-fresh__lists,
+  .dt-fresh > .dt-fresh__facts {
+    grid-column: 2;
+  }
+  .dt-fresh > .dt-fresh__facts {
+    padding-inline: 0 --spacing(5);
+  }
+}
+
 /* ---- 1100 and up: the laptop and the desk ---------------- */
 @media (min-width: 1100px) {
   .dt {
@@ -1970,11 +2035,35 @@
     grid-column: 2;
     grid-row: 1;
   }
+  /* NEEDS BESIDE A COLUMN OF THE ROOMS OVER NEW SINCE: the rooms' row is as tall as they are,
+     and Needs runs down beside both */
   .dt-state {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'needs rooms'
+      'needs fresh';
   }
   .dt-rooms__list {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .dt-room__glyph {
+    inline-size: --spacing(9);
+    block-size: --spacing(9);
+    margin: 0;
+  }
+  .dt-room__go {
+    display: inline-flex;
+  }
+  .dt-room__sub {
+    display: block;
+  }
+  .dt-room__more {
+    display: inline;
+  }
+  .dt-room__name {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
   }
   /* THE TWO LEDGERS STACK, AND THE LISTS RUN IN TWO COLUMNS (the verifier of Data, round 2: side by
      side, the table of what fits ended 330 to 340 px above the eighteen lists at 1280, 1440 and
@@ -2008,7 +2097,9 @@
       'glyph name fig'
       'glyph name sub';
     column-gap: --spacing(3);
-    padding-block: --spacing(2);
+    align-items: center;
+    align-content: center;
+    padding: --spacing(2) --spacing(10) --spacing(2) --spacing(3);
   }
   /* THE FACTS STAND UNDER WHO IT IS, beside the lineup and what goes with it (the verifier of Data,
      round 2: at 1920 the first column was empty from under the acts to the foot, about 220 px,

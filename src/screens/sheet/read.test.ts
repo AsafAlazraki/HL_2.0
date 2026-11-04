@@ -5,6 +5,9 @@ import { cellText } from '@/domain/catalogue/table/helpers'
 import { splitUnit } from '@/domain/catalogue/views/columns'
 import {
   centsColumns,
+  changeBackSaid,
+  changeLine,
+  changeOf,
   changeSaid,
   codeAsName,
   nameBeyondCode,
@@ -183,6 +186,25 @@ describe('what one write changed', () => {
     const row = { rowId: 'r', values: { [cash.id]: 3060 }, text: { [cash.id]: '3060' } }
     expect(changeSaid(hf, cash, 'HBR009', row, 12345)).toBe('Cash on HBR009: $3,060 → $12,345')
     expect(changeSaid(hf, cash, '', row, null)).toBe('Cash: $3,060 → nothing')
+  })
+
+  it('taken back, says the write no longer stands before its claim, and the figure that does', () => {
+    /* "Undone — Cash on …: $2,770 → $2,771" read as if $2,771 stood (the section critic, data
+       round, 2026-11-04); Prices and Review say "Undone. No longer so: …" */
+    const hf = pack.byKey('boat_highfield')
+    const cash = fieldOf(hf, 'Cash')
+    const row = { rowId: 'r', values: { [cash.id]: 2770 }, text: { [cash.id]: '2770' } }
+    const moved = changeOf(hf, cash, 'HBR009', row, 2771)
+    expect(changeLine(moved)).toBe('Cash on HBR009: $2,770 → $2,771')
+    const undone = changeBackSaid('undone', moved)
+    expect(undone).toBe('Undone. No longer so: Cash on HBR009 is $2,771. It is $2,770 again.')
+    expect(undone.startsWith('Undone —')).toBe(false)
+    expect(undone).not.toContain('→')
+    expect(changeBackSaid('redone', moved)).toBe('Put back: Cash on HBR009: $2,770 → $2,771')
+    /* an emptied cell is said empty, never "nothing again" */
+    expect(changeBackSaid('undone', changeOf(hf, cash, '', row, null))).toBe(
+      'Undone. No longer so: Cash is empty. It is $2,770 again.',
+    )
   })
 
   it('says the line as the boat is said where the maker names it, and the file’s string elsewhere', () => {

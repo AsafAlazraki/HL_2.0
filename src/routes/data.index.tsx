@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect, useNavigate, useRouter } from '@tanstack/react-router'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { repositories } from '@/data'
 import { useCatalogue } from '@/app/useStores'
@@ -61,16 +61,19 @@ const word = (value: unknown): string | undefined => {
   return said === '' || said.length > 120 ? undefined : said
 }
 
+/** what the address says, read rather than trusted */
+const readSearch = (search: Record<string, unknown>): DataSearch => {
+  const at = word(search.at)
+  const find = word(search.find)
+  return {
+    ...(at ? { at } : {}),
+    ...(find ? { find } : {}),
+    ...(at && search.headings === 'all' ? { headings: 'all' as const } : {}),
+  }
+}
+
 export const Route = createFileRoute('/data/')({
-  validateSearch: (search: Record<string, unknown>): DataSearch => {
-    const at = word(search.at)
-    const find = word(search.find)
-    return {
-      ...(at ? { at } : {}),
-      ...(find ? { find } : {}),
-      ...(at && search.headings === 'all' ? { headings: 'all' as const } : {}),
-    }
-  },
+  validateSearch: readSearch,
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
   },
@@ -79,6 +82,7 @@ export const Route = createFileRoute('/data/')({
 
 function DataRoute() {
   const navigate = useNavigate()
+  const router = useRouter()
   const { at, find, headings } = Route.useSearch()
   const business = useCatalogue((s) => s.business)
 
@@ -101,6 +105,19 @@ function DataRoute() {
      own morph (the maker's mark flying into its spread) is started by the screen. */
   const onPosition = useCallback(
     (position: DataPosition) => {
+      /* A POSITION THE ADDRESS ALREADY SAYS IS NOT WRITTEN AGAIN (the section critic,
+         2026-11-04, major 1: the bar's Data, pressed from 700px down on Rules, opened Data at
+         700). The screen hands its position back as it mounts; written then, the write was a
+         second load of the same address with `resetScroll: false`, and it overruled the
+         arrival's own reset to the head — and on the browser's Back, the scroll it restores. */
+      /* the address as it stands now, read as this route reads it */
+      const now = readSearch(router.state.location.search as Record<string, unknown>)
+      if (
+        (position.at ?? '') === (now.at ?? '') &&
+        (position.find ?? '') === (now.find ?? '') &&
+        (position.headings ?? '') === (now.headings ?? '')
+      )
+        return
       /* NOR DOES IT MOVE THE PAGE (2026-11-03, the verifier of Data): a position written while
          a person reads — the lineup drawn whole, a spread opened — left the router's default
          reset the window to its top. The screen brings what it opened into view itself. */
@@ -112,7 +129,7 @@ function DataRoute() {
         resetScroll: false,
       })
     },
-    [navigate],
+    [navigate, router],
   )
 
   return (

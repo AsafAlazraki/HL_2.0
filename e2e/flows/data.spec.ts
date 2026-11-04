@@ -517,3 +517,88 @@ test('a maker’s prices open Prices at it, and Fitment opens its models to choo
   await expect(page).toHaveURL(/\/fitment\?maker=Stacer$/)
   await expect(page.locator('[data-testid="fitment"][data-read]')).toBeVisible({ timeout: 15_000 })
 })
+
+/* ============================================================
+   DATA AS THE HEAD OF ITS SECTION (the section critic, 2026-11-04): the
+   rooms in the first window, the bar's Data at its head, and Back to
+   where the person was, with the room they left in hand.
+   ============================================================ */
+
+/** The window a person sees over the bar: to the pill's top where it is at the foot. */
+const windowFoot = (page: Page) =>
+  page.evaluate(() => {
+    const pill = document.querySelector('[data-testid="shell-pill"]')?.getBoundingClientRect()
+    return pill && pill.top > innerHeight / 2 ? pill.top : innerHeight
+  })
+
+test('all six rooms stand whole in the first window, at every size', async ({ page }) => {
+  await onData(page)
+  await expect(page.getByTestId('data-wrong')).toBeVisible({ timeout: 15_000 })
+  const foot = await windowFoot(page)
+  const rooms = page
+    .getByRole('navigation', { name: 'The rooms of the price list' })
+    .getByRole('link')
+  await expect(rooms).toHaveCount(PRICE_LIST_ROOMS.length)
+  for (const room of await rooms.all()) {
+    const box = (await room.boundingBox())!
+    expect(box.y, `${await room.getAttribute('href')} begins in the window`).toBeGreaterThanOrEqual(
+      0,
+    )
+    expect(
+      box.y + box.height,
+      `${await room.getAttribute('href')} ends over ${foot}`,
+    ).toBeLessThanOrEqual(foot)
+  }
+})
+
+test('the bar’s Data opens at its head, however far down the room just left was', async ({
+  page,
+}) => {
+  test.setTimeout(90_000)
+  await onData(page)
+  const pill = page.getByTestId('shell-pill')
+  const data = pill.getByRole('link', { name: /^Data( |$)/ })
+  for (const [href, lands] of [
+    ['/rules', '[data-testid="rules"][data-read]'],
+    ['/review', '[data-testid="review"][data-read]'],
+  ] as const) {
+    await page.locator(`.dt-room[href="${href}"]`).click()
+    await expect(page.locator(lands)).toBeVisible({ timeout: 15_000 })
+    await page.evaluate(() => window.scrollTo(0, 700))
+    await expect.poll(() => page.evaluate(() => scrollY), href).toBeGreaterThan(300)
+    await data.click()
+    await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
+    await expect(page).toHaveURL(/\/data$/)
+    /* a moment for any late write of the address to have moved the page, as it did */
+    await page.waitForTimeout(600)
+    expect(await page.evaluate(() => scrollY), `Data from ${href}`).toBe(0)
+  }
+})
+
+test('Back from a room comes to where the person was, the room they left in hand', async ({
+  page,
+}) => {
+  test.setTimeout(90_000)
+  await onData(page)
+  await expect(page.getByTestId('data-wrong')).toBeVisible({ timeout: 15_000 })
+  /* scrolled a little, as a person reading the rooms is */
+  await page.evaluate(() => window.scrollTo(0, 60))
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0)
+  const was = await page.evaluate(() => scrollY)
+  await page.locator('.dt-room[href="/review"]').click()
+  await expect(page.locator('[data-testid="review"][data-read]')).toBeVisible({ timeout: 15_000 })
+  await page.goBack()
+  await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.dt-room[href="/review"]')).toBeFocused()
+  expect(Math.abs((await page.evaluate(() => scrollY)) - was)).toBeLessThanOrEqual(2)
+  /* and the bar's Data, a new arrival, gives the keyboard to nothing on the way to the head */
+  await page.locator('.dt-room[href="/review"]').click()
+  await expect(page.locator('[data-testid="review"][data-read]')).toBeVisible({ timeout: 15_000 })
+  await page
+    .getByTestId('shell-pill')
+    .getByRole('link', { name: /^Data( |$)/ })
+    .click()
+  await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
+  await page.waitForTimeout(400)
+  await expect(page.locator('.dt-room[href="/review"]')).not.toBeFocused()
+})

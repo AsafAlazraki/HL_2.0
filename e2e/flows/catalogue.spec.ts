@@ -16,6 +16,35 @@ const shot = async (page: Page, name: string, project: string): Promise<void> =>
 
 const ready = (page: Page) => page.locator('[data-testid="catalogue"][data-read]')
 
+/* THE ROOM SAYS ITS OWN NAME, AND ITS SHARE OF DATA'S FIGURE (the section critic, 2026-11-04):
+   the room Data's head and the finder call Catalogue calls itself Catalogue, and its count of the
+   Parts list is said OF the list's 2,937 lines under 187 headings that Data's plate prints, never
+   as a second count of one list (src/domain/catalogue/shelfCount.test.ts measures both). */
+test('the catalogue calls itself Catalogue and counts what is on sale of Data’s own figure', async ({
+  page,
+}, info) => {
+  test.setTimeout(120_000)
+  await throughTheDoor(page)
+  await page.goto('/catalogue')
+  await expect(ready(page)).toBeVisible({ timeout: 30_000 })
+  const head = page.getByRole('heading', { level: 1, name: 'Catalogue' })
+  await expect(head).toBeInViewport()
+  await expect(page.getByRole('heading', { name: 'Chandlery' })).toHaveCount(0)
+  const count = page.getByTestId('catalogue-count')
+  await expect(count).toBeInViewport()
+  await expect(count).toHaveText(
+    /^2,238 of the price list’s 2,937 parts are on sale, under 179 of its 187 headings and 25 under none; the other 699 are no longer sold\. They stand in 18 aisles and \d+ (is|are) not sorted yet; [\d,]+ (is|are) pictured\.$/,
+  )
+  await expect(page.getByRole('searchbox', { name: 'Find a part in the catalogue' })).toBeVisible()
+  /* the plates' photographs in the window have arrived before the window is photographed */
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll<HTMLImageElement>('.chd-aisle__tile img')]
+      .filter((i) => i.getBoundingClientRect().top < window.innerHeight)
+      .every((i) => i.complete && i.naturalWidth > 0),
+  )
+  await shot(page, 'door', info.project.name)
+})
+
 test('J1, J2, J10, J7: an aisle opens at the top, every line says both prices, and a line opens its ways on', async ({
   page,
 }, info) => {

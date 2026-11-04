@@ -91,10 +91,14 @@ export function needsOf(facts: FileFacts, seams: NeedsSeams): Need[] {
             done: false,
             fig: r.cases,
             say: `${r.cases === 1 ? 'case' : 'cases'} to settle in the price list, the most money first`,
+            /* EACH KIND BY ITS NAME, THEN ITS COUNT OF CASES (the section critic, 2026-11-04:
+               "1 boats at $0"). A Review chip is a name and not a noun to count — one case of
+               boats at $0 can hold nine boats — so the figure follows the name, as each list's
+               lines follow its name on the line under Prices. */
             sub: (
               <>
                 {CASE_KINDS.filter((k) => r.byKind[k] > 0)
-                  .map((k) => `${n(r.byKind[k])} ${CHECK_WORDS[k].chip.toLowerCase()}`)
+                  .map((k) => `${CHECK_WORDS[k].chip}: ${n(r.byKind[k])}`)
                   .join(' · ')}
                 {r.tidy > 0 ? `. Then ${n(r.tidy)} to tidy, none of them a price.` : '.'}
               </>
@@ -521,7 +525,7 @@ function roomSay(href: string, facts: FileFacts): RoomSay | null {
       return {
         fig: (
           <>
-            <b>{n(r.kept)}</b> kept by the price list
+            <b>{n(r.kept)}</b> kept<span className="dt-room__more"> by the price list</span>
           </>
         ),
         sub: `${n(r.written)} written · ${n(r.noticed)} noticed`,
@@ -545,7 +549,7 @@ function roomSay(href: string, facts: FileFacts): RoomSay | null {
       return {
         fig: (
           <>
-            <b>{n(c.onSale)}</b> parts on sale
+            <b>{n(c.onSale)}</b> parts<span className="dt-room__more"> on sale</span>
           </>
         ),
         sub: `in ${n(c.aisles)} aisles · ${n(c.pictured)} pictured`,
@@ -555,10 +559,12 @@ function roomSay(href: string, facts: FileFacts): RoomSay | null {
     case '/shelf':
       return {
         fig: facts.lastCopy ? (
-          <>Copy saved {whenSaid(facts.lastCopy, new Date())}</>
+          <>
+            Copy saved<span className="dt-room__more"> {whenSaid(facts.lastCopy, new Date())}</span>
+          </>
         ) : (
           <>
-            <b>No</b> copy saved yet
+            <b>No</b> copy<span className="dt-room__more"> saved yet</span>
           </>
         ),
         sub: 'a new price list comes in here',
@@ -569,9 +575,46 @@ function roomSay(href: string, facts: FileFacts): RoomSay | null {
   }
 }
 
+/**
+ * THE ROOM A PERSON LEFT DATA FOR, and the place in the browser's history Data stood at when
+ * they did (the section critic, 2026-11-04, major 2: Back from a room put the focus on the
+ * page's body). The browser's Back brings the same entry of the history back, with the same
+ * index; the bar's Data is a new entry with a higher one. So Back gives the keyboard to the
+ * room it came from, and a press on the bar does not — the same room at another index is a
+ * new arrival at Data's head. Read once and let go.
+ */
+let leftFor: { href: string; index: number } | null = null
+const historyIndex = (): number | null => {
+  const at: unknown = typeof window === 'undefined' ? null : window.history.state
+  const index =
+    at !== null && typeof at === 'object' ? (at as Record<string, unknown>).__TSR_index : undefined
+  return typeof index === 'number' ? index : null
+}
+
+function useBackToRoom(nav: RefObject<HTMLElement | null>): void {
+  useEffect(() => {
+    const left = leftFor
+    leftFor = null
+    if (left === null || historyIndex() !== left.index) return
+    const room = nav.current?.querySelector<HTMLElement>(`a[href="${CSS.escape(left.href)}"]`)
+    if (!room) return
+    /* after the router has given the window its remembered scroll, which it does once the
+       arrival has painted; the room is then brought only as far as it has to come */
+    const frame = requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        room.focus({ preventScroll: true })
+        room.scrollIntoView({ block: 'nearest' })
+      }),
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [nav])
+}
+
 export function Rooms({ facts, go }: { facts: FileFacts; go?: (href: string) => void }) {
+  const nav = useRef<HTMLElement>(null)
+  useBackToRoom(nav)
   return (
-    <nav className="dt-rooms" aria-labelledby="dt-rooms-h">
+    <nav className="dt-rooms" aria-labelledby="dt-rooms-h" ref={nav}>
       <h2 className="dt-eyebrow" id="dt-rooms-h">
         The rooms of the price list
       </h2>
@@ -587,11 +630,14 @@ export function Rooms({ facts, go }: { facts: FileFacts; go?: (href: string) => 
                 aria-label={said?.label ?? room.word}
                 title={room.say}
                 data-ground="plate"
+                data-room={room.href.slice(1)}
                 onClick={
                   go
                     ? (event) => {
                         if (event.metaKey || event.ctrlKey || event.shiftKey) return
                         event.preventDefault()
+                        const index = historyIndex()
+                        leftFor = index === null ? null : { href: room.href, index }
                         go(room.href)
                       }
                     : undefined

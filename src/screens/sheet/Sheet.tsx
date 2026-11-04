@@ -219,7 +219,10 @@ import {
   NO_SHEET,
   NO_WAY_TO_THE_FILE,
   noTable,
-  changeSaid,
+  changeOf,
+  changeLine,
+  changeBackSaid,
+  type CellChange,
   paintOf,
   centsColumns,
   pictureOf,
@@ -293,12 +296,26 @@ const PICTURED_KINDS: ReadonlySet<string> = new Set([
 ])
 const PICTURED_SHELVES: ReadonlySet<string> = new Set(['oils_lubes'])
 
+/** A step's own words: one cell's change as it stands, or the sentence an act carried. */
+const stepWords = (detail: CellChange | string): string =>
+  typeof detail === 'string' ? detail : changeLine(detail)
+
+/** The same step taken back or put back. A cell's change is said as no longer so
+ *  (`changeBackSaid`); an act's own sentence ("Added a variant to Roll Up 230 KAM") keeps the
+ *  words it had, after what was done to it. */
+const wayBack = (kind: 'undone' | 'redone', detail?: CellChange | string): string | undefined => {
+  if (detail === undefined) return undefined
+  if (typeof detail !== 'string') return changeBackSaid(kind, detail)
+  return `${kind === 'redone' ? 'Put back' : 'Undone'} — ${detail}`
+}
+
 interface Step {
   said: string
   eventId: string
   wasUndo: boolean
-  /** what one cell's write changed (`changeSaid`), kept so taking it back says which price */
-  detail?: string
+  /** what one cell's write changed (`changeOf`), kept so taking it back says which price, and
+   *  that it no longer stands; or the sentence an act such as adding a line carried */
+  detail?: CellChange | string
   /** what the write breaks that the rest of the file keeps — Cash under its landed cost — each
    *  a sentence with its measurement (`warningsFor`); said beside Undo, never a refusal */
   warn?: string[]
@@ -1748,14 +1765,14 @@ export function Sheet({
 
   /* ---- the writes, and the way back ---------------------------- */
 
-  /* `detail` is what one cell's write changed (`changeSaid`), said after the
+  /* `detail` is what one cell's write changed (`changeOf`), said after the
      store's own words so the step line names the price that moved */
   /* THE STEP LINE SAYS WHAT MOVED, NOT THE KIND OF ACT (the judge's G19): "Cash on Roll Up 230
      KAM · PVC · WH: $2,770 → $850", where it said "Cell edit · Highfield Inflatables ·" first —
      the engine's label, which names no price. Where a write has no detail, the store's own
      sentence stands. */
   const apply = useCallback(
-    (command: CatalogueCommand, detail?: string, warn?: string[]): Written => {
+    (command: CatalogueCommand, detail?: CellChange | string, warn?: string[]): Written => {
       const outcome = catalogue.getState().apply(command)
       if ('refused' in outcome) {
         if (outcome.refused !== '') setRefused(outcome.refused)
@@ -1763,7 +1780,7 @@ export function Sheet({
       }
       setRefused(null)
       setStep({
-        said: detail ?? outcome.said,
+        said: detail === undefined ? outcome.said : stepWords(detail),
         eventId: outcome.event.id,
         wasUndo: false,
         detail,
@@ -1785,7 +1802,7 @@ export function Sheet({
       if (!coerced.ok) return { refused: coerced.reason }
       const before = view.find((r) => r.rowId === rowId)
       const detail = before
-        ? changeSaid(table, f, pinId ? (before.text[pinId] ?? '') : '', before, coerced.value)
+        ? changeOf(table, f, pinId ? (before.text[pinId] ?? '') : '', before, coerced.value)
         : undefined
       /* WHAT THE NEW FIGURE BREAKS, measured on the rest of the file before it is written */
       const warn = warningsFor(table, view, prices, costOf, rowId, fieldId, coerced.value).map(
@@ -1807,9 +1824,10 @@ export function Sheet({
     }
     setRefused(null)
     /* "Undone — Cell edit · Highfield Inflatables" said which list and not which price: the
-       write's own detail follows it back and forth (built-m3.md, the sheet) */
+       write's own detail follows it back and forth (built-m3.md, the sheet), and taken back it is
+       said as no longer so, before the claim (`changeBackSaid`) */
     setStep({
-      said: step.detail ? `${step.wasUndo ? 'Put back' : 'Undone'} — ${step.detail}` : outcome.said,
+      said: wayBack(step.wasUndo ? 'redone' : 'undone', step.detail) ?? outcome.said,
       eventId: outcome.event.id,
       wasUndo: !step.wasUndo,
       detail: step.detail,

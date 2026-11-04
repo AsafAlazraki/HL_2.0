@@ -1408,11 +1408,47 @@ fieldset.sf-triage {
   color: var(--color-ink-2);
 }
 
-/* the dock: what Apply writes, pinned in view, above the tab bar on a phone */
-.sf-dock {
+/* the dock: what Apply writes, pinned in view, above the tab bar on a phone.
+   IT STANDS IN A BAY OF THE ROOM'S OWN GROUND (the section critic, 2026-10-31: in the first window
+   a floating card cut the "other lists" sentence through its second line at 1280, the tiles'
+   captions at 390, and let a card's top edge show in the air above it). The bay is pinned, not
+   the card; under it the ground runs from one gap above the card's edge, fading in, to the
+   window's foot and across the page's gutters, so what scrolls beneath reads as passing under and
+   nothing sits sliced beside or above the card. At rest at the end of the page the fade is the
+   page's own gap, so it lies over air and never over the last sentence; stuck, it is twice the
+   gap (one gap's fade still showed a card's top edge 11px above the dock at 390 and the top half
+   of a cut line at 1280; three washed out the tiles a thumb reads next). A browser that cannot
+   tell stuck keeps the gap's fade. */
+.sf-bay {
+  --sf-fade: var(--sf-gap);
+  container-type: scroll-state;
   position: sticky;
   inset-block-end: calc(var(--shell-foot) + --spacing(2));
   z-index: 3;
+  display: grid;
+  pointer-events: none;
+}
+.sf-bay::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-inline: calc(--spacing(4) * -1);
+  inset-block-start: calc(var(--sf-fade) * -1);
+  inset-block-end: calc((var(--shell-foot) + --spacing(2)) * -1);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in oklab, var(--color-ground) 75%, transparent) calc(var(--sf-fade) / 2),
+    var(--color-ground) var(--sf-fade)
+  );
+}
+@container scroll-state(stuck: block-end) {
+  .sf-bay::before {
+    --sf-fade: calc(var(--sf-gap) * 2);
+  }
+}
+.sf-dock {
+  pointer-events: auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: --spacing(2) --spacing(3);

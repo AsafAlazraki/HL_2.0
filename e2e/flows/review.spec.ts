@@ -359,8 +359,12 @@ test.describe('review', () => {
     await expect(count(page, 38)).toBeVisible()
     /* the trailer's list is read as the file packed it, and the queue found on it compared */
     await expect(page.locator('.rv-money')).toContainText(
-      /1 case settled since the Master Price File of 16 Sept? 2026/,
+      /1 case settled since the Master Price File of 16 September 2026/,
       { timeout: 20_000 },
+    )
+    /* the foot writes the price list's day as the rail, Data and Shelf's head do: the month whole */
+    await expect(page.locator('.rv-foot')).toContainText(
+      'settled on this computer since the Master Price File of 16 September 2026',
     )
     await page.getByRole('button', { name: 'See what was settled' }).click()
     const settled = page.getByRole('list', { name: 'Settled since the Master Price File' })
@@ -382,7 +386,7 @@ test.describe('review', () => {
     await toReview(page)
     await expect(count(page, 38)).toBeVisible()
     await expect(page.locator('.rv-money')).toContainText(
-      /1 case settled since the Master Price File of 16 Sept? 2026/,
+      /1 case settled since the Master Price File of 16 September 2026/,
       { timeout: 20_000 },
     )
     await expect(page.locator('.rv-foot')).toContainText(

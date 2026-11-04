@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { DESK_PLACE, FILED_AT_THIS_DESK, fittedBoats } from '@/domain/modules/register'
-import { queueOf } from '@/domain/rules/review/cases'
+import { CASE_KINDS, casesByKind, queueOf } from '@/domain/rules/review/cases'
+import { CHECK_WORDS } from '@/screens/review/read'
 import { countBoats } from '@/domain/quote/boats'
 import { review } from '@/domain/rules/review/checks'
 import { datedSections } from '@/domain/catalogue/asAt'
@@ -124,6 +125,21 @@ describe('Needs Northside, the state above the inventory', () => {
     expect(within(r).getByRole('link', { name: /Settle them/ })).toHaveAttribute('href', '/review')
   })
 
+  /* the section critic, 2026-11-04: "1 boats at $0" — a kind is named, then counted in cases */
+  it('names each kind of case and then counts it, never a chip’s name as a plural noun', async () => {
+    draw()
+    await screen.findByTestId('data-wrong')
+    const s = catalogue.getState()
+    const byKind = casesByKind(queueOf(review({ entities: s.tables, rowsByEntity: s.rows })))
+    const said = CASE_KINDS.filter((k) => byKind[k] > 0).map(
+      (k) => `${CHECK_WORDS[k].chip}: ${grouped(byKind[k])}`,
+    )
+    expect(said.length).toBeGreaterThan(0)
+    const sub = need('review').querySelector('.dt-need__sub')
+    expect(sub).toHaveTextContent(said.join(' · '))
+    expect(sub?.textContent).not.toMatch(/(^|· )1 [a-z]+s/)
+  })
+
   it('counts the answers about price only Northside can give, as Prices reads them', () => {
     draw()
     const asked = readLadder(catalogue.getState()).filter(undecided)
@@ -214,6 +230,16 @@ describe('the rooms of the price list, as counted doors', () => {
     await userEvent.click(rooms.getByRole('link', { name: /^Prices — / }))
     expect(went).toEqual(['/rules', '/levels'])
     expect(rooms.queryByRole('link', { name: /^Places/ })).toBeNull()
+  })
+
+  /* the section critic, 2026-11-04, major 3: the rooms lay under six needs and New since */
+  it('stands before Needs Northside and New since, in the order a keyboard meets them', () => {
+    draw()
+    const nav = screen.getByRole('navigation', { name: 'The rooms of the price list' })
+    const before = (a: Element, b: Element) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(before(nav, screen.getByTestId('data-needs'))).toBe(true)
+    expect(before(nav, screen.getByTestId('data-new'))).toBe(true)
   })
 
   it('says on Review’s door the cases to settle, and on Fitment’s the models Home counts', async () => {

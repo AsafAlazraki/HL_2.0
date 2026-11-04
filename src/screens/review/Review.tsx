@@ -872,7 +872,7 @@ function Rail({
         {packedAt && since.state === 'read' && since.settled.length + since.arrived.length > 0 ? (
           <p className="rv-money__each">
             {sinceSaid(since.settled.length, since.arrived.length)} since the Master Price File of{' '}
-            <span className="rv-money__date">{packedOn(packedAt)}</span>
+            <span className="rv-money__date">{packedOn(packedAt, 'long')}</span>
           </p>
         ) : null}
       </dl>
@@ -2824,8 +2824,8 @@ function Foot({
             <p className="rv-foot__say">
               <span>
                 {counted(since.settled.length, 'case was', 'cases were')} settled on this computer
-                since the Master Price File of {packedOn(packedAt!)}: by what was written here, or
-                by a newer price list brought in on Shelf.
+                since the Master Price File of {packedOn(packedAt!, 'long')}: by what was written
+                here, or by a newer price list brought in on Shelf.
                 {since.arrived.length > 0
                   ? ` ${counted(since.arrived.length, 'case is', 'cases are')} new since it, each marked New in the queue.`
                   : ''}
@@ -2859,8 +2859,8 @@ function Foot({
         <div className="rv-foot__part">
           <p className="rv-foot__say">
             <span>
-              What changed since the Master Price File of {packedOn(packedAt!)} cannot be said just
-              now: it could not be read on this computer, so no case is marked New.
+              What changed since the Master Price File of {packedOn(packedAt!, 'long')} cannot be
+              said just now: it could not be read on this computer, so no case is marked New.
             </span>
           </p>
         </div>

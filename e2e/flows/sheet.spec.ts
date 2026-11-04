@@ -577,7 +577,12 @@ test.describe('the sheet', () => {
     await expect(step).not.toContainText('Cell edit')
     await expect(theCell).not.toHaveText(before)
     await step.getByRole('button', { name: 'Undo' }).click()
-    await expect(step).toContainText('Undone')
+    /* said as no longer so, before the claim, and the figure that stands again: "Undone — Cash
+       on …: $2,770 → $2,771" read as if $2,771 stood (the section critic, 2026-11-04) */
+    await expect(step).toContainText(
+      /^Undone\. No longer so: Cash on .* is \$[\d,]+\. It is \$[\d,]+ again\./,
+    )
+    await expect(step).not.toContainText('→')
     await expect(theCell).toHaveText(before)
     await expect(step.getByRole('button', { name: 'Put it back' })).toBeVisible()
   })

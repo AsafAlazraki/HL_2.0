@@ -164,11 +164,12 @@ export const DOORS: readonly Door[] = [
         /* THE FLOW ROUND (2026-10-30, direction B of docs/directions/choosing.md, "the
            chandlery"): every part and accessory the price list sells, in eighteen aisles named
            for what each is for — the same catalogue a quote's dealer fit opens. A room of the
-           price list, with Data lit while it is open. */
+           price list, with Data lit while it is open. Its word is the screen's own heading, so
+           the room is called Catalogue wherever it is named (the section critic, 2026-11-04). */
         href: '/catalogue',
         word: 'Catalogue',
         title: 'Every part and accessory, by what it is for',
-        say: 'The chandlery: every part and accessory on the price list in its aisle, with its picture, its price and a place for Northside’s own picture.',
+        say: 'Every part and accessory on the price list in its aisle, with its picture, its price and a place for Northside’s own picture.',
       },
       {
         /* MILESTONE 3 (2026-10-22): what is wrong in the price list, each with its fix beside it.

@@ -194,7 +194,9 @@ test('sheet — every state at this size', async ({ page }, info) => {
     await expect(record).toBeVisible()
     await shot('38-changed-record')
     await page.getByTestId('last-step').getByRole('button', { name: 'Undo' }).click()
-    await expect(page.getByTestId('last-step')).toContainText('Undone')
+    await expect(page.getByTestId('last-step')).toContainText('Undone. No longer so:')
+    /* taken back, said as no longer so (the section critic, 2026-11-04) */
+    await shot('45-undone')
 
     /* a variant added from the record: its heading and its picture's offer said whole */
     await record.getByRole('button', { name: /^Add a variant to / }).click()
@@ -224,7 +226,16 @@ test('sheet — every state at this size', async ({ page }, info) => {
     await expect(over.getByTestId('step-warning')).toBeVisible()
     await shot('40-hand-warned')
     await over.getByTestId('last-step').getByRole('button', { name: 'Undo' }).click()
+    await expect(over.getByTestId('last-step')).toContainText('Undone. No longer so:')
+    await shot('45-undone')
   }
+
+  /* a record whose line carries its pictures: the gallery beside the facts from 640px, never
+     alone under them with the row's right half empty (the section critic, 2026-11-04) */
+  await open(page, `/data/boat_formosa?at=${encodeURIComponent('boat_formosa:1')}`)
+  await expect(page.getByTestId('sheet-record')).toBeVisible()
+  await page.getByTestId('sheet-record').locator('.ui-addpic').scrollIntoViewIfNeeded()
+  await shot('46-record-pictured')
 
   await open(page, `/data/boat_highfield?at=${encodeURIComponent(await firstLine(page))}`)
   await expect(page.getByTestId('sheet-record')).toBeVisible()

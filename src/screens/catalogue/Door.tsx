@@ -1,7 +1,8 @@
 import { createElement, useState } from 'react'
 import { ArrowRightIcon, CameraPlusIcon, MagnifyingGlassIcon, TagIcon } from '@phosphor-icons/react'
 import type { CatalogueCtx } from '@/domain/model'
-import type { AisleCount } from '@/domain/catalogue/aisles'
+import { UNSORTED, type AisleCount } from '@/domain/catalogue/aisles'
+import type { ShelfCount } from '@/domain/catalogue/shelfCount'
 import type { Section } from '@/domain/chandlery/headings'
 import { Icon, Input, Picture } from '@/ui'
 import { hrefOf, type CatalogueAt } from './at'
@@ -14,8 +15,13 @@ import type { ShelfPart } from './shelf'
 import { follow, type Around } from './Wares'
 
 /* ============================================================
-   THE CHANDLERY'S FRONT — `/catalogue`. Northside's mark at shop-sign
-   size beside the word Chandlery (grafted from board C), then every
+   THE CATALOGUE'S FRONT — `/catalogue`. Northside's mark at shop-sign
+   size beside the room's own word, Catalogue, as Data's head and the
+   finder name it (grafted from board C; the section critic,
+   2026-11-04, found it called Chandlery here and Catalogue everywhere
+   else). Under it, what of Data's Parts & Accessories is on sale, said
+   as a share of Data's own figures so the two never read as two
+   counts of one list. Then every
    aisle as a plate: its drawing, or a photograph from the aisle where
    one is held; its name and its counts; and its largest headings of
    the price list, each counted and each a way straight to its
@@ -34,6 +40,9 @@ import { follow, type Around } from './Wares'
 /** Heading links drawn on an aisle's plate before "and N more". */
 const HEADS_SHOWN = 4
 
+const said = (x: number) => x.toLocaleString('en-AU')
+const are = (x: number) => (x === 1 ? 'is' : 'are')
+
 export interface AisleFront {
   count: AisleCount
   /** its headings, largest first */
@@ -48,9 +57,8 @@ export function Door({
   go,
   goHref,
   fronts,
-  onSale,
+  listed,
   pictured,
-  headings,
   wrongAisle,
   mark,
   business,
@@ -73,9 +81,9 @@ export function Door({
   go: (next: Partial<CatalogueAt>, page?: boolean) => void
   goHref: (href: string) => void
   fronts: readonly AisleFront[]
-  onSale: number
+  /** the parts list counted as Data counts it, and what of it is on sale */
+  listed: ShelfCount
   pictured: number
-  headings: number
   wrongAisle: string
   mark: { src: string; width: number; height: number } | null
   business: string
@@ -100,7 +108,8 @@ export function Door({
   const [typed, setTyped] = useState(at.find)
   const madeInSight = useMadeInSight(at.boat, null)
   const aisles = fronts.length
-  const sorted = fronts.filter((f) => f.count.aisle.id !== 'unsorted').length
+  const sorted = fronts.filter((f) => f.count.aisle.id !== UNSORTED).length
+  const unsorted = fronts.find((f) => f.count.aisle.id === UNSORTED)?.count.parts ?? 0
   const keep = (next: Partial<CatalogueAt>): Partial<CatalogueAt> => ({
     boat: at.boat,
     ...next,
@@ -115,12 +124,30 @@ export function Door({
           </span>
         ) : null}
         <div className="chd-door__words">
-          <h1 className="chd-door__title">Chandlery</h1>
-          <p className="chd-door__count">
-            <b>{onSale.toLocaleString('en-AU')}</b> parts on sale in <b>{sorted}</b> aisles
-            {aisles > sorted ? ' and Not sorted yet' : ''} ·{' '}
-            <b>{headings.toLocaleString('en-AU')}</b> headings of the price list ·{' '}
-            <b>{pictured.toLocaleString('en-AU')}</b> pictured
+          <h1 className="chd-door__title">Catalogue</h1>
+          <p className="chd-door__count" data-testid="catalogue-count">
+            <b>{said(listed.onSale)}</b> of the price list’s <b>{said(listed.lines)}</b> parts are
+            on sale, under <b>{said(listed.headingsOnSale)}</b> of its{' '}
+            <b>{said(listed.headings)}</b> headings
+            {listed.onSaleUnheaded > 0 ? (
+              <>
+                {' '}
+                and <b>{said(listed.onSaleUnheaded)}</b> under none
+              </>
+            ) : null}
+            {listed.gone > 0 ? (
+              <>
+                ; the other <b>{said(listed.gone)}</b> {are(listed.gone)} no longer sold
+              </>
+            ) : null}
+            . They stand in <b>{said(sorted)}</b> aisle{sorted === 1 ? '' : 's'}
+            {unsorted > 0 ? (
+              <>
+                {' '}
+                and <b>{said(unsorted)}</b> {are(unsorted)} not sorted yet
+              </>
+            ) : null}
+            ; <b>{said(pictured)}</b> {are(pictured)} pictured.
           </p>
         </div>
       </header>
@@ -136,7 +163,7 @@ export function Door({
               go({ find: next.trim() === '' ? '' : next, open: '' })
             }}
             placeholder="A name, a code, a supplier or a heading"
-            aria-label="Find a part in the chandlery"
+            aria-label="Find a part in the catalogue"
           />
         </div>
         <BoatChoice

@@ -474,8 +474,13 @@ describe('a cell', () => {
       await person.click(within(step).getByRole('button', { name: 'Undo' }))
       expect(read().values[cash.id]).toBe(was)
       expect(within(step).getByRole('button', { name: 'Put it back' })).toBeInTheDocument()
-      /* taken back, it still says which price it took back */
-      expect(step).toHaveTextContent(/^Undone — .*Cash on .*→ \$4,321/)
+      /* taken back, it still says which price it took back, and that it no longer stands: "Undone
+         — Cash on …: $2,770 → $4,321" read as if $4,321 stood (the section critic, 2026-11-04) */
+      expect(step).toHaveTextContent(/^Undone\. No longer so: Cash on .* is \$4,321\. It is \$/)
+      expect(step).not.toHaveTextContent('→')
+      await person.click(within(step).getByRole('button', { name: 'Put it back' }))
+      expect(read().values[cash.id]).toBe(4321)
+      expect(step).toHaveTextContent(/^Put back: Cash on .*→ \$4,321/)
     } finally {
       window.matchMedia = real
     }

@@ -270,6 +270,25 @@ export function changeSaid(
   before: ViewRow,
   after: CellValue,
 ): string {
+  return changeLine(changeOf(table, field, rowName, before, after))
+}
+
+/** One cell's write, held in its parts so that taking it back can say it the other way round:
+ *  `what` is the column on its line ("Cash on Roll Up 250 KAM · PVC · Light Grey"), `was` and
+ *  `now` the figures as the cell paints them, '' for an empty cell. */
+export interface CellChange {
+  what: string
+  was: string
+  now: string
+}
+
+export function changeOf(
+  table: EntityDef,
+  field: FieldDef,
+  rowName: string,
+  before: ViewRow,
+  after: CellValue,
+): CellChange {
   const was = paintOf(table, field, before)
   const now = paintOf(table, field, {
     ...before,
@@ -277,8 +296,29 @@ export function changeSaid(
     text: { ...before.text, [field.id]: cellText(after, field) },
   })
   const line = lineSaid(table.id, rowName)
-  const on = line === '' ? '' : ` on ${line}`
-  return `${field.name}${on}: ${was === '' ? 'nothing' : was} → ${now === '' ? 'nothing' : now}`
+  return { what: line === '' ? field.name : `${field.name} on ${line}`, was, now }
+}
+
+/** The write as it stands: "Cash on HBR005: $3,060 → $12,345". */
+export function changeLine(change: CellChange): string {
+  const { what, was, now } = change
+  return `${what}: ${was === '' ? 'nothing' : was} → ${now === '' ? 'nothing' : now}`
+}
+
+const figureOrEmpty = (figure: string): string => (figure === '' ? 'empty' : figure)
+
+/**
+ * THE WRITE TAKEN BACK, OR PUT BACK, SAID AS THE PRICE LIST NOW HOLDS IT. Taken back, the step
+ * said "Undone — Cash on …: $2,770 → $2,771": the eye takes in the claim, so it read as if $2,771
+ * stood (the section critic, data round, 2026-11-04). Prices and Review had the same fault and
+ * say "Undone. No longer so: …" (`wayBackSaid`); one cell's write says it the same way, then
+ * names the figure that stands again. Put back, the write stands again and is said as such.
+ */
+export function changeBackSaid(kind: 'undone' | 'redone', change: CellChange): string {
+  const { what, was, now } = change
+  return kind === 'undone'
+    ? `Undone. No longer so: ${what} is ${figureOrEmpty(now)}. It is ${figureOrEmpty(was)} again.`
+    : `Put back: ${changeLine(change)}`
 }
 
 /** The text an editor is SEEDED with: the stored figure, never the

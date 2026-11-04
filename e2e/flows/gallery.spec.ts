@@ -161,7 +161,7 @@ test('the catalogue: a part’s card opens its own gallery, where a picture is a
   await expect(page.getByTestId('catalogue-door')).toBeVisible({ timeout: 30_000 })
   /* a part with its own picture, found by its name as a dealer finds one */
   await page
-    .getByRole('searchbox', { name: 'Find a part in the chandlery' })
+    .getByRole('searchbox', { name: 'Find a part in the catalogue' })
     .fill('transducer extension')
   const card = page
     .locator('.chd-card')

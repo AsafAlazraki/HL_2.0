@@ -2,8 +2,9 @@ import { useCallback, useMemo, useState } from 'react'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { makeCtx } from '@/domain/model'
+import { isDiscontinued, makeCtx } from '@/domain/model'
 import { aisleById, aislesOf, UNSORTED } from '@/domain/catalogue/aisles'
+import { shelfCountOf } from '@/domain/catalogue/shelfCount'
 import { headingSaid, picturedFirst, sectionsOf, type Section } from '@/domain/chandlery/headings'
 import { findLines } from '@/domain/chandlery/find'
 import { isPlaced, placeInAisle } from '@/domain/chandlery/placing'
@@ -104,7 +105,18 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
   const ware = useCallback((p: ShelfPart): Ware => pricedOnce(p, pricers, named), [pricers, named])
   const counted = useMemo(() => aislesOf(shelf, hasPicture, shelfAisle), [shelf])
   const pictured = counted.reduce((n, a) => n + a.pictured, 0)
-  const headings = useMemo(() => new Set(shelf.map((p) => p.heading)).size, [shelf])
+  /* THE PARTS LIST COUNTED AS DATA COUNTS IT, and what of it is on sale, so the door says its
+     share of Data's own figure (src/domain/catalogue/shelfCount.ts) */
+  const listed = useMemo(() => {
+    if (!table) return shelfCountOf([])
+    const field = table.hierarchy?.[0] ?? `${PARTS_TABLE}.cat`
+    return shelfCountOf(
+      (ctx.rowsByEntity[table.id] ?? []).map((r) => ({
+        heading: r.values[field],
+        sold: !isDiscontinued(r),
+      })),
+    )
+  }, [ctx.rowsByEntity, table])
   const fronts = useMemo<AisleFront[]>(
     () =>
       counted.map((count) => {
@@ -297,9 +309,8 @@ export function Catalogue({ at, go, goHref, openTheFile }: CatalogueProps) {
         go={go}
         goHref={goHref}
         fronts={fronts}
-        onSale={shelf.length}
         pictured={pictured}
-        headings={headings}
+        listed={listed}
         wrongAisle={wrongAisle}
         mark={mark}
         business={sheet.business ?? ''}
