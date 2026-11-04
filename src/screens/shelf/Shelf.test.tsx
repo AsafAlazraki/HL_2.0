@@ -60,9 +60,13 @@ const lines = () => pack.entities.reduce((n, e) => n + pack.rowsByEntity[e.id].l
 describe('the shelf on the empty day', () => {
   it('counts Northside’s work, says no copy is saved, and keeps the two acts that take things away apart', () => {
     render(<Driven />)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/work, kept safe\.$/)
-    expect(screen.getByText('A new Master Price File? Bring it in.')).toBeInTheDocument()
-    expect(screen.getByText('No copy saved yet')).toBeInTheDocument()
+    /* ROUND 2 (judge item 6): the rest page opens on the price list's own date, not the mark */
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'The price list of 16 September 2026',
+    )
+    expect(screen.getByText('no workbook applied since')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Files brought in' })).toBeInTheDocument()
+    expect(screen.getByText('No copy saved yet.')).toBeInTheDocument()
     expect(screen.getByText(lines().toLocaleString('en-AU'))).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save a copy' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear the price list…' })).toBeInTheDocument()
@@ -93,6 +97,9 @@ describe('the shelf on the empty day', () => {
   })
 })
 
+const sellOf = (id: string) =>
+  catalogue.getState().rows.parts.find((r) => r.id === id)?.values['parts.l']
+
 describe('a new price list brought in', () => {
   it('shows the change before it is written, applies it as one step, and undoes it in one, after leaving the shelf too', async () => {
     const user = userEvent.setup()
@@ -117,12 +124,21 @@ describe('a new price list brought in', () => {
     const sell = () =>
       catalogue.getState().rows.parts.find((r) => r.id === tube.id)?.values['parts.l']
     expect(sell()).toBe(was)
+    /* the account keeps it, read and not applied */
+    expect(screen.getByText('Read, not applied')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'See every change' }))
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Parts Module (2).xlsx')
+    expect(
+      screen.getByRole('heading', { level: 2, name: /lines stay exactly as they are.$/ }),
+    ).toHaveTextContent(
       `${(lines() - 1).toLocaleString('en-AU')} of ${lines().toLocaleString('en-AU')} lines stay exactly as they are.`,
     )
-    expect(screen.getByText('Undo puts all 1 back in one step.')).toBeInTheDocument()
+    /* one change is put back as "it", never "all 1" (the judge's minor 16) */
+    expect(screen.getByText(/^Undo puts it back in one step./)).toBeInTheDocument()
+    /* EVERY FIGURE THAT MOVES IS NAMED, old and new (the judge's blocker 1) */
+    expect(screen.getByText('$1,640')).toBeInTheDocument()
+    expect(screen.getAllByText('$1,540').length).toBeGreaterThan(0)
     await user.click(screen.getByRole('button', { name: 'Apply 1 change' }))
     expect(sell()).toBe(1540)
     expect(screen.getByText('1 change is on the price list.')).toBeInTheDocument()
@@ -133,8 +149,46 @@ describe('a new price list brought in', () => {
     expect(
       screen.getByText('Parts Module (2).xlsx is on the price list: 1 change.'),
     ).toBeInTheDocument()
+    expect(screen.getByText('Applied: 1')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Undo' }))
     await waitFor(() => expect(sell()).toBe(was))
+    expect(screen.getByText('Put back by Undo')).toBeInTheDocument()
+  })
+
+  it('leaves a line out by its tick and writes the rest as one step', async () => {
+    const user = userEvent.setup()
+    prefs.getState().forgetAll()
+    const tube = pack.rowsByEntity.parts.find(
+      (r) => r.values['parts.c'] === 'Tube Covers to suit PVC Boat - 2.0 Mtr',
+    )!
+    const other = pack.rowsByEntity.parts.find(
+      (r) => r.values['parts.c'] === 'Tube Covers to suit PVC Boat - 2.2 Mtr',
+    )!
+    const bytes = writeWorkbook([
+      {
+        name: 'Parts Maintenance',
+        lines: [
+          { at: 597, cells: { C: 'Tube Covers to suit PVC Boat - 2.0 Mtr', L: 1540 } },
+          { at: 598, cells: { C: 'Tube Covers to suit PVC Boat - 2.2 Mtr', L: 1690 } },
+        ],
+      },
+    ])
+    render(<Driven />)
+    fireEvent.change(screen.getByTestId('shelf-workbook'), {
+      target: { files: [new File([bytes.buffer as ArrayBuffer], 'Parts Module (2).xlsx')] },
+    })
+    await user.click(await screen.findByRole('button', { name: 'See every change' }))
+    await user.click(
+      screen.getByRole('checkbox', { name: /^Keep Tube Covers to suit PVC Boat · 2.2/ }),
+    )
+    expect(screen.getByText('Left out')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Apply 1 change' }))
+    expect(sellOf(tube.id)).toBe(1540)
+    expect(sellOf(other.id)).toBe(other.values['parts.l'])
+    expect(screen.getByText('1 change is on the price list.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save a copy now' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(sellOf(tube.id)).toBe(tube.values['parts.l']))
   })
 })
 

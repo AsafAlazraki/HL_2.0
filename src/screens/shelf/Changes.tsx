@@ -271,7 +271,7 @@ function Stay({
   }
   const stays = set.unmoved + outChange - placed
   const whole = set.totalRows + set.adding + set.cannot
-  const parts = [
+  const inks = [
     { fate: 'kept' as const, n: stays, say: past ? 'stayed as they were' : 'stay as they are' },
     {
       fate: 'change' as const,
@@ -293,7 +293,7 @@ function Stay({
       </h2>
       <div className="sf-share" aria-hidden="true">
         {whole > 0
-          ? parts.map((p) =>
+          ? inks.map((p) =>
               p.n > 0 ? (
                 <span
                   key={p.fate}
@@ -306,7 +306,7 @@ function Stay({
           : null}
       </div>
       <ul className="sf-legend" aria-label="The price list after this workbook">
-        {parts.map((p) => (
+        {inks.map((p) => (
           <li key={p.fate} data-fate={p.fate}>
             <span className="sf-legend__ink" aria-hidden="true" />
             <strong>{count(p.n)}</strong> {p.say}
@@ -1163,7 +1163,12 @@ function Line({
 }) {
   const name = said(line)
   const shown = new Set(table ? columns.map((c) => c.name) : [])
-  const rest = line.cells.filter((c) => !shown.has(c.name))
+  /* in a card the price a quote reads leads, then the rest in the list's own order */
+  const rest = line.cells
+    .filter((c) => !shown.has(c.name))
+    .toSorted(
+      (a, b) => Number(b.fieldId === line.read?.fieldId) - Number(a.fieldId === line.read?.fieldId),
+    )
   const isRead = (m: Moved): boolean => line.read?.fieldId === m.fieldId
   return (
     <div className="sf-line" data-fate={line.fate} data-out={keep ? undefined : ''}>
@@ -1520,7 +1525,10 @@ function Dock({
           ) : null}
         </span>
         <small className="sf-dock__undo">
-          Undo puts all {count(counted.in)} back in one step. A quote already given never moves.
+          {counted.in === 1
+            ? 'Undo puts it back in one step.'
+            : `Undo puts all ${count(counted.in)} back in one step.`}{' '}
+          A quote already given never moves.
         </small>
       </p>
       <span className="sf-dock__acts">

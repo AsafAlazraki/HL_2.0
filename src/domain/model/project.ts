@@ -87,6 +87,10 @@ export interface OrgProfile {
   validDays?: number
   /** Northside's own deposit wording, printed under the total */
   deposit?: string
+  /** NORTHSIDE'S DEPOSIT AS A RULE (the data round, 2026-11-04): a share of each quote's own
+   *  total or one fixed figure, worked out on the quote and printed under its total
+   *  (src/domain/northside/deposit.ts). Absent prints no figure. */
+  depositRule?: DepositRule
   /** the few people who sell and manage, in the order they were added */
   people?: OrgPerson[]
   /** Northside's own mark files, where it has added its own over the held ones */
@@ -114,6 +118,10 @@ export interface OrgProfile {
    *  same queue. Absent leaves nothing alone. */
   leftAlone?: Record<string, string>
 }
+
+/** A deposit Northside asks for: a share of the quote's total (1 to 100), or a fixed figure in
+ *  dollars. Never both. */
+export type DepositRule = { share: number } | { amount: number }
 
 /** One of Northside's people, as a quote prints them under "Prepared by". */
 export interface OrgPerson {

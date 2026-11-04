@@ -594,9 +594,10 @@ function SaveNow({
     <Plate as="aside" pad="md" label="Save a copy">
       <div className="sf-savenow">
         <p className="sf-savenow__say" aria-live="polite" data-none={lastCopy ? undefined : ''}>
-          {saved ? (
+          {saved && lastCopy ? (
             <>
-              <strong>Saved as {saved}.</strong> Keep it somewhere a new computer can reach.
+              <strong>Last copy saved {whenSaid(lastCopy, now)}</strong>, as {saved}. Keep it
+              somewhere a new computer can reach.
             </>
           ) : after !== null ? (
             <>

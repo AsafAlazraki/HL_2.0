@@ -24,7 +24,7 @@ test.skip(!process.env.HL2_SHELF_SHOTS, 'screenshots are taken on request')
 test.skip(!existsSync(WORKBOOK), 'Northside’s own workbook is not on this computer')
 test.use({ actionTimeout: 20_000 })
 
-async function press(page: Page, target: Locator) {
+async function press(_page: Page, target: Locator) {
   await target.scrollIntoViewIfNeeded()
   await target.click()
 }
@@ -105,7 +105,14 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
     console.log(`[${size}] ${label}: page ${m.height}px ${bad.length ? bad.join(' ; ') : 'clean'}`)
     if (bad.length) faults.push(`${label}: ${bad.join(' ; ')}`)
   }
-  const shot = async (name: string, dock = false) => {
+  const shot = async (name: string, dock = false, at?: string) => {
+    /* in a hand, a narrowed sheet is read from where its narrowing begins, not from the head */
+    if (at && page.viewportSize()!.width < 834) {
+      await page.evaluate((sel) => {
+        const el = document.querySelector(sel)
+        if (el) window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 16)
+      }, at)
+    }
     await page.waitForTimeout(400)
     await measure(name, dock)
     await page.screenshot({ path: `${OUT}/${name}--${size}.png` })
@@ -140,12 +147,12 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   /* ---- supplier IBC: the tube covers, found ---- */
   await go(page, '/shelf?see=changes&who=IBC')
   await expect(page.getByText(/TUBE COVERS/).first()).toBeVisible()
-  await shot('05-supplier-ibc', true)
+  await shot('05-supplier-ibc', true, '.sf-tools')
 
   /* ---- Dealer Fit, its figures named ---- */
   await go(page, '/shelf?see=changes&list=dealer_fit')
   await expect(page.getByRole('heading', { name: /What moves on Dealer Fit/ })).toBeVisible()
-  await shot('06-dealer-fit', true)
+  await shot('06-dealer-fit', true, '.sf-figures')
   await page.evaluate(() => {
     const top = document.querySelector('.sf-table')!.getBoundingClientRect().top + window.scrollY
     window.scrollTo(0, top + 600)
@@ -155,10 +162,10 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   /* ---- the 61 that cannot be placed, settled ---- */
   await go(page, '/shelf?see=changes&way=cannot')
   await expect(page.getByText(/are named by the workbook’s own Code/)).toBeVisible()
-  await shot('08-cannot', true)
+  await shot('08-cannot', true, '.sf-settle')
   await press(page, page.getByRole('button', { name: /^Place the \d+ the Code names$/ }))
   await page.waitForTimeout(300)
-  await shot('09-cannot-placed', true)
+  await shot('09-cannot-placed', true, '.sf-settle')
 
   /* ---- the doubled or halved, the Dee Shackle left out ---- */
   await go(page, '/shelf?see=changes&twice=1')
@@ -166,11 +173,11 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   const shackle = page.locator('.sf-line', { hasText: /Dee Shackle.*Captive Bolt 6/ }).first()
   await press(page, shackle.getByRole('button', { name: 'Leave out' }))
   await page.evaluate(() => window.scrollTo(0, 0))
-  await shot('10-doubled-one-out', true)
+  await shot('10-doubled-one-out', true, '.sf-settle')
 
   /* ---- find ---- */
   await go(page, '/shelf?see=changes&q=GX700')
-  await shot('11-find', true)
+  await shot('11-find', true, '.sf-tools')
 
   /* ---- Apply, and the next safe act ---- */
   await go(page, '/shelf?see=changes')
@@ -186,6 +193,16 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await press(page, page.getByRole('button', { name: 'Back to the shelf' }).first())
   await expect(page.locator('[data-testid="shelf"][data-read]')).toBeVisible()
   await shot('13-rest-after')
+
+  /* ---- a copy saved after Apply, and set beside this computer before it would come back ---- */
+  const saving = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Save a copy' }).first().click()
+  const copy = test.info().outputPath('copy.json')
+  await (await saving).saveAs(copy)
+  await page.getByTestId('shelf-copy').setInputFiles(copy)
+  await expect(page.locator('[data-see="restore"]')).toBeVisible({ timeout: 60_000 })
+  await shot('13b-restore')
+  await press(page, page.getByRole('button', { name: 'Back to the shelf' }).first())
 
   /* ---- a reload forgets the workbook and says so; the account stays ---- */
   await page.goto('/shelf?see=changes')

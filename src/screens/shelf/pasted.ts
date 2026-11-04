@@ -144,7 +144,7 @@ export function readPaste(
     return {
       ok: false,
       columns,
-      say: `No pasted heading reads ${display?.name ?? 'the name'}, and no pasted line names a line on ${listName}. Point at the column that holds the ${display?.name ?? 'name'} below.`,
+      say: `No pasted heading reads ${display?.name ?? 'the name'}, and no pasted line names a line on ${listName}. Point at the heading that holds the ${display?.name ?? 'name'} below.`,
     }
   }
   const pasted = planPaste({ entity, rows, block, headerRow, cols, choices })

@@ -30,23 +30,28 @@
                                 one card per file, its figures labelled under its name. Change
                                 sheet: the four counts two by two; the toolbar is the find
                                 field and a Filters button that opens the list, supplier and
-                                way under it; every line a card, each figure that moves a
-                                labelled row ("Sell $819 → $769 −6%"); the dock stands above
-                                the tab bar with the count and Apply side by side.
-     844 x 390 (phone, turned)  The width of 834, read by scrolling. The toolbar is NOT pinned
-                                in a window under 520px tall, so only the dock (one line, 60px)
-                                takes the window from the lines.
+                                way under it, and it is NOT pinned, so the lines keep the
+                                window; every line a card, each figure that moves a labelled
+                                row ("Sell $819 → $769 −6%"), the price a quote reads first;
+                                the dock stands above the tab bar: the count, the Undo said
+                                before the press, and Apply full width under them.
+     844 x 390 (phone, turned)  The width of 834, read by scrolling. Nothing but the dock is
+                                pinned in a window under 520px tall, and the dock drops its
+                                Undo sentence there, so it is one line (60px) over the lines.
      834 x 1112 (tablet)        The date beside Save a copy; the account of files a table; the
-                                four counts in one row; the toolbar on one or two lines with
-                                its filters open; lines still as cards, figures in two columns.
+                                four counts in one row; the toolbar pinned under the bar with
+                                its filters open and the table's head at its foot; lines still
+                                as cards, figures in two columns; the dock on one line.
      1280 x 800 / 1440 x 900    From 1,200px the lines are a TABLE: the tick, the line, and the
                                 busiest figures that move as their own columns (5 to 1,399px, 7
-                                from 1,400px), each named and counted in its head, Northside's
-                                own marked by a lock; a line's rarer figures named in the line.
-                                What a copy holds and Bring back a copy side by side, 2 : 1.
+                                from 1,400px), each named and counted in the head the pinned
+                                toolbar carries, Northside's own marked by a lock; a line's
+                                rarer figures named in the line. The counts are one line each,
+                                the sentence of what stays shares its row with the quotes being
+                                written. What a copy holds and Bring back a copy side by side.
      1920 x 1080                The change sheet uses the width (to 1,760px) with 9 figure
-                                columns; the rest page holds at 1,280px so a line of type stays
-                                readable, its head and the account using the width it has.
+                                columns from 1,800px; the rest page holds at 1,280px so a line
+                                of type stays readable.
    ============================================================ */
 
 .sf {
@@ -191,7 +196,7 @@ fieldset.sf-triage {
   box-shadow: var(--shadow-plate);
 }
 .sf-files[data-over] {
-  outline: 2px dashed var(--color-accent);
+  outline: --spacing(0.5) dashed var(--color-accent);
   outline-offset: calc(--spacing(1) * -1);
 }
 .sf-files__head {
@@ -627,8 +632,11 @@ fieldset.sf-triage {
 /* ---------------------------------------------------------- */
 
 .sf-ch {
+  --sf-gap: --spacing(5);
+  /* how many figures stand as their own columns; the toolbar sets it from the width */
+  --sf-cols: 0;
   max-inline-size: --spacing(440);
-  gap: --spacing(5);
+  gap: var(--sf-gap);
 }
 .sf-ch-head {
   display: grid;
@@ -704,7 +712,7 @@ fieldset.sf-triage {
 }
 .sf-share {
   display: flex;
-  gap: 2px;
+  gap: --spacing(0.5);
   block-size: --spacing(2.5);
   border-radius: var(--radius-pill);
   overflow: hidden;
@@ -712,7 +720,7 @@ fieldset.sf-triage {
 }
 .sf-share__part {
   display: block;
-  min-inline-size: 3px;
+  min-inline-size: --spacing(1);
 }
 .sf-share__part[data-fate='kept'],
 .sf-legend [data-fate='kept'] .sf-legend__ink {
@@ -827,7 +835,7 @@ fieldset.sf-triage {
   container-type: scroll-state;
   margin-inline: calc(--spacing(4) * -1);
   /* the table's head stands at the toolbar's foot, so the table follows with no gap */
-  margin-block-end: calc(--spacing(5) * -1);
+  margin-block-end: calc(var(--sf-gap, 0px) * -1);
   background: var(--color-ground);
 }
 .sf-tools:not(:has(.sf-table__head)) {
@@ -1028,8 +1036,8 @@ fieldset.sf-triage {
   cursor: pointer;
 }
 .sf-tick:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: --spacing(0.5) solid var(--color-accent);
+  outline-offset: --spacing(0.5);
 }
 .sf-line {
   align-items: start;
@@ -1234,8 +1242,8 @@ fieldset.sf-triage {
   accent-color: var(--color-accent);
 }
 .sf-option input:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: --spacing(0.5) solid var(--color-accent);
+  outline-offset: --spacing(0.5);
 }
 .sf-option__words {
   display: grid;
@@ -1324,11 +1332,12 @@ fieldset.sf-triage {
 .sf-dock__said strong {
   font-variant-numeric: tabular-nums;
 }
-.sf-dock__more,
-.sf-dock__undo {
+.sf-dock__more {
   display: none;
 }
+/* the Undo is said before the press, in a hand too; only a turned phone's dock drops it */
 .sf-dock__undo {
+  display: block;
   font-size: var(--text-xs);
   color: var(--color-ink-2);
 }
@@ -1529,7 +1538,7 @@ fieldset.sf-triage {
     gap: --spacing(7);
   }
   .sf-ch {
-    gap: --spacing(5);
+    gap: var(--sf-gap);
   }
   .sf-tools {
     margin-inline: calc(--spacing(8) * -1);
@@ -1554,10 +1563,9 @@ fieldset.sf-triage {
   }
   .sf-ledger__row {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(--spacing(22), 1fr) repeat(
-        3,
-        minmax(--spacing(16), 0.7fr)
-      ) minmax(--spacing(36), 1.2fr);
+    grid-template-columns:
+      minmax(0, 3fr) minmax(--spacing(22), 1fr) repeat(3, minmax(--spacing(16), 0.7fr))
+      minmax(--spacing(36), 1.2fr);
     align-items: center;
   }
   .sf-ledger__row--head {
@@ -1641,7 +1649,23 @@ fieldset.sf-triage {
   .sf-tools__more {
     flex: 0 1 auto;
   }
+  .sf-ch {
+    --sf-gap: --spacing(4);
+  }
+  .sf-tile {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: --spacing(3);
+    align-items: baseline;
+    padding-block: --spacing(2);
+  }
+  .sf-tile__figure {
+    grid-row: 1 / span 2;
+  }
+  .sf-tile__say {
+    grid-column: 2;
+  }
   .sf-stay {
+    gap: --spacing(2);
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
     column-gap: --spacing(8);

@@ -6,8 +6,11 @@ import {
   copyFileName,
   forgetRefusal,
   inventoryOf,
+  dollars,
+  figureSaid,
   keptThroughAClear,
   lineName,
+  shareMoved,
   whenSaid,
 } from './read'
 import { readPaste } from './pasted'
@@ -178,5 +181,54 @@ describe('lines pasted from Excel', () => {
     const nameless = readPaste(tables.parts, rows, 'Sell\n1540\n')
     expect(nameless.ok).toBe(false)
     if (!nameless.ok) expect(nameless.say).toMatch(/^No pasted heading reads Product/)
+  })
+})
+
+describe('the workbook’s own headings, pasted', () => {
+  it('reads the column whose lines name lines on the list as the name, and says by how many', async () => {
+    const { pack, tables } = await world()
+    const rows = pack.rowsByEntity.parts
+    /* the judge's own paste: a line copied out of Parts Maintenance with its sheet's heading */
+    const read = readPaste(
+      tables.parts,
+      rows,
+      'Parts & Accessories Module\tSupplier\tSell\nTube Covers to suit PVC Boat - 2.0 Mtr\tIBC\t1300\n',
+    )
+    if (!read.ok) throw new Error(read.say)
+    expect(read.columns[0]).toMatchObject({ to: 'parts.c', how: 'names', names: { hit: 1, of: 1 } })
+    expect(read.lines[0]).toMatchObject({ fate: 'change', from: 1640, to: 1300 })
+  })
+
+  it('takes the column a person points at, over what was proposed', async () => {
+    const { pack, tables } = await world()
+    const rows = pack.rowsByEntity.parts
+    const text = 'Item\tPrice\nTube Covers to suit PVC Boat - 2.0 Mtr\t1300\n'
+    const before = readPaste(tables.parts, rows, text)
+    expect(before.columns?.[0]).toMatchObject({ to: 'parts.c', how: 'names' })
+    const pointed = readPaste(tables.parts, rows, text, { 0: 'parts.c', 1: 'parts.l' })
+    if (!pointed.ok) throw new Error(pointed.say)
+    expect(pointed.columns.map((c) => [c.to, c.how])).toEqual([
+      ['parts.c', 'you'],
+      ['parts.l', 'you'],
+    ])
+    expect(pointed.changing).toBe(1)
+  })
+})
+
+describe('a figure, as it is said', () => {
+  it('prints cents as two places and whole dollars bare (the judge’s “$242.1”)', () => {
+    expect(dollars(242.1)).toBe('$242.10')
+    expect(dollars(672.1)).toBe('$672.10')
+    expect(dollars(1540)).toBe('$1,540')
+    expect(dollars(0.015)).toBe('$0.02')
+  })
+
+  it('says a proportion to three places, money as dollars, and a move as a share', () => {
+    expect(figureSaid(0.112, 'ratio')).toBe('0.112')
+    expect(figureSaid(82.03, 'money')).toBe('$82.03')
+    expect(figureSaid(null, 'money')).toBe('—')
+    expect(shareMoved(98, 3)).toBe('−97%')
+    expect(shareMoved(819, 769)).toBe('−6%')
+    expect(shareMoved(5, 5)).toBeNull()
   })
 })
