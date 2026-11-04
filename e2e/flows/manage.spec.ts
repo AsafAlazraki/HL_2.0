@@ -238,3 +238,37 @@ test('in a hand, a long address never pushes the page sideways and the stamp sta
   })
   expect(inside).toBe(true)
 })
+
+test('a decision kept in another room is counted under Decided elsewhere, with who made it and when', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await throughTheDoor(page)
+  /* Review's own press, as a person makes it: one case of the real file left alone */
+  await page.goto(
+    `/review?case=${encodeURIComponent('none:parts:TRAILER PARTS - Trailer Plugs:zero')}`,
+  )
+  await expect(page.locator('[data-testid="review"][data-read] .rv-stage__title')).toBeVisible({
+    timeout: 30_000,
+  })
+  await page.getByRole('button', { name: 'Leave them at $0' }).click()
+  await expect(page.getByText(/^1 case is left alone, on 4 lines\./)).toBeVisible()
+  await written(page)
+
+  await toSettings(page)
+  const left = page
+    .getByTestId('manage-elsewhere')
+    .locator('.mg-decided')
+    .filter({ hasText: 'Left alone on Review' })
+  await expect(left.locator('.mg-decided__count')).toHaveText('1 finding')
+  await expect(left.locator('.mg-decided__last')).toHaveText(
+    /^Last by Asaf, today at \d{1,2}:\d{2}\s?[ap]m$/,
+  )
+  await expect(left).not.toHaveAttribute('data-none')
+  /* the rooms where nothing was decided still say nothing, not a made-up count */
+  await expect(
+    page.getByTestId('manage-elsewhere').locator('.mg-decided').filter({ hasText: 'Aisles' }),
+  ).toContainText('None placed')
+  await left.getByLabel('Left alone on Review: open Review').click()
+  await expect(page).toHaveURL(/\/review/)
+})

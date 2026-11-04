@@ -362,6 +362,48 @@ fieldset.sf-triage {
   list-style: none;
   overflow-wrap: anywhere;
 }
+/* the drafts the price list moved under: each quote as it heads itself, its lines, and its door */
+.sf-drafts__in {
+  display: grid;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+.sf-drafts--behind .sf-drafts__list {
+  gap: --spacing(2);
+}
+.sf-drafts__quote {
+  display: grid;
+  gap: --spacing(2);
+  align-items: center;
+  padding: --spacing(3);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
+}
+.sf-drafts__words {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.sf-drafts__name {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+.sf-drafts__ref {
+  font-size: var(--text-xs);
+  color: var(--color-ink-2);
+}
+.sf-drafts__line .sf-fig {
+  font-variant-numeric: tabular-nums;
+}
+.sf-drafts__open {
+  display: flex;
+}
+@media (min-width: 600px) {
+  .sf-drafts__quote {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
 
 /* what a copy holds, and the way one comes back */
 .sf-keep {
@@ -592,8 +634,11 @@ fieldset.sf-triage {
   display: grid;
   gap: --spacing(4);
 }
+/* A KIND READS BESIDE ITS FIGURES (verify-2.md: "Quotes" at x≈272, its figures 800px away at
+   1440): the table is as wide as a person reads across, not as wide as the plate */
 .sf-beside__table {
   inline-size: 100%;
+  max-inline-size: --spacing(150);
   border-collapse: collapse;
   font-size: var(--text-sm);
 }
@@ -873,6 +918,37 @@ fieldset.sf-triage {
     background: var(--color-ground);
   }
 }
+/* THE WAY PAST THE LINES TO THE DOCK (verify-2.md, gap 4): out of sight until the keyboard reaches
+   it, then a plain press at the toolbar's head, over find */
+.sf-skip {
+  position: absolute;
+  inset-block-start: --spacing(1);
+  inset-inline-start: --spacing(4);
+  z-index: 2;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.sf-skip:focus-visible {
+  inline-size: auto;
+  block-size: auto;
+  min-block-size: --spacing(11);
+  padding: --spacing(2) --spacing(4);
+  clip-path: none;
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-lg);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  outline: --spacing(0.5) solid var(--color-accent);
+  outline-offset: --spacing(0.5);
+}
 .sf-tools__find {
   position: relative;
   flex: 1 1 --spacing(60);
@@ -904,14 +980,23 @@ fieldset.sf-triage {
   flex-wrap: wrap;
   gap: --spacing(1.5);
 }
+/* IN A HAND the count stands after the filters, as before; from 834 it stands beside find, on the
+   find's own row, and the filters take the row under it (verify-2.md, gap 9) */
 .sf-tools__shown {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: --spacing(1) --spacing(2);
+  order: 3;
   margin: 0 0 0 auto;
   font-size: var(--text-sm);
   color: var(--color-ink-2);
+}
+.sf-tools__more {
+  order: 2;
+}
+.sf-tools .sf-table__head {
+  order: 4;
 }
 .sf-tools__shown strong {
   color: var(--color-ink);
@@ -964,6 +1049,13 @@ fieldset.sf-triage {
   block-size: 100%;
   background: var(--color-accent);
   transition: inline-size var(--duration-reveal) var(--ease-out);
+}
+/* THE FILL IS SIMPLY THERE UNDER REDUCED MOTION (verify-2.md, gap 4): the shorthand above outranked
+   the app's own global rule, so it says so itself */
+@media (prefers-reduced-motion: reduce) {
+  .sf-progress__done {
+    transition: none;
+  }
 }
 
 /* the table */
@@ -1162,6 +1254,16 @@ fieldset.sf-triage {
 .sf-line__cell {
   display: none;
 }
+/* AN EMPTY CELL SAYS WHICH OF TWO THINGS IT IS (verify-2.md, gap 5): "same" where the figure did
+   not move, an em rule where the list carries no such figure; the head's key says both */
+.sf-line__still,
+.sf-line__none {
+  /* on the row of the figures that moved, under the struck one beside it */
+  padding-block-start: --spacing(4);
+  font-size: var(--text-xs);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
 .sf-triage {
   display: flex;
   flex-wrap: wrap;
@@ -1346,7 +1448,7 @@ fieldset.sf-triage {
 .sf-dock__more {
   display: none;
 }
-/* the Undo is said before the press, in a hand too; only a turned phone's dock drops it */
+/* the Undo is said before the press, in a hand too */
 .sf-dock__undo {
   display: block;
   font-size: var(--text-xs);
@@ -1371,6 +1473,23 @@ fieldset.sf-triage {
   display: grid;
   flex: 1 1 auto;
   min-inline-size: --spacing(36);
+}
+/* THE DOCK IS A STRIP, NOT A QUARTER OF A PHONE (verify-2.md, gap 6: with the bar it took 24% of
+   844px and cut the tiles): in a hand the count and its Undo stand beside the press, which says
+   "Apply" and keeps the count in its name */
+.sf-dock:not([data-applied]) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.sf-dock:not([data-applied]) .sf-dock__act {
+  min-inline-size: 0;
+}
+.sf-dock__n {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .sf-dock[data-applied] {
   grid-template-columns: 1fr;
@@ -1507,11 +1626,21 @@ fieldset.sf-triage {
   }
 }
 
+/* from 834 the toolbar reads in its own order: find and its count, then the filters, then the head */
+@media (min-width: 834px) {
+  .sf-tools__shown,
+  .sf-tools__more,
+  .sf-tools .sf-table__head {
+    order: 0;
+  }
+}
+
 @media (max-height: 519px) {
   .sf-dock {
     padding-block: --spacing(1.5);
   }
-  .sf-dock__undo {
+  /* the applied dock says what it did in a line, so it stays a strip on a turned phone */
+  .sf-dock[data-applied] .sf-dock__more {
     display: none !important;
   }
   /* THE HEAD FILLED THE FIRST SCREEN (verify-1.md, gap 5): on a turned phone the glyph goes, the
@@ -1528,6 +1657,11 @@ fieldset.sf-triage {
     gap: --spacing(1) --spacing(3);
   }
   .sf-ch-head__glyph {
+    display: none;
+  }
+  /* AND THE EYEBROW GOES (verify-2.md, gap 6): the dock under it says the same, what Apply writes
+     or what it wrote, so the drafts sentence is read above the dock before any scroll */
+  .sf-ch .sf-ch-head .sf-eyebrow {
     display: none;
   }
   .sf-ch .sf-ch-head__acts {
@@ -1577,6 +1711,13 @@ fieldset.sf-triage {
   }
   .sf-dock__undo {
     display: block;
+  }
+  .sf-dock__n {
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    overflow: visible;
+    clip-path: none;
   }
   .sf-dock[data-applied] {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1704,9 +1845,6 @@ fieldset.sf-triage {
   .sf-tools__select {
     min-inline-size: --spacing(38);
   }
-  .sf-tools__more {
-    flex: 0 1 auto;
-  }
   .sf-ch {
     --sf-gap: --spacing(4);
   }
@@ -1745,8 +1883,10 @@ fieldset.sf-triage {
   }
   .sf-tools[data-table] .sf-table__head,
   .sf-table[data-table] .sf-line:not(.sf-line--cannot) {
+    /* THE NAME KEEPS ITS ROOM (verify-2.md, gap 10: Dealer Fit's names wrapped in about 300px at
+       1920 and broke "1.8 / m"): about a third of the row, the figures sharing the rest */
     grid-template-columns:
-      --spacing(11) minmax(--spacing(72), 2.4fr)
+      --spacing(11) minmax(--spacing(80), 3.4fr)
       repeat(var(--sf-cols, 0), minmax(--spacing(22), 1fr));
   }
   .sf-table[data-table] .sf-line--cannot {

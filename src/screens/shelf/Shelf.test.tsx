@@ -14,7 +14,9 @@ import { apply as applyToQuote, isDone, issue } from '@/domain/quote/commands'
 import { letterheadOf, preparerOf } from '@/domain/northside/letterhead'
 import { validateEnvelope } from '@/domain/io/envelope'
 import { Shelf, type ShelfSee } from './Shelf'
-import { LAST_COPY_PREF, saveACopy } from './acts'
+import { LAST_COPY_PREF, actUnderWay, saveACopy } from './acts'
+import { ClearPage } from './Pages'
+import { inventoryOf } from './read'
 
 /* THE COPY A SAVE HANDS TO DOWNLOADS, caught instead of handed: the one browser errand a test
    cannot run is the download itself, so it is read here exactly as the browser would be given it */
@@ -349,7 +351,7 @@ describe('the acts that replace or take away', () => {
     expect(forget).toHaveAttribute('aria-disabled', 'true')
     expect(
       screen.getByText(
-        'Save a copy first: none has been saved on this computer, so nothing of this could come back.',
+        'Save a copy first: none has been saved from this computer, so nothing done on it could come back.',
       ),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Save a copy first' }))
@@ -359,6 +361,53 @@ describe('the acts that replace or take away', () => {
       ).toHaveAttribute('aria-disabled', 'false'),
     )
     expect(handed.name).toMatch(/^Northside Marine copy \d{4}-\d{2}-\d{2} \d{4}\.json$/)
+  })
+
+  it('refuses to forget a computer with no quote, customer or rule as well, and says none is saved as none (verify-2.md, gap 1)', async () => {
+    const user = userEvent.setup()
+    render(<Driven />)
+    await user.click(screen.getByRole('button', { name: 'Forget everything…' }))
+    expect(
+      screen.getByRole('button', { name: 'Forget everything on this computer' }),
+    ).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText(/no copy has been saved from this computer/)).toBeInTheDocument()
+    /* what goes is said without a nought */
+    expect(document.querySelector('.sf-goes')).not.toHaveTextContent(/\b0 /)
+  })
+
+  it('holds the page while an act runs: Back says why it waits, and nothing else is pressed (verify-2.md, gap 1)', async () => {
+    const user = userEvent.setup()
+    const held: { finish: ((said: string | null) => void) | null } = { finish: null }
+    const back = vi.fn<() => void>()
+    render(
+      <ClearPage
+        here={inventoryOf(catalogue.getState(), [])}
+        save={async () => {}}
+        saved={null}
+        lastCopy={null}
+        back={back}
+        act={() =>
+          new Promise<string | null>((done) => {
+            held.finish = done
+          })
+        }
+      />,
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Clear the price list from this computer' }),
+    )
+    const leave = screen.getByRole('button', { name: 'Back to the shelf' })
+    expect(leave).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText(/^Clearing the price list is under way\./)).toBeInTheDocument()
+    expect(actUnderWay()).toMatch(/^Clearing the price list is under way/)
+    await user.click(leave)
+    expect(back).not.toHaveBeenCalled()
+    /* the act answers; the page lets go */
+    held.finish?.('Nothing was changed.')
+    await waitFor(() => expect(actUnderWay()).toBeNull())
+    expect(await screen.findByText('Nothing was changed.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Back to the shelf' }))
+    expect(back).toHaveBeenCalledTimes(1)
   })
 
   it('carries a given quote out and back with the letterhead and the preparer it was given with', async () => {

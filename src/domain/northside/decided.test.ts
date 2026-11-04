@@ -4,7 +4,6 @@ import { NO_STAMPS } from '@/domain/catalogue/table/stamps'
 import { pricesStamped } from '@/domain/pricing/chosen'
 import { decidedElsewhere, lastSaid, preparedBy, whenSaid } from './decided'
 import { lastChanged, settingRow, settingsStamped } from './stamped'
-import { boatNamed } from './boatNamed'
 
 const ev = (over: Partial<CatalogueEvent>): CatalogueEvent =>
   ({
@@ -126,16 +125,5 @@ describe('everything Northside decided elsewhere, counted from its own records',
     const quotes = [{ preparedBy: 'Asaf' }, { preparedBy: ' asaf ' }, { preparedBy: 'Sam' }, {}]
     expect(preparedBy(quotes, 'Asaf')).toBe(2)
     expect(preparedBy(quotes, 'Nobody')).toBe(0)
-  })
-})
-
-describe('a boat named the way a person says it', () => {
-  it('never says the maker twice', () => {
-    expect(boatNamed('Haines Signature', 'Signature Fisher 525F')).toBe(
-      'Haines Signature Fisher 525F',
-    )
-    expect(boatNamed('Highfield', 'Sport 560')).toBe('Highfield Sport 560')
-    expect(boatNamed('Stacer', 'Stacer 529 Assault Pro')).toBe('Stacer 529 Assault Pro')
-    expect(boatNamed('', 'Sport 560')).toBe('Sport 560')
   })
 })

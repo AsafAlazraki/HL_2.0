@@ -83,6 +83,7 @@ import {
 } from '@/domain/quote/swap'
 import { isDone } from '@/domain/quote/commands'
 import { priceChanges, type PriceChange } from '@/domain/quote/freeze'
+import { listMovedOn, type MovedLine } from '@/domain/quote/listMoved'
 import { isPriced } from '@/domain/quote/pricing'
 import { sellColumns, unchosenOn } from '@/domain/pricing/unchosen'
 import { ADDRESSED_TO_NOBODY } from '@/domain/quote/totals'
@@ -453,6 +454,9 @@ export interface Rail {
   /** beside `unpricedNames`: for a `before` line, the price the price list now gives it, ready
    *  to put on with `applyPriceChanges`; null for every other */
   unpricedAgain: Array<PriceChange | null>
+  /** THE LINES THE PRICE LIST NOW READS DIFFERENTLY, on a draft (the shelf's verify-2.md, gap 2):
+   *  each keeps the price it had when it was chosen, and the total says so (`listMovedOn`) */
+  listMoved: MovedLine[]
 }
 
 /** Why a line on the quote carries no price. */
@@ -1308,6 +1312,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     unpricedWhy,
     unpricedTables,
     unpricedAgain,
+    listMoved: listMovedOn(ctx, quote),
   }
 }
 

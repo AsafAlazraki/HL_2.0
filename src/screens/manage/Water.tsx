@@ -58,7 +58,7 @@ import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
 import { boatNamed } from '@/domain/northside/boatNamed'
 import { readMark, useSourceColour, useVeils } from './measure'
-import { useHeightOnRoot } from './hooks'
+import { DESK, clearOfTheToast, useHeightOnRoot, useMedia, useStuck } from './hooks'
 
 /* ============================================================
    THE WATER — what shows on every screen at Northside, measured on the
@@ -95,6 +95,7 @@ function keep(command: CatalogueCommand): string | null {
     },
     { id: 'manage-step', testId: 'manage-step' },
   )
+  clearOfTheToast()
   return null
 }
 
@@ -121,6 +122,9 @@ export function Water({ open }: { open: boolean }) {
   const [stageBox, setStageBox] = useState<HTMLElement | null>(null)
   const [top, setTop] = useState<HTMLElement | null>(null)
   useHeightOnRoot(stageBox, '--mg-stage')
+  /* at a desk the stage stands at the window's head, and while it stands there the band above it
+     is the stage's own ground, never a slice of the choices passing under the pill */
+  useStuck(stageBox, useMedia(DESK))
 
   const boats = useMemo(() => (open ? everyPhotographed(tables, rows) : []), [open, tables, rows])
   /* the boat makers Home draws as doors, each by its own mark in dark ink where one is held and
@@ -152,7 +156,20 @@ export function Water({ open }: { open: boolean }) {
   const docked = changes.length > 0 || refused !== null
   const heroBoat = hero ? boats.find((b) => b.picture.id === hero.picture) : undefined
 
+  /* THE PRESS THAT STAGED THE LAST CHANGE: Keep and Put back go with the dock, so the focus comes
+     back to it, a keyboard is not left on nothing, and the step's Undo keeps clear of its part */
+  const stagedFrom = useRef<HTMLElement | null>(null)
+  const noteFrom = (): void => {
+    const at = document.activeElement
+    stagedFrom.current = at instanceof HTMLElement && at !== document.body ? at : null
+  }
+  const backToTheChoice = (): void => {
+    const at = stagedFrom.current
+    if (at?.isConnected) at.focus({ preventScroll: true })
+  }
+
   const keepStaged = (): void => {
+    backToTheChoice()
     const patch: Partial<OrgLook> = {}
     if (staged.brand !== undefined) patch.brand = staged.brand ?? undefined
     if (staged.hero !== undefined) patch.hero = staged.hero ?? undefined
@@ -239,9 +256,10 @@ export function Water({ open }: { open: boolean }) {
                     }
                   : null
               }
-              stage={(next) =>
+              stage={(next) => {
+                noteFrom()
                 setStaged((s) => ({ ...s, brand: next === keptBrand ? undefined : next }))
-              }
+              }}
             />
             <Pictures
               boats={boats}
@@ -249,6 +267,7 @@ export function Water({ open }: { open: boolean }) {
               hero={hero}
               door={door}
               stageHero={(next) => {
+                noteFrom()
                 setSurface('home')
                 setStaged((s) => ({
                   ...s,
@@ -256,6 +275,7 @@ export function Water({ open }: { open: boolean }) {
                 }))
               }}
               stageDoor={(next) => {
+                noteFrom()
                 setSurface('door')
                 setStaged((s) => ({ ...s, door: next === keptDoor ? undefined : next }))
               }}
@@ -281,7 +301,25 @@ export function Water({ open }: { open: boolean }) {
                 <p className="mg-staged__lab">Changed, not kept</p>
                 <ul className="mg-staged__list">
                   {changes.map((c) => (
-                    <li key={c.key}>{c.said}</li>
+                    <li key={c.key} className="mg-staged__line">
+                      {/* WHAT WAS TRIED, DRAWN SMALL BESIDE ITS WORDS, so it is seen wherever the
+                          stage is out of the window (the verifier, 844 × 390) */}
+                      {c.face.kind === 'colour' ? (
+                        <span
+                          className="mg-staged__swatch"
+                          style={{ '--swatch': c.face.hex } as CSSProperties}
+                          aria-hidden="true"
+                        />
+                      ) : c.face.src ? (
+                        <img className="mg-staged__thumb" src={c.face.src} alt="" />
+                      ) : (
+                        <span
+                          className="mg-staged__thumb mg-staged__thumb--water"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span>{c.said}</span>
+                    </li>
                   ))}
                 </ul>
                 <div className="mg-staged__acts">
@@ -293,6 +331,7 @@ export function Water({ open }: { open: boolean }) {
                     size="sm"
                     icon={ArrowUUpLeftIcon}
                     onClick={() => {
+                      backToTheChoice()
                       setStaged({})
                       setRefused(null)
                     }}
@@ -369,13 +408,20 @@ const boatSaid = (boats: readonly Photographed[], id: string | null): string => 
   return boat ? `the ${boatNamed(boat.maker, boat.model)}` : 'the photograph'
 }
 
+/** What a tried change is drawn as in the dock: its colour, or its photograph (none: the water). */
+type Face = { kind: 'colour'; hex: string } | { kind: 'picture'; src: string | null }
+
 /** What has been tried and not kept, each as the stage says it and as the step will. */
 function changedLines(
   staged: Staged,
   kept: { brand: string | null; hero: OrgGround | null; door: string | null },
   boats: readonly Photographed[],
-): { key: string; said: string; kept: string }[] {
-  const out: { key: string; said: string; kept: string }[] = []
+): { key: string; said: string; kept: string; face: Face }[] {
+  const out: { key: string; said: string; kept: string; face: Face }[] = []
+  const shot = (id: string | null | undefined): string | null => {
+    const boat = id ? boats.find((b) => b.picture.id === id) : undefined
+    return boat ? thumbOf(boat.picture, 160) : null
+  }
   if (staged.brand !== undefined) {
     const to = (staged.brand ?? DESIGNED).toUpperCase()
     const from = (kept.brand ?? DESIGNED).toUpperCase()
@@ -386,6 +432,7 @@ function changedLines(
         staged.brand === null
           ? 'Northside’s colour is as designed again'
           : `Northside’s colour is ${to}`,
+      face: { kind: 'colour', hex: staged.brand ?? DESIGNED },
     })
   }
   if (staged.hero !== undefined) {
@@ -395,6 +442,7 @@ function changedLines(
       key: 'hero',
       said: `Home stands on ${to}, in place of ${from}`,
       kept: `Home stands on ${to}`,
+      face: { kind: 'picture', src: shot(staged.hero?.picture) },
     })
   }
   if (staged.door !== undefined) {
@@ -403,6 +451,7 @@ function changedLines(
       key: 'door',
       said: `The sign-in page shows ${to}`,
       kept: `The sign-in page shows ${to}`,
+      face: { kind: 'picture', src: shot(staged.door ?? DOOR_DESIGNED) },
     })
   }
   return out

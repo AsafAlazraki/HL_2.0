@@ -4,7 +4,7 @@ import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { mintQuoteFromView } from './freeze'
 import { draftsBehind, listMovedOn, listMovedSay, quoteName } from './listMoved'
-import { spokenBoat } from './spoken'
+import { boatTitle } from './title'
 
 /* ============================================================
    THE PRICE LIST MOVED UNDER A QUOTE BEING WRITTEN, said and never
@@ -57,8 +57,8 @@ describe('a quote being written whose price list moved', () => {
     expect(moved[0]!.lineId).toBe(hull.id)
     expect(moved[0]!.keeps).toBe((hull.unitPrice ?? 0) - 1000)
     expect(moved[0]!.reads).toBe(hull.unitPrice)
-    /* the hull is named as the quote heads itself, never by the file's own cell */
-    expect(moved[0]!.name).toBe(spokenBoat(stacer.id, quote.subjectLabel).say)
+    /* the hull is named by its title, never by the file's own cell */
+    expect(moved[0]!.name).toBe(boatTitle(stacer.id, quote.subjectLabel).title)
     expect(moved[0]!.name).not.toContain(' - ')
 
     const drafts = draftsBehind(ctx, [stale])

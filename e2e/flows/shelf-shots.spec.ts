@@ -126,6 +126,16 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await expect(page.locator('[data-testid="shelf"][data-read]')).toBeVisible({ timeout: 30_000 })
   await shot('01-rest')
 
+  /* ---- forgetting on day one: refused until a copy is saved, none said as none (verify-2.md, gap 1) ---- */
+  await go(page, '/shelf?see=forget')
+  await expect(
+    page.getByText(/^Save a copy first: none has been saved from this computer/),
+  ).toBeVisible()
+  await expect(page.getByText(/no copy has been saved from this computer/)).toBeVisible()
+  await shot('01c-forget-day-one')
+  await go(page, '/shelf')
+  await expect(page.locator('[data-testid="shelf"][data-read]')).toBeVisible()
+
   /* ---- a wrong file at the door: the refusal reads across its plate (verify-1.md, gap 10) ---- */
   await page.getByTestId('shelf-workbook').setInputFiles({
     name: 'wrong.txt',
@@ -148,6 +158,18 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await press(page, page.getByRole('button', { name: 'See every change' }))
   await expect(page.locator('[data-see="changes"]')).toBeVisible()
   await shot('03-changes-top', true)
+
+  /* the way past the lines to Apply, by keyboard (verify-2.md, gap 4): one Shift+Tab from find */
+  await page.getByRole('textbox', { name: 'Find a name, a code or a supplier' }).focus()
+  await page.keyboard.press('Shift+Tab')
+  await expect(page.getByRole('button', { name: 'Skip the lines to Apply' })).toBeFocused()
+  await shot('03a-skip-focused', true, '.sf-tools')
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('button', { name: /^Apply [\d,]+ changes$/ })).toBeFocused()
+  await page.evaluate(() => {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    window.scrollTo(0, 0)
+  })
 
   /* scrolled into the lines: the toolbar and Apply stay */
   await page.evaluate(() => {
@@ -191,6 +213,17 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await go(page, '/shelf?see=changes&q=GX700')
   await shot('11-find', true, '.sf-tools')
 
+  /* ---- a size of move between any and doubled, an address too (verify-2.md, the working tool) ---- */
+  await go(page, '/shelf?see=changes&by=25')
+  /* in a hand the filters stand behind their own press, which counts the one set */
+  if (page.viewportSize()!.width < 834) {
+    await press(page, page.getByRole('button', { name: 'Filters 1' }))
+  }
+  await expect(page.getByRole('combobox', { name: 'How far the price moved' })).toContainText(
+    'Moved 25% or more',
+  )
+  await shot('11b-moved-25', true, '.sf-tools')
+
   /* ---- a copy saved before Apply, which never holds it (verify-1.md, gap 2) ---- */
   await go(page, '/shelf')
   const early = page.waitForEvent('download', { timeout: 120_000 })
@@ -223,6 +256,8 @@ test('every state of the shelf, on Northside’s own workbook, photographed and 
   await press(page, page.getByRole('button', { name: 'Back to the shelf' }).first())
   await expect(page.locator('[data-testid="shelf"][data-read]')).toBeVisible()
   await shot('13-rest-after')
+  /* the whole page, where the cards that take things away say what goes without a nought */
+  await page.screenshot({ path: `${OUT}/13-rest-after-full--${size}.png`, fullPage: true })
 
   /* ---- a copy saved after Apply, and set beside this computer before it would come back ---- */
   /* the copy waits for Apply's writes to land first (`saveACopy`, flush), which takes longer under load */

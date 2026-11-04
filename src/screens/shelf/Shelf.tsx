@@ -33,7 +33,6 @@ import {
   tally,
   type ChangeSet,
   type Choices,
-  type Narrow,
 } from '@/domain/io/changeSet'
 import {
   appliedSince,
@@ -52,6 +51,7 @@ import {
   type PriceListEdition,
 } from '@/domain/io/copyEdition'
 import { PACK_ORG_ID } from '@/data/pack/boot'
+import type { NarrowBy } from '@/domain/io/swing'
 import { packedOn, provenanceOfSheet, shippedFile } from '@/screens/data/file'
 import { BROUGHT_PREF, LAST_COPY_PREF, apartRefusal, clearThePriceList, saveACopy } from './acts'
 import { bytesOf, inflateRaw, sizeOf } from './files'
@@ -111,8 +111,8 @@ export type ShelfSee =
 export interface ShelfProps {
   see: ShelfSee | undefined
   onSee: (see: ShelfSee | undefined) => void
-  narrow?: Narrow
-  onNarrow?: (next: Narrow) => void
+  narrow?: NarrowBy
+  onNarrow?: (next: NarrowBy) => void
   /** opens a quote being written, from the shelf's word on what the price list moved under it */
   openQuote?: (id: string) => void
 }
@@ -169,7 +169,7 @@ const writeNotes = (next: BroughtNote[]): void =>
 
 const readNotes = (): BroughtNote[] => notesOf(prefs.getState().values[BROUGHT_PREF])
 
-const WIDE: Narrow = {}
+const WIDE: NarrowBy = {}
 const NOWHERE = (): void => {}
 
 export function Shelf({ see, onSee, narrow = WIDE, onNarrow = NOWHERE, openQuote }: ShelfProps) {
@@ -1062,9 +1062,8 @@ function DraftsHere({
                 </span>
                 {d.lines.map((l) => (
                   <span key={l.lineId} className="sf-drafts__line">
-                    {l.name === d.name ? 'The boat' : l.name} keeps{' '}
-                    <span className="sf-fig">{dollars(l.keeps)}</span>; the price list reads{' '}
-                    <strong className="sf-fig">{dollars(l.reads)}</strong>
+                    {l.name} keeps <span className="sf-fig">{dollars(l.keeps)}</span>; the price
+                    list reads <strong className="sf-fig">{dollars(l.reads)}</strong>
                   </span>
                 ))}
               </span>

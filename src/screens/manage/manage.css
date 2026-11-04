@@ -66,6 +66,9 @@
 :root {
   --mg-stage: 0px;
   --mg-dock: 0px;
+  /* THE WINDOW ONTO THE QUOTE'S PAGES while a line is set at a desk: a third of the window, so the
+     open field and the line it lands in stand in one window (Proof.tsx) */
+  --mg-lens: clamp(13rem, 30dvh, 20rem);
 }
 
 .mg {
@@ -136,6 +139,45 @@
 }
 .mg-index__list::-webkit-scrollbar {
   display: none;
+}
+/* EACH END FADES WHERE MORE WORDS STAND PAST IT (Manage.tsx, `Index`), so a word cut by the strip's
+   edge reads as more to come and never as a word cut short; the mask reads only the alpha */
+.mg-index__list[data-more='end'] {
+  mask-image: linear-gradient(
+    to right,
+    var(--color-neutral-950) calc(100% - --spacing(12)),
+    transparent
+  );
+}
+.mg-index__list[data-more='start'] {
+  mask-image: linear-gradient(to right, transparent, var(--color-neutral-950) --spacing(12));
+}
+.mg-index__list[data-more='start end'] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--color-neutral-950) --spacing(12),
+    var(--color-neutral-950) calc(100% - --spacing(12)),
+    transparent
+  );
+}
+/* WHILE IT STANDS AT THE WINDOW'S HEAD, ITS WHITE GROUND REACHES THE WINDOW'S TOP, under the pill:
+   the 50–68px band between them showed the page passing under, cut (the verifier, 834 and 844) */
+.mg-index[data-stuck]::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 100%;
+  block-size: var(--shell-inset);
+  background: var(--color-white);
+}
+/* A PHONE TURNED SIDEWAYS IS 390PX TALL, and the pill and a standing index took 120 of them (the
+   verifier, 844 × 390); there the index is read where it heads the page, and the page is the
+   window's */
+@media (max-height: 520px) and (max-width: 1199.98px) {
+  .mg-index {
+    position: relative;
+  }
 }
 .mg-index__to {
   display: inline-flex;
@@ -329,6 +371,13 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-600);
+}
+/* THE STAMP'S TWO SMALL LINES AT THE SCREEN'S SMALLEST SIZE, never the 11px the document sets them
+   in for paper (the verifier: "Quotation" and "Dated the day it is given" were the page's two lines
+   under 12px at every size). On the printed quote they keep the document's own size. */
+.mg-sheet :is(.doc-cover__kind, .doc-cover__when) {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
 }
 @container (max-width: 34rem) {
   .mg-sheet .doc-cover__mast {
@@ -538,6 +587,9 @@
   padding-block-start: --spacing(3);
   border-block-start: 1px solid var(--day-rule);
 }
+.mg-person__refused {
+  margin-block-start: --spacing(2);
+}
 .mg-person__may {
   margin: --spacing(2) 0 0;
   font-size: var(--text-xs);
@@ -572,6 +624,26 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-neutral-700);
+}
+/* the pages and their door, a part of the paper of their own (Proof.tsx), standing under the
+   section's words at the section's own spacing */
+.mg-proof-lens {
+  display: grid;
+  gap: --spacing(3);
+  min-inline-size: 0;
+}
+.mg-proof-lens:not([data-lens]) {
+  margin-block-start: calc(--spacing(3) - --spacing(8));
+}
+.mg-proof-lens__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-700);
+}
+.mg-proof-lens__say b {
+  font-weight: 700;
+  color: var(--color-neutral-950);
 }
 /* THE PAGES THEMSELVES: the document's own sheaf, small (its zoom is worked from this frame's
    width in Proof.tsx), with its room, chrome and margins taken away and its middle pages left out */
@@ -886,6 +958,49 @@
   display: flex;
   flex-wrap: wrap;
   gap: --spacing(2);
+}
+/* each change with what was tried drawn small beside its words: the colour, or the photograph */
+.mg-staged__line {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+.mg-staged__line > span:last-child {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.mg-staged__swatch,
+.mg-staged__thumb {
+  flex: none;
+  display: block;
+  block-size: --spacing(6);
+  border-radius: var(--radius-glyph);
+  box-shadow: 0 0 0 1px var(--color-rule);
+}
+.mg-staged__swatch {
+  inline-size: --spacing(6);
+  background: var(--swatch);
+}
+.mg-staged__thumb {
+  inline-size: --spacing(9);
+  object-fit: cover;
+}
+.mg-staged__thumb--water {
+  background: linear-gradient(160deg, var(--color-blue-600), var(--color-blue-900));
+}
+/* A PHONE TURNED SIDEWAYS: the dock is one line, its words between its name and its two presses,
+   so the choices keep the window (the verifier, 844 × 390: the dock took 265–378 of 390) */
+@media (max-height: 520px) and (max-width: 1199.98px) {
+  .mg-staged {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: --spacing(3);
+    padding-block: --spacing(2);
+  }
+  .mg-staged__acts {
+    flex-wrap: nowrap;
+  }
 }
 .mg-water-refused {
   margin: 0;
@@ -1411,13 +1526,32 @@
 
 /* A DESK: THE TWO HALVES SIDE BY SIDE, THE SEAM FROM HEAD TO FOOT, AND THE PILL ON IT */
 @media (min-width: 1200px) {
+  /* THE SEAM FROM THE PAGE'S HEAD TO ITS FOOT: "Decided elsewhere" ends the paper's column, and the
+     water runs beside it to the page's end, so the stage stands at the window's head until the
+     very foot and is never left cut under the pill there (the verifier, 1280: the stage rested at
+     y −37 to 330 at the foot while "Decided elsewhere" spanned both halves under it) */
   .mg {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'top index'
+      'apart apart'
+      'paper water'
+      'elsewhere water';
+    grid-template-rows: auto auto auto 1fr;
+  }
+  .mg-halves {
+    display: contents;
+  }
+  .mg-paper {
+    grid-area: paper;
+  }
+  .mg-water {
+    grid-area: water;
   }
   /* the page's name heads the paper; the index heads the water, on the water's first blue */
   .mg-top {
-    grid-column: 1;
+    grid-area: top;
     grid-template-columns: minmax(0, 1fr);
     align-items: end;
     justify-items: end;
@@ -1432,7 +1566,7 @@
     text-align: start;
   }
   .mg-index {
-    grid-column: 2;
+    grid-area: index;
     position: static;
     display: grid;
     align-items: end;
@@ -1440,11 +1574,15 @@
     background: var(--color-blue-800);
     box-shadow: none;
   }
+  /* FIVE AND FIVE: the ten words in two even rows at every desk, never eight and a lonely two
+     (the verifier, 1440: Shape and Elsewhere alone on the second row) */
   .mg-index__list {
+    display: grid;
+    grid-template-columns: repeat(5, max-content);
     max-inline-size: var(--measure);
-    flex-wrap: wrap;
     padding: 0;
     overflow: visible;
+    mask-image: none;
   }
   .mg-index__to {
     color: var(--color-neutral-100);
@@ -1454,13 +1592,11 @@
     color: var(--color-white);
     background: var(--color-blue-700);
   }
-  .mg-apart,
-  .mg-halves,
-  .mg-elsewhere {
-    grid-column: 1 / -1;
+  .mg-apart {
+    grid-area: apart;
   }
-  .mg-halves {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  .mg-elsewhere {
+    grid-area: elsewhere;
   }
   .mg-paper,
   .mg-water {
@@ -1492,6 +1628,24 @@
     box-shadow:
       0 0 0 1px var(--color-rule),
       var(--shadow-toast);
+  }
+  /* WHILE IT STANDS AT THE WINDOW'S HEAD ITS NAVY REACHES THE WINDOW'S TOP, under the pill, so the
+     choices pass under the stage whole and never show cut in the band above it (the verifier:
+     a photograph's name at y 52–64 at 1280, 1440 and 1920) */
+  .mg-stage-wrap[data-stuck] {
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+  }
+  .mg-stage-wrap[data-stuck]::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 100%;
+    block-size: calc(var(--shell-inset) + --spacing(3));
+    background: var(--color-blue-950);
+    box-shadow:
+      1px 0 0 var(--color-rule),
+      -1px 0 0 var(--color-rule);
   }
   /* COMPACT WHILE IT STANDS, so its choices keep the larger share of the window under it */
   .mg-stage-wrap .mg-mini__sea {
@@ -1538,16 +1692,52 @@
     block-size: var(--mg-stage, 0px);
     margin-block-start: calc(-1 * --spacing(4));
   }
+  /* "Decided elsewhere" ends the paper's column, its content against the seam as the paper's is */
   .mg-elsewhere {
-    padding-inline: --spacing(10);
-    justify-items: center;
+    align-content: start;
+    padding: --spacing(8) --spacing(10) --spacing(12);
+    justify-items: end;
   }
   .mg-elsewhere > * {
     inline-size: 100%;
-    max-inline-size: calc(2 * var(--measure) + --spacing(20));
+    max-inline-size: var(--measure);
   }
   .mg-elsewhere__list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* WHILE A LINE IS SET, THE QUOTE'S PAGES STAND AT THE WINDOW'S FOOT (Proof.tsx): a window of
+     `--mg-lens` onto them, slid to the part the line lands in, on a white plate of its own, as
+     "Changed, not kept" docks on the water. The open field scrolls itself clear above it. */
+  .mg-paper:has(.mg-proof-lens[data-lens]) .mg-editor {
+    scroll-margin-block-end: calc(var(--mg-lens) + --spacing(20));
+  }
+  .mg-proof-lens[data-lens] {
+    position: sticky;
+    inset-block-end: --spacing(4);
+    z-index: 3;
+    padding: --spacing(3);
+    border-radius: var(--radius-plate);
+    background: var(--color-white);
+    box-shadow:
+      0 0 0 1px var(--day-rule),
+      var(--shadow-toast);
+  }
+  .mg-proof-lens[data-lens] .mg-proof {
+    block-size: var(--mg-lens);
+    overflow: hidden;
+    border-radius: var(--radius-glyph);
+    background: var(--color-neutral-100);
+  }
+}
+@media (min-width: 1200px) and (prefers-reduced-motion: no-preference) {
+  .mg-proof__slide {
+    transition: transform var(--duration-sheet) var(--ease-out);
+  }
+}
+@media (min-width: 1680px) {
+  .mg-elsewhere {
+    padding-inline: --spacing(16);
   }
 }
 @media (min-width: 1680px) {

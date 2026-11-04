@@ -25,10 +25,11 @@ import type { CatalogueCtx, QuoteDef } from '@/domain/model'
 import { money } from '@/domain/money'
 import { priceChanges, type PriceChange } from './freeze'
 import { lineSaid, nameFirst, spokenBoat } from './spoken'
+import { boatTitle } from './title'
 
 export interface MovedLine {
   lineId: string
-  /** the line as a person says it: "Dealer fit · GME GX700W", the hull as the quote heads it */
+  /** the line as a person says it: "Dealer fit · GME GX700W"; the hull by its title */
   name: string
   qty: number
   /** the price the line keeps, as it was when it was chosen */
@@ -61,9 +62,10 @@ export function listMovedOn(ctx: CatalogueCtx, quote: QuoteDef): MovedLine[] {
   return out
 }
 
-/** A line named as the build names it; the boat as the quote heads it. */
+/** A line named as the build names it; the quote's own subject by its title, its finish left to
+ *  the quote's head: "Highfield Sport 660". */
 function lineName(quote: QuoteDef, label: string): string {
-  if (label === quote.subjectLabel) return quoteName(quote)
+  if (label === quote.subjectLabel) return boatTitle(quote.rootTableId, label).title
   return nameFirst(lineSaid(label.replace(/\s+/g, ' ').trim()))
 }
 

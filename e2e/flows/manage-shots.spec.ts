@@ -236,9 +236,42 @@ test('Settings on a real draft: the quote’s own pages, the line being set lit 
   await to(page, '?line=deposit')
   await pressOn(page, page.locator('.ui-segmented-face', { hasText: /^A share$/ }))
   await page.getByRole('textbox', { name: 'Share of the total, in %' }).fill('10')
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(600)
   await page.screenshot({ path: `${OUT}/23-deposit-on-a-draft-${size}.png` })
+  /* AT A DESK THE LINE BEING SET IS LIT IN THE SAME WINDOW AS ITS FIELD: the pages stand at the
+     window's foot while it is open, and the line kept stays lit there while its Undo stands */
+  const sum = page.locator('.mg-proof .doc-page:first-of-type .doc-money__sum')
+  const desk = (await page.getByTestId('manage-lens').count()) > 0
+  const where = async (label: string) =>
+    console.log(
+      `[${size}] ${label}: ${JSON.stringify(
+        await page.evaluate(() => {
+          const r = (sel: string) => {
+            const b = document.querySelector(sel)?.getBoundingClientRect()
+            return b ? `${Math.round(b.top)}-${Math.round(b.bottom)}` : ''
+          }
+          return {
+            window: window.innerHeight,
+            editor: r('[data-testid="manage-editor"]'),
+            lens: r('.mg-proof-lens[data-lens]'),
+            lit: r('.mg-proof .doc-page:first-of-type .doc-money__sum'),
+          }
+        }),
+      )}`,
+    )
+  if (desk) {
+    await expect(page.getByTestId('manage-editor')).toBeInViewport()
+    await expect(sum).toBeInViewport({ ratio: 1 })
+    await where('deposit open')
+  }
   await page.getByTestId('manage-editor').getByRole('button', { name: 'Keep' }).click()
+  if (desk) {
+    await expect(sum.locator('[data-deposit="figure"]')).toContainText(/Deposit, 10% of the total/)
+    await expect(sum).toBeInViewport({ ratio: 1 })
+    await page.waitForTimeout(500)
+    await page.screenshot({ path: `${OUT}/23b-deposit-kept-lit-${size}.png` })
+    await where('deposit kept')
+  }
   await written(page)
   await to(page, '?line=quoteTerms')
   const proof = page.getByTestId('manage-proof')
@@ -273,4 +306,27 @@ test('the route the rulers walk with a line open, on a real draft, photographed'
     }
   })
   console.log(`[${sizeOf(page)}] line open: ${JSON.stringify(at)}`)
+})
+
+test('a decision kept in another room, counted under Decided elsewhere, photographed', async ({
+  page,
+}) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await page.goto(
+    `/review?case=${encodeURIComponent('none:parts:TRAILER PARTS - Trailer Plugs:zero')}`,
+  )
+  await expect(page.locator('[data-testid="review"][data-read] .rv-stage__title')).toBeVisible({
+    timeout: 30_000,
+  })
+  await page.getByRole('button', { name: 'Leave them at $0' }).click()
+  await written(page)
+  await to(page)
+  await page.locator('.mg-index').getByRole('link', { name: 'Elsewhere' }).click()
+  await page.waitForTimeout(800)
+  await page.screenshot({ path: `${OUT}/26-elsewhere-counted-${sizeOf(page)}.png` })
+  const left = page.locator('.mg-decided').filter({ hasText: 'Left alone on Review' })
+  console.log(
+    `[${sizeOf(page)}] counted: ${(await left.innerText()).replaceAll(String.fromCharCode(10), ' | ')}`,
+  )
 })

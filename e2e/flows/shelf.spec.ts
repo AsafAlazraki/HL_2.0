@@ -241,7 +241,8 @@ test('the shelf: a copy saved, everything forgotten, and the copy brought back i
   await page.getByRole('textbox', { name: 'Title' }).fill('Sales manager')
   await page.getByRole('textbox', { name: 'Phone', exact: true }).fill('0400 111 222')
   await page.getByTestId('manage-person').getByRole('button', { name: 'Keep' }).click()
-  await expect(page.getByText('Sales manager')).toBeVisible()
+  /* Settings says the title in the person's row and in the letterhead beside it */
+  await expect(page.getByText('Sales manager').first()).toBeVisible()
   await written(page)
   await page.goto(`/quote/${id}`)
   await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 30_000 })
@@ -328,10 +329,17 @@ test('a quote being written: the shelf says what Apply really does to it, before
   test.setTimeout(300_000)
 
   /* a draft, never given: the boat the walk chooses, at the price the price list reads today */
-  await startAQuote(page)
+  const id = await startAQuote(page)
   await written(page)
   const { sheet } = boatModule()
   const bytes = writeWorkbook([sheet])
+  const size = `${page.viewportSize()!.width}x${page.viewportSize()!.height}`
+  const shots = process.env.HL2_SHELF_SHOTS
+  const shoot = async (name: string): Promise<void> => {
+    if (!shots) return
+    const folder = `docs/directions/data-round/shelf/${shots === '1' ? 'after' : shots}`
+    await page.screenshot({ path: `${folder}/${name}--${size}.png` })
+  }
 
   await page.goto('/shelf')
   await shelfReady(page)
@@ -348,16 +356,42 @@ test('a quote being written: the shelf says what Apply really does to it, before
   await expect(line).toContainText(/ keeps \$[\d,]+; the price list would read \$[\d,]+/)
   await expect(line).toContainText(/\+\$1,000 if it is chosen again/)
   const kept = /keeps (\$[\d,]+)/.exec(await line.innerText())![1]
-  if (process.env.HL2_SHELF_SHOTS) {
-    const size = `${page.viewportSize()!.width}x${page.viewportSize()!.height}`
-    await page.screenshot({
-      path: `docs/directions/data-round/shelf/${process.env.HL2_SHELF_SHOTS === '1' ? 'after' : process.env.HL2_SHELF_SHOTS}/17-sales-before--${size}.png`,
-    })
-  }
+  /* NAMED AS THE QUOTE HEADS ITSELF (verify-2.md, gap 3), never the file's code for the boat */
+  await expect(line).toContainText(/ · quote \d{8}-\d{2}/)
+  await expect(line.locator('strong').first()).not.toContainText(' - ')
+  await shoot('17-sales-before')
 
   await page.getByRole('button', { name: /^Apply \d+ changes?$/ }).click()
   await expect(page.getByText(/changes? (is|are) on the price list\.$/)).toBeVisible()
   /* AFTER: the same draft still keeps its price, and the list now reads the new one */
   await expect(said).toContainText('Apply left each quote as it was')
   await expect(line).toContainText(`keeps ${kept}; the price list now reads`)
+  await written(page)
+
+  /* THE REST PAGE NAMES THE DRAFT THE PRICE LIST MOVED UNDER, and still does after a reload
+     (verify-2.md, gap 2): read off the quote and the price list, not off the visit */
+  for (const reloaded of [false, true]) {
+    if (reloaded) await page.goto('/shelf')
+    else await page.getByRole('button', { name: 'Back to the shelf' }).first().click()
+    await shelfReady(page)
+    const behind = page.locator('.sf-drafts--behind')
+    await expect(behind).toContainText(
+      '1 quote being written carries 1 line the price list now reads differently.',
+    )
+    await expect(behind.locator('.sf-drafts__line')).toContainText(
+      `keeps ${kept}; the price list reads $`,
+    )
+    await behind.scrollIntoViewIfNeeded()
+    await shoot(reloaded ? '18-sales-rest-reloaded' : '18-sales-rest')
+  }
+
+  /* AND THE QUOTE ITSELF SAYS IT, under its total; today's price is one press away */
+  await page.locator('.sf-drafts--behind').getByRole('button', { name: 'Open the quote' }).click()
+  await expect(page).toHaveURL(new RegExp(`/quote/${id}`))
+  await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 30_000 })
+  const note = page.getByTestId('running-total').getByTestId('total-note')
+  await expect(note).toContainText(/The price list now reads \$[\d,]+ for .+, which keeps/)
+  await expect(note).toContainText(`keeps ${kept} here`)
+  await page.getByTestId('running-total').scrollIntoViewIfNeeded()
+  await shoot('19-sales-quote')
 })

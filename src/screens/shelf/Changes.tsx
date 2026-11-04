@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import { Virtuoso } from 'react-virtuoso'
 import {
   ArrowCounterClockwiseIcon,
@@ -35,11 +43,22 @@ import {
   type Way,
 } from '@/domain/io/changeSet'
 import type { NewFilePlan } from '@/domain/io/newFile'
+import { SWINGS, bySwing, swingCounts, type NarrowBy, type Swing } from '@/domain/io/swing'
 import { afterChoices, type AfterChoices } from '@/domain/io/afterChoices'
 import { lineSaid, nameFirst } from '@/domain/quote/spoken'
+import { useCatalogue } from '@/app/useStores'
 import type { Applied } from './Shelf'
 import { sizeOf } from './files'
-import { count, dollars, lineName, movedSaid, plural, shareMoved, whenSaid } from './read'
+import {
+  count,
+  dollars,
+  keepUnits,
+  lineName,
+  movedSaid,
+  plural,
+  shareMoved,
+  whenSaid,
+} from './read'
 import { useMedia } from './media'
 
 /* ============================================================
@@ -75,12 +94,13 @@ export interface ChangesProps {
   setChoices: (next: Choices) => void
   looked: ReadonlySet<string>
   setLooked: (next: ReadonlySet<string>) => void
-  narrow: Narrow
-  onNarrow: (next: Narrow) => void
+  narrow: NarrowBy
+  onNarrow: (next: NarrowBy) => void
   applied: Applied | null
   apply: () => string | null
   undo: () => string | null
-  drafts: DraftMove[]
+  /** each named as the quote heads itself */
+  drafts: Drafted[]
   save: () => Promise<void>
   saved: string | null
   lastCopy: string | null
@@ -93,6 +113,9 @@ export interface ChangesProps {
   putDown: () => void
 }
 
+/** A quote being written that a workbook moves, named as it heads itself. */
+export type Drafted = DraftMove & { name: string }
+
 const WAYS: { value: Way | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'higher', label: 'Higher' },
@@ -102,12 +125,15 @@ const WAYS: { value: Way | 'all'; label: string }[] = [
   { value: 'others', label: 'Other figures only' },
 ]
 
-const isNarrowed = (n: Narrow): boolean =>
-  Boolean(n.list || n.supplier || n.way || n.doubled || n.q || n.figure)
+const isNarrowed = (n: NarrowBy): boolean =>
+  Boolean(n.list || n.supplier || n.way || n.doubled || n.q || n.figure || n.swing)
 
 export function Changes(props: ChangesProps) {
   const { plan, set, choices, setChoices, narrow, onNarrow, applied } = props
-  const view = useMemo(() => narrowed(set.lines, narrow), [set, narrow])
+  /* every narrowing but the size of move, so each size is counted on what the rest leaves */
+  const unsized = useMemo(() => narrowed(set.lines, narrow), [set, narrow])
+  const view = useMemo(() => bySwing(unsized, narrow.swing), [unsized, narrow.swing])
+  const sizes = useMemo(() => swingCounts(unsized), [unsized])
   const counted = tally(set, choices)
   /* ONE COUNT PER FATE, for the legend and the tiles alike (verify-1.md, gap 4) */
   const after = useMemo(() => afterChoices(set, choices), [set, choices])
@@ -117,6 +143,20 @@ export function Changes(props: ChangesProps) {
   const widest = useMedia('(min-width: 1800px)')
   const room = table ? (widest ? 9 : mid ? 7 : 5) : 0
   const columns = useMemo(() => columnsOf(view, room), [view, room])
+  /* WHICH FIGURES EACH LIST CARRIES, so an empty cell says which of two things it is (verify-2.md,
+     gap 5): the figure did not move, or the list has no such figure */
+  const tables = useCatalogue((s) => s.tables)
+  const carries = useMemo(() => {
+    const by = new Map<string, Set<string>>()
+    for (const t of Object.values(tables)) by.set(t.id, new Set(t.fields.map((f) => f.name)))
+    return by
+  }, [tables])
+  /* THE WAY PAST THE LINES TO APPLY (verify-2.md, gap 4: 400 Tabs ran through the ticks and never
+     reached it): the dock's first act, focused */
+  const dock = useRef<HTMLElement>(null)
+  const toDock = (): void => {
+    dock.current?.querySelector<HTMLButtonElement>('button:not([aria-disabled="true"])')?.focus()
+  }
 
   return (
     <main className="sf sf-ch" data-testid="shelf" data-read="" data-see="changes">
@@ -149,6 +189,9 @@ export function Changes(props: ChangesProps) {
         shown={view.length}
         table={table}
         columns={columns.length}
+        skip={applied ? 'Skip past the lines' : 'Skip the lines to Apply'}
+        toDock={toDock}
+        sizes={sizes}
         head={
           view.some((l) => l.fate !== 'cannot') ? (
             <TableHead
@@ -171,6 +214,7 @@ export function Changes(props: ChangesProps) {
         setLooked={settled ? null : props.setLooked}
         columns={columns}
         table={table}
+        carries={carries}
       />
 
       <p className="sf-ch-rest">
@@ -186,7 +230,7 @@ export function Changes(props: ChangesProps) {
         </span>
       </p>
 
-      <Dock {...props} counted={counted} />
+      <Dock {...props} counted={counted} dockRef={dock} />
     </main>
   )
 }
@@ -278,7 +322,7 @@ function Stay({
   after,
 }: {
   set: ChangeSet
-  drafts: DraftMove[]
+  drafts: Drafted[]
   past: boolean
   after: AfterChoices
 }) {
@@ -335,7 +379,7 @@ function Stay({
  * the draft still read $249: the −$9 never happened. A line on a quote keeps its price; the
  * price list reads the new one; choosing the line again gives the new one. Each is said so.
  */
-function DraftsSaid({ drafts, past }: { drafts: DraftMove[]; past: boolean }) {
+function DraftsSaid({ drafts, past }: { drafts: Drafted[]; past: boolean }) {
   if (drafts.length === 0) {
     return (
       <p className="sf-drafts sf-drafts--sheet">
@@ -364,7 +408,8 @@ function DraftsSaid({ drafts, past }: { drafts: DraftMove[]; past: boolean }) {
         <ul className="sf-drafts__list">
           {drafts.map((d) => (
             <li key={d.quoteId}>
-              <strong>{d.reference}</strong> {nameFirst(lineSaid(d.subject))}
+              {/* AS THE QUOTE HEADS ITSELF, its number after (verify-2.md, gap 3) */}
+              <strong>{d.name}</strong> · quote {d.reference}
               {d.customer ? ` for ${d.customer}` : ''}
               {/* each line as a person says it; the quote's own subject is not said twice */}
               {d.lines
@@ -512,14 +557,22 @@ function Tools({
   table,
   columns,
   head,
+  skip,
+  toDock,
+  sizes,
 }: {
   set: ChangeSet
-  narrow: Narrow
-  onNarrow: (n: Narrow) => void
+  narrow: NarrowBy
+  onNarrow: (n: NarrowBy) => void
   shown: number
   table: boolean
   columns: number
   head: ReactNode
+  /** the words of the way past the lines, to the dock */
+  skip: string
+  toDock: () => void
+  /** how many of the lines in view moved by each size, at the price a quote reads */
+  sizes: Record<Swing, number>
 }) {
   const hand = !useMedia('(min-width: 834px)')
   const [open, setOpen] = useState(false)
@@ -566,12 +619,23 @@ function Tools({
     { value: 'all', label: 'Every supplier', trail: '' },
     ...set.suppliers.map((s) => ({ value: s.name, label: s.name, trail: count(s.lines) })),
   ]
+  /* THE SIZE OF A MOVE, BETWEEN ANY AND DOUBLED (verify-2.md: "no size-of-swing filter beyond
+     'Doubled or halved'"), each counted on the lines the rest of the narrowing leaves */
+  const sizesOffered = [
+    { value: 'all', label: 'Any size of move', trail: '' },
+    ...SWINGS.map((s) => ({
+      value: String(s),
+      label: `Moved ${s}% or more`,
+      trail: count(sizes[s]),
+    })),
+  ]
   const filters =
     (narrow.list ? 1 : 0) +
     (narrow.supplier ? 1 : 0) +
     (narrow.way ? 1 : 0) +
     (narrow.doubled ? 1 : 0) +
-    (narrow.figure ? 1 : 0)
+    (narrow.figure ? 1 : 0) +
+    (narrow.swing ? 1 : 0)
   const showFilters = !hand || open
 
   return (
@@ -582,6 +646,9 @@ function Tools({
       style={{ '--sf-cols': columns } as CSSProperties}
     >
       <div className="sf-tools__in">
+        <button type="button" className="sf-skip" onClick={toDock}>
+          {skip}
+        </button>
         <div className="sf-tools__find">
           <Input
             ref={find}
@@ -595,6 +662,17 @@ function Tools({
             <Kbd tone="quiet">/</Kbd>
           </span>
         </div>
+        {/* THE COUNT STANDS BESIDE FIND, so it never drops to a row of its own (verify-2.md, gap 9) */}
+        <p className="sf-tools__shown" aria-live="polite">
+          <strong>{count(shown)}</strong> of {count(set.lines.length)} lines
+          {isNarrowed(narrow) ? (
+            <span className="sf-tools__clear">
+              <Button intent="quiet" onClick={() => onNarrow({})}>
+                Show every line
+              </Button>
+            </span>
+          ) : null}
+        </p>
         {hand ? (
           <span className="sf-tools__open">
             <Button
@@ -634,6 +712,18 @@ function Tools({
                 />
               </span>
             ) : null}
+            <span className="sf-tools__select">
+              <Select
+                options={sizesOffered}
+                value={narrow.swing ? String(narrow.swing) : 'all'}
+                onValueChange={(v) => {
+                  const { swing: _s, ...rest } = narrow
+                  const at = SWINGS.find((s) => String(s) === v)
+                  onNarrow(at ? { ...rest, swing: at } : rest)
+                }}
+                aria-label="How far the price moved"
+              />
+            </span>
             <fieldset className="sf-tools__ways">
               <legend className="sf-visually-hidden">Which way it moves</legend>
               {WAYS.map((w) => (
@@ -660,16 +750,6 @@ function Tools({
             </fieldset>
           </div>
         ) : null}
-        <p className="sf-tools__shown" aria-live="polite">
-          <strong>{count(shown)}</strong> of {count(set.lines.length)} lines
-          {isNarrowed(narrow) ? (
-            <span className="sf-tools__clear">
-              <Button intent="quiet" onClick={() => onNarrow({})}>
-                Show every line
-              </Button>
-            </span>
-          ) : null}
-        </p>
         {head}
       </div>
     </section>
@@ -922,6 +1002,8 @@ function columnsOf(view: readonly ChangeLine[], room: number): Column[] {
 /** What every drawn line needs from the table, handed to the list once rather than closed over. */
 interface Drawn {
   set: ChangeSet
+  /** the names of the figures each list carries */
+  carries: ReadonlyMap<string, ReadonlySet<string>>
   choices: Choices
   columns: Column[]
   table: boolean
@@ -962,6 +1044,7 @@ function drawItem(_i: number, item: Item, d: Drawn) {
     <Line
       line={l}
       columns={d.columns}
+      carried={d.carries.get(l.tableId)}
       table={d.table}
       keep={!d.choices.out.has(l.key)}
       toggle={toggle ? (keep) => toggle(l, keep) : null}
@@ -1028,6 +1111,9 @@ function TableHead({
             <small>
               <Icon glyph={LockSimpleIcon} /> Northside’s own: cost and margin
             </small>
+            {columns.length > 0 ? (
+              <small className="sf-table__key">same: did not move · —: not on that list</small>
+            ) : null}
           </span>
           {columns.map((c) => (
             <span key={c.name} className="sf-table__col" data-own={c.own ? '' : undefined}>
@@ -1068,6 +1154,7 @@ function Lines({
   setLooked,
   columns,
   table,
+  carries,
 }: {
   view: ChangeLine[]
   set: ChangeSet
@@ -1078,6 +1165,7 @@ function Lines({
   setLooked: ((s: ReadonlySet<string>) => void) | null
   columns: Column[]
   table: boolean
+  carries: ReadonlyMap<string, ReadonlySet<string>>
 }) {
   const items = useMemo(() => itemsOf(view, set, narrow), [view, set, narrow])
 
@@ -1128,6 +1216,7 @@ function Lines({
         data={items}
         context={{
           set,
+          carries,
           choices,
           columns,
           table,
@@ -1212,6 +1301,7 @@ function Figure({ m, read }: { m: Moved; read: boolean }) {
 function Line({
   line,
   columns,
+  carried,
   table,
   keep,
   toggle,
@@ -1220,13 +1310,15 @@ function Line({
 }: {
   line: ChangeLine
   columns: Column[]
+  /** the names of the figures this line's list carries */
+  carried: ReadonlySet<string> | undefined
   table: boolean
   keep: boolean
   toggle: ((keep: boolean) => void) | null
   triage: ((keep: boolean) => void) | null
   looked: boolean
 }) {
-  const name = said(line)
+  const name = keepUnits(said(line))
   const shown = new Set(table ? columns.map((c) => c.name) : [])
   /* in a card the price a quote reads leads, then the rest in the list's own order */
   const rest = line.cells
@@ -1318,7 +1410,20 @@ function Line({
             const m = line.cells.find((x) => x.name === c.name)
             return (
               <span key={c.name} className="sf-line__cell" data-own={c.own ? '' : undefined}>
-                {m ? <Figure m={m} read={isRead(m)} /> : null}
+                {m ? (
+                  <Figure m={m} read={isRead(m)} />
+                ) : carried?.has(c.name) ? (
+                  <span className="sf-line__still">
+                    same<span className="sf-visually-hidden">: {c.name} did not move</span>
+                  </span>
+                ) : (
+                  <span className="sf-line__none">
+                    <span aria-hidden="true">—</span>
+                    <span className="sf-visually-hidden">
+                      {line.list || 'its list'} has no {c.name}
+                    </span>
+                  </span>
+                )}
               </span>
             )
           })
@@ -1500,14 +1605,18 @@ function Dock({
   held,
   putBack,
   counted,
-}: ChangesProps & { counted: ReturnType<typeof tally> }) {
+  dockRef,
+}: ChangesProps & {
+  counted: ReturnType<typeof tally>
+  dockRef: RefObject<HTMLElement | null>
+}) {
   const [refused, setRefused] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   if (applied) {
     /* A COPY HOLDS THE APPLY ONLY WHEN IT WAS SAVED AFTER IT (verify-1.md, gap 2): a copy saved
        earlier in the visit is a copy of the price list before it */
     return (
-      <footer className="sf-dock" data-applied="" aria-label="Applied">
+      <footer ref={dockRef} className="sf-dock" data-applied="" aria-label="Applied">
         <p className="sf-dock__said" aria-live="polite">
           <Icon glyph={CheckCircleIcon} weight="fill" />
           <span>
@@ -1561,7 +1670,7 @@ function Dock({
   }
   if (counted.of === 0 && counted.placed === 0) {
     return (
-      <footer className="sf-dock" aria-label="Nothing to apply">
+      <footer ref={dockRef} className="sf-dock" aria-label="Nothing to apply">
         <p className="sf-dock__said" aria-live="polite">
           <Icon glyph={EqualsIcon} />
           <span>
@@ -1580,7 +1689,7 @@ function Dock({
   }
   const out = counted.leftOut
   return (
-    <footer className="sf-dock" aria-label="Apply">
+    <footer ref={dockRef} className="sf-dock" aria-label="Apply">
       <p className="sf-dock__said" aria-live="polite">
         <span>
           <strong>
@@ -1620,8 +1729,9 @@ function Dock({
           <small className="sf-dock__undo">
             {counted.in === 1
               ? 'Undo puts it back in one step.'
-              : `Undo puts all ${count(counted.in)} back in one step.`}{' '}
-            A quote already given never moves.
+              : `Undo puts all ${count(counted.in)} back in one step.`}
+            {/* in a hand the head and the drafts sentence say it; the dock keeps to its strip */}
+            <span className="sf-dock__more"> A quote already given never moves.</span>
           </small>
         )}
       </p>
@@ -1637,7 +1747,11 @@ function Dock({
                 : (refused ?? undefined)
             }
           >
-            {`Apply ${plural(counted.in, 'change', 'changes')}`}
+            {/* IN A HAND THE PRESS SAYS "Apply" BESIDE ITS COUNT (verify-2.md, gap 6): the count
+                stands in the words beside it, and the press keeps it in its name */}
+            <span>
+              Apply <span className="sf-dock__n">{plural(counted.in, 'change', 'changes')}</span>
+            </span>
           </Button>
         </span>
       </span>

@@ -52,8 +52,8 @@ import { quoteTotals } from '@/domain/quote/totals'
 import { money } from '@/domain/money'
 import { catalogue } from '@/state/catalogue'
 import { readMark } from './measure'
-import { DESK, useMedia, useReading } from './hooks'
-import { LANDS, Proof, litOf } from './Proof'
+import { DESK, clearOfTheToast, useMedia, useReading, useStuck } from './hooks'
+import { LANDS, Proof, litOf, type Lit } from './Proof'
 import { Elsewhere } from './Elsewhere'
 import { Water } from './Water'
 import './manage.css'
@@ -127,6 +127,7 @@ function keep(command: CatalogueCommand): string | null {
     },
     { id: 'manage-step', testId: 'manage-step' },
   )
+  clearOfTheToast()
   return null
 }
 
@@ -144,6 +145,9 @@ function useClearOfTheFoot<T extends HTMLElement>(): RefObject<T | null> {
 }
 
 const NOWHERE: ManagePlace = {}
+
+/** How long a line just kept stays lit: its Undo's own life (src/ui/Toaster.tsx, `undo`, 8 s). */
+const AS_LONG_AS_ITS_UNDO = 8000
 
 /** The parts of the page, in the order the index names them. */
 const PARTS: ReadonlyArray<{ id: string; word: string }> = [
@@ -210,29 +214,7 @@ export function Manage({ place = NOWHERE, onPlace, onChangeDesk, go }: ManagePro
 
       {/* THE INDEX: every part of the page by its word. In a hand it stands at the window's head,
           the part being read lit (the judge, L7: 6 to 11 screens of scroll with no way across) */}
-      {open ? (
-        <nav className="mg-index" aria-label="Settings, by part">
-          <ul className="mg-index__list">
-            {PARTS.map((p) => (
-              <li key={p.id}>
-                <a
-                  className="mg-index__to"
-                  href={`#${p.id}`}
-                  aria-current={reading === p.id ? 'location' : undefined}
-                  onClick={(e) => {
-                    const el = document.getElementById(p.id)
-                    if (!el) return
-                    e.preventDefault()
-                    el.scrollIntoView({ block: 'start' })
-                  }}
-                >
-                  {p.word}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      ) : null}
+      {open ? <Index reading={reading} desk={desk} /> : null}
 
       {apart ? (
         <output className="mg-apart">
@@ -278,6 +260,81 @@ export function Manage({ place = NOWHERE, onPlace, onChangeDesk, go }: ManagePro
 
       {open ? <Elsewhere {...(go ? { go } : {})} /> : null}
     </main>
+  )
+}
+
+/**
+ * THE INDEX: every part of the page by its word. In a hand it stands at the window's head, the
+ * part being read lit AND BROUGHT INTO THE STRIP'S MIDDLE as it is read (the verifier, L7: reading
+ * Pictures lit "Colour" at x 367–431 of 390, off the strip), each end faded where more words
+ * stand past it, so a word cut at the edge reads as more and never as a fault ("Co").
+ */
+function Index({ reading, desk }: { reading: string | null; desk: boolean }) {
+  const [nav, setNav] = useState<HTMLElement | null>(null)
+  const list = useRef<HTMLUListElement>(null)
+  useStuck(nav, !desk)
+
+  /* which ends have more words past them */
+  useEffect(() => {
+    const el = list.current
+    if (!el) return
+    const read = (): void => {
+      const more = [
+        el.scrollLeft > 1 ? 'start' : '',
+        el.scrollLeft + el.clientWidth < el.scrollWidth - 1 ? 'end' : '',
+      ]
+        .filter((w) => w !== '')
+        .join(' ')
+      if (more === '') el.removeAttribute('data-more')
+      else el.setAttribute('data-more', more)
+    }
+    read()
+    el.addEventListener('scroll', read, { passive: true })
+    window.addEventListener('resize', read)
+    return () => {
+      el.removeEventListener('scroll', read)
+      window.removeEventListener('resize', read)
+    }
+  }, [])
+
+  /* the lit word follows the reading into the strip's middle */
+  useEffect(() => {
+    const el = list.current
+    if (desk || !el || !reading) return
+    const chip = el.querySelector<HTMLElement>('[aria-current]')
+    if (!chip) return
+    const lb = el.getBoundingClientRect()
+    const cb = chip.getBoundingClientRect()
+    const by = cb.left + cb.width / 2 - (lb.left + lb.width / 2)
+    if (Math.abs(by) < 2 || typeof el.scrollBy !== 'function') return
+    const still =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollBy({ left: by, behavior: still ? 'instant' : 'smooth' })
+  }, [reading, desk])
+
+  return (
+    <nav className="mg-index" aria-label="Settings, by part" ref={setNav}>
+      <ul className="mg-index__list" ref={list}>
+        {PARTS.map((p) => (
+          <li key={p.id}>
+            <a
+              className="mg-index__to"
+              href={`#${p.id}`}
+              aria-current={reading === p.id ? 'location' : undefined}
+              onClick={(e) => {
+                const el = document.getElementById(p.id)
+                if (!el) return
+                e.preventDefault()
+                el.scrollIntoView({ block: 'start' })
+              }}
+            >
+              {p.word}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   )
 }
 
@@ -368,9 +425,23 @@ function Paper({
   const ownPaper = org?.marks?.paper
   const opened = place.line ?? null
   const inStrip = opened === 'mark' || opened === 'name' || isStripLine(opened)
-  const lit = litOf(place.line, place.person)
+  const setting = litOf(place.line, place.person)
+  /* THE LINE JUST KEPT STAYS LIT WHILE ITS UNDO STANDS, so the page at the window's foot shows
+     the line as it now prints, not only where it will (the verifier, J12: the lit part was never
+     in view while setting it) */
+  const [kept, setKept] = useState<Lit | null>(null)
+  useEffect(() => {
+    if (!kept) return
+    const gone = setTimeout(() => setKept(null), AS_LONG_AS_ITS_UNDO)
+    return () => clearTimeout(gone)
+  }, [kept])
+  const lit = setting ?? kept
   /* where the line being set lands on the pages, said under its field where the pages are drawn */
-  const lands = draft && desk && lit ? LANDS[lit] : null
+  const lands = draft && desk && setting ? LANDS[setting] : null
+  const done = (): void => {
+    setKept(setting)
+    move({})
+  }
 
   const pressLine = (line: string): void => move(opened === line ? {} : { line })
 
@@ -424,7 +495,7 @@ function Paper({
         </div>
         {inStrip && opened ? (
           opened === 'mark' ? (
-            <MarkEditor org={org} held={held !== null} close={() => move({})} />
+            <MarkEditor org={org} held={held !== null} close={() => move({})} done={done} />
           ) : (
             <LineEditor
               key={opened}
@@ -433,6 +504,7 @@ function Paper({
               business={business}
               lands={lands}
               close={() => move({})}
+              done={done}
             />
           )
         ) : null}
@@ -478,7 +550,13 @@ function Paper({
                 </div>
                 {isOpen ? (
                   key === 'deposit' ? (
-                    <DepositEditor org={org} draft={draft} lands={lands} close={() => move({})} />
+                    <DepositEditor
+                      org={org}
+                      draft={draft}
+                      lands={lands}
+                      close={() => move({})}
+                      done={done}
+                    />
                   ) : (
                     <LineEditor
                       key={key}
@@ -487,6 +565,7 @@ function Paper({
                       business={business}
                       lands={lands}
                       close={() => move({})}
+                      done={done}
                     />
                   )
                 ) : null}
@@ -503,6 +582,7 @@ function Paper({
         place={place}
         move={move}
         lands={lands}
+        done={done}
         {...(changeDesk ? { changeDesk } : {})}
       />
 
@@ -629,12 +709,15 @@ function LineEditor({
   business,
   lands,
   close,
+  done,
 }: {
   which: DetailKey
   org: OrgProfile | undefined
   business: string | null
   lands: string | null
   close: () => void
+  /** closes it once a change is kept */
+  done: () => void
 }) {
   const line = DETAIL_LINES[which]
   const was = which === 'name' ? (org?.name ?? business ?? '') : detailText(org, which)
@@ -669,7 +752,7 @@ function LineEditor({
       setRefused(out)
       return
     }
-    close()
+    done()
   }
 
   return (
@@ -742,11 +825,13 @@ function DepositEditor({
   draft,
   lands,
   close,
+  done,
 }: {
   org: OrgProfile | undefined
   draft: QuoteDef | null
   lands: string | null
   close: () => void
+  done: () => void
 }) {
   const rule = org?.depositRule
   const [way, setWay] = useState<DepositWay>(depositWayOf(rule))
@@ -780,7 +865,7 @@ function DepositEditor({
       setRefused(out)
       return
     }
-    close()
+    done()
   }
 
   return (
@@ -869,10 +954,12 @@ function MarkEditor({
   org,
   held,
   close,
+  done,
 }: {
   org: OrgProfile | undefined
   held: boolean
   close: () => void
+  done: () => void
 }) {
   const [refused, setRefused] = useState<string | null>(null)
   const [reading, setReading] = useState(false)
@@ -913,7 +1000,7 @@ function MarkEditor({
         })),
       )
       if (out) setRefused(out)
-      else close()
+      else done()
     } catch (error) {
       setRefused(error instanceof Error ? error.message : 'That file would not open.')
     } finally {
@@ -977,7 +1064,7 @@ function MarkEditor({
                 ),
               )
               if (out) setRefused(out)
-              else close()
+              else done()
             }}
           >
             {held ? 'Use the mark from the site' : 'Set the name in type'}
@@ -1002,6 +1089,7 @@ function People({
   place,
   move,
   lands,
+  done,
   changeDesk,
 }: {
   changeDesk?: () => void
@@ -1011,9 +1099,12 @@ function People({
   place: ManagePlace
   move: (next: ManagePlace) => void
   lands: string | null
+  done: () => void
 }) {
   const people = org?.people ?? []
-  const [refused, setRefused] = useState<string | null>(null)
+  /* A SWITCH REFUSED IS SAID ON ITS OWN CARD, under the switch (the verifier, 2026-11-04: it stood
+     at the head of People, 230px above the switch it refused) */
+  const [refused, setRefused] = useState<{ id: string; said: string } | null>(null)
   /* THE PERSON WHOSE SWITCH WAS REFUSED: the sentence stands only while it is still true, so it
      goes the moment a second person who may is added (the judge, J5 and P4) */
   const [apartAsked, setApartAsked] = useState<string | null>(null)
@@ -1042,16 +1133,17 @@ function People({
           </Button>
         </p>
       ) : null}
-      {apartSaid || refused ? (
-        <p className="mg-editor__refused" role="alert">
-          <Refusal>{apartSaid ?? refused ?? ''}</Refusal>
-        </p>
-      ) : null}
       <ul className="mg-people">
         {people.map((person) =>
           place.person === person.id ? (
             <li key={person.id} className="mg-person" data-open="">
-              <PersonEditor person={person} people={people} lands={lands} close={() => move({})} />
+              <PersonEditor
+                person={person}
+                people={people}
+                lands={lands}
+                close={() => move({})}
+                done={done}
+              />
             </li>
           ) : (
             <li key={person.id} className="mg-person">
@@ -1060,6 +1152,13 @@ function People({
                 prepared={preparedBy(quotes, person.name)}
                 isYou={who !== null && person.name.toLowerCase() === who.toLowerCase()}
                 open={() => move({ person: person.id })}
+                refused={
+                  apartAsked === person.id && apartSaid
+                    ? apartSaid
+                    : refused?.id === person.id
+                      ? refused.said
+                      : null
+                }
                 onSwitch={(next) => {
                   const no = setApartRefusal(people, person.id, next)
                   if (no) {
@@ -1067,26 +1166,25 @@ function People({
                     return
                   }
                   setApartAsked(null)
-                  setRefused(
-                    keep(
-                      changeOrg(
-                        next
-                          ? `${person.name} may change prices and settings`
-                          : `${person.name} is set apart from changing prices and settings`,
-                        'people',
-                        (o) => ({
-                          ...o,
-                          people: (o.people ?? []).map((p) => {
-                            if (p.id !== person.id) return p
-                            const copy = { ...p }
-                            if (next) delete copy.mayChange
-                            else copy.mayChange = false
-                            return copy
-                          }),
+                  const out = keep(
+                    changeOrg(
+                      next
+                        ? `${person.name} may change prices and settings`
+                        : `${person.name} is set apart from changing prices and settings`,
+                      'people',
+                      (o) => ({
+                        ...o,
+                        people: (o.people ?? []).map((p) => {
+                          if (p.id !== person.id) return p
+                          const copy = { ...p }
+                          if (next) delete copy.mayChange
+                          else copy.mayChange = false
+                          return copy
                         }),
-                      ),
+                      }),
                     ),
                   )
+                  setRefused(out ? { id: person.id, said: out } : null)
                 }}
               />
             </li>
@@ -1122,6 +1220,7 @@ function People({
               people={people}
               lands={lands}
               close={() => move({})}
+              done={done}
             />
           ) : (
             <Button intent="slot" icon={PlusIcon} onClick={() => move({ person: 'new' })}>
@@ -1139,12 +1238,15 @@ function PersonCard({
   prepared,
   isYou,
   open,
+  refused,
   onSwitch,
 }: {
   person: OrgPerson
   prepared: number
   isYou: boolean
   open: () => void
+  /** the sentence a press of this card's switch was refused with, said under it */
+  refused: string | null
   onSwitch: (next: boolean) => void
 }) {
   const reach = [person.phone, person.email].filter((v): v is string => Boolean(v))
@@ -1179,6 +1281,11 @@ function PersonCard({
           Change
         </Button>
       </div>
+      {refused ? (
+        <p className="mg-editor__refused mg-person__refused" role="alert">
+          <Refusal>{refused}</Refusal>
+        </p>
+      ) : null}
       <p className="mg-person__may">
         {may
           ? 'Writes and gives quotes, and may change a price, the price list and these settings.'
@@ -1194,12 +1301,14 @@ function PersonEditor({
   people,
   lands,
   close,
+  done,
 }: {
   person: OrgPerson | null
   start?: string
   people: readonly OrgPerson[]
   lands: string | null
   close: () => void
+  done: () => void
 }) {
   const [name, setName] = useState(person?.name ?? start)
   const [title, setTitle] = useState(person?.title ?? '')
@@ -1246,7 +1355,7 @@ function PersonEditor({
       ),
     )
     if (out) setRefused(out)
-    else close()
+    else done()
   }
 
   const remove = (): void => {
@@ -1264,7 +1373,7 @@ function PersonEditor({
       ),
     )
     if (out) setRefused(out)
-    else close()
+    else done()
   }
 
   return (

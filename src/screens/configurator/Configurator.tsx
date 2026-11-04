@@ -88,6 +88,7 @@ import type { TileLook } from '@/ui/OptionTile'
 import type { TableKind } from '@/domain/model'
 import { boatOfQuote, measured } from '@/domain/quote/spoken'
 import { allSpecsOf } from '@/domain/quote/freeze'
+import { listMovedSay, type MovedLine } from '@/domain/quote/listMoved'
 import { chapterToOpen } from '@/domain/quote/opening'
 import { useCatalogue, usePrefs, useQuotes, useSession } from '@/app/useStores'
 import { wrongOnQuote } from '@/domain/rules/review/onQuote'
@@ -1147,8 +1148,22 @@ function Build({
     goTo?.(was === undefined || (was === '' && issued) ? firstBand : was)
   }
   const barUp = bar === 'up' && oneColumn
+  /* AND WHAT THE PRICE LIST NOW READS FOR A LINE THAT KEEPS AN OLDER PRICE (the shelf's
+     verify-2.md, gap 2): after a new price list was applied the draft read "Dealer fit $249" with
+     no word that the list now reads $240. Said under the total; today's price is one press in the
+     final package (`LineMoved`) */
   const note = rail
-    ? totalNoteSay(rail.unpricedNames, hullHasNoPrice(quote), rail.unpricedLists, rail.unpricedWhy)
+    ? [
+        totalNoteSay(
+          rail.unpricedNames,
+          hullHasNoPrice(quote),
+          rail.unpricedLists,
+          rail.unpricedWhy,
+        ),
+        listMovedSay(rail.listMoved),
+      ]
+        .filter((said) => said !== '')
+        .join(' ')
     : ''
 
   /* THE STEP'S LINE IN THE HEAD, below 1440 (`StepLine`): the step and its way back, or the
@@ -6552,6 +6567,22 @@ function Finale({
         />
       )}
 
+      {/* A LINE THE PRICE LIST NOW READS DIFFERENTLY, PUT AT TODAY'S PRICE BEFORE THE GIVE, if the
+          dealer chooses: a line keeps the price it had when it was chosen until this press */}
+      {issued || rail.listMoved.length === 0 ? null : (
+        <div className="cfg-hand__price">
+          {rail.listMoved.map((moved) => (
+            <LineMoved
+              key={moved.lineId}
+              moved={moved}
+              quoteId={quoteId}
+              setStep={setStep}
+              setRefused={setRefused}
+            />
+          ))}
+        </div>
+      )}
+
       {/* WHAT THE DEALER'S OWN RULES WARN ABOUT ON THIS QUOTE, OVER THE GIVE (built-critique-m3-2.md,
           major 3): one sentence per rule, with its because. A warning never refuses — the act
           below stays the dealer's to press; a refusing rule is the act's own refusal. */}
@@ -6880,6 +6911,47 @@ function LineAgain({
       <p className="cfg-hand__line-name">{headOf(name)}</p>
       <Button intent="secondary" size="sm" icon={TagIcon} onClick={put}>
         {`Price it at ${money(change.to ?? 0)}`}
+      </Button>
+    </div>
+  )
+}
+
+/**
+ * A LINE THAT KEEPS AN OLDER PRICE THAN THE PRICE LIST NOW READS, and today's price in one press
+ * (the shelf's verify-2.md, gap 2). It is `applyPriceChanges`, with its inverse, so the step's
+ * Undo puts the kept price back. Nothing moves without the press.
+ */
+function LineMoved({
+  moved,
+  quoteId,
+  setStep,
+  setRefused,
+}: {
+  moved: MovedLine
+  quoteId: string
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const put = (): void => {
+    const outcome = quotesStore.getState().apply(quoteId, applyPriceChanges([moved.change]))
+    if ('refused' in outcome) {
+      setRefused(outcome.refused === '' ? null : outcome.refused)
+      return
+    }
+    setRefused(null)
+    setStep({
+      said: `${headOf(moved.name)} at today’s price, ${money(moved.reads)}`,
+      eventId: outcome.event.id,
+      wasUndo: false,
+    })
+  }
+  return (
+    <div className="cfg-hand__line-again">
+      <p className="cfg-hand__line-name">
+        {`${headOf(moved.name)} keeps ${money(moved.keeps)}; the price list now reads ${money(moved.reads)}`}
+      </p>
+      <Button intent="secondary" size="sm" icon={TagIcon} onClick={put}>
+        {`Price it at ${money(moved.reads)}`}
       </Button>
     </div>
   )

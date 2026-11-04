@@ -7,7 +7,8 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Shelf, type ShelfSee } from '@/screens/shelf/Shelf'
 import { actUnderWay } from '@/screens/shelf/acts'
-import type { Narrow, Way } from '@/domain/io/changeSet'
+import type { Way } from '@/domain/io/changeSet'
+import { isSwing, type NarrowBy } from '@/domain/io/swing'
 
 /* ============================================================
    /shelf — a new Master Price File, and Northside's work kept safe
@@ -34,7 +35,7 @@ import type { Narrow, Way } from '@/domain/io/changeSet'
    page that takes things away rather than past it.
    ============================================================ */
 
-export interface ShelfSearch extends Narrow {
+export interface ShelfSearch extends NarrowBy {
   see?: ShelfSee
 }
 
@@ -46,7 +47,7 @@ const word = (value: unknown, most: number): string | undefined => {
 }
 
 /** The narrowing as it is read off the address; anything else is dropped, not repaired. */
-function narrowOf(search: Record<string, unknown>): Narrow {
+function narrowOf(search: Record<string, unknown>): NarrowBy {
   const list = word(search.list, 80)
   const who = word(search.who, 80)
   const q = word(search.q, 120)
@@ -61,11 +62,12 @@ function narrowOf(search: Record<string, unknown>): Narrow {
       : {}),
     ...(q ? { q } : {}),
     ...(fig ? { figure: fig } : {}),
+    ...(isSwing(search.by) ? { swing: Number(search.by) as NarrowBy['swing'] } : {}),
   }
 }
 
 /** The narrowing written back as the address says it. */
-function searchOf(n: Narrow): Record<string, string> {
+function searchOf(n: NarrowBy): Record<string, string> {
   return {
     ...(n.list ? { list: n.list } : {}),
     ...(n.supplier ? { who: n.supplier } : {}),
@@ -73,6 +75,7 @@ function searchOf(n: Narrow): Record<string, string> {
     ...(n.doubled ? { twice: '1' } : {}),
     ...(n.q ? { q: n.q } : {}),
     ...(n.figure ? { fig: n.figure } : {}),
+    ...(n.swing ? { by: String(n.swing) } : {}),
   }
 }
 
@@ -130,7 +133,7 @@ function ShelfRoute() {
   )
 
   const onNarrow = useCallback(
-    (next: Narrow) => {
+    (next: NarrowBy) => {
       void navigate({
         to: '/shelf',
         search: { see: 'changes', ...searchOf(next) },
@@ -147,7 +150,5 @@ function ShelfRoute() {
     [navigate],
   )
 
-  return (
-    <Shelf see={see} onSee={onSee} narrow={narrow} onNarrow={onNarrow} openQuote={openQuote} />
-  )
+  return <Shelf see={see} onSee={onSee} narrow={narrow} onNarrow={onNarrow} openQuote={openQuote} />
 }
