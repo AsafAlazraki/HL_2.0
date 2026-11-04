@@ -2,11 +2,16 @@
    A MAKER'S OWN PAGE, by role and text, on the real price list. What
    the page says is read the way a person reads it; what Settings writes
    is read back out of the store it wrote it in, and on the page's head.
-   There is no wall of place cards to read it on any more: Data is the
-   one register (built-critique-m4.md major 1).
+
+   REWRITTEN FOR THE LINE-UP (2026-11-04, the data round's direction
+   A). The range is now one card per model, so the tests that pressed a
+   series tile into the sheet, read a series photograph's caption and
+   opened the Quotes tab assert what replaced them: a series filters in
+   place, each model carries its price, facts and fits, and the quotes
+   stand on a plate after the range.
    ============================================================ */
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
@@ -14,6 +19,7 @@ import { engineWordsIn } from '@/screens/configurator/say'
 import { readTableRegister } from '@/domain/modules/register'
 import type { EntityDef, ModuleDef, PriceLevel } from '@/domain/model'
 import { Place, type PlaceTab } from './Place'
+import type { PlaceAt } from './tabs'
 
 let pack: PackFixture
 
@@ -30,12 +36,22 @@ beforeEach(async () => {
   })
 })
 
-function drawPlace(address: string, tab: PlaceTab = 'range') {
+function drawPlace(address: string, tab: PlaceTab = 'range', at: PlaceAt = {}) {
   const go = vi.fn<(href: string) => void>()
   const onTab = vi.fn<(t: PlaceTab) => void>()
-  const view = render(<Place address={address} tab={tab} go={go} onTab={onTab} />)
-  return { go, onTab, ...view }
+  const onAt = vi.fn<(next: PlaceAt) => void>()
+  const view = render(
+    <Place address={address} tab={tab} at={at} go={go} onTab={onTab} onAt={onAt} />,
+  )
+  return { go, onTab, onAt, ...view }
 }
+
+const cards = () => [...document.querySelectorAll('.pl-cards > .pl-card')] as HTMLElement[]
+const card = (said: string): HTMLElement =>
+  cards().find((c) => c.querySelector('.pl-card__name')?.textContent === said)!
+
+const SPORT_600 = 'boat_highfield:498'
+const SPORT_660 = 'boat_highfield:513'
 
 describe('opened from Data, the one register', () => {
   it('prints the figure Data prints for the same list', () => {
@@ -48,7 +64,10 @@ describe('opened from Data, the one register', () => {
       s.priceLevels as Record<string, PriceLevel[]>,
     )
     const parts = reg.rows.find((r) => r.id === 'parts')!
-    expect(screen.getByText(parts.holds)).toBeTruthy()
+    const [, big, small] = /^([\d,]+) (.*)$/.exec(parts.holds)!
+    const head = document.querySelector('.pl-livery')!
+    expect(within(head as HTMLElement).getByText(big!)).toBeTruthy()
+    expect(head.textContent).toContain(small!)
   })
 
   it('goes back to the list’s spread on Data, with the list still open', async () => {
@@ -63,61 +82,217 @@ describe('opened from Data, the one register', () => {
   })
 })
 
-describe('one place, opened', () => {
-  it('heads Highfield with its mark, its figure and its one act, which starts a quote on it', async () => {
+describe('the head', () => {
+  it('heads Highfield with its mark, its span measured from the file, and its one act', async () => {
     const { go } = drawPlace('boat_highfield')
     expect(screen.getByRole('heading', { level: 1, name: /Highfield Inflatables/ })).toBeTruthy()
-    expect(screen.getByText('67 models in 7 series')).toBeTruthy()
+    const head = document.querySelector('.pl-livery') as HTMLElement
+    expect(within(head).getByText('67')).toBeTruthy()
+    expect(within(head).getByText('models in 7 series')).toBeTruthy()
+    expect(within(head).getByText('2.3–9.2 m')).toBeTruthy()
+    expect(within(head).getByText('$2,770–$198,610')).toBeTruthy()
+    expect(within(head).getByText('at Cash · 588 of 588 versions priced')).toBeTruthy()
+    expect(within(head).getByText(/^Price list of 16 September 2026$/)).toBeTruthy()
     await userEvent.click(screen.getByRole('link', { name: /Quote a Highfield/ }))
     expect(go).toHaveBeenCalledWith('/quote/new?brand=boat_highfield')
   })
 
+  it('opens every one of the maker’s photographs in one lightbox from the head', async () => {
+    drawPlace('boat_highfield')
+    await userEvent.click(screen.getByRole('button', { name: 'See the 18 photographs' }))
+    expect(document.querySelector('.ui-lightbox-count')?.textContent).toMatch(/^1 of 18/)
+  })
+
+  it('never prints the name twice under a mark that already says it', () => {
+    drawPlace('boat_highfield')
+    const head = document.querySelector('.pl-livery') as HTMLElement
+    const printed = [...head.querySelectorAll('*')].filter(
+      (el) =>
+        el.children.length === 0 &&
+        /Highfield Inflatables/i.test(el.textContent ?? '') &&
+        !el.classList.contains('pl-unseen'),
+    )
+    expect(printed).toEqual([])
+  })
+})
+
+describe('the line-up', () => {
+  it('draws every model the head counts: Highfield 67, two dozen first and the rest one press away', async () => {
+    const { onAt } = drawPlace('boat_highfield')
+    expect(cards().length).toBe(24)
+    await userEvent.click(screen.getByRole('button', { name: 'Show all 67 models' }))
+    expect(onAt).toHaveBeenCalledWith({ all: true })
+    cleanup()
+    drawPlace('boat_highfield', 'range', { all: true })
+    expect(cards().length).toBe(67)
+    expect(screen.queryByRole('button', { name: /^Show all/ })).toBeNull()
+  })
+
+  it('filters to a series in place, in the address', async () => {
+    const { onAt, go } = drawPlace('boat_highfield')
+    await userEvent.click(screen.getByRole('button', { name: /^Sport/ }))
+    expect(onAt).toHaveBeenCalledWith({ series: 'Sport', find: undefined, all: undefined })
+    expect(go).not.toHaveBeenCalled()
+  })
+
+  it('carries the Sport 660’s price, facts and what fits it, as the file and Fitment read them', async () => {
+    const { go } = drawPlace('boat_highfield', 'range', { series: 'Sport' })
+    expect(cards().length).toBe(16)
+    const sport = card('Sport 660')
+    expect(sport.textContent).toContain('from $61,700')
+    expect(sport.textContent).toContain('HBS145')
+    expect(sport.textContent).toContain('16 versions in PVC or Hypalon')
+    expect(sport.textContent).toContain('6.52 m')
+    expect(sport.textContent).toContain('13 people')
+    expect(sport.textContent).toContain('150–200 hp')
+    expect(sport.textContent).toContain('Yamaha F175XC recommended')
+    const kit = [...sport.querySelectorAll('.pl-card__kit dd')].map((d) => d.textContent)
+    expect(kit).toEqual(['7', '2', '4', '3'])
+    await userEvent.click(
+      within(sport).getByRole('link', { name: /What fits the Highfield Sport 660/ }),
+    )
+    expect(go).toHaveBeenCalledWith(`/fitment?boat=${encodeURIComponent(SPORT_660)}`)
+    await userEvent.click(
+      within(sport).getByRole('link', { name: /Quote the Highfield Sport 660/ }),
+    )
+    expect(go).toHaveBeenCalledWith(
+      `/quote/new?brand=boat_highfield&model=${encodeURIComponent(SPORT_660)}`,
+    )
+  })
+
+  it('says where the file leaves people empty, and says what comes standard is not held, once', () => {
+    drawPlace('boat_highfield', 'range', { series: 'Sport' })
+    expect(card('SP300').textContent).toContain('people not in the price list')
+    expect(screen.getAllByText(/What comes standard on each boat is not held yet/).length).toBe(1)
+  })
+
+  it('draws Jeanneau’s 27, the four filed under no series named in a sentence', () => {
+    drawPlace('boat_jeanneau')
+    expect(cards().length).toBe(27)
+    expect(
+      screen.getByText(
+        /4 Jeanneau models have no series in the price list: DB 37 OB, DB 43 OB, TH33, TH38/,
+      ),
+    ).toBeTruthy()
+  })
+
+  it('orders by price from the least, in the address', async () => {
+    const { onAt } = drawPlace('boat_highfield', 'range', { series: 'Sport', sort: 'price' })
+    const prices = cards().map((c) =>
+      Number(
+        /\$([\d,]+)/
+          .exec(c.querySelector('.pl-card__price')?.textContent ?? '')![1]!
+          .replace(/,/g, ''),
+      ),
+    )
+    expect(prices).toEqual(prices.toSorted((a, b) => a - b))
+    await userEvent.click(screen.getByRole('radio', { name: 'Length' }))
+    expect(onAt).toHaveBeenCalledWith({ series: 'Sport', sort: 'length' })
+  })
+
+  it('sets the boats chosen side by side in bands, a dash where the file is empty', () => {
+    drawPlace('boat_highfield', 'range', {
+      series: 'Sport',
+      compare: [SPORT_600, SPORT_660],
+      see: 'compare',
+    })
+    const sheet = screen.getByRole('region', { name: /Sport 600 and Sport 660, side by side/ })
+    const row = (label: string) =>
+      [...within(sheet).getByRole('rowheader', { name: label }).parentElement!.children].map(
+        (c) => c.textContent,
+      )
+    expect(row('Length')).toEqual(['Length', '6.52 m', '6.52 m'])
+    expect(row('From, at Cash')).toEqual(['From, at Cash', 'from $54,470', 'from $61,700'])
+    /* never a price a customer may not be shown */
+    expect(sheet.textContent).not.toMatch(/Trade|Warranty|Cost/)
+  })
+
+  it('refuses a fourth boat in the compare with a sentence where it is refused', async () => {
+    drawPlace('boat_highfield', 'range', {
+      series: 'Sport',
+      compare: ['boat_highfield:483', SPORT_600, SPORT_660],
+    })
+    await userEvent.click(within(card('Sport 700 ST')).getByRole('button', { name: /Compare/ }))
+    expect(
+      screen.getByText(
+        'Three boats are set side by side at most. Take one off to add the Sport 700 ST.',
+      ),
+    ).toBeTruthy()
+  })
+})
+
+describe('a list that is not a boat maker', () => {
+  it('reads Yamaha by its own horsepower, and opens a rating in the address', async () => {
+    const { onAt } = drawPlace('mot_yamaha', 'range', { in: '150' })
+    const ladder = screen.getByRole('group', { name: 'By horsepower' })
+    expect(within(ladder).getAllByRole('button')[0]!.textContent).toMatch(/^2\.5 hp/)
+    expect(
+      within(ladder)
+        .getByRole('button', { name: /^150 hp/ })
+        .getAttribute('aria-pressed'),
+    ).toBe('true')
+    expect(screen.getByText('F150XC')).toBeTruthy()
+    await userEvent.click(within(ladder).getByRole('button', { name: /^2 × 70 hp/ }))
+    expect(onAt).toHaveBeenCalledWith({ in: '2 x 70' })
+  })
+
+  it('says why Labour Rates prints no rate, where the rates are', () => {
+    drawPlace('labour_rates')
+    expect(
+      screen.getByText(
+        /Labour Rates names no price a customer may be shown, so no figure is printed here/,
+      ),
+    ).toBeTruthy()
+    expect(document.querySelectorAll('.pl-line').length).toBe(18)
+    expect(document.querySelector('.pl-line__price')).toBeNull()
+  })
+
+  it('draws OBSOLETE Trailers’ ten, each no longer sold', () => {
+    drawPlace('trl_obsolete')
+    expect(document.querySelectorAll('.pl-line').length).toBe(10)
+    expect(screen.getAllByText('No longer sold').length).toBeGreaterThanOrEqual(10)
+  })
+
+  it('hands Parts to the chandlery, which reads the same list with find and aisles', async () => {
+    const { go } = drawPlace('parts')
+    expect(screen.getByText(/The chandlery reads the same 2,238 products/)).toBeTruthy()
+    await userEvent.click(screen.getAllByRole('link', { name: 'Open the chandlery' })[0]!)
+    expect(go).toHaveBeenCalledWith('/catalogue')
+    expect(document.querySelectorAll('.pl-line').length).toBe(0)
+  })
+})
+
+describe('after the range', () => {
   it('lists what it goes with, most first, each a door to that place', async () => {
     const { go } = drawPlace('boat_highfield')
-    const rail = within(screen.getByRole('complementary'))
+    const rail = within(screen.getByRole('complementary', { name: /Goes with/ }))
     const rows = rail.getAllByRole('button').map((b) => b.getAttribute('aria-label'))
     expect(rows[0]).toMatch(/^Yamaha Outboards: 2,519 fits with Highfield Inflatables$/)
     await userEvent.click(rail.getByRole('button', { name: /^Yamaha Outboards/ }))
     expect(go).toHaveBeenCalledWith('/places/mot_yamaha')
   })
 
-  it('opens its range on one tile per series, each a door to that series in the price list', async () => {
-    const { go } = drawPlace('boat_highfield')
-    await userEvent.click(screen.getByRole('button', { name: /^Classic · 16 models/ }))
-    expect(go).toHaveBeenCalledWith('/data/boat_highfield?in=Classic')
-  })
-
-  it('names the model every series photograph shows, and never draws the head’s photograph twice', () => {
-    drawPlace('boat_stacer')
-    const skimmas = screen.getByRole('button', { name: /^SKIMMAS · 5 models/ })
-    expect(skimmas.getAttribute('aria-label')).toContain('Stacer 309 Skimma on the water')
-    /* the maker is named once, on the head; the tile's caption is the model */
-    expect(within(skimmas).getByText('309 Skimma on the water')).toBeTruthy()
-    /* the head stands on the 409 Assault Pro, so its series says so instead of wearing it */
-    const pros = screen.getByRole('button', { name: /^ASSAULT PROS · / })
-    expect(within(pros).getByText('On the water above')).toBeTruthy()
-    expect(pros.querySelector('img')).toBeNull()
-    /* a series with no photograph wears none */
-    expect(screen.getByRole('button', { name: /^PROLINES · / }).querySelector('img')).toBeNull()
-  })
-
   it('draws a place it goes with that has no mark by its kind, never as a blank swatch', () => {
     drawPlace('boat_stacer')
-    const parts = within(screen.getByRole('complementary')).getByRole('button', {
-      name: /^Parts & Accessories/,
-    })
+    const parts = within(screen.getByRole('complementary', { name: /Goes with/ })).getByRole(
+      'button',
+      { name: /^Parts & Accessories/ },
+    )
     expect(parts.querySelector('.pl-partner__chip svg')).not.toBeNull()
   })
 
-  it('opens a list with no headings on its lines', () => {
-    drawPlace('labour_rates')
-    expect(screen.getByRole('region', { name: /Labour Rates, line by line/ })).toBeTruthy()
+  it('spans its prices series by series with their denominators, and names Warranty as kept', () => {
+    drawPlace('boat_highfield')
+    const prices = screen.getByRole('region', { name: /Its prices/ })
+    const sport = within(prices).getByRole('rowheader', { name: /^Sport/ })
+    expect(sport.textContent).toContain('199 of 199 priced')
+    expect(sport.parentElement!.textContent).toContain('$15,040–$129,830')
+    expect(prices.textContent).toContain('Warranty is kept as Northside’s own')
   })
 
-  it('says a place with no quote has none, and refuses an address no place answers to', () => {
-    drawPlace('boat_highfield', 'quotes')
-    expect(screen.getByText(/No quote has Highfield Inflatables on it yet/)).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Back to the price list' })).toBeTruthy()
+  it('says a maker with no quote has none, and refuses an address no place answers to', () => {
+    drawPlace('boat_highfield')
+    expect(screen.getByText(/No quote on a Highfield is held on this computer yet/)).toBeTruthy()
   })
 
   it('says an address that is no place, in a sentence', () => {
@@ -151,6 +326,12 @@ describe('its settings', () => {
     expect(screen.getByText(/Formosa’s mark comes in dark ink only/)).toBeTruthy()
   })
 
+  it('says a maker with no mark in either ink once, not once per ink', () => {
+    drawPlace('trl_redco', 'settings')
+    expect(screen.getAllByText('No mark for REDCO / Tinka Trailers yet.').length).toBe(1)
+    expect(screen.queryByRole('radio', { name: 'In white' })).toBeNull()
+  })
+
   it('offers only its own boats as its photograph, and its ground with white measured on it', async () => {
     drawPlace('boat_stacer', 'settings')
     const offered = screen
@@ -162,6 +343,12 @@ describe('its settings', () => {
     expect(screen.getByTestId('place-contrast').textContent).toMatch(
       /^White words on carmine read at \d+\.\d : 1/,
     )
+  })
+
+  it('says a name that ends in s as a person writes it: Inflatables’, never Inflatables’s', () => {
+    drawPlace('boat_highfield', 'settings')
+    expect(screen.getByText(/Only Highfield Inflatables’ own boats are offered/)).toBeTruthy()
+    expect(document.body.textContent).not.toContain('Inflatables’s')
   })
 
   it('tells a place with no photograph of its own why, and offers Northside’s own', () => {
@@ -193,11 +380,5 @@ describe('how a place is sold', () => {
   it('does not offer the choice on a boat maker, whose boats are always quoted', () => {
     drawPlace('boat_stacer', 'settings')
     expect(screen.queryByRole('group', { name: /Can a quote start from/ })).toBeNull()
-  })
-
-  it('opens what goes on a maker’s boats from its range', async () => {
-    const { go } = drawPlace('boat_stacer')
-    await userEvent.click(screen.getByRole('link', { name: 'What goes on its boats' }))
-    expect(go).toHaveBeenCalledWith('/fitment?maker=Stacer')
   })
 })

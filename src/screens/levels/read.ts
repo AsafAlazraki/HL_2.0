@@ -34,14 +34,14 @@ import type { CatalogueData } from '@/domain/catalogue/sheet'
 import { CASH, ladderOn, priceIn, type LineNoun } from '@/domain/catalogue/priceCommands'
 import { isCostColumn } from '@/domain/quote/pricing'
 import { mayBeNamed, mayReachCustomer, workedFromCost } from '@/domain/pricing/worked'
-import { checkField, meaningOf, type Checked, type Meaning } from '@/domain/pricing/meaning'
+import { cellOf, checkField, meaningOf, type Checked, type Meaning } from '@/domain/pricing/meaning'
 import { linesAbove, noFigureIn, spreadOf, type Spread } from '@/domain/pricing/spread'
 import { pricedBy, wayChosen, waysFor, type Way } from '@/domain/pricing/ways'
 import type { LineEntry } from '@/domain/pricing/buyers'
 import { countBoats } from '@/domain/quote/boats'
 import { factoryPackage, lineSaid, spokenBoat } from '@/domain/quote/spoken'
 import { nameOnPaper } from '@/domain/quote/paperWords'
-import { figureIn, onlyToken } from '@/domain/catalogue/table/only'
+import { figureIn, joinOnly, type Only } from '@/domain/catalogue/table/only'
 import { readKitGrid, type KitGrid } from '@/domain/pricing/kitGrid'
 import {
   isRetired,
@@ -169,7 +169,15 @@ export type CashCell =
     }
 
 export type TradeCell =
-  | { state: 'falls'; to: string }
+  | {
+      state: 'falls'
+      to: string
+      /** THE LIST'S OWN TRADE COLUMN, carried and named by no price: the factory packages' Trade
+       *  Price (Motor Library!BL), the same figure as Sell Price on all 73 priced lines (the
+       *  verifier of Prices, round 2: "The list has no Trade price" was false). Null where the
+       *  list carries none. */
+      carried: { label: string; cell: string; same: number; of: number } | null
+    }
   | { state: 'nothing' }
   | {
       state: 'reads'
@@ -297,6 +305,32 @@ function imageOf(table: EntityDef, row: RowData): string {
 const rowsOf = (data: Sheet, tableIds: readonly string[]): RowData[] =>
   tableIds.flatMap((id) => data.rows[id] ?? [])
 
+/** The column the pack marks a line no longer sold with. */
+const DISCONTINUED = '__discontinued'
+
+/** A line on sale: not marked no longer sold, and not one of a kit list's banner rows (the
+ *  pack's Sentinel, "Not a kit") — the lines the look-up finds, and the only lines this page
+ *  counts. */
+const isOnSale = (tableId: string, row: RowData): boolean =>
+  row.values[DISCONTINUED] !== true && row.values[`${tableId}.sentinel`] !== true
+
+/**
+ * THE PRICE LIST'S LINES ON SALE, and only those. Every count on Prices is of them (the verifier
+ * of Prices, round 2: Dealer Fit's 1,777 held 201 discontinued lines, Parts' 2,937 held 699, and
+ * Rigging Kits' 650 held 28 discontinued and 7 banner rows, which the look-up already skipped).
+ * A list with nothing to take out keeps its own rows, so reading twice changes nothing.
+ */
+export function onSale(data: Sheet): Sheet {
+  let rows: Record<string, RowData[]> | null = null
+  for (const [id, list] of Object.entries(data.rows)) {
+    const kept = list.filter((r) => isOnSale(id, r))
+    if (kept.length === list.length) continue
+    rows ??= { ...data.rows }
+    rows[id] = kept
+  }
+  return rows ? { ...data, rows } : data
+}
+
 /** The same column on another list of the column, by its name and its place among columns of
  *  that name (Rigging Kits carries "Trade Price" twice). */
 export function sameField(
@@ -341,13 +375,24 @@ function checkedAcross(data: Sheet, tables: readonly EntityDef[], fieldId: strin
   return out
 }
 
-const sheetHref = (tableId: string, token: string): string =>
-  `/data/${encodeURIComponent(tableId)}?only=${encodeURIComponent(token)}`
+/**
+ * THE SHEET, ASKED EXACTLY THE LINES A COUNT HERE COUNTS: the question, and — every count on this
+ * page being of lines on sale (`onSale`) — "not discontinued" and "not a banner" beside it on a
+ * list that marks either, so the sheet shows the number the door says (the verifier of Prices,
+ * round 2: "the other 44 hold no Act Sell" were 42 discontinued and 2 on sale).
+ */
+function sheetHref(table: EntityDef, ...asked: Only[]): string {
+  const marks = [DISCONTINUED, `${table.id}.sentinel`]
+    .filter((id) => table.fields.some((f) => f.id === id))
+    .map((fieldId): Only => ({ kind: 'not', fieldId }))
+  return `/data/${encodeURIComponent(table.id)}?only=${encodeURIComponent(joinOnly([...asked, ...marks]) ?? '')}`
+}
 
 /**
  * THE DOORS TO THE LINES WITH NO FIGURE IN A COLUMN, across every list of the column: one door
- * per list and per kind of nothing — nothing written, or a nought — each with the count the sheet
- * will show. A figure written as a word ("POA") has no question the sheet can ask, so no door.
+ * per list and per kind of nothing — nothing written, a nought, or a figure under nought that is
+ * no price (`src/domain/pricing/credit.ts`) — each with the count the sheet will show. A figure
+ * written as a word ("POA") has no question the sheet can ask, so no door.
  */
 export function doorsOf(data: Sheet, tables: readonly EntityDef[], fieldId: string): Door[] {
   const lead = tables[0]!
@@ -355,21 +400,45 @@ export function doorsOf(data: Sheet, tables: readonly EntityDef[], fieldId: stri
   for (const t of tables) {
     const f = sameField(lead, fieldId, t)
     if (!f) continue
-    const none = noFigureIn(data.rows[t.id] ?? [], f.id)
-    const where = tables.length > 1 ? ` on ${t.name}` : ''
+    const rows = data.rows[t.id] ?? []
+    const none = noFigureIn(rows, f.id)
+    /* A DOOR IS ONE LINE IN A HAND (a button does not wrap): on a column of several lists it names
+       the list by its maker, and the column is the one the sentence beside it already names */
+    const said = (kind: string): string =>
+      tables.length > 1
+        ? `${kind} on ${t.name.replace(/\s+(trailers|factory packages)$/i, '')}`
+        : `${kind} in ${f.name}`
+    /* every figure under nought the sheet would show beside a nought, a credit among them */
+    const minus = rows.filter((r) => (figureIn(r.values[f.id]) ?? 0) < 0).length
     if (none.blank > 0)
       out.push({
         tableId: t.id,
-        href: sheetHref(t.id, onlyToken({ kind: 'empty', fieldId: f.id })),
+        href: sheetHref(t, { kind: 'empty', fieldId: f.id }),
         count: none.blank,
-        said: `with nothing in ${f.name}${where}`,
+        said: said('with nothing'),
       })
     if (none.nought > 0)
       out.push({
         tableId: t.id,
-        href: sheetHref(t.id, onlyToken({ kind: 'at-most', fieldId: f.id, value: 0 })),
+        /* "at most 0" alone takes in every figure under nought: asked "at least 0" too, it is nought */
+        href:
+          minus > 0
+            ? sheetHref(
+                t,
+                { kind: 'at-most', fieldId: f.id, value: 0 },
+                { kind: 'at-least', fieldId: f.id, value: 0 },
+              )
+            : sheetHref(t, { kind: 'at-most', fieldId: f.id, value: 0 }),
         count: none.nought,
-        said: `at $0 in ${f.name}${where}`,
+        said: said('at $0'),
+      })
+    /* the sheet's "under 0" shows a credit as well, so the door stands only where none is one */
+    if (none.under > 0 && none.under === minus)
+      out.push({
+        tableId: t.id,
+        href: sheetHref(t, { kind: 'below', fieldId: f.id, value: 0 }),
+        count: none.under,
+        said: said('under $0'),
       })
   }
   return out
@@ -476,10 +545,7 @@ function betweenOf(
       count > 0
         ? {
             tableId: lead.id,
-            href: sheetHref(
-              lead.id,
-              onlyToken({ kind: 'under', fieldId: more.fieldId, than: less.fieldId }),
-            ),
+            href: sheetHref(lead, { kind: 'under', fieldId: more.fieldId, than: less.fieldId }),
             count,
             said: `with ${more.label} under ${less.label}`,
           }
@@ -584,14 +650,44 @@ function exactShare(cash: number, trade: number): number | null {
   return null
 }
 
+/** A list's own trade column that no price names, read against its Cash on every line holding
+ *  Cash: how many hold the same figure. Null where the list carries none. */
+function carriedTrade(
+  data: Sheet,
+  tables: readonly EntityDef[],
+  cashId: string,
+): Extract<TradeCell, { state: 'falls' }>['carried'] {
+  const lead = tables[0]!
+  const ladder = ladderOn(data, lead)
+  const own = lead.fields.find(
+    (f) => /^trade\b/i.test(f.name.trim()) && !ladder.some((l) => l.fieldId === f.id),
+  )
+  if (!own) return null
+  let of = 0
+  let same = 0
+  for (const t of tables) {
+    const cf = sameField(lead, cashId, t)
+    const tf = sameField(lead, own.id, t)
+    if (!cf || !tf) continue
+    for (const r of data.rows[t.id] ?? []) {
+      const cv = priceIn(r, cf.id)
+      if (cv === null) continue
+      of += 1
+      if (priceIn(r, tf.id) === cv) same += 1
+    }
+  }
+  return { label: own.name, cell: cellOf(own), same, of }
+}
+
 function tradeOf(data: Sheet, tables: readonly EntityDef[], cash: CashCell): TradeCell {
-  if (cash.state !== 'reads') return { state: 'falls', to: 'Not priced' }
+  if (cash.state !== 'reads') return { state: 'falls', to: 'Not priced', carried: null }
   if (cash.priced === 0) return { state: 'nothing' }
   const lead = tables[0]!
   const ladder = ladderOn(data, lead)
   const c = ladder.find((l) => l.key === CASH)!
   const t = ladder.find((l) => l.key === 'trade')
-  if (!t || tables.length > 1) return { state: 'falls', to: c.label }
+  if (!t || tables.length > 1)
+    return { state: 'falls', to: c.label, carried: carriedTrade(data, tables, c.fieldId) }
 
   let priced = 0
   let same = 0
@@ -733,9 +829,6 @@ function nameOf(shelf: Shelf, tables: readonly EntityDef[]): string {
 /** A sub-dealer figure, by the price list's own name for it. */
 const isSub = (f: FieldDef): boolean => /^sub ?dealer price$/i.test(f.name.trim())
 
-/** The column the pack marks a line no longer sold with. */
-const DISCONTINUED = '__discontinued'
-
 /** The column for a group of lists that read alike. */
 function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
   const lead = tables[0]!
@@ -829,14 +922,11 @@ function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
           ? [
               {
                 tableId: lead.id,
-                href: sheetHref(
-                  lead.id,
-                  onlyToken({
-                    kind: 'under',
-                    fieldId: cashRung.fieldId,
-                    than: warrantyRung.fieldId,
-                  }),
-                ),
+                href: sheetHref(lead, {
+                  kind: 'under',
+                  fieldId: cashRung.fieldId,
+                  than: warrantyRung.fieldId,
+                }),
                 count: linesAbove(data.rows[lead.id] ?? [], warrantyRung.fieldId, cashRung.fieldId)
                   .length,
                 said: `with ${warrantyRung.label} above ${cashRung.label}`,
@@ -860,7 +950,8 @@ function columnOf(data: Sheet, shelf: Shelf, tables: EntityDef[]): Column {
  * read alike, which is how eight trailer makers become "Every trailer" — in the price list's own
  * order within each shelf.
  */
-export function readLadder(data: Sheet): Column[] {
+export function readLadder(all: Sheet): Column[] {
+  const data = onSale(all)
   const byShelf = new Map<Shelf, EntityDef[][]>()
   /* THE PRICE LIST'S OWN ORDER: the file lays its lists out in reading order, and each list's
      place is where it was laid (`position`), so reading it back by row then column is that order */
@@ -1016,7 +1107,8 @@ function warrantySpecimen(data: Sheet, columns: readonly Column[]): KeptSpecimen
 }
 
 /** The page: what is the dealer's to choose, what starts as Northside's own, what is settled. */
-export function readDesk(data: Sheet, columns: readonly Column[]): Desk {
+export function readDesk(all: Sheet, columns: readonly Column[]): Desk {
+  const data = onSale(all)
   const choose = columns
     .filter(undecided)
     .toSorted((a, b) => b.lines - a.lines || a.name.localeCompare(b.name))
@@ -1098,8 +1190,10 @@ export function questionOf(col: Column): string {
   if (c.state === 'not-priced') {
     /* one figure under several names is still a price nobody has named, and a quote with one of
        these lines cannot be given until it is — but there is nothing to choose between */
+    /* the figure's names are said once, on the way's own tile (the verifier of Prices, round 2:
+       "one figure under 2 names" stood in the row, in the panel and on the tile) */
     if (c.ways.length === 1)
-      return `Your price list names no price for a ${col.noun.one}, and holds one figure for it under ${c.ways[0]!.alsoNamed.length + 1} names. Until you name it, each one on a quote is priced by hand.`
+      return `Your price list names no price for a ${col.noun.one}. Until you name one, each on a quote is priced by hand.`
     /* a way of several prices is a way of selling: Rigging Kits supplied or fitted */
     if (c.ways.some((w) => w.figures.length > 1))
       return `How is a ${col.noun.one} sold: supplied, or always fitted? Until you choose, each one on a quote is priced by hand.`
@@ -1162,6 +1256,10 @@ export function settledFact(col: Column): string {
     said.push(`${c.label}, or ${plainName(col.fitted.label)} fitted`)
   } else if (c.named) {
     said.push(`Priced at ${c.label}`)
+  } else if (t.state === 'reads' && t.blank > 0) {
+    /* NOT "ONE PRICE FOR EVERY BUYER" OVER LINES A TRADE BUYER CANNOT BE PRICED ON (the verifier of
+       Prices, round 2: Jeanneau's tile said it over 8 boats with no Trade) */
+    said.push(`${t.label} is ${c.label} on ${count(t.same)}`)
   } else {
     said.push('One price for every buyer')
   }
@@ -1198,8 +1296,7 @@ export function lineEntries(data: Sheet, columns: readonly Column[]): LineEntry[
       if (!table) continue
       const code = CODE_COLUMNS.map((n) => table.fields.find((f) => f.name === n)).find(Boolean)
       for (const row of data.rows[tableId] ?? []) {
-        if (row.values[DISCONTINUED] === true) continue
-        if (row.values[`${tableId}.sentinel`] === true) continue
+        if (!isOnSale(tableId, row)) continue
         const label = rowLabel(table, row)
         if (label.trim() === '') continue
         const c = code ? row.values[code.id] : null

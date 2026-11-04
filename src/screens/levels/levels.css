@@ -754,8 +754,45 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-.lv-ways[data-n='1'] {
-  max-inline-size: 34rem;
+/* A LIST'S ONE WAY stands with what it leaves beside it, not alone on half the panel (the verifier,
+   round 2: the factory packages' one tile left the right half empty at 1280) */
+@media (min-width: 900px) {
+  .lv-ways[data-n='1'] {
+    grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+  }
+}
+.lv-leaves {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: --spacing(2);
+  min-inline-size: 0;
+  padding: --spacing(1) 0;
+}
+@media (min-width: 900px) {
+  .lv-leaves {
+    padding: --spacing(4) 0 0 --spacing(2);
+  }
+}
+.lv-leaves__head {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.lv-leaves__said {
+  margin: 0;
+  max-inline-size: 60ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+}
+.lv-leaves .lv-census__doors {
+  display: grid;
+  justify-items: start;
 }
 .lv-ways > * {
   display: grid;
@@ -1288,6 +1325,10 @@
   .lv-settled {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+  /* ELEVEN LISTS STAND FOUR, FOUR AND THREE, never five, five and one alone (the verifier, round 2) */
+  .lv-settled[data-n='11'] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 .lv-cellwrap {
   display: grid;
@@ -1554,6 +1595,16 @@
 .lv-share__why {
   margin: 0;
 }
+.lv-share__said {
+  display: grid;
+  gap: --spacing(1.5);
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+  padding-block-end: --spacing(2);
+}
+.lv-share__said > .lv-share__now {
+  padding-block-end: 0;
+}
 .lv-share__nothing {
   display: inline-flex;
   align-items: center;
@@ -1657,9 +1708,11 @@
     }
   }
 }
+/* THE STEP UNDER A ROW OF TILES runs the grid's width, as the panel it follows does (the verifier,
+   round 2: at 1280 it ended at x 1010 under a grid running to 1200) */
 .lv-settled__step {
   grid-column: 1 / -1;
   display: grid;
-  justify-items: start;
+  justify-items: stretch;
   min-inline-size: 0;
 }

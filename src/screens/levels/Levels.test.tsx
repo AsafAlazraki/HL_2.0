@@ -90,10 +90,16 @@ describe('at rest', () => {
   it('says each settled list’s one fact, the different one in its own words', () => {
     draw()
     const settled = group(/^Settled/)
-    expect(settled.getByRole('button', { name: /^Highfield.*67 boats: Trade is 95% of Cash$/ }))
+    /* the boats, and the finishes its panel counts (the verifier of Prices, round 2) */
     expect(
       settled.getByRole('button', {
-        name: /^Jeanneau, 27 boats: One price for every buyer · 8 with no Trade$/,
+        name: /^Highfield.*67 boats, 588 finishes: Trade is 95% of Cash$/,
+      }),
+    )
+    /* never "one price for every buyer" over eight boats a trade buyer cannot be priced on */
+    expect(
+      settled.getByRole('button', {
+        name: /^Jeanneau, 27 boats: Trade is Cash on 19 · 8 with no Trade$/,
       }),
     )
     expect(settled.getByRole('button', { name: /^Haines Signature.*Sold as a factory package$/ }))
@@ -176,12 +182,12 @@ describe('a list with no price', () => {
     /* pressed, it is counted and nothing is written */
     await user.click(tiles[0]!)
     expect(
-      kits.getByText(/^628 of 650 rigging kits are priced at their Kit Sell Price/),
+      kits.getByText(/^600 of 615 rigging kits are priced at their Kit Sell Price/),
     ).toBeTruthy()
     expect(kits.getByText(/^No quote on this computer carries a rigging kit/)).toBeTruthy()
     expect(priceLevelsFor(catalogue.getState().tables.rig_kits)).toEqual([])
 
-    await user.click(kits.getByRole('button', { name: 'Price 628 kits supplied, or fitted' }))
+    await user.click(kits.getByRole('button', { name: 'Price 600 kits supplied, or fitted' }))
     expect(
       priceLevelsFor(catalogue.getState().tables.rig_kits).map((l) => [l.key, l.fieldId]),
     ).toEqual([
@@ -199,11 +205,12 @@ describe('a list with no price', () => {
       'Yours to choose 3',
     )
     const settled = group(/^Settled/)
-    expect(settled.getByRole('button', { name: /^Rigging Kits, 650 kits: .* · 22 not priced$/ }))
+    /* the kits on sale: 650 less 28 discontinued and 7 banner rows (the verifier, round 2) */
+    expect(settled.getByRole('button', { name: /^Rigging Kits, 615 kits: .* · 15 not priced$/ }))
     const step = within(settled.getByTestId('last-step'))
     expect(
       step.getByText(
-        '628 of 650 rigging kits are priced at their Kit Sell Price, a trade buyer at Trade Price, fitted at Sell Price and fitted for a trade buyer at Trade Price, from the next quote. The other 22 hold no Kit Sell Price and are still priced by hand.',
+        '600 of 615 rigging kits are priced at their Kit Sell Price, a trade buyer at Trade Price, fitted at Sell Price and fitted for a trade buyer at Trade Price, from the next quote. The other 15 have no Kit Sell Price a quote can read, so they are still priced by hand.',
       ),
     ).toBeTruthy()
 
@@ -218,24 +225,25 @@ describe('a list with no price', () => {
       'A sub-dealer',
     ])
     expect(grid.getAllByText('On a quote')).toHaveLength(4)
-    expect(grid.getByText('AD · on 621')).toBeTruthy()
-    expect(grid.getByText('X · on 621')).toBeTruthy()
-    expect(grid.getByText('AE · on 621')).toBeTruthy()
+    expect(grid.getByText('AD · on 612')).toBeTruthy()
+    expect(grid.getByText('X · on 612')).toBeTruthy()
+    expect(grid.getByText('AE · on 612')).toBeTruthy()
+    /* on the kits on sale the file's own arithmetic holds on every one */
     expect(
       opened().getByText(
-        'Fitted is supplied plus fitting: for a customer on 621 of 642, for a trade buyer on all 621, for a sub-dealer on all 621.',
+        'Fitted is supplied plus fitting: for a customer on all 612, for a trade buyer on all 612, for a sub-dealer on all 612.',
       ),
     ).toBeTruthy()
     expect(
       opened().getByText(/^“Supplied, or fitted” was chosen at .* today\. Press another/),
     ).toBeTruthy()
-    /* each way names its prices once; what each is, is the grid's */
+    /* each way names its prices once; what each is, and every figure, is the grid's (the verifier,
+       round 2: the settled tiles gave every figure the grid gives) */
     expect(opened().queryAllByText(/^The kit alone, supplied and not fitted/)).toHaveLength(0)
-    /* 21 kits hold a fitted price under the kit alone, with their door */
-    expect(opened().getByText(/Sell Price is under Kit Sell Price on 21 lines\./)).toBeTruthy()
-    expect(
-      opened().getByRole('link', { name: 'Open the 21 with Sell Price under Kit Sell Price' }),
-    ).toBeTruthy()
+    const supplied = opened().getByRole('button', { name: /^Supplied, or fitted: / })
+    expect(within(supplied).queryByText('$900')).toBeNull()
+    /* the 21 kits whose fitted price stood under the kit alone are none of them on sale */
+    expect(opened().queryByText(/Sell Price is under Kit Sell Price/)).toBeNull()
 
     again('')
     await user.click(
@@ -369,10 +377,12 @@ describe('a share of Cash, written into every line', () => {
     const stacer = opened()
     const field = stacer.getByRole('textbox', { name: 'Trade as a share of Cash, in per cent' })
     expect((field as HTMLInputElement).value).toBe('100')
-    /* at today's share nothing would be written, and it says why, with no act to press */
+    /* at today's share nothing would be written: today's share is said once, with no act to press
+       (the verifier, round 2: it was said twice) */
     expect(
-      stacer.getByText('Every Stacer boat with a Cash figure already holds 100% of it as Trade.'),
+      stacer.getByText('Today Trade is the same as Cash on every Stacer boat that has one.'),
     ).toBeTruthy()
+    expect(stacer.queryByText(/already holds 100% of it as Trade/)).toBeNull()
     expect(stacer.queryByRole('button', { name: /^Write/ })).toBeNull()
 
     await user.clear(field)
@@ -469,12 +479,49 @@ describe('Dealer Fit’s two figures, with their grounds', () => {
     const fit = opened()
     expect(fit.getByText(/^The whole package fitted/)).toBeTruthy()
     expect(fit.getByText(/primary accessory alone/)).toBeTruthy()
-    expect(fit.getByText(/holds on 1,721 of 1,733/)).toBeTruthy()
+    /* the 1,576 packages on sale */
+    expect(fit.getByText(/holds on 1,562 of 1,574/)).toBeTruthy()
     expect(
       fit.getByText(
-        /On the 789 lines holding both, Act Sell is 0\.97–27\.83 × Sell; on the middle line, 2\.08 ×/,
+        /On the 635 lines holding both, Act Sell is 0\.97–27\.83 × Sell; on the middle line, 2\.39 ×/,
       ),
     ).toBeTruthy()
     expect(fit.getByText('They are never the same figure.', { exact: false })).toBeTruthy()
+  })
+
+  /* the verifier of Prices, round 2: changing a settled Dealer Fit from Sell to Act Sell said
+     "Every dealer fit package on a new quote shows its Act Sell" over the door to those with none */
+  it('never says "every" when a list already priced is changed to a figure some lines lack', async () => {
+    const user = userEvent.setup()
+    const { again } = draw('dealer_fit')
+    await user.click(opened().getByRole('button', { name: /^Sell, / }))
+    await user.click(opened().getByRole('button', { name: /^Price [\d,]+ at Sell$/ }))
+    again('dealer_fit')
+    await user.click(opened().getByRole('button', { name: /^Act Sell, / }))
+    const said = opened().getByText(/on a new quote show/)
+    expect(said.textContent).toMatch(
+      /^1,574 of 1,576 dealer fit packages on a new quote show their Act Sell: the .* goes from \$[\d,]+ to \$[\d,]+\. The other 2 have no Act Sell a quote can read, so they are still priced by hand, each on its own line\.$/,
+    )
+    expect(opened().queryByText(/^Every dealer fit package/)).toBeNull()
+  })
+})
+
+describe('the factory packages, five of them under $0', () => {
+  it('counts them apart from the priced, with their own door beside the one way', () => {
+    draw('packages:mot_pkg_haines')
+    const pkgs = opened()
+    expect(pkgs.getByText('Prices', { exact: false }).textContent).toBe('Prices 73 of 89')
+    expect(
+      pkgs.getByText(
+        '16 of 89 factory packages have no Sell Price a quote can read, so they are still priced by hand, each on its own line.',
+      ),
+    ).toBeTruthy()
+    expect(
+      pkgs.getByRole('link', {
+        name: 'Open the 5 under $0 on Jeanneau',
+      }),
+    ).toBeTruthy()
+    /* the figure's two names are said once, on its tile */
+    expect(pkgs.queryByText(/under 2 names/)).toBeNull()
   })
 })

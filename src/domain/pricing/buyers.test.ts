@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { priceIn } from '@/domain/catalogue/priceCommands'
 import { freezeLevels, priceAtLevel } from '@/domain/quote/pricing'
+import { boatRungs } from '@/domain/quote/nought'
 import type { EntityDef, PriceLevel, RowData } from '@/domain/model'
 import { buyersOf, findLines, searchLines, type LineEntry, type Sheet } from './buyers'
 import { waysFor } from './ways'
@@ -93,6 +94,59 @@ describe('each buyer', () => {
   })
 })
 
+describe('a figure under nought', () => {
+  /* the verifier of Prices, round 2, a blocker: once Sell Price was named, the look-up gave a
+     customer the MF1095FLYS2 with Mercury Twin 300 HP at −$29,390 */
+  const pkgs = () => table('mot_pkg_jeanneau')
+  const mercury = () =>
+    rowOf('mot_pkg_jeanneau', (r) => r.values['mot_pkg_jeanneau.d'] === '16L3AK')
+  const sell: PriceLevel[] = [
+    {
+      key: 'cash',
+      label: 'Sell Price',
+      fieldId: 'mot_pkg_jeanneau.bf',
+      scope: 'quote',
+      named: true,
+    },
+  ]
+  const named = (): Sheet => ({
+    ...sheet,
+    priceLevels: { ...sheet.priceLevels, mot_pkg_jeanneau: sell },
+  })
+
+  it('is no price for a customer or a trade buyer, and the quote freezes it as none', () => {
+    const t = { ...pkgs(), priceLevels: sell }
+    const b = buyersOf(named(), t, mercury())
+    expect(b.map((x) => [x.key, x.state, x.figure, x.under?.[0]?.figure])).toEqual([
+      ['cash', 'under', null, -29_390],
+      ['trade', 'under', null, -29_390],
+    ])
+    /* the list's own Trade Price, named by no price, is said, never denied */
+    expect(b[1]!.carried).toEqual({ column: 'Trade Price', cell: 'Motor Library!BL', figure: null })
+    /* and the quote agrees: a package under nought freezes as no figure (nought.ts) */
+    const frozen = boatRungs(t, freezeLevels(t, mercury().values))
+    expect(priceAtLevel(frozen, 'cash').unitPrice).toBeNull()
+  })
+
+  it('is said where Northside has not chosen, beside the figures that could be a price', () => {
+    const b = buyersOf(sheet, pkgs(), mercury())
+    expect(b[0]!.state).toBe('unchosen')
+    expect(b[0]!.could).toEqual([])
+    expect(b[0]!.under).toEqual([
+      { label: 'RRP + Freight Inc GST', figure: -29_390 },
+      { label: 'Sell Price', figure: -29_390 },
+    ])
+  })
+
+  it('is a price on a line the price list names a credit', () => {
+    const credit = rowOf('parts', (r) =>
+      String(r.values['parts.c']).startsWith('CREDIT - Batteries'),
+    )
+    const b = buyersOf(sheet, table('parts'), credit)
+    expect([b[0]!.state, b[0]!.figure]).toEqual(['reads', -531])
+  })
+})
+
 describe('finding a line', () => {
   const entries: LineEntry[] = [
     { tableId: 'm', rowId: '1', name: 'F90XB', code: 'F90XB', list: 'Yamaha' },
@@ -127,6 +181,6 @@ describe('finding a line', () => {
     const found = searchLines(many, 'tiller conversion kit')
     expect(found.total).toBe(9)
     expect(found.lines).toHaveLength(6)
-    expect(found.lines.map((e) => e.rowId)).toEqual(['d0', 'd1', 'd2', 'd3', 'd4', 'k1'])
+    expect(found.lines.map((e) => e.rowId)).toEqual(['d0', 'k1', 'd1', 'd2', 'd3', 'd4'])
   })
 })

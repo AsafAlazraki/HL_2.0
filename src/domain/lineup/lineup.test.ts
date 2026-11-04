@@ -129,18 +129,18 @@ describe('the range, spanned with its denominators', () => {
   })
 
   it('sets the compare’s rows with a dash where the file is empty, and marks what differs', () => {
-    const rows = compareRows([
+    const set = compareRows([
       { band: 'Price', label: 'From, at Cash', cells: ['$54,470', '$61,700'] },
       { band: 'Specifications', label: 'Length', cells: ['6.52 m', '6.52 m'] },
       { band: 'Specifications', label: 'People', cells: [null, '13 people'] },
       { band: 'Specifications', label: 'Cabins', cells: [null, null] },
     ])
-    expect(rows.map((r) => [r.label, r.differs])).toEqual([
+    expect(set.map((r) => [r.label, r.differs])).toEqual([
       ['From, at Cash', true],
       ['Length', false],
       ['People', true],
     ])
-    expect(rows[2]!.cells[0]).toBe(NOTHING_FILED)
+    expect(set[2]!.cells[0]).toBe(NOTHING_FILED)
   })
 })
 

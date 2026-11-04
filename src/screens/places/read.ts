@@ -6,6 +6,7 @@
    ============================================================ */
 import {
   TABLE_KINDS,
+  rowLabel,
   type EntityDef,
   type ModuleDef,
   type PriceLevel,
@@ -39,6 +40,14 @@ import {
   type RangePart,
 } from '@/domain/modules/livery'
 import { pricesOf } from '@/app/ways'
+import { lineSaid, spokenBoat } from '@/domain/quote/spoken'
+import { nameOnPaper } from '@/domain/quote/paperWords'
+
+/** A line as a person says it: a boat by its spoken name, anything else as the paper names it. */
+const lineOf = (t: EntityDef, row: RowData): string =>
+  t.kind === 'boat'
+    ? spokenBoat(t.id, rowLabel(t, row)).say
+    : nameOnPaper(lineSaid(rowLabel(t, row), t.name))
 import { readLadder } from '@/screens/levels/read'
 
 export interface World {
@@ -152,6 +161,8 @@ export interface PlacePage {
   pricesHref: string | null
   /** lines of it changed on this computer since the price list came in */
   edited: number
+  /** those lines, the latest change first, each with where it opens in the price list */
+  changed: { tableId: string; rowId: string; label: string; at: string }[]
   /** a boat maker's own boats can be quoted from here */
   quotable: boolean
   /** what the act calls one of its boats: the maker's own name off its mark ("Highfield"),
@@ -205,9 +216,15 @@ export function readPlace(
   const column = readLadder({ tables, rows, priceLevels: world.priceLevels }).find((c) =>
     card.tableIds.some((id) => c.tableIds.includes(id)),
   )
-  let edited = 0
-  for (const id of card.tableIds)
-    for (const row of rows[id] ?? []) if (row.updatedAt !== row.createdAt) edited += 1
+  const changed: PlacePage['changed'] = []
+  for (const id of card.tableIds) {
+    const t = tables[id]
+    for (const row of rows[id] ?? [])
+      if (row.updatedAt !== row.createdAt && t)
+        changed.push({ tableId: id, rowId: row.id, label: lineOf(t, row), at: row.updatedAt })
+  }
+  changed.sort((a, b) => b.at.localeCompare(a.at))
+  const edited = changed.length
   const quotable =
     card.kind === 'boat' &&
     !card.place.retired &&
@@ -223,6 +240,7 @@ export function readPlace(
     prices: facts?.prices ?? [],
     pricesHref: column ? pricesOf(column.id) : null,
     edited,
+    changed,
     quotable,
     quoteWord: book.marksFor(card.name)[0]?.brand ?? card.name,
   }

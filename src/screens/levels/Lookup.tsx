@@ -35,15 +35,27 @@ function readToken(token: string): { tableId: string; rowId: string } | null {
   return { tableId: token.slice(0, at), rowId: token.slice(at + 1) }
 }
 
+/** "a, b and c" */
+const joinAnd = (each: readonly string[]): string =>
+  each.length < 2 ? (each[0] ?? '') : `${each.slice(0, -1).join(', ')} and ${each.at(-1)!}`
+
 /** What a buyer's figure is, beside it, in words. */
 function stateSaid(b: BuyerPrice, listName: string): string {
+  /* a trade buyer read at a customer's figure that is no price: said as that, not said twice */
+  if (b.fell && (b.state === 'under' || b.state === 'blank'))
+    return `No Trade price is named for this list, so a trade quote reads ${b.column}, which prices nothing on this line`
   switch (b.state) {
     case 'reads':
       return b.northsideOnly ? 'Northside’s own: a quote at it cannot be given yet' : ''
     case 'falls':
-      return `The list has no Trade price, so a trade quote reads ${b.column}`
+      /* a list carrying a Trade column nobody named: it is said, never denied (the verifier, round 2) */
+      return b.carried
+        ? `No Trade price is named for this list, so a trade quote reads ${b.column}. Its own ${b.carried.column}${b.carried.cell !== '' ? ` (${b.carried.cell})` : ''} holds ${b.carried.figure === b.figure ? 'the same figure' : b.carried.figure === null ? 'nothing' : money(b.carried.figure)} on this line`
+        : `The list has no Trade price, so a trade quote reads ${b.column}`
     case 'blank':
       return `No ${b.column} figure on this line, so a quote at it cannot price it`
+    case 'under':
+      return `Its ${b.column} is ${money(b.under?.[0]?.figure ?? 0)}, under nothing, which is no price: a quote cannot price it`
     case 'unchosen':
       return `Northside has not chosen which figure prices ${listName}, so a quote prices it by hand`
     case 'said':
@@ -198,7 +210,7 @@ function Answer({
             <div key={b.key} className="lv-buyer" data-state={b.state}>
               <dt className="lv-buyer__who">{b.who}</dt>
               <dd className="lv-buyer__figure">
-                {b.state === 'blank' || b.state === 'unchosen' ? (
+                {b.state === 'blank' || b.state === 'unchosen' || b.state === 'under' ? (
                   <span className="lv-buyer__none">Not priced</span>
                 ) : b.figure === null ? (
                   <span className="lv-buyer__none">None</span>
@@ -222,6 +234,15 @@ function Answer({
                 {b.could && b.could.length > 0 ? (
                   <span className="lv-buyer__rule">
                     {`It holds ${b.could.map((f) => `${f.label} ${money(f.figure)}`).join(', ')}.`}
+                  </span>
+                ) : null}
+                {b.state === 'unchosen' && b.under && b.under.length > 0 ? (
+                  <span className="lv-buyer__rule">
+                    {`It holds ${
+                      b.under.every((f) => f.figure === b.under![0]!.figure)
+                        ? `${money(b.under[0]!.figure)} in ${joinAnd(b.under.map((f) => f.label))}`
+                        : joinAnd(b.under.map((f) => `${money(f.figure)} in ${f.label}`))
+                    }: a figure under nothing is no price, whichever you choose.`}
                   </span>
                 ) : null}
               </dd>

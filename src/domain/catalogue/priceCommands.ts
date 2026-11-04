@@ -43,6 +43,7 @@
 import { newId } from '@/domain/id'
 import { isCostColumn, namedLevelsFor } from '@/domain/quote/pricing'
 import { mayBeNamed } from '@/domain/pricing/worked'
+import { isCredit } from '@/domain/pricing/credit'
 import type { CellValue, EntityDef, FieldDef, PriceLevel, RowData } from '@/domain/model'
 import {
   COLUMN_GONE,
@@ -78,10 +79,20 @@ const asNumber = (v: CellValue | undefined): number | null => {
 }
 
 /** A row's figure in one column, or null where it holds none. Nought is NO price, as the quote
- *  reads it (`src/domain/quote/nought.ts`): the price list writes 0 where nobody has priced it. */
+ *  reads it (`src/domain/quote/nought.ts`): the price list writes 0 where nobody has priced it.
+ *  A FIGURE UNDER NOUGHT IS NO PRICE EITHER, unless the price list names the line a credit
+ *  (`src/domain/pricing/credit.ts`): five Jeanneau factory packages hold −$2,030 to −$29,390. */
 export function priceIn(row: RowData, fieldId: string): number | null {
   const n = asNumber(row.values[fieldId])
-  return n === null || n === 0 ? null : n
+  if (n === null || n === 0) return null
+  return n < 0 && !isCredit(row) ? null : n
+}
+
+/** The figure a line holds under nought in a column, where it is not a credit — the figure
+ *  `priceIn` refuses as a price; null where the line holds anything else. */
+export function underNoughtIn(row: RowData, fieldId: string): number | null {
+  const n = asNumber(row.values[fieldId])
+  return n !== null && n < 0 && !isCredit(row) ? n : null
 }
 
 /* ---------------------------------------------------------- */
@@ -313,7 +324,9 @@ export function readShare(
   if (t === '') return { refused: `Type the share of ${of}, as a per cent.` }
   const n = Number(t)
   if (!Number.isFinite(n)) return { refused: `“${text.trim()}” is not a per cent.` }
-  if (n <= 0) return { refused: 'A share of nothing would price every line at nought.' }
+  /* said short enough to stand on one line beside its field (the verifier of Prices, round 2) */
+  if (n === 0) return { refused: 'A share of 0% would price every line at $0.' }
+  if (n < 0) return { refused: 'A share under 0% would price every line under $0.' }
   if (n > 100)
     return {
       refused: `Above 100% of ${of}, a trade buyer would pay more than a customer off the street.`,

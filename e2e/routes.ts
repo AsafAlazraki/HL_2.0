@@ -669,12 +669,31 @@ export const routes: Route[] = [
   {
     /* ONE PLACE, OPENED from its spread on Data, the one register of the lists (since
        built-critique-m4.md major 1 took the wall of place cards at /places away): Highfield's
-       livery at page scale on its own photograph, its act, the rail of what it goes with and the
-       range of its seven series. `data-place` is drawn only once the place has been read. */
+       livery on its own photograph, its act, its series tiles and one card per model (the line-up,
+       2026-11-04). `data-place` is drawn only once the place has been read. */
     path: '/places/boat_highfield',
     name: 'places-highfield',
     register: 'foundation',
     ready: '[data-testid="place"][data-place="boat_highfield"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* THE LINE-UP'S COMPARE OPENED (the data round, 2026-11-04): three Sport models side by
+       side in bands under the range head, the rows that differ lit — the widest state the page
+       has, where a cut or an overlap would be. Every part of it is in the address. */
+    path: '/places/boat_highfield?series=Sport&compare=boat_highfield%3A483%2Cboat_highfield%3A498%2Cboat_highfield%3A513&see=compare',
+    name: 'places-compare',
+    register: 'foundation',
+    ready: '[data-testid="place"][data-place="boat_highfield"] .pl-compare',
+    arrive: 'through-the-door',
+  },
+  {
+    /* A LIST THAT IS NOT A BOAT MAKER, read as its own range: Yamaha's horsepower ladder and the
+       motors of one rating, on the compact head a place with no photograph stands on. */
+    path: '/places/mot_yamaha?in=150',
+    name: 'places-motors',
+    register: 'foundation',
+    ready: '[data-testid="place"][data-place="mot_yamaha"] .pl-lines',
     arrive: 'through-the-door',
   },
   {

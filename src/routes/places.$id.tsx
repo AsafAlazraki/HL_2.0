@@ -25,8 +25,15 @@ import { readPlaceAt, writePlaceAt, type PlaceAt, type PlaceTab } from '@/screen
    Back that never leaves.
    ============================================================ */
 
-export interface PlaceSearch extends Record<string, unknown> {
+export interface PlaceSearch {
   tab?: 'settings'
+  series?: string
+  sort?: string
+  find?: string
+  compare?: string
+  see?: string
+  in?: string
+  models?: 'all'
 }
 
 export const Route = createFileRoute('/places/$id')({

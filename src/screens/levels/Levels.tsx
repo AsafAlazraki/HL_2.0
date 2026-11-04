@@ -59,6 +59,7 @@ import { Lookup } from './Lookup'
 import {
   doorsOf,
   onLine,
+  onSale,
   plainName,
   questionOf,
   readDesk,
@@ -137,7 +138,10 @@ export interface LevelsProps {
 
 /** What a tile counts, in one short word: "91 boats", "650 kits". */
 function countOf(col: Column): string {
-  if (col.models !== null) return plural(col.models, 'boat', 'boats')
+  /* the boats, and the finishes every figure in its panel is counted on (the verifier, round 2:
+     Highfield's tile said "67 boats" over a panel and a Warranty scale counting 588 finishes) */
+  if (col.models !== null)
+    return `${plural(col.models, 'boat', 'boats')}, ${plural(col.lines, 'finish', 'finishes')}`
   const word = col.noun.many.split(' ').at(-1) ?? ''
   return `${n(col.lines)} ${word}`
 }
@@ -261,7 +265,12 @@ export function Levels({
   const rows = useCatalogue((s) => s.rows)
   const priceLevels = useCatalogue((s) => s.priceLevels)
   const ready = status === 'ready' && Object.keys(tables).length > 0
-  const sheet = useMemo<Sheet>(() => ({ tables, rows, priceLevels }), [tables, rows, priceLevels])
+  /* EVERY READ ON THIS PAGE IS OF LINES ON SALE (`onSale`): a discontinued line and a kit list's
+     banner rows are counted nowhere, as the look-up never finds them (the verifier, round 2) */
+  const sheet = useMemo<Sheet>(
+    () => onSale({ tables, rows, priceLevels }),
+    [tables, rows, priceLevels],
+  )
   const columns = useMemo(() => (ready ? readLadder(sheet) : []), [ready, sheet])
 
   if (!ready || columns.length === 0) {
@@ -810,7 +819,7 @@ function waySaid(col: Column, way: WayView): string {
   const [cash, ...rest] = way.figures
   const also = rest.map((f) => `${rungFor(f)} at ${f.label}`)
   if (col.cash.state === 'reads' && way.current)
-    return `Every ${col.noun.one} keeps ${cash!.label}, now by your choice.`
+    return `${col.name} keeps ${cash!.label}, now by your choice.`
   const left = col.lines - way.priced
   /* NEVER "EVERY" OVER A COUNT THAT SAYS OTHERWISE (the verifier, 2026-11-04: "Every dealer fit
      package is priced at its Sell" stood under a tile reading "962 not priced") */
@@ -819,9 +828,15 @@ function waySaid(col: Column, way: WayView): string {
       ? `${n(way.priced)} of ${n(col.lines)} ${col.noun.many} are priced at their ${cash!.label}`
       : `Every ${col.noun.one} is priced at its ${cash!.label}`
   return `${priced}${also.length > 0 ? `, ${joinAnd(also)},` : ''} from the next quote.${
-    left > 0 ? ` The other ${n(left)} hold no ${cash!.label} and are still priced by hand.` : ''
+    left > 0 ? ` The other ${n(left)} ${leftSaid(cash!.label)}.` : ''
   }`
 }
+
+/** WHAT THE LINES A PRICE LEAVES ARE: nothing in it, a nought, or a figure under nought, which is
+ *  no price (`src/domain/pricing/credit.ts`) — so never "hold no Sell Price" over a line holding
+ *  −$29,390 in it. Each kind is a door beside the sentence. */
+const leftSaid = (label: string): string =>
+  `have no ${label} a quote can read, so they are still priced by hand`
 
 /** Who a way's second and later prices are for, inside the step's sentence. */
 const rungFor = (f: Pick<Figure, 'key'>): string =>
@@ -868,15 +883,15 @@ function Chooser({
   return (
     <div className="lv-chooser">
       <Specimen col={col} sample={sample}>
-        <p className="lv-specimen__say">
-          {notPriced
-            ? one
-              ? `Your price list names no price for a ${col.noun.one}. It holds one figure for each, under ${ways[0]!.alsoNamed.length + 1} names.`
-              : `Your price list holds ${ways.length === 2 ? 'two ways' : `${n(ways.length)} ways`} to price each ${col.noun.one} and names none of them, so nothing is ringed.`
-            : named
-              ? `${chosenSaid(current && current.figures.length > 1 ? `“${current.title}”` : c.label, chose)} Press another to change it.`
-              : `Nobody has chosen. Until you do, a quote shows ${c.state === 'reads' ? c.label : ''}, as it always has.`}
-        </p>
+        {notPriced && one ? null : (
+          <p className="lv-specimen__say">
+            {notPriced
+              ? `Your price list holds ${ways.length === 2 ? 'two ways' : `${n(ways.length)} ways`} to price each ${col.noun.one} and names none of them, so nothing is ringed.`
+              : named
+                ? `${chosenSaid(current && current.figures.length > 1 ? `“${current.title}”` : c.label, chose)} Press another to change it.`
+                : `Nobody has chosen. Until you do, a quote shows ${c.state === 'reads' ? c.label : ''}, as it always has.`}
+          </p>
+        )}
       </Specimen>
       <div className="lv-ways" data-n={ways.length}>
         {ways.map((w) => (
@@ -885,11 +900,16 @@ function Chooser({
             tick="none"
             selected={ringed?.id === w.id}
             onSelect={() => setPicked(w.id === picked ? null : w.id)}
-            label={`${w.title}, ${w.figures[0]!.figure === null ? 'no figure' : money(w.figures[0]!.figure)}`}
+            label={
+              compact
+                ? `${w.title}: ${w.figures.map((f) => `${rungWho(f).toLowerCase()} at ${f.label}`).join(', ')}`
+                : `${w.title}, ${w.figures[0]!.figure === null ? 'no figure' : money(w.figures[0]!.figure)}`
+            }
           >
             <WayFace col={col} way={w} compact={compact} ringed={ringed?.id === w.id} />
           </Tile>
         ))}
+        {one ? <Leaves col={col} way={ways[0]!} go={ctx.go} sheet={ctx.sheet} /> : null}
       </div>
       {c.between ? <BetweenSaid col={col} go={ctx.go} /> : null}
       {pick && !(named && pick.current) ? (
@@ -908,7 +928,7 @@ function Chooser({
                     ctx.apply(
                       col.id,
                       command,
-                      `Every ${col.noun.one} is already priced at its ${pick.figures[0]!.label}.`,
+                      `Nothing changed: ${col.name} already reads ${pick.figures[0]!.label}.`,
                     )
                   )
                     onDone()
@@ -922,9 +942,9 @@ function Chooser({
             </>
           }
         >
-          <p className="lv-census__said">{chooseSaid(col, pick, current, sample)}</p>
+          <p className="lv-census__said">{chooseSaid(col, pick, current, sample, one)}</p>
           <OnTheDesk col={col} standing={ctx.standing(col)} go={ctx.go} quote={ctx.quote} />
-          {pick.priced < col.lines ? (
+          {pick.priced < col.lines && !one ? (
             <NotPricedBy col={col} way={pick} go={ctx.go} sheet={ctx.sheet} />
           ) : null}
         </Census>
@@ -971,7 +991,11 @@ function WayFace({
           {way.figures.map((f) => (
             <span key={f.key} className="lv-way__rung">
               <span className="lv-way__who">{rungWho(f)}</span>
-              <span className="lv-way__amount">{f.figure === null ? 'None' : money(f.figure)}</span>
+              {compact ? null : (
+                <span className="lv-way__amount">
+                  {f.figure === null ? 'None' : money(f.figure)}
+                </span>
+              )}
               <span className="lv-way__col">{f.label}</span>
               {f.meaning && !compact ? (
                 <span className="lv-way__said">{f.meaning.said}</span>
@@ -1063,27 +1087,39 @@ function BetweenSaid({ col, go }: { col: Column; go: (href: string) => void }) {
 }
 
 /** What naming a way would do, counted, in the dealer's words. */
-function chooseSaid(col: Column, w: WayView, current: WayView | null, sample: Sample): string {
+function chooseSaid(
+  col: Column,
+  w: WayView,
+  current: WayView | null,
+  sample: Sample,
+  alone: boolean,
+): string {
   const cash = w.figures[0]!
   const rest = col.lines - w.priced
   const kept = w.kept
     ? ` It starts as Northside’s own: a quote with a ${col.noun.one} on it cannot be given until you let it reach a customer.`
     : ''
+  /* NEVER "EVERY" OVER A COUNT THAT SAYS OTHERWISE, on a list that already reads a price as on one
+     that reads none (the verifier, round 2: "Every dealer fit package on a new quote shows its Act
+     Sell" stood over "Open the 44 with nothing in Act Sell") */
+  const which =
+    rest > 0
+      ? `${n(w.priced)} of ${n(col.lines)} ${col.noun.many} on a new quote show their ${cash.label}`
+      : `Every ${col.noun.one} on a new quote shows its ${cash.label}`
+  /* the one way of a list: what it leaves stands beside its tile already (`Leaves`) */
+  const left =
+    rest > 0 && !alone ? ` The other ${n(rest)} ${leftSaid(cash.label)}, each on its own line.` : ''
   if (col.cash.state === 'not-priced' || !current)
-    return `${n(w.priced)} of ${n(col.lines)} ${col.noun.many} are priced at their ${cash.label} from the next quote.${
-      rest > 0
-        ? ` The other ${n(rest)} hold no ${cash.label}, so they are still priced by hand, each on its own line.`
-        : ''
-    }${kept}`
+    return `${n(w.priced)} of ${n(col.lines)} ${col.noun.many} are priced at their ${cash.label} from the next quote.${left}${kept}`
   if (w.current)
-    return `Every ${col.noun.one} on a new quote shows its ${cash.label}, as it does today. No figure changes; it becomes your choice.`
+    return `${which}, as ${rest > 0 ? 'they do' : 'it does'} today. No figure changes; it becomes your choice.${left}`
   const from = current.figures[0]!.figure
   const to = cash.figure
-  return `Every ${col.noun.one} on a new quote shows its ${cash.label}${
+  return `${which}${
     from !== null && to !== null
       ? `: the ${sample.name} goes from ${money(from)} to ${money(to)}.`
       : '.'
-  }${kept}`
+  }${left}${kept}`
 }
 
 function chooseAct(col: Column, w: WayView): string {
@@ -1094,6 +1130,35 @@ function chooseAct(col: Column, w: WayView): string {
   if (w.figures.length > 1)
     return `Price ${n(w.priced)} ${col.noun.many.split(' ').at(-1) ?? ''} ${w.title.toLowerCase()}`
   return `Price ${n(w.priced)} at ${w.title}`
+}
+
+/** WHAT A LIST'S ONE WAY LEAVES, beside its tile: how many lines it would not price, and a door
+ *  to each kind of nothing (the verifier, round 2: five factory packages under $0 had no door, and
+ *  the one tile left half the panel empty). */
+function Leaves({
+  col,
+  way,
+  go,
+  sheet,
+}: {
+  col: Column
+  way: WayView
+  go: (href: string) => void
+  sheet: Sheet
+}) {
+  const left = col.lines - way.priced
+  const label = way.figures[0]!.label
+  return (
+    <div className="lv-leaves">
+      <p className="lv-leaves__head">What it leaves</p>
+      <p className="lv-leaves__said">
+        {left === 0
+          ? `Every ${col.noun.one} holds a ${label} a quote can read.`
+          : `${n(left)} of ${n(col.lines)} ${col.noun.many} ${leftSaid(label)}, each on its own line.`}
+      </p>
+      {left > 0 ? <NotPricedBy col={col} way={way} go={go} sheet={sheet} /> : null}
+    </div>
+  )
 }
 
 /** THE LINES A WAY WOULD NOT PRICE, with the door to them on the sheet. */
@@ -1252,6 +1317,21 @@ function bringCount(count: HTMLElement | null, bar: HTMLElement | null): void {
     if (foot > limit) by = foot - limit
     else if (top < clearTop) by = top - clearTop
   } else by = top - clearTop
+  if (Math.abs(by) < 1) return
+  /* NEVER THE PANEL'S NAME CUT UNDER THE PILL (the verifier, round 2: "Tiller Conversion Kit ·
+     F20G" stood half behind it at 1440 and 1920): it is kept whole below the pill where the count
+     and its act still fit under it, and otherwise carried wholly out of the window */
+  const head = count.closest('.lv-open')?.querySelector('.lv-specimen__name')
+  if (head) {
+    const r = head.getBoundingClientRect()
+    if (r.top - by < clearTop && r.bottom - by > 0) {
+      const keep = r.top - clearTop
+      /* the name whole under the pill where the count and its act still fit; else carried wholly
+         out of the window, never left half behind the pill */
+      if (keep < by && foot - keep <= limit) by = keep
+      else if (top - r.bottom >= clearTop) by = Math.max(by, r.bottom)
+    }
+  }
   if (Math.abs(by) < 1) return
   window.scrollBy({ top: by, behavior: reducedMotion() ? 'auto' : 'smooth' })
 }
@@ -1428,7 +1508,7 @@ function Settled({
   const stepLine = stepAt < 0 ? null : stepOn(cols[stepAt]!.id)
   const stepAfter = rowEnd(stepAt)
   return (
-    <div className="lv-settled" ref={grid}>
+    <div className="lv-settled" ref={grid} data-n={cols.length}>
       {cols.map((col, i) => (
         <Fragment key={col.id}>
           <div
@@ -1664,7 +1744,9 @@ function ListBuyers({
       said: '',
       cell: '',
       figure: c.figure === null ? 'None' : money(c.figure),
-      rule: `No Trade price on this list, so a trade buyer’s quote stays at ${t.to}.`,
+      rule: t.carried
+        ? `No Trade price is named for this list, so a trade buyer’s quote stays at ${t.to}. Its own ${t.carried.label}${t.carried.cell !== '' ? ` (${t.carried.cell})` : ''} holds the same figure on ${t.carried.same === t.carried.of ? `all ${n(t.carried.of)}` : `${n(t.carried.same)} of ${n(t.carried.of)}`}.`
+        : `No Trade price on this list, so a trade buyer’s quote stays at ${t.to}.`,
     })
   }
   const w = col.warranty
@@ -1902,6 +1984,7 @@ function Share({
   const today = t.state === 'reads' && t.share !== null ? String(t.share) : ''
   const [typed, setTyped] = useState(today)
   const read = readShare(typed, of)
+  const refused = 'refused' in read && typed.trim() !== ''
   const percent = 'percent' in read ? read.percent : null
   const lead = col.tableIds[0]!
   const plan = useMemo(
@@ -1964,13 +2047,18 @@ function Share({
             />
           </span>
         </label>
-        <p className="lv-share__now">{nowSaid}</p>
+        {/* THE SHARE'S REASON STANDS UNDER TODAY'S SHARE, beside the field it refuses, never in a
+            column of its own under the field beside empty space (the verifier, round 2, 1440) */}
+        <div className="lv-share__said">
+          <p className="lv-share__now">{nowSaid}</p>
+          {refused ? (
+            <p className="lv-share__why">
+              <Refusal>{read.refused}</Refusal>
+            </p>
+          ) : null}
+        </div>
       </div>
-      {'refused' in read && typed.trim() !== '' ? (
-        <p className="lv-share__why">
-          <Refusal>{read.refused}</Refusal>
-        </p>
-      ) : plan && !plan.command && plan.refusal ? (
+      {refused ? null : plan && !plan.command && plan.refusal && touched ? (
         <p className="lv-share__nothing">
           <Icon glyph={InfoIcon} /> {plan.refusal}
         </p>
@@ -1989,7 +2077,7 @@ function Share({
                       apply(
                         col.id,
                         plan.command,
-                        `Every ${col.noun.one} already holds ${percent}% of ${of} as ${t.label}.`,
+                        `Every ${col.noun.one} with a ${of} figure already holds ${percent}% of it as ${t.label}.`,
                       )
                     )
                       onDone()

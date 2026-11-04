@@ -60,16 +60,38 @@ describe('one figure against another', () => {
 })
 
 describe('what a count of no figure is made of', () => {
-  it('tells nothing written from a nought from a word', () => {
+  it('tells nothing written from a nought, a figure under nought and a word', () => {
     expect(
       noFigureIn(
-        [line('1', { a: null }), line('2', { a: 0 }), line('3', { a: 'POA' }), line('4', { a: 5 })],
+        [
+          line('1', { a: null }),
+          line('2', { a: 0 }),
+          line('3', { a: 'POA' }),
+          line('4', { a: 5 }),
+          line('5', { a: -2030 }),
+          line('6', { a: -531, b: 'CREDIT - Battery Switch' }),
+        ],
         'a',
       ),
-    ).toEqual({ blank: 1, nought: 1, words: 1 })
+    ).toEqual({ blank: 1, nought: 1, under: 1, words: 1 })
+  })
+
+  it('counts the five Jeanneau factory packages under $0 apart from the eleven at it', () => {
+    expect(noFigureIn(rows('mot_pkg_jeanneau'), 'mot_pkg_jeanneau.bf')).toEqual({
+      blank: 0,
+      nought: 11,
+      under: 5,
+      words: 0,
+    })
   })
 
   it('reads Parts’ 146 with no Sell as 27 with nothing and 119 at nought', () => {
-    expect(noFigureIn(rows('parts'), 'parts.l')).toEqual({ blank: 27, nought: 119, words: 0 })
+    /* every line of the list, discontinued among them: Prices counts the lines on sale itself */
+    expect(noFigureIn(rows('parts'), 'parts.l')).toEqual({
+      blank: 27,
+      nought: 119,
+      under: 0,
+      words: 0,
+    })
   })
 })

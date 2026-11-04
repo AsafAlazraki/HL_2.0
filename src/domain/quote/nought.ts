@@ -47,9 +47,17 @@ import {
 import { money } from '@/domain/money'
 import { parseAmount } from './pricing'
 
+/** THE REGISTERS THAT SELL A WHOLE THING — a boat, a motor, a trailer, a package of them — whose
+ *  figure under nought is no price. Measured 2026-11-04 (the verifier of Prices, round 2): five
+ *  Jeanneau factory packages with Mercury motors hold −$2,030 to −$29,390 in Sell Price, RRP and
+ *  Trade alike, and a quote froze one as a credit. A part's figure under nought is the file's own
+ *  credit ("CREDIT - Batteries", −$531) and passes untouched (`src/domain/pricing/credit.ts`). */
+const WHOLE = new Set(['boat', 'motor', 'trailer', 'package'])
+
 /**
  * The rungs of one row, as a quote may freeze them. A boat register's
- * nought is no figure; every other register's rungs pass through
+ * nought is no figure, and so is a figure under nought on any register
+ * that sells a whole thing; every other register's rungs pass through
  * untouched, so a nought on a part still reads as the file's "no
  * charge".
  */
@@ -57,8 +65,13 @@ export function boatRungs(
   entity: Pick<EntityDef, 'kind'> | undefined,
   levels: readonly FrozenLevel[],
 ): FrozenLevel[] {
-  if (entity?.kind !== 'boat') return [...levels]
-  return levels.map((level) => (level.value === 0 ? { ...level, value: null } : level))
+  const kind = entity?.kind ?? ''
+  if (!WHOLE.has(kind)) return [...levels]
+  return levels.map((level) =>
+    (kind === 'boat' && level.value === 0) || (level.value !== null && level.value < 0)
+      ? { ...level, value: null }
+      : level,
+  )
 }
 
 /** The hull's own line: the first line of the subject's section. */

@@ -102,6 +102,21 @@ describe('boatRungs', () => {
       expect(boatRungs(kind ? ({ kind } as EntityDef) : undefined, levels)).toEqual(levels)
     }
   })
+
+  it('reads a figure under nought as no figure on a register that sells a whole thing, and keeps a part’s credit', () => {
+    /* the Jeanneau MF1095FLYS2 with Mercury Twin 300 HP: −$29,390 in Sell Price and Trade Price */
+    const minus = [rung('cash', -29_390), rung('trade', -29_390), rung('rrp', 0)]
+    for (const kind of ['package', 'motor', 'trailer', 'boat'] as const) {
+      expect(boatRungs({ kind } as EntityDef, minus).map((l) => l.value)).toEqual([
+        null,
+        null,
+        kind === 'boat' ? null : 0,
+      ])
+    }
+    /* "CREDIT - Batteries (2 x MFM70)", −$531 on Parts & Accessories */
+    const credit = [rung('cash', -531)]
+    expect(boatRungs({ kind: 'accessory' } as EntityDef, credit)).toEqual(credit)
+  })
 })
 
 describe('a boat the file holds at nought, quoted', () => {

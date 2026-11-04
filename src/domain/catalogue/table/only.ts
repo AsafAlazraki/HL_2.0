@@ -37,10 +37,15 @@ export type Only =
   | { kind: 'empty'; fieldId: string }
   /** a yes/no column says yes — Discontinued */
   | { kind: 'yes'; fieldId: string }
+  /** a yes/no column does not say yes — a line still sold, asked beside another question by a
+   *  count that is of lines on sale (Prices, `src/screens/levels/read.ts`) */
+  | { kind: 'not'; fieldId: string }
   /** one figure on the line is under another on the same line */
   | { kind: 'under'; fieldId: string; than: string }
   /** a figure compared with a number a person typed */
   | { kind: 'at-least' | 'at-most'; fieldId: string; value: number }
+  /** a figure strictly under a number — a price under nought, which is no price (`credit.ts`) */
+  | { kind: 'below'; fieldId: string; value: number }
   /** the line differs from the price file as it came */
   | { kind: 'changed' }
 
@@ -50,11 +55,13 @@ export function onlyToken(o: Only): string {
   switch (o.kind) {
     case 'empty':
     case 'yes':
+    case 'not':
       return `${o.kind}${SEP}${o.fieldId}`
     case 'under':
       return `under${SEP}${o.fieldId}${SEP}${o.than}`
     case 'at-least':
     case 'at-most':
+    case 'below':
       return `${o.kind}${SEP}${o.fieldId}${SEP}${o.value}`
     case 'changed':
       return 'changed'
@@ -69,11 +76,15 @@ export function readOnlyToken(token: string, table: EntityDef): Only | null {
     id !== undefined && table.fields.some((f) => f.id === id)
   const [kind, a, b] = parts
   if (kind === 'changed' && parts.length === 1) return { kind: 'changed' }
-  if ((kind === 'empty' || kind === 'yes') && parts.length === 2 && has(a))
+  if ((kind === 'empty' || kind === 'yes' || kind === 'not') && parts.length === 2 && has(a))
     return { kind, fieldId: a }
   if (kind === 'under' && parts.length === 3 && has(a) && has(b) && a !== b)
     return { kind, fieldId: a, than: b }
-  if ((kind === 'at-least' || kind === 'at-most') && parts.length === 3 && has(a)) {
+  if (
+    (kind === 'at-least' || kind === 'at-most' || kind === 'below') &&
+    parts.length === 3 &&
+    has(a)
+  ) {
     const value = Number(b)
     if (b !== undefined && b.trim() !== '' && Number.isFinite(value))
       return { kind, fieldId: a, value }
@@ -139,6 +150,12 @@ export function keeps(row: ViewRow, o: Only, ctx: OnlyContext = {}): boolean {
       return isEmptyValue(row.values[o.fieldId])
     case 'yes':
       return row.values[o.fieldId] === true
+    case 'not':
+      return row.values[o.fieldId] !== true
+    case 'below': {
+      const a = figureIn(row.values[o.fieldId])
+      return a !== null && a < o.value
+    }
     case 'under': {
       const a = figureIn(row.values[o.fieldId])
       const b = figureIn(row.values[o.than])
@@ -184,6 +201,10 @@ export function onlySaid(table: EntityDef, o: Only): string {
     }
     case 'yes':
       return nameOf(table, o.fieldId)
+    case 'not':
+      return `Not ${nameOf(table, o.fieldId).toLowerCase()}`
+    case 'below':
+      return `${nameOf(table, o.fieldId)} under ${plain.format(o.value)}`
     case 'under':
       return `${nameOf(table, o.fieldId)} under ${nameOf(table, o.than)}`
     case 'at-least':

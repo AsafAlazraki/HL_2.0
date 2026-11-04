@@ -111,9 +111,11 @@ test('a share of Cash is counted before it is written, written for real, and one
 
   const share = stacer.getByRole('textbox', { name: 'Trade as a share of Cash, in per cent' })
   await expect(share).toHaveValue('100')
+  /* today's share, said once (the verifier of Prices, round 2: it was said twice) */
   await expect(
-    stacer.getByText('Every Stacer boat with a Cash figure already holds 100% of it as Trade.'),
+    stacer.getByText('Today Trade is the same as Cash on every Stacer boat that has one.'),
   ).toBeVisible()
+  await expect(stacer.getByText(/already holds 100% of it as Trade/)).toHaveCount(0)
 
   await share.fill('95')
   await expect(stacer.getByTestId('census')).toHaveText(
@@ -165,15 +167,15 @@ test('Rigging Kits are priced supplied or fitted, cash and trade, counted first,
   await expect(way).toHaveAttribute('aria-pressed', 'false')
   await way.click()
   await expect(
-    kits.getByText(/^628 of 650 rigging kits are priced at their Kit Sell Price/),
+    kits.getByText(/^600 of 615 rigging kits are priced at their Kit Sell Price/),
   ).toBeVisible()
-  const act = kits.getByRole('button', { name: 'Price 628 kits supplied, or fitted' })
+  const act = kits.getByRole('button', { name: 'Price 600 kits supplied, or fitted' })
   /* the act stands in the window once a way is pressed, at every size, and its bar covers none of
      the count it acts on (the verifier, 2026-11-04: at 390 and 844 × 390 it covered the count's
      second door, and the count was out of sight) */
   await expect(act).toBeInViewport({ ratio: 1 })
   const count = kits.locator('.lv-census')
-  await expect(count.getByText(/^628 of 650 rigging kits/)).toBeInViewport({ ratio: 1 })
+  await expect(count.getByText(/^600 of 615 rigging kits/)).toBeInViewport({ ratio: 1 })
   await expect
     .poll(async () => {
       const c = await count.boundingBox()
@@ -187,10 +189,10 @@ test('Rigging Kits are priced supplied or fitted, cash and trade, counted first,
     'Yours to choose 3',
   )
   await expect(
-    settled(page).getByRole('button', { name: /^Rigging Kits, 650 kits: .* · 22 not priced$/ }),
+    settled(page).getByRole('button', { name: /^Rigging Kits, 615 kits: .* · 15 not priced$/ }),
   ).toBeVisible()
   await expect(settled(page).getByTestId('last-step')).toContainText(
-    '628 of 650 rigging kits are priced at their Kit Sell Price, a trade buyer at Trade Price, fitted at Sell Price and fitted for a trade buyer at Trade Price, from the next quote.',
+    '600 of 615 rigging kits are priced at their Kit Sell Price, a trade buyer at Trade Price, fitted at Sell Price and fitted for a trade buyer at Trade Price, from the next quote.',
   )
 
   /* who chose it, and when, is kept with the price list: it is still said after a reload */
@@ -223,10 +225,14 @@ test('a line is looked up by its code, and each buyer’s price stands with its 
 test('a count opens the lines behind it on the sheet', async ({ page }) => {
   await throughTheDoor(page)
   await toPrices(page, 'parts')
-  await opened(page).getByRole('link', { name: 'Open the 119 at $0 in Sell' }).click()
+  /* of the parts on sale: the door asks the sheet those lines, and only noughts, never Parts' two
+     credits under $0 (the verifier of Prices, round 2) */
+  await opened(page).getByRole('link', { name: 'Open the 116 at $0 in Sell' }).click()
   await expect(page).toHaveURL(/\/data\/parts\?only=at-most(~|%7E)parts\.l(~|%7E)0/)
-  /* the sheet asked exactly that question: its chip says it */
+  /* the sheet asked exactly that question: its chips say it */
   await expect(page.getByText('Sell at most 0').first()).toBeVisible()
+  await expect(page.getByText('Sell at least 0').first()).toBeVisible()
+  await expect(page.getByText('Not discontinued').first()).toBeVisible()
 })
 
 test('a settled tile opens across its own row, after the row’s last tile', async ({ page }) => {

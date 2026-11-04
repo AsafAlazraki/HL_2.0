@@ -38,6 +38,8 @@ export interface PlaceAt {
   see?: 'compare'
   /** the heading open on a list that is not a boat maker */
   in?: string
+  /** every model drawn, past the first two dozen of a large maker (`?models=all`) */
+  all?: boolean
 }
 
 /** A value as the address carries it. The router reads a value that looks like a figure as one
@@ -72,6 +74,7 @@ export function readPlaceAt(search: Record<string, unknown>): PlaceAt {
     if (keys.length > 0) at.compare = keys.slice(0, COMPARE_MOST)
   }
   if (search.see === 'compare') at.see = 'compare'
+  if (search.models === 'all') at.all = true
   const open = str(search.in)
   if (open !== undefined) at.in = open
   return at
@@ -86,5 +89,6 @@ export function writePlaceAt(at: PlaceAt): Record<string, string> {
   if (at.compare && at.compare.length > 0) out.compare = at.compare.join(',')
   if (at.see) out.see = at.see
   if (at.in !== undefined) out.in = at.in
+  if (at.all) out.models = 'all'
   return out
 }

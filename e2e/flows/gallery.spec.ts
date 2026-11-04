@@ -225,26 +225,23 @@ test('Fitment: the boat’s window opens its gallery on the picture it draws', a
   await expect(press).toBeFocused()
 })
 
-test('a place’s range: a heading opens its photographs on the water, each named by its model', async ({
+test('a maker’s own page: its head opens every one of its photographs on the water, each named by its model', async ({
   page,
 }, info) => {
+  /* REWRITTEN 2026-11-04 (the data round's line-up): the series tiles that each opened their own
+     photographs are gone; the head's one press opens all of the maker's, as the judge asked */
   await page.goto('/places/boat_highfield')
   await expect(page.locator('[data-testid="place"][data-read]')).toBeVisible({ timeout: 30_000 })
-  const press = page
-    .getByRole('button', { name: /^See the \d+ photographs of the .+ larger$/ })
-    .first()
-  await press.scrollIntoViewIfNeeded()
+  const press = page.getByRole('button', { name: /^See the \d+ photographs$/ })
   await expect(press).toBeVisible()
-  const n = Number(
-    /See the (\d+) photographs/.exec((await press.getAttribute('aria-label')) ?? '')?.[1],
-  )
+  const n = Number(/See the (\d+) photographs/.exec((await press.textContent()) ?? '')?.[1])
   expect(n).toBeGreaterThan(1)
-  await shot(page, 'range-tile', info.project.name, press.locator('xpath=ancestor::li[1]'))
+  await shot(page, 'range-tile', info.project.name, page.locator('.pl-livery'))
   await press.click()
   /* the picture large, by its own name: in a hand the line's details are a dialog too */
   const large = page.getByRole('dialog').and(page.locator('.ui-lightbox'))
   await expect(large.locator('.ui-lightbox-count')).toHaveText(new RegExp(`^1 of ${n} · `))
-  /* a series' photographs are the maker's: there is nothing here to add to or take off */
+  /* a maker's photographs are the maker's: there is nothing here to add to or take off */
   await expect(large.getByRole('button', { name: 'Add pictures' })).toHaveCount(0)
   await page.keyboard.press('ArrowRight')
   await expect(large.locator('.ui-lightbox-count')).toHaveText(new RegExp(`^2 of ${n} · `))

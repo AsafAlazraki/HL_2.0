@@ -10,6 +10,7 @@ import { catalogue } from '@/state/catalogue'
 import { namePrice, CASH } from '@/domain/catalogue/priceCommands'
 import { isDone } from '@/domain/catalogue/commands'
 import {
+  doorsOf,
   lineEntries,
   questionOf,
   readDesk,
@@ -35,11 +36,13 @@ beforeAll(async () => {
 })
 
 describe('the desk', () => {
-  it('puts the four open questions first, by how many lines each answer prices', () => {
+  it('puts the four open questions first, by how many lines on sale each answer prices', () => {
     const desk = readDesk(sheet(), readLadder(sheet()))
+    /* lines on sale only: Dealer Fit's 1,777 less its 201 discontinued, Rigging Kits' 650 less 28
+       discontinued and 7 banner rows (the verifier of Prices, round 2) */
     expect(desk.choose.map((c) => [c.name, c.lines])).toEqual([
-      ['Dealer Fit', 1777],
-      ['Rigging Kits', 650],
+      ['Dealer Fit', 1576],
+      ['Rigging Kits', 615],
       ['Yamaha Outboards', 209],
       ['Factory packages', 89],
     ])
@@ -70,8 +73,9 @@ describe('the desk', () => {
     expect(fact('boat_stacer')).toBe('One price for every buyer')
     expect(fact('boat_highfield')).toBe('Trade is 95% of Cash')
     expect(fact('boat_formosa')).toBe('One price for every buyer · 9 not priced')
-    expect(fact('boat_jeanneau')).toBe('One price for every buyer · 8 with no Trade')
-    expect(fact('parts')).toBe('Sell, or Sell inc Install fitted · 146 not priced')
+    /* never "one price for every buyer" over eight boats a trade buyer cannot be priced on */
+    expect(fact('boat_jeanneau')).toBe('Trade is Cash on 19 · 8 with no Trade')
+    expect(fact('parts')).toBe('Sell, or Sell inc Install fitted · 141 not priced')
     const haines = cols.find((c) => c.id === 'boat_haines')!
     expect(soldAsPackage(sheet(), haines)).toBe('Haines Signature Factory Packages')
   })
@@ -83,16 +87,22 @@ describe('what Northside is asked, with its grounds', () => {
     expect(fit.cash.state).toBe('not-priced')
     if (fit.cash.state !== 'not-priced') return
     const [act, sell] = fit.cash.ways
-    expect([act!.title, act!.priced, sell!.title, sell!.priced]).toEqual([
+    expect([fit.lines, act!.title, act!.priced, sell!.title, sell!.priced]).toEqual([
+      1576,
       'Act Sell',
-      1733,
+      1574,
       'Sell',
-      815,
+      635,
     ])
     expect(act!.figures[0]!.meaning?.cell).toBe('Dealer Fit Module!R')
-    expect(act!.figures[0]!.checked).toEqual({ holds: 1721, of: 1733 })
+    expect(act!.figures[0]!.checked).toEqual({ holds: 1562, of: 1574 })
     const b = fit.cash.between!
-    expect([b.more, b.less, b.spread.both, b.spread.equal]).toEqual(['Act Sell', 'Sell', 789, 0])
+    expect([b.more, b.less, b.spread.both, b.spread.equal]).toEqual(['Act Sell', 'Sell', 635, 0])
+    /* the door asks the sheet the lines counted: on sale, Act Sell under Sell */
+    expect([b.under?.count, b.under?.href]).toEqual([
+      7,
+      '/data/dealer_fit?only=under~dealer_fit.r~dealer_fit.w%2Cnot~__discontinued',
+    ])
   })
 
   it('asks the factory packages one figure under two names, never a cost the engine would refuse', () => {
@@ -104,19 +114,54 @@ describe('what Northside is asked, with its grounds', () => {
     expect(pkgs.cash.sample?.bare).toBe(true)
   })
 
+  it('never counts a factory package under $0 as priced, and opens those five with their own door', () => {
+    const pkgs = readLadder(sheet()).find((c) => c.name === 'Factory packages')!
+    if (pkgs.cash.state !== 'not-priced') throw new Error('priced')
+    /* 39 Haines and 34 Jeanneau hold a Sell Price above $0; 11 Jeanneau hold $0 and 5 under it */
+    expect([pkgs.lines, pkgs.cash.ways[0]!.priced]).toEqual([89, 73])
+    const tables = pkgs.tableIds.map((id) => sheet().tables[id]!)
+    const doors = doorsOf(sheet(), tables, pkgs.cash.ways[0]!.figures[0]!.fieldId)
+    expect(doors.map((d) => [d.count, d.said, d.href])).toEqual([
+      [
+        11,
+        'at $0 on Jeanneau',
+        '/data/mot_pkg_jeanneau?only=at-most~mot_pkg_jeanneau.bf~0%2Cat-least~mot_pkg_jeanneau.bf~0',
+      ],
+      [5, 'under $0 on Jeanneau', '/data/mot_pkg_jeanneau?only=below~mot_pkg_jeanneau.bf~0'],
+    ])
+  })
+
+  it('says, once Sell Price is named, that the packages carry their own Trade Price, equal to it', () => {
+    const named = ['mot_pkg_haines', 'mot_pkg_jeanneau'].map((id) =>
+      catalogue.getState().apply(namePrice(id, CASH, `${id}.bf`)),
+    )
+    const pkgs = readLadder(sheet()).find((c) => c.name === 'Factory packages')!
+    expect(pkgs.cash.state === 'reads' && [pkgs.cash.priced, pkgs.cash.none]).toEqual([73, 16])
+    expect(pkgs.trade).toEqual({
+      state: 'falls',
+      to: 'Sell Price',
+      carried: { label: 'Trade Price', cell: 'Motor Library!BL', same: 73, of: 73 },
+    })
+    for (const o of named.toReversed()) if (isDone(o)) catalogue.getState().undo(o.event.id)
+  })
+
   it('asks Rigging Kits how a kit is sold, and says a sub-dealer pays the trade figure', () => {
     const kits = readLadder(sheet()).find((c) => c.id === 'rig_kits')!
     expect(questionOf(kits)).toMatch(/^How is a rigging kit sold: supplied, or always fitted?/)
-    expect(kits.sub).toEqual({ label: 'Sub Dealer Price', held: 628, sameAsTrade: 628 })
+    expect(kits.sub).toEqual({ label: 'Sub Dealer Price', held: 600, sameAsTrade: 600 })
   })
 
   it('opens the lines behind each count of no figure, one door per kind of nothing', () => {
     const parts = readLadder(sheet()).find((c) => c.id === 'parts')!
+    /* of the 2,238 parts on sale; Parts' two credits (−$531, −$115) are prices, and "at most 0"
+       alone would show them beside the noughts, so the nought door asks "at least 0" too */
     expect(parts.doors.cash.map((d) => [d.count, d.said])).toEqual([
-      [27, 'with nothing in Sell'],
-      [119, 'at $0 in Sell'],
+      [25, 'with nothing in Sell'],
+      [116, 'at $0 in Sell'],
     ])
-    expect(parts.doors.cash[1]!.href).toBe('/data/parts?only=at-most~parts.l~0')
+    expect(parts.doors.cash[1]!.href).toBe(
+      '/data/parts?only=at-most~parts.l~0%2Cat-least~parts.l~0%2Cnot~__discontinued',
+    )
     const stacer = readLadder(sheet()).find((c) => c.id === 'boat_stacer')!
     expect(stacer.warranty?.above).toBe(8)
     expect(stacer.doors.warranty[0]?.count).toBe(8)

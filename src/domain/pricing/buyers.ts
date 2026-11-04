@@ -26,10 +26,10 @@
    Pure: no React, no store.
    ============================================================ */
 
-import { CASH, ladderOn, priceIn } from '@/domain/catalogue/priceCommands'
+import { CASH, ladderOn, priceIn, underNoughtIn } from '@/domain/catalogue/priceCommands'
 import { mayReachCustomer } from '@/domain/pricing/worked'
 import { cellOf } from '@/domain/pricing/meaning'
-import { sellFigures, type SellFigure } from '@/domain/pricing/unchosen'
+import { sellColumns, sellFigures, type SellFigure } from '@/domain/pricing/unchosen'
 import { LEVEL_TITLE, type EntityDef, type PriceLevel, type RowData } from '@/domain/model'
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 
@@ -44,6 +44,9 @@ export type BuyerState =
   | 'falls'
   /** the list has the price and this line holds nothing in it: a quote cannot price it */
   | 'blank'
+  /** the list has the price and this line holds a figure under nought in it, which is no price
+   *  (`src/domain/pricing/credit.ts`): a quote cannot price it */
+  | 'under'
   /** the list names no price at all: Northside has not chosen one */
   | 'unchosen'
   /** on the price list, and no quote is priced at it */
@@ -64,6 +67,15 @@ export interface BuyerPrice {
   northsideOnly: boolean
   /** where Northside has not chosen: the sell figures the line holds, in the file's order */
   could?: SellFigure[]
+  /** the figure under nought the line holds in the column ('under'), or, where Northside has not
+   *  chosen, the sell columns holding one */
+  under?: SellFigure[]
+  /** A TRADE BUYER WHO FALLS TO THE FIRST PRICE ON A LIST THAT CARRIES ITS OWN TRADE COLUMN, never
+   *  named: the factory packages' Trade Price (Motor Library!BL), equal to their Sell Price on every
+   *  priced line (the verifier of Prices, round 2: "The list has no Trade price" was false) */
+  carried?: { column: string; cell: string; figure: number | null }
+  /** a trade buyer read at the list's first price because the list names no Trade price */
+  fell?: true
 }
 
 const WHO: Record<BuyerKey, string> = {
@@ -88,14 +100,16 @@ function read(
 ): BuyerPrice {
   const field = table.fields.find((f) => f.id === level.fieldId)
   const figure = priceIn(row, level.fieldId)
+  const under = figure === null ? underNoughtIn(row, level.fieldId) : null
   return {
     key,
     who: WHO[key],
-    state: figure === null ? 'blank' : 'reads',
+    state: figure !== null ? 'reads' : under !== null ? 'under' : 'blank',
     figure,
     column: level.label,
     cell: field ? cellOf(field) : '',
     northsideOnly: !mayReachCustomer(table, level) && level !== first,
+    ...(under !== null ? { under: [{ label: level.label, figure: under }] } : {}),
   }
 }
 
@@ -118,6 +132,10 @@ export function buyersOf(data: Sheet, table: EntityDef, row: RowData): BuyerPric
       cell: '',
       northsideOnly: false,
       could: sellFigures(table, row),
+      under: sellColumns(table).flatMap((f) => {
+        const v = underNoughtIn(row, f.id)
+        return v === null ? [] : [{ label: f.name, figure: v }]
+      }),
     })
     return out
   }
@@ -128,13 +146,22 @@ export function buyersOf(data: Sheet, table: EntityDef, row: RowData): BuyerPric
 
   const trade = ladder.find((l) => l.key === 'trade')
   if (trade) out.push(read(table, row, 'trade', trade, cash))
-  else
+  else {
+    /* the list's own trade column, where it carries one and no price names it */
+    const own = table.fields.find(
+      (f) => /^trade\b/i.test(f.name.trim()) && !ladder.some((l) => l.fieldId === f.id),
+    )
     out.push({
       ...customer,
       key: 'trade',
       who: WHO.trade,
-      state: customer.state === 'blank' ? 'blank' : 'falls',
+      state: customer.state === 'reads' ? 'falls' : customer.state,
+      fell: true,
+      ...(own
+        ? { carried: { column: own.name, cell: cellOf(own), figure: priceIn(row, own.id) } }
+        : {}),
     })
+  }
 
   for (const key of ['warranty', 'fitted', 'fitted-trade'] as const) {
     const level = ladder.find((l) => l.key === key)
@@ -201,10 +228,10 @@ export function findLines(entries: readonly LineEntry[], query: string, limit = 
 }
 
 /**
- * THE LINES FOUND, AND HOW MANY ANSWERED. EVERY LIST ANSWERING HAS ITS BEST LINE SHOWN before any
- * list has a second (the verifier of Prices, 2026-11-04: "Tiller Conversion Kit" filled all six
- * places with Dealer Fit packages, and the Rigging Kit of that name could be found only by its
- * code); the rest fill by rank, and what is shown stands in the order the ranking gives.
+ * THE LINES FOUND, AND HOW MANY ANSWERED. EVERY LIST ANSWERING HAS ITS BEST LINE SHOWN, AND SHOWN
+ * FIRST, before any list's second (the verifier of Prices, 2026-11-04: "Tiller Conversion Kit"
+ * filled all six places with Dealer Fit packages; round 2: "704 Binnacle" showed the Rigging Kit
+ * of that name sixth, under four Dealer Fit packages of the same name); the rest fill by rank.
  */
 export function searchLines(
   entries: readonly LineEntry[],
@@ -241,7 +268,7 @@ export function searchLines(
     shown.add(s)
   }
   return {
-    lines: sorted.filter((s) => shown.has(s)).map((s) => s.e),
+    lines: [...shown].map((s) => s.e),
     total: sorted.length,
   }
 }

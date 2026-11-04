@@ -19,7 +19,7 @@
    Pure: no React, no store.
    ============================================================ */
 
-import { priceIn } from '@/domain/catalogue/priceCommands'
+import { priceIn, underNoughtIn } from '@/domain/catalogue/priceCommands'
 import type { CellValue, RowData } from '@/domain/model'
 
 /** One figure against another, over every line that holds both. */
@@ -118,17 +118,21 @@ const nought = (v: CellValue | undefined): boolean =>
 export interface NoFigure {
   blank: number
   nought: number
+  /** a figure under nought on a line that is not a credit (`credit.ts`): five Jeanneau factory
+   *  packages, −$2,030 to −$29,390. The sheet asks it as `below~…~0`. */
+  under: number
   /** a word or a mark that is not a figure ("POA", "Std") */
   words: number
 }
 
 export function noFigureIn(rows: readonly RowData[], fieldId: string): NoFigure {
-  const out: NoFigure = { blank: 0, nought: 0, words: 0 }
+  const out: NoFigure = { blank: 0, nought: 0, under: 0, words: 0 }
   for (const row of rows) {
     if (priceIn(row, fieldId) !== null) continue
     const v = row.values[fieldId]
     if (blank(v)) out.blank += 1
     else if (nought(v)) out.nought += 1
+    else if (underNoughtIn(row, fieldId) !== null) out.under += 1
     else out.words += 1
   }
   return out

@@ -68,7 +68,7 @@ test('a maker’s spread on Data opens its own page, which goes back to the spre
 test('what a place goes with opens that place', async ({ page }) => {
   await toPlace(page, '/places/boat_stacer')
   await page
-    .getByRole('complementary')
+    .getByRole('complementary', { name: 'Goes with' })
     .getByRole('button', { name: /^Yamaha Outboards/ })
     .click()
   await expect(page).toHaveURL(/\/places\/mot_yamaha$/)
@@ -106,4 +106,86 @@ test('a line and a photograph set in Settings are on the page after a reload, an
   await expect(page.locator('.pl-livery__line')).toHaveCount(0)
   await page.getByRole('button', { name: 'Undo' }).click()
   await expect(page.locator('.pl-livery__line')).toHaveText('Our everyday tinnies')
+})
+
+/* ============================================================
+   THE LINE-UP (2026-11-04, the data round's direction A): every press
+   a person makes on a model lands where it says, and every position is
+   in the address, so a reload stands where it was.
+   ============================================================ */
+
+test('a series filters the models in place, and a reload stands on it', async ({ page }) => {
+  await toPlace(page, '/places/boat_highfield')
+  /* every model of a maker this large: two dozen first, the rest one press away */
+  await expect(page.locator('.pl-card')).toHaveCount(24)
+  await page.getByRole('button', { name: 'Show all 67 models' }).click()
+  await expect(page).toHaveURL(/models=all/)
+  await expect(page.locator('.pl-card')).toHaveCount(67)
+  const tile = page.locator('.pl-series').getByRole('button', { name: /^Sport/ })
+  if (await tile.isVisible()) await tile.click()
+  else {
+    await page.locator('.pl-chooser').getByRole('combobox').click()
+    await page.getByRole('option', { name: /^Sport/ }).click()
+  }
+  await expect(page).toHaveURL(/\/places\/boat_highfield\?series=Sport$/)
+  await expect(page.locator('.pl-card')).toHaveCount(16)
+  await page.reload()
+  await expect(page.locator('[data-testid="place"][data-read]')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.pl-card')).toHaveCount(16)
+})
+
+test('a model’s What fits opens Fitment on that boat, and its Quote it opens the picker on that model', async ({
+  page,
+}) => {
+  await toPlace(page, '/places/boat_highfield?series=Sport')
+  const sport = page.locator('.pl-card', {
+    has: page.getByRole('heading', { name: 'Sport 660', exact: true }),
+  })
+  await expect(sport).toContainText('from $61,700')
+  await sport.getByRole('link', { name: 'What fits the Highfield Sport 660' }).click()
+  await expect(page).toHaveURL(/\/fitment\?boat=boat_highfield(%3A|:)513$/)
+  await page.goBack()
+  await expect(page.locator('[data-testid="place"][data-read]')).toBeVisible({ timeout: 30_000 })
+  await page
+    .locator('.pl-card', { has: page.getByRole('heading', { name: 'Sport 660', exact: true }) })
+    .getByRole('link', { name: 'Quote the Highfield Sport 660' })
+    .click()
+  await expect(page).toHaveURL(/\/quote\/new\?brand=boat_highfield&model=boat_highfield(%3A|:)513$/)
+  await expect(page.getByRole('complementary', { name: 'What is chosen' })).toBeVisible({
+    timeout: 15_000,
+  })
+})
+
+test('two boats set side by side stand in the address, and the compare opens in place', async ({
+  page,
+}) => {
+  await toPlace(page, '/places/boat_highfield?series=Sport')
+  for (const said of ['Sport 600', 'Sport 660']) {
+    await page
+      .locator('.pl-card', { has: page.getByRole('heading', { name: said, exact: true }) })
+      .getByRole('button', { name: `Compare the ${said}` })
+      .click()
+  }
+  await page.getByRole('button', { name: 'Compare 2' }).click()
+  await expect(page).toHaveURL(/compare=.+&see=compare|see=compare.+compare=/)
+  const sheet = page.getByRole('region', { name: 'Sport 600 and Sport 660, side by side' })
+  await expect(sheet).toBeVisible()
+  await expect(sheet.getByRole('rowheader', { name: 'Length' })).toBeVisible()
+  await page.reload()
+  await expect(
+    page.getByRole('region', { name: 'Sport 600 and Sport 660, side by side' }),
+  ).toBeVisible({ timeout: 30_000 })
+})
+
+test('Yamaha reads by horsepower, a rating opening in the address', async ({ page }) => {
+  await toPlace(page, '/places/mot_yamaha')
+  const ladder = page.getByRole('group', { name: 'By horsepower' })
+  if (await ladder.isVisible()) await ladder.getByRole('button', { name: /^150 hp/ }).click()
+  else {
+    await page.locator('.pl-chooser').getByRole('combobox').click()
+    await page.getByRole('option', { name: /^150 hp/ }).click()
+  }
+  await expect(page).toHaveURL(/in=/)
+  await expect(page.getByRole('heading', { name: /^150 hp/ })).toBeVisible()
+  await expect(page.getByText('F150XC', { exact: true })).toBeVisible()
 })

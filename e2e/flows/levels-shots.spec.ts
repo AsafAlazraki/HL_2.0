@@ -118,7 +118,7 @@ test('every state of Prices, photographed', async ({ page }) => {
 
   /* Dealer Fit: its two ways, what each is, the spread, pressed and counted */
   await to(page)
-  await pressOn(page, page.getByRole('button', { name: /^Dealer Fit, 1,777/ }))
+  await pressOn(page, page.getByRole('button', { name: /^Dealer Fit, 1,576/ }))
   await expect(page.getByTestId('prices-open')).toBeVisible()
   await shot('04-dealerfit-open')
   await measure('dealer fit open')
@@ -163,7 +163,16 @@ test('every state of Prices, photographed', async ({ page }) => {
   await to(page)
   await pressOn(page, find)
   await page.keyboard.type('704 Binnacle')
-  await pressOn(page, page.getByRole('list', { name: 'Lines found' }).getByRole('button').first())
+  await expect(page.getByRole('list', { name: 'Lines found' })).toBeVisible()
+  /* every list's best line first: the Rigging Kit of that name stands third, not sixth */
+  await shot('08d-find-704-hits')
+  await pressOn(
+    page,
+    page
+      .getByRole('list', { name: 'Lines found' })
+      .getByRole('button', { name: /, Rigging Kits, / })
+      .first(),
+  )
   await expect(page.getByTestId('buyers')).toBeVisible()
   await shot('08d-find-rigkit')
 
@@ -183,6 +192,20 @@ test('every state of Prices, photographed', async ({ page }) => {
   await to(page)
   await pressOn(page, page.getByRole('button', { name: /^Factory packages, 89/ }))
   await shot('11-packages-open')
+  await pressOn(
+    page,
+    page.getByTestId('prices-open').getByRole('button', { name: /^Sell Price, / }),
+  )
+  await expect(page.locator('.lv-census')).toBeVisible()
+  await shot('11b-packages-picked')
+  await overlapAt('packages picked')
+  /* a Jeanneau package under $0, looked up before Northside names its price */
+  await to(page)
+  await pressOn(page, find)
+  await page.keyboard.type('16L3AK')
+  await pressOn(page, page.getByRole('list', { name: 'Lines found' }).getByRole('button').first())
+  await expect(page.getByTestId('buyers')).toBeVisible()
+  await shot('11c-mercury-unchosen')
 
   /* Warranty, every maker on its scale */
   await to(page)
@@ -194,7 +217,7 @@ test('every state of Prices, photographed', async ({ page }) => {
     [/^Stacer, 91 boats/, '13-stacer-open'],
     [/^Jeanneau, 27 boats/, '15-jeanneau-open'],
     [/^Haines Signature, /, '16-haines-open'],
-    [/^Parts, 2,937/, '17-parts-open'],
+    [/^Parts, 2,238/, '17-parts-open'],
     [/^Every trailer, /, '18-trailers-open'],
     [/^Highfield/, '18b-highfield-open'],
   ] as const) {
@@ -214,6 +237,10 @@ test('every state of Prices, photographed', async ({ page }) => {
       await shot('14-stacer-95')
       await measure('stacer 95')
       await overlapAt('stacer 95')
+      /* a share of nothing, refused with its reason where it was typed, on one line */
+      await page.keyboard.press('Control+A')
+      await page.keyboard.type('0')
+      await shot('14b-stacer-0')
     }
     if (file === '15-jeanneau-open') await overlapAt('jeanneau open')
   }
@@ -244,6 +271,21 @@ test('every state of Prices, photographed', async ({ page }) => {
   )
   await pressOn(page, page.getByRole('button', { name: /^Price [\d,]+ at Sell Price$/ }))
   await written(page)
+  /* the Jeanneau package under $0, once Sell Price is named: no price, said so */
+  await to(page)
+  await pressOn(page, find)
+  await page.keyboard.type('16L3AK')
+  await pressOn(page, page.getByRole('list', { name: 'Lines found' }).getByRole('button').first())
+  await expect(page.getByTestId('buyers')).toBeVisible()
+  await shot('19b-mercury-named')
+  await to(page, '?list=packages:mot_pkg_haines')
+  await expect(page.getByTestId('prices-open')).toBeVisible()
+  await shot('19c-packages-settled-open')
+  await page
+    .getByTestId('prices-open')
+    .locator('.lv-ladder')
+    .evaluate((el) => el.scrollIntoView({ block: 'start' }))
+  await shot('19d-packages-settled-buyers')
   /* Dealer Fit at Sell, whose step must not say "every" over the 962 it leaves */
   await to(page, '?list=dealer_fit')
   await pressOn(page, page.getByTestId('prices-open').getByRole('button', { name: /^Sell, / }))
@@ -252,11 +294,18 @@ test('every state of Prices, photographed', async ({ page }) => {
   await page.getByTestId('last-step').scrollIntoViewIfNeeded()
   await shot('18c-dealerfit-sell-written')
   await written(page)
+  /* changed from Sell to Act Sell on a list already priced: counted, never "every" */
+  await to(page, '?list=dealer_fit')
+  await pressOn(page, page.getByTestId('prices-open').getByRole('button', { name: /^Act Sell, / }))
+  await expect(page.locator('.lv-census')).toBeVisible()
+  await shot('18d-dealerfit-change')
+  await overlapAt('dealer fit change')
   await to(page)
   await shot('19-all-answered')
   await shot('19-all-answered-full', true)
   await to(page, '?list=rig_kits')
-  await page.getByTestId('prices-open').scrollIntoViewIfNeeded()
+  /* brought to the top as the app brings a panel, clear of the pill by its scroll margin */
+  await page.getByTestId('prices-open').evaluate((el) => el.scrollIntoView({ block: 'start' }))
   await shot('20-kits-settled-open')
   await page.getByTestId('prices-open').getByRole('table').scrollIntoViewIfNeeded()
   await shot('20b-kits-grid')

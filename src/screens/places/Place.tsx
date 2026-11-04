@@ -20,7 +20,7 @@ import { packedOn, provenanceOfSheet } from '@/screens/data/file'
 import { PARTS_TABLE } from '@/screens/catalogue/shelf'
 import { Hero, Mark, markIsArt } from './Livery'
 import { kindWord, readPlace, readPlaces, type PlacePage } from './read'
-import { readLineup } from './lineup'
+import { readLineup } from './models'
 import { Lineup } from './Lineup'
 import { Shelf } from './Shelf'
 import { After } from './After'
@@ -85,7 +85,9 @@ const withArticle = (word: string): string => `${/^[aeiou]/i.test(word) ? 'an' :
 export const spanSaid = (lo: number | null, hi: number | null): string | null =>
   lo === null || hi === null ? null : lo === hi ? money(lo) : `${money(lo)} to ${money(hi)}`
 
-export function Place({ address, tab, onTab, at = {}, onAt, go, openTheFile }: PlaceProps) {
+const AT_REST: PlaceAt = {}
+
+export function Place({ address, tab, onTab, at = AT_REST, onAt, go, openTheFile }: PlaceProps) {
   const sheet = useCatalogue((s) => s)
   const quotes = useQuotes((s) => s.quotes)
   const { status, problem, tables, rows, modules, priceLevels, version } = sheet
@@ -302,6 +304,8 @@ export interface HeadFigure {
   small: string
 }
 
+const metres = (v: number): string => v.toLocaleString('en-AU', { maximumFractionDigits: 2 })
+
 /** The head's figures, each measured and said once: what it holds, how long, what it costs. */
 function figuresOf(
   page: PlacePage,
@@ -315,8 +319,10 @@ function figuresOf(
   if (lineup) {
     if (lineup.length) {
       const { lo, hi } = lineup.length
-      const m = (v: number) => v.toLocaleString('en-AU', { maximumFractionDigits: 2 })
-      out.push({ big: lo === hi ? `${m(lo)} m` : `${m(lo)}–${m(hi)} m`, small: 'long' })
+      out.push({
+        big: lo === hi ? `${metres(lo)} m` : `${metres(lo)}–${metres(hi)} m`,
+        small: 'long',
+      })
     }
     const s = lineup.span
     const said = spanSaid(s.lo, s.hi)
@@ -366,17 +372,14 @@ function Head({
           ) : null}
         </h1>
         {card.line ? <p className="pl-livery__line">{card.line}</p> : null}
-        <dl className="pl-figs">
+        <ul className="pl-figs">
           {figures.map((f) => (
-            <div key={f.small || f.big} className="pl-fig">
-              <dt className="pl-unseen">{f.small}</dt>
-              <dd className="pl-fig__big">{f.big}</dd>
-              <dd className="pl-fig__small" aria-hidden="true">
-                {f.small}
-              </dd>
-            </div>
+            <li key={f.small || f.big} className="pl-fig">
+              <span className="pl-fig__big">{f.big}</span>{' '}
+              <span className="pl-fig__small">{f.small}</span>
+            </li>
           ))}
-        </dl>
+        </ul>
         <p className="pl-livery__stamp">{[card.figure.held, stamp].filter(Boolean).join(' · ')}</p>
         {act || gallery ? (
           <span className="pl-livery__acts">
@@ -424,7 +427,7 @@ function Handoff({ page, go }: { page: PlacePage; go?: (href: string) => void })
           href={sheet}
           onClick={go ? () => go(sheet) : undefined}
         >
-          Open {page.card.name} in the price list
+          Open in the price list
         </Button>
       </span>
     </section>
